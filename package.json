@@ -8,16 +8,15 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "start": "node dist/server/entry.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "gen:assets": "node scripts/gen-assets.mjs",
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/node": "^9.5.5",
     "@astrojs/preact": "^4.1.0",
     "@astrojs/sitemap": "^3.6.0",
+    "@astrojs/vercel": "^8.2.11",
     "@builder.io/partytown": "^0.10.3",
     "@fontsource-variable/inter": "^5.2.6",
     "@fontsource-variable/plus-jakarta-sans": "^5.2.6",

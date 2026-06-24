@@ -2,7 +2,7 @@
 import { defineConfig } from 'astro/config';
 import preact from '@astrojs/preact';
 import sitemap from '@astrojs/sitemap';
-import node from '@astrojs/node';
+import vercel from '@astrojs/vercel';
 import { partytownSnippet } from '@builder.io/partytown/integration';
 import { copyLibFiles } from '@builder.io/partytown/utils';
 import * as path from 'path';
@@ -20,14 +20,9 @@ await copyLibFiles(path.resolve('public', '~partytown'));
 export default defineConfig({
   site: SITE_URL,
   output: 'server',
-  adapter: node({ mode: 'standalone' }),
+  adapter: vercel(),
   // Consistent policy: clean URLs with NO trailing slash (matches canonical tags).
   trailingSlash: 'never',
-  // ✅ Required for Hostinger: listen on 0.0.0.0:3000
-  server: {
-    host: '0.0.0.0',
-    port: parseInt(process.env.PORT || '3000'),
-  },
   integrations: [
     preact({ compat: true }),
     sitemap({
