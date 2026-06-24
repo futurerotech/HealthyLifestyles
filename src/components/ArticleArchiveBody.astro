@@ -1,0 +1,87 @@
+---
+import Breadcrumb from './Breadcrumb.astro';
+import Icon from './Icon.astro';
+import ArticleCard from './ArticleCard.astro';
+import type { Article, ArticleCategory } from '../data/articles';
+
+interface Props {
+  category: ArticleCategory;
+  /** Articles for the current page only. */
+  articles: Article[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+const { category, articles, total, page, totalPages } = Astro.props;
+
+const base = `/wellness-hub/${category.slug}`;
+const pageHref = (n: number) => (n === 1 ? base : `${base}/${n}`);
+
+const items = [
+  { label: 'Home', href: '/' },
+  { label: 'Wellness Hub', href: '/wellness-hub' },
+  { label: category.name },
+];
+---
+
+<header class="wh-article__header">
+  <div class="container">
+    <Breadcrumb items={items} />
+    <span class="wh-article__cat" style={`--c:${category.color}`}>
+      <Icon name={category.icon} size={15} /> {category.name}
+    </span>
+    <h1>{category.name} Guides</h1>
+    <p class="lead wh-article__lead">{category.blurb}</p>
+    <p class="wh-article__meta">
+      <span>{total} {total === 1 ? 'article' : 'articles'}{totalPages > 1 ? ` · page ${page} of ${totalPages}` : ''}</span>
+    </p>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container">
+    {articles.length === 0 ? (
+      <p class="wh-empty">
+        No guides here yet — we’re writing them. Meanwhile, browse the
+        <a href="/wellness-hub"> Wellness Hub</a> or our <a href="/tools">free calculators</a>.
+      </p>
+    ) : (
+      <ul class="wh-grid">
+        {articles.map((a) => (
+          <li><ArticleCard article={a} /></li>
+        ))}
+      </ul>
+    )}
+
+    {totalPages > 1 && (
+      <nav class="wh-pagination" aria-label="Pagination">
+        {page > 1 ? (
+          <a href={pageHref(page - 1)} rel="prev" aria-label="Previous page">
+            <Icon name="arrow-right" size={15} style="transform:rotate(180deg)" /> Prev
+          </a>
+        ) : (
+          <span class="is-disabled">Prev</span>
+        )}
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) =>
+          n === page ? (
+            <span class="is-current" aria-current="page">{n}</span>
+          ) : (
+            <a href={pageHref(n)}>{n}</a>
+          ),
+        )}
+        {page < totalPages ? (
+          <a href={pageHref(page + 1)} rel="next" aria-label="Next page">
+            Next <Icon name="arrow-right" size={15} />
+          </a>
+        ) : (
+          <span class="is-disabled">Next</span>
+        )}
+      </nav>
+    )}
+
+    <p style="margin-top:2.5rem;text-align:center;">
+      <a href="/wellness-hub" style="font-weight:700;">← All Wellness Hub guides</a>
+    </p>
+  </div>
+</section>

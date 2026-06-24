@@ -1,0 +1,101 @@
+---
+import '../styles/global.css';
+import SEO from '../components/SEO.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import CookieConsent from '../components/CookieConsent.astro';
+import Analytics from '../components/Analytics.astro';
+import AdSlot from '../components/AdSlot.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  image?: string;
+  type?: string;
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown>[];
+  /** Full-bleed pages (e.g. hero) set their own top spacing. */
+  mainClass?: string;
+  /** Disable header ad slot on this page. */
+  noHeaderAd?: boolean;
+}
+
+const {
+  title,
+  description,
+  image,
+  type,
+  noindex,
+  jsonLd,
+  mainClass,
+  noHeaderAd,
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <!-- Enable scroll-reveal before first paint (so [data-reveal] starts hidden);
+         skipped entirely for reduced-motion users. -->
+    <script is:inline>
+      try {
+        if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          document.documentElement.classList.add('js-reveal');
+        }
+      } catch (e) {}
+    </script>
+    <!-- Preload the two variable fonts used above the fold (LCP/CLS) -->
+    <link rel="preload" href="/fonts/plus-jakarta-sans-variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin />
+    <SEO
+      title={title}
+      description={description}
+      image={image}
+      type={type}
+      noindex={noindex}
+      jsonLd={jsonLd}
+    />
+  </head>
+  <body>
+    <a href="#main" class="skip-link">Skip to content</a>
+    <Header />
+    {!noHeaderAd && <AdSlot placement="header" format="leaderboard" />}
+    <main id="main" class={mainClass}>
+      <slot />
+    </main>
+    <Footer />
+    <CookieConsent />
+    <Analytics />
+    <AdSlot placement="stickyFooter" format="mobileBanner" />
+
+    <script>
+      // Reveal [data-reveal] sections once as they scroll into view. Failsafe:
+      // anything still hidden after 2.4s is revealed, so content can never get
+      // stuck (background tabs, 0x0 viewports, observer quirks).
+      const els = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
+      const reveal = (el: HTMLElement) => el.classList.add('is-revealed');
+      if (!els.length) {
+        /* nothing to do */
+      } else if (!document.documentElement.classList.contains('js-reveal') || !('IntersectionObserver' in window)) {
+        els.forEach(reveal);
+      } else {
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) {
+              if (e.isIntersecting) {
+                reveal(e.target as HTMLElement);
+                io.unobserve(e.target);
+              }
+            }
+          },
+          { rootMargin: '0px 0px -8% 0px', threshold: 0.04 },
+        );
+        els.forEach((el) => io.observe(el));
+        window.setTimeout(() => els.forEach(reveal), 2400);
+      }
+    </script>
+  </body>
+</html>

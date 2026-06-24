@@ -1,0 +1,284 @@
+---
+/**
+ * Ad Manager — replaces AdsLoader + AdSlot.
+ *
+ * Reads the ad config from the CMS (at build time) and renders:
+ *   1. Partytown-forwarding snippet (offloads 3rd-party JS to a web worker)
+ *   2. Consent-gated AdSense loader (IntersectionObserver-lazy)
+ *   3. Per-slot containers for each configured placement
+ *   4. Sticky mobile footer with close button
+ *
+ * Partytown strategy:
+ *   - AdSense script is marked type="text/partytown" so it runs in a worker
+ *   - The lazy-push IntersectionObserver runs on the main thread (lightweight)
+ *   - data-pt-skip on the observer so it's NOT forwarded to the worker
+ *
+ * Lazy-loading: each <ins> uses data-ad-lazy; the observer pushes each slot
+ * individually when it scrolls within 250px of the viewport.
+ *
+ * Consent gating: all of this is inert until window.HLS_CONSENT === 'accept'.
+ */
+
+import type { AdConfig, AdSlot } from '../lib/cms';
+
+interface Props {
+  config: AdConfig;
+  /** Which slots to render on this page. Defaults to all enabled slots. */
+  slots?: string[];
+}
+
+const { config: ad, slots: onlySlots } = Astro.props;
+
+const adsenseEnabled = ad?.adsenseEnabled && !!ad?.adsenseClient && /^ca-pub-\d+$/.test(ad?.adsenseClient || '');
+const clientId = ad?.adsenseClient || '';
+const usePartytown = ad?.partytownEnabled !== false;
+const useLazy = ad?.lazyLoad !== false;
+
+type SlotMap = Record<string, AdSlot>;
+const slotMap: SlotMap = {};
+for (const s of ad?.slots || []) {
+  slotMap[s.placement] = s;
+}
+
+const renderSlots = onlySlots
+  ? onlySlots.filter((p) => slotMap[p]?.enabled !== false)
+  : (ad?.slots || []).filter((s) => s.enabled !== false).map((s) => s.placement);
+
+const hasSticky = renderSlots.includes('stickyFooter');
+---
+
+<!-- 1. HEAD: Partytown snippet is injected globally via astro.config.mjs -->
+
+<!-- 2. Consent + Lazy loader (main thread — lightweight IntersectionObserver) -->
+{
+  adsenseEnabled && (
+    <script is:inline data-pt-skip>
+      (function () {
+        var loaded = false;
+
+        function pushSlots() {
+          if (loaded) return;
+          loaded = true;
+
+          if ({@usePartytown}) {
+            // Partytown handles the adsbygoogle.js load — we just push slots
+            var io = new IntersectionObserver(
+              function (entries) {
+                entries.forEach(function (e) {
+                  if (!e.isIntersecting) return;
+                  try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (err) {}
+                  io.unobserve(e.target);
+                });
+              },
+              { rootMargin: '{@useLazy ? "250px" : "0px"}' }
+            );
+            document.querySelectorAll('ins[data-ad-lazy]').forEach(function (el) { io.observe(el); });
+          } else {
+            // No Partytown: load AdSense on main thread, then lazy-push
+            var s = document.createElement('script');
+            s.async = true;
+            s.crossOrigin = 'anonymous';
+            s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={@clientId}';
+            s.onload = function () {
+              var io = new IntersectionObserver(
+                function (entries) {
+                  entries.forEach(function (e) {
+                    if (!e.isIntersecting) return;
+                    try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (err) {}
+                    io.unobserve(e.target);
+                  });
+                },
+                { rootMargin: '{@useLazy ? "250px" : "0px"}' }
+              );
+              document.querySelectorAll('ins[data-ad-lazy]').forEach(function (el) { io.observe(el); });
+            };
+            document.head.appendChild(s);
+          }
+        }
+
+        if (window.HLS_CONSENT === 'accept') pushSlots();
+        document.addEventListener('consent-update', function (e) {
+          if (e && e.detail && e.detail.analytics) pushSlots();
+        });
+      })();
+    </script>
+  )
+}
+
+<!-- 3. AdSense main script (offloaded to Partytown web worker) -->
+{
+  adsenseEnabled && usePartytown && (
+    <script type="text/partytown" data-pt-src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={clientId}"
+      async crossOrigin="anonymous">
+    </script>
+  )
+}
+
+<!-- 4. Per-slot containers -->
+{
+  renderSlots.map((placement) => {
+    const slot = slotMap[placement];
+    if (!slot) return '';
+    const format = slot.format || 'auto';
+    const adClass = `ad ad--${format}${placement === 'sidebar' ? ' ad--sidebar' : ''}${placement === 'stickyFooter' ? ' ad--sticky' : ''}`;
+
+    if (slot.affiliateBanner?.url && slot.affiliateBanner?.image?.url) {
+      const ab = slot.affiliateBanner;
+      return (
+        <aside class={adClass} role="complementary" aria-label="Advertisement">
+          <a href={ab.url} target="_blank" rel="noopener sponsored" class="ad__affiliate">
+            <img src={ab.image.url} alt={ab.alt || 'Advertisement'} width={ab.width || undefined} height={ab.height || undefined} loading="lazy" />
+          </a>
+        </aside>
+      );
+    }
+
+    if (slot.customCode) {
+      const html = slot.customCode;
+      return (
+        <aside class={adClass} role="complementary" aria-label="Advertisement">
+          {placement === 'stickyFooter' && (
+            <button class="ad__close" data-close-sticky type="button" aria-label="Close advertisement">&times;</button>
+          )}
+          <Fragment set:html={html} />
+        </aside>
+      );
+    }
+
+    if (adsenseEnabled && slot.adsenseSlotId) {
+      return (
+        <aside class={adClass} role="complementary" aria-label="Advertisement">
+          <span class="ad__label">Advertisement</span>
+          {placement === 'stickyFooter' && (
+            <button class="ad__close" data-close-sticky type="button" aria-label="Close advertisement">&times;</button>
+          )}
+          <ins
+            class="adsbygoogle"
+            data-ad-client={clientId}
+            data-ad-slot={slot.adsenseSlotId}
+            data-ad-format={format === 'auto' ? 'auto' : format === 'rectangle' ? 'rectangle' : format === 'leaderboard' ? 'leaderboard' : format === 'sidebar' ? 'vertical' : 'auto'}
+            data-full-width-responsive="false"
+            data-ad-lazy
+          />
+        </aside>
+      );
+    }
+
+    // No ad configured — render a reserved placeholder (no CLS)
+    const sizeClass = format === 'rectangle' ? 'ad--rectangle' : format === 'sidebar' ? 'ad--sidebar' : format === 'leaderboard' ? 'ad--leaderboard' : format === 'mobileBanner' ? 'ad--mobile' : 'ad--auto';
+    return (
+      <aside class={`ad ad--placeholder ${sizeClass}`} role="complementary" aria-label="Advertisement">
+        <span class="ad__label">Advertisement</span>
+      </aside>
+    );
+  })
+}
+
+<!-- 5. Sticky footer close script -->
+{
+  hasSticky && (
+    <script is:inline data-pt-skip>
+      document.addEventListener('click', function (e) {
+        var btn = e.target?.closest && e.target.closest('[data-close-sticky]');
+        if (btn) {
+          var sticky = btn.closest('.ad--sticky');
+          if (sticky) sticky.classList.add('ad--sticky-hidden');
+        }
+      });
+    </script>
+  )
+}
+
+<style>
+  /* ---- Shared ad container ---- */
+  .ad {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-block: clamp(1.5rem, 3vw, 2.25rem);
+    background:
+      repeating-linear-gradient(45deg, var(--surface-2), var(--surface-2) 10px, #fff 10px, #fff 20px);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .ad__label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    background: var(--surface);
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+  }
+
+  /* ---- Size variants (reserved space = no CLS) ---- */
+  .ad--auto { min-height: 100px; }
+  .ad--rectangle { min-height: 280px; }
+  .ad--leaderboard { min-height: 90px; }
+  .ad--mobile { min-height: 100px; }
+  .ad--sidebar { min-height: 600px; }
+  .ad--placeholder { background: repeating-linear-gradient(45deg, var(--surface-2), var(--surface-2) 10px, #fff 10px, #fff 20px); }
+
+  /* ---- Sticky mobile footer ---- */
+  .ad--sticky {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    margin: 0;
+    min-height: 60px;
+    max-height: 120px;
+    background: #fff;
+    border: none;
+    border-top: 1px solid var(--border);
+    border-radius: 0;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease;
+  }
+  .ad--sticky-hidden {
+    transform: translateY(100%);
+  }
+  .ad__close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 2;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: var(--surface);
+    border-radius: 0 0 0 4px;
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ad__close:hover { color: var(--text); background: var(--surface-2); }
+
+  /* ---- Affiliate banner image ---- */
+  .ad__affiliate { display: block; width: 100%; height: 100%; }
+  .ad__affiliate img { display: block; width: 100%; height: 100%; object-fit: contain; }
+
+  /* ---- AdSense ins fills container ---- */
+  .adsbygoogle {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ---- Hide sidebar ads on mobile ---- */
+  @media (max-width: 960px) {
+    .ad--sidebar { display: none; }
+  }
+</style>
+```

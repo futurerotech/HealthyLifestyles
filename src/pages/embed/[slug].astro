@@ -1,0 +1,139 @@
+---
+/**
+ * Minimal, framable calculator page for the "Embed this calculator" feature.
+ * No site header/footer/nav — just the live tool island and a "Powered by
+ * HealthyLifeStyles" bar that links back to the full tool. noindex (it's a thin
+ * duplicate of the tool page) and excluded from the sitemap. The /embed/* path
+ * is allowed to be framed cross-origin via public/_headers.
+ */
+import '../../styles/global.css';
+import '../../styles/calculator.css';
+import '../../styles/meal-plan.css';
+import '../../styles/lifestyle-age.css';
+import '../../styles/strength-program.css';
+import '../../styles/caffeine-curfew.css';
+import '../../styles/muscle-preservation.css';
+import '../../styles/sitting-reversal.css';
+import '../../styles/fasting.css';
+import '../../styles/chronotype.css';
+import '../../styles/walk-it-off.css';
+import '../../styles/weight-timeline.css';
+import '../../styles/caffeine-tracker.css';
+
+import Calculator from '../../islands/Calculator.tsx';
+import SleepCalculator from '../../islands/SleepCalculator.tsx';
+import DateCalculator from '../../islands/DateCalculator.tsx';
+import PaceCalculator from '../../islands/PaceCalculator.tsx';
+import QuizCalculator from '../../islands/QuizCalculator.tsx';
+import BreathingTimer from '../../islands/BreathingTimer.tsx';
+import MealPlanGenerator from '../../islands/MealPlanGenerator.tsx';
+import LifestyleAge from '../../islands/LifestyleAge.tsx';
+import StrengthProgram from '../../islands/StrengthProgram.tsx';
+import CaffeineCurfew from '../../islands/CaffeineCurfew.tsx';
+import MusclePreservation from '../../islands/MusclePreservation.tsx';
+import SittingReversal from '../../islands/SittingReversal.tsx';
+import Fasting from '../../islands/Fasting.tsx';
+import Chronotype from '../../islands/Chronotype.tsx';
+import WalkItOff from '../../islands/WalkItOff.tsx';
+import WeightTimeline from '../../islands/WeightTimeline.tsx';
+import CaffeineTracker from '../../islands/CaffeineTracker.tsx';
+
+import { getLiveTools, getTool, type Tool } from '../../data/tools';
+import { getEngine } from '../../lib/toolEngine';
+import { SITE } from '../../consts';
+
+export function getStaticPaths() {
+  return getLiveTools().map((tool) => ({ params: { slug: tool.slug }, props: { tool } }));
+}
+
+interface Props {
+  tool: Tool;
+}
+const { tool } = Astro.props;
+const engine = getEngine(tool);
+
+const origin = (Astro.site ?? new URL('https://www.healthylifestyles.com')).href.replace(/\/$/, '');
+const toolUrl = `${origin}/tools/${tool.slug}`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, follow" />
+    <title>{tool.title} — {SITE.name}</title>
+    <base target="_blank" />
+  </head>
+  <body class="embed-body">
+    <main class="embed" data-tool={tool.slug} aria-label={`${tool.title} calculator`}>
+      {engine === 'meal' && <MealPlanGenerator client:load />}
+      {engine === 'lifestyle-age' && <LifestyleAge client:load />}
+      {engine === 'strength' && <StrengthProgram client:load />}
+      {engine === 'caffeine' && <CaffeineCurfew client:load />}
+      {engine === 'muscle' && <MusclePreservation client:load />}
+      {engine === 'sitting' && <SittingReversal client:load />}
+      {engine === 'fasting' && <Fasting client:load />}
+      {engine === 'chronotype' && <Chronotype client:load />}
+      {engine === 'walk-it-off' && <WalkItOff client:load />}
+      {engine === 'weight-timeline' && <WeightTimeline client:load />}
+      {engine === 'caffeine-tracker' && <CaffeineTracker client:load />}
+      {engine === 'sleep' && <SleepCalculator client:load slug={tool.slug} />}
+      {engine === 'date' && <DateCalculator client:load slug={tool.slug} />}
+      {engine === 'pace' && <PaceCalculator client:load slug={tool.slug} />}
+      {engine === 'quiz' && <QuizCalculator client:load slug={tool.slug} />}
+      {engine === 'breathing' && <BreathingTimer client:load slug={tool.slug} />}
+      {engine === 'numeric' && <Calculator client:load slug={tool.slug} />}
+    </main>
+
+    <a class="embed__brand" href={toolUrl} rel="noopener">
+      <span class="embed__mark" aria-hidden="true">
+        <svg viewBox="0 0 48 48" width="22" height="22">
+          <rect x="2" y="2" width="44" height="44" rx="13" fill="#16a34a" />
+          <path d="M9 25h6l3-9 5 16 4-11 2.5 4H39" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </span>
+      <span class="embed__brand-text">Powered by <strong>{SITE.name}</strong></span>
+      <span class="embed__brand-cta">Open full tool →</span>
+    </a>
+
+    <style is:global>
+      .embed-body {
+        margin: 0;
+        background: var(--bg, #f8fafc);
+        padding: 14px;
+        font-family: var(--font-body, system-ui, sans-serif);
+      }
+      .embed {
+        margin: 0 auto;
+        max-width: 520px;
+      }
+      .embed__brand {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        max-width: 520px;
+        margin: 10px auto 0;
+        padding: 0.6rem 0.85rem;
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: 12px;
+        background: #fff;
+        color: var(--ink, #0f172a);
+        font-size: 0.85rem;
+        text-decoration: none;
+      }
+      .embed__brand:hover {
+        border-color: var(--green-accent, #22c55e);
+      }
+      .embed__brand strong {
+        font-weight: 800;
+      }
+      .embed__brand-cta {
+        margin-left: auto;
+        color: var(--green-700, #15803d);
+        font-weight: 700;
+        white-space: nowrap;
+      }
+    </style>
+  </body>
+</html>

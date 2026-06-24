@@ -1,0 +1,265 @@
+/* ============================================================
+   Sitting Disease Reversal calculator. Loaded only on
+   /tools/sitting-disease-reversal-calculator.
+   ============================================================ */
+
+.sr {
+  display: grid;
+  gap: 1.25rem;
+}
+.sr__h {
+  font-size: 1.2rem;
+  margin: 0 0 0.85rem;
+}
+
+/* ---------- Form ---------- */
+.sr__form {
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  display: grid;
+  gap: 1.1rem;
+}
+.sr__form-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.sr__form-head h2 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+.sr__units {
+  display: inline-flex;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 0.15rem;
+  background: var(--surface-2);
+}
+.sr__units button {
+  border: 0;
+  background: transparent;
+  padding: 0.4rem 1rem;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.sr__units button.is-on {
+  background: var(--green-primary);
+  color: #fff;
+}
+.sr__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.85rem 1rem;
+}
+.sr__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.sr__field input,
+.sr__field select {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-weight: 600;
+  background: #fff;
+}
+.sr__field input:focus-visible,
+.sr__field select:focus-visible {
+  border-color: var(--green-accent);
+}
+.sr__input-unit {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.sr__input-unit small {
+  color: var(--muted);
+  font-weight: 600;
+}
+.sr__level {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 0.7rem 0.95rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+.sr__level--moderate {
+  background: var(--mint-50);
+  border-color: #bbf7d0;
+  color: var(--green-700);
+}
+.sr__level--high {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #b45309;
+}
+.sr__level--very-high {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+/* ---------- Movement recipe ---------- */
+.sr__recipe {
+  padding: clamp(1.25rem, 3vw, 1.6rem);
+}
+.sr__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.85rem;
+  margin-bottom: 1.1rem;
+}
+.sr__stat {
+  display: grid;
+  gap: 0.15rem;
+  padding: 1.1rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  text-align: center;
+}
+.sr__stat--accent {
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+}
+.sr__stat-num {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.8rem, 5vw, 2.4rem);
+  line-height: 1;
+  color: var(--ink);
+}
+.sr__stat--accent .sr__stat-num {
+  color: var(--c-fitness);
+}
+.sr__stat-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.sr__stat-sub {
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+.sr__recipe-line {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #334155;
+}
+.sr__recipe-line strong {
+  color: var(--ink);
+}
+
+/* ---------- Ideas ---------- */
+.sr__ideas {
+  padding: clamp(1.25rem, 3vw, 1.6rem);
+}
+.sr__ideas ul {
+  display: grid;
+  gap: 0.6rem;
+}
+.sr__ideas li {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  font-size: 0.95rem;
+  color: #334155;
+  line-height: 1.5;
+}
+.sr__idea-dot {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #f5f3ff;
+  color: var(--c-fitness);
+  font-weight: 800;
+  font-size: 0.85rem;
+  margin-top: 1px;
+}
+
+/* ---------- Calories ---------- */
+.sr__cal {
+  padding: clamp(1.25rem, 3vw, 1.6rem);
+}
+.sr__cal-sub {
+  margin: -0.5rem 0 1rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.sr__cal-rows {
+  display: grid;
+  gap: 0.5rem;
+}
+.sr__cal-rows > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0.2rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.92rem;
+  color: #334155;
+}
+.sr__cal-rows > div strong {
+  white-space: nowrap;
+  font-family: var(--font-display);
+}
+.sr__cal-total {
+  border-bottom: 0 !important;
+  font-weight: 700;
+  color: var(--ink) !important;
+}
+.sr__cal-total strong {
+  color: var(--green-700);
+  font-size: 1.05rem;
+}
+
+/* ---------- Share ---------- */
+.sr__share {
+  padding: clamp(1.1rem, 3vw, 1.5rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.sr__share-sub {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.sr__share-msg {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--green-700);
+  font-weight: 600;
+}
+.sr__note {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 640px) {
+  .sr__grid {
+    grid-template-columns: 1fr;
+  }
+  .sr__stats {
+    grid-template-columns: 1fr;
+  }
+}

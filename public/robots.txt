@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Generated sitemap (via @astrojs/sitemap)
+Sitemap: https://www.healthylifestyles.com/sitemap-index.xml

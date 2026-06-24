@@ -1,0 +1,17 @@
+# Security headers — Netlify / Cloudflare Pages format.
+# Mirror elsewhere: Vercel → vercel.json "headers"; Apache → .htaccess; Nginx → add_header.
+# Most static hosts also auto-redirect http→https; HSTS below makes that durable.
+/*
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  Content-Security-Policy: upgrade-insecure-requests; frame-ancestors 'self'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+  Cross-Origin-Opener-Policy: same-origin
+
+# "Embed this calculator" pages are meant to be iframed on partner sites, so they
+# allow any origin to frame them. (upgrade-insecure-requests still blocks mixed
+# content. We intentionally do NOT send X-Frame-Options anywhere — it can't be
+# relaxed per-path, and CSP frame-ancestors supersedes it in modern browsers.)
+/embed/*
+  Content-Security-Policy: upgrade-insecure-requests; frame-ancestors *

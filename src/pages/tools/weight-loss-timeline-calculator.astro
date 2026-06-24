@@ -1,0 +1,11 @@
+---
+import ToolPageLayout from '../../components/ToolPageLayout.astro';
+import { getTool } from '../../data/tools';
+import { getToolContent } from '../../data/tool-content';
+import '../../styles/weight-timeline.css';
+
+const tool = getTool('weight-loss-timeline-calculator')!;
+const content = getToolContent('weight-loss-timeline-calculator')!;
+---
+
+<ToolPageLayout tool={tool} content={content} />

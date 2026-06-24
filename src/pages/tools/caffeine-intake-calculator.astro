@@ -1,0 +1,11 @@
+---
+import ToolPageLayout from '../../components/ToolPageLayout.astro';
+import { getTool } from '../../data/tools';
+import { getToolContent } from '../../data/tool-content';
+import '../../styles/caffeine-tracker.css';
+
+const tool = getTool('caffeine-intake-calculator')!;
+const content = getToolContent('caffeine-intake-calculator')!;
+---
+
+<ToolPageLayout tool={tool} content={content} />

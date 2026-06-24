@@ -1,0 +1,11 @@
+---
+import ToolPageLayout from '../../components/ToolPageLayout.astro';
+import { getTool } from '../../data/tools';
+import { getToolContent } from '../../data/tool-content';
+import '../../styles/chronotype.css';
+
+const tool = getTool('sleep-chronotype-quiz')!;
+const content = getToolContent('sleep-chronotype-quiz')!;
+---
+
+<ToolPageLayout tool={tool} content={content} />

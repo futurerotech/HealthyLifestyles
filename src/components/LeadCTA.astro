@@ -1,0 +1,55 @@
+---
+/**
+ * Lead-generation CTA card shown after calculator results.
+ * Fetches the LeadGen config from the CMS at build time and renders a matching
+ * offer for the given tool slug. Falls back silently when no CMS or no offer.
+ */
+import { getLeadGenConfig } from '../lib/lead-config';
+import LeadForm from '../islands/LeadForm';
+
+interface Props {
+  /** Tool slug used to find a matching offer. */
+  toolSlug: string;
+  /** Tool name passed through to the form submission. */
+  toolName?: string;
+  /** Placement filter (afterResult / sidebar / midContent). */
+  placement?: string;
+}
+
+const { toolSlug, toolName, placement = 'afterResult' } = Astro.props;
+
+const config = await getLeadGenConfig();
+const offer = config?.enabled
+  ? config.offers?.find(
+      (o) =>
+        o.enabled &&
+        o.placement === placement &&
+        (!o.tools || o.tools.length === 0 || o.tools.some((t) => typeof t === 'string' ? t === toolSlug : (t as { slug?: string }).slug === toolSlug))
+    )
+  : null;
+---
+
+{offer && (
+  <div class="lead-cta">
+    <LeadForm
+      client:visible
+      headline={offer.headline}
+      description={offer.description}
+      buttonLabel={offer.buttonLabel || 'Get Your Free Report'}
+      collectName={offer.collectName}
+      offerName={offer.name}
+      tool={toolName || toolSlug}
+      successMessage={config.successMessage || 'Thanks! Check your inbox shortly.'}
+    />
+  </div>
+)}
+
+<style>
+  .lead-cta {
+    margin-block: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+    border: 1px solid #bbf7d0;
+    border-radius: var(--radius);
+  }
+</style>

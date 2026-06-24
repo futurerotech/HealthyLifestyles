@@ -1,0 +1,128 @@
+---
+/**
+ * Email-newsletter signup (footer + end of articles). Posts to the configured
+ * NEWSLETTER.endpoint when set; otherwise falls back to a mailto: so the signup
+ * still works and no address is lost. No third-party script loads.
+ */
+import Icon from './Icon.astro';
+import { NEWSLETTER, CONTACT } from '../consts';
+
+interface Props {
+  variant?: 'footer' | 'inline';
+}
+const { variant = 'inline' } = Astro.props;
+
+const endpoint = NEWSLETTER.endpoint;
+const hasEndpoint = /^https?:\/\//.test(endpoint);
+const action = hasEndpoint ? endpoint : `mailto:${CONTACT.email}`;
+const enctype = hasEndpoint ? undefined : 'text/plain';
+const fieldName = hasEndpoint ? NEWSLETTER.emailField : 'email';
+const inputId = `nl-email-${variant}`;
+---
+
+<form
+  class:list={['newsletter', `newsletter--${variant}`]}
+  action={action}
+  method="post"
+  enctype={enctype}
+>
+  <div class="newsletter__copy">
+    <strong>Get new calculators &amp; guides</strong>
+    <span>Occasional, evidence-based wellness tips. No spam — unsubscribe anytime.</span>
+  </div>
+  <div class="newsletter__field">
+    <label class="sr-only" for={inputId}>Email address</label>
+    <input
+      id={inputId}
+      type="email"
+      name={fieldName}
+      required
+      placeholder="you@example.com"
+      autocomplete="email"
+    />
+    <button type="submit">
+      Subscribe <Icon name="arrow-right" size={16} />
+    </button>
+  </div>
+</form>
+
+<style>
+  .newsletter {
+    display: grid;
+    gap: 0.9rem;
+  }
+  .newsletter__copy strong {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+  }
+  .newsletter__copy span {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .newsletter__field {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .newsletter__field input {
+    flex: 1 1 220px;
+    min-width: 0;
+    padding: 0.7rem 0.95rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    background: #fff;
+    font: inherit;
+    color: var(--ink);
+  }
+  .newsletter__field input:focus-visible {
+    outline: none;
+    border-color: var(--green-accent);
+    box-shadow: var(--focus-ring);
+  }
+  .newsletter__field button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.7rem 1.2rem;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--green-primary);
+    color: #fff;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.92rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+  .newsletter__field button:hover {
+    background: var(--green-700);
+  }
+
+  /* Footer variant: lighter text on the dark footer. */
+  .newsletter--footer .newsletter__copy strong {
+    color: #fff;
+  }
+  .newsletter--footer .newsletter__copy span {
+    color: #94a3b8;
+  }
+  .newsletter--footer .newsletter__field input {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(148, 163, 184, 0.25);
+    color: #fff;
+  }
+  .newsletter--footer .newsletter__field input::placeholder {
+    color: #94a3b8;
+  }
+
+  /* Inline (article) variant: card framing. */
+  .newsletter--inline {
+    background: var(--mint-50);
+    border: 1px solid #d1fae5;
+    border-radius: var(--radius);
+    padding: 1.4rem 1.5rem;
+    margin: 2.5rem 0;
+  }
+</style>

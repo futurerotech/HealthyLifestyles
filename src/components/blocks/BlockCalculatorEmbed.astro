@@ -1,0 +1,28 @@
+---
+export interface Props {
+  tool: { slug: string; name?: string } | null;
+  variant?: 'inline' | 'banner';
+}
+
+const { tool, variant = 'inline' } = Astro.props;
+if (!tool) { Astro.render(Astro.slots.default()); return; }
+const baseUrl = import.meta.env.CMS_URL || 'http://localhost:3000';
+const iframeSrc = `${baseUrl.replace('/api', '')}/embed/${tool.slug}`;
+---
+
+<div class="calc-embed calc-embed--{variant}">
+  <iframe
+    src={iframeSrc}
+    class="calc-embed__frame"
+    title={tool.name ?? tool.slug}
+    loading="lazy"
+    allow="clipboard-read; clipboard-write"
+  ></iframe>
+</div>
+
+<style>
+  .calc-embed { margin: 2rem 0; }
+  .calc-embed--inline { max-width: 640px; margin-inline: auto; }
+  .calc-embed--banner { width: 100%; }
+  .calc-embed__frame { width: 100%; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; min-height: 480px; }
+</style>

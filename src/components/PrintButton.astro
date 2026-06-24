@@ -1,0 +1,72 @@
+---
+/**
+ * Primary "Save as PDF" action. Opens the print dialog (the @media print sheet
+ * renders the branded one-page report). Before printing we set document.title to
+ * "<Tool> Result — HealthyLifeStyles" so Save-as-PDF pre-fills a clean filename
+ * (button AND Ctrl/⌘+P), then restore it. While the dialog prepares it shows a
+ * "Preparing PDF…" spinner and disables itself.
+ */
+import Icon from './Icon.astro';
+
+interface Props {
+  label?: string;
+  /** e.g. "BMI Result — HealthyLifeStyles" */
+  reportTitle?: string;
+}
+const { label = 'Save as PDF', reportTitle = '' } = Astro.props;
+---
+
+<button type="button" class="result-action result-action--primary" data-print-trigger data-report-title={reportTitle}>
+  <span class="result-action__icon"><Icon name="download" size={18} /></span>
+  <span class="result-action__spinner" aria-hidden="true"></span>
+  <span class="result-action__label">{label}</span>
+</button>
+
+<script>
+  // Clean Save-as-PDF filename via document.title, for any print path.
+  const titleEl = document.querySelector('[data-report-title]');
+  const reportTitle = titleEl?.getAttribute('data-report-title') || '';
+  let prevTitle: string | null = null;
+  if (reportTitle) {
+    window.addEventListener('beforeprint', () => {
+      prevTitle = document.title;
+      document.title = reportTitle;
+    });
+    window.addEventListener('afterprint', () => {
+      if (prevTitle != null) {
+        document.title = prevTitle;
+        prevTitle = null;
+      }
+    });
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('[data-print-trigger]').forEach((btn) => {
+    const label = btn.querySelector('.result-action__label');
+    const defaultText = label?.textContent || 'Save as PDF';
+    let restoreTimer: number | undefined;
+    const setBusy = (busy: boolean) => {
+      btn.classList.toggle('is-busy', busy);
+      btn.disabled = busy;
+      if (label) label.textContent = busy ? 'Preparing PDF…' : defaultText;
+    };
+    const restore = () => {
+      window.clearTimeout(restoreTimer);
+      setBusy(false);
+    };
+    window.addEventListener('afterprint', restore);
+    btn.addEventListener('click', () => {
+      setBusy(true);
+      // Let the busy state paint before the (blocking) print dialog opens.
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          window.print();
+          restoreTimer = window.setTimeout(restore, 1000);
+        }),
+      );
+    });
+  });
+
+  // Stamp today's date into the print-only branded header.
+  const d = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  document.querySelectorAll('[data-print-date]').forEach((el) => (el.textContent = d));
+</script>

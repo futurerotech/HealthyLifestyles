@@ -1,0 +1,38 @@
+---
+/**
+ * The per-tool identity tile: a white lucide icon on a rounded gradient square
+ * with a soft, gradient-tinted shadow. Used on tool cards and the tool-page
+ * header so every tool reads as distinct while its category color stays
+ * consistent. `gradient` is a color-family key (see GRADIENTS); `icon` is a
+ * lucide name from Icon.astro. Both are stored per tool in tools.ts.
+ */
+import Icon from './Icon.astro';
+import { GRADIENTS, DEFAULT_GRADIENT } from '../lib/gradients';
+
+interface Props {
+  icon?: string;
+  gradient?: string;
+  /** Tile edge length in px (radius scales to stay 14–16px). */
+  size?: number;
+  class?: string;
+  /** Decorative by default (the title sits next to it); pass to expose to AT. */
+  label?: string;
+}
+
+const { icon, gradient = 'blue', size = 52, class: className, label } = Astro.props;
+
+const [from, to] = GRADIENTS[gradient] ?? DEFAULT_GRADIENT;
+const iconSize = Math.round(size * 0.5);
+const radius = size >= 56 ? 16 : 14;
+const decorative = !label;
+---
+
+<span
+  class:list={['icon-tile', 'icon-tile--grad', className]}
+  style={`--from:${from};--to:${to};--ti-size:${size}px;--ti-radius:${radius}px`}
+  aria-hidden={decorative ? 'true' : undefined}
+  role={decorative ? undefined : 'img'}
+  aria-label={label}
+>
+  <Icon name={icon ?? 'flask'} size={iconSize} />
+</span>

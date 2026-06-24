@@ -1,0 +1,24 @@
+---
+import ToolPageLayout from '../../components/ToolPageLayout.astro';
+import { getLiveTools } from '../../data/tools';
+import { getToolContent } from '../../data/tool-content';
+
+export function getStaticPaths() {
+  // One statically generated page per live tool that has authored content.
+  // These tools have their own dedicated pages (so each can load its own
+  // stylesheet) — exclude them here to avoid duplicate routes.
+  const CUSTOM_PAGES = new Set(['meal-plan-generator', 'lifestyle-age-test', 'strength-program-builder', 'caffeine-curfew-calculator', 'muscle-preservation-calculator', 'sitting-disease-reversal-calculator', 'intermittent-fasting-calculator', 'sleep-chronotype-quiz', 'walk-it-off-calculator', 'weight-loss-timeline-calculator', 'caffeine-intake-calculator']);
+  return getLiveTools()
+    .filter((tool) => !CUSTOM_PAGES.has(tool.slug))
+    .filter((tool) => getToolContent(tool.slug))
+    .map((tool) => ({
+      params: { slug: tool.slug },
+      props: { tool },
+    }));
+}
+
+const { tool } = Astro.props;
+const content = getToolContent(tool.slug)!;
+---
+
+<ToolPageLayout tool={tool} content={content} />

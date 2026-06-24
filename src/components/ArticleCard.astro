@@ -1,0 +1,39 @@
+---
+import Icon from './Icon.astro';
+import { getArticleCategory, articlePlainText, type Article } from '../data/articles';
+import { readingTimeMinutes, formatDate } from '../lib/text';
+
+interface Props {
+  article: Article;
+  /** Larger title for the first/most-prominent card. */
+  size?: 'default' | 'lg';
+}
+
+const { article, size = 'default' } = Astro.props;
+const category = getArticleCategory(article.category);
+const minutes = readingTimeMinutes(articlePlainText(article));
+const color = category?.color ?? '#16a34a';
+---
+
+<a
+  href={`/wellness-hub/${article.slug}`}
+  class:list={['wh-card card', { 'wh-card--lg': size === 'lg' }]}
+  data-search={`${article.title} ${article.excerpt} ${category?.name ?? ''}`.toLowerCase()}
+>
+  <span
+    class="wh-card__media"
+    style={`background: linear-gradient(135deg, ${color}, color-mix(in srgb, ${color} 70%, #0a1628))`}
+  >
+    <Icon name={category?.icon ?? 'book'} />
+  </span>
+  <span class="wh-card__body">
+    <span class="wh-card__cat" style={`color:${color}`}>{category?.name}</span>
+    <h3 class="wh-card__title">{article.title}</h3>
+    <span class="wh-card__excerpt">{article.excerpt}</span>
+    <span class="wh-card__meta">
+      <span>{minutes} min read</span>
+      <span class="dot" aria-hidden="true"></span>
+      <span>Updated {formatDate(article.updatedDate)}</span>
+    </span>
+  </span>
+</a>

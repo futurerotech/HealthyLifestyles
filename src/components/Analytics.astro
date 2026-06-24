@@ -1,0 +1,48 @@
+---
+/**
+ * Google Analytics 4 — loaded ONLY after the user accepts analytics cookies
+ * (listens for the `consent-update` event from CookieConsent / window.HLS_CONSENT).
+ * Also fires a debounced `calculation_complete` event keyed by tool slug, so you
+ * can see which calculators get used. Inert until a real GA4 id is set in consts.
+ */
+import { ANALYTICS } from '../consts';
+const gaId = ANALYTICS.ga4Id;
+---
+
+<script is:inline define:vars={{ gaId }}>
+  (function () {
+    var valid = /^G-[A-Z0-9]{6,}$/.test(gaId) && gaId !== 'G-XXXXXXXXXX';
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { window.dataLayer.push(arguments); }
+    window.gtag = gtag;
+
+    var loaded = false;
+    function loadGA() {
+      if (loaded || !valid) return;
+      loaded = true;
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=' + gaId;
+      document.head.appendChild(s);
+      gtag('js', new Date());
+      gtag('config', gaId, { anonymize_ip: true });
+    }
+
+    // Consent gating
+    if (window.HLS_CONSENT === 'accept') loadGA();
+    document.addEventListener('consent-update', function (e) {
+      if (e && e.detail && e.detail.analytics) loadGA();
+    });
+
+    // Conversion signal: a calculation completed (debounced, per interaction).
+    var t;
+    document.addEventListener('input', function (e) {
+      var host = e.target && e.target.closest && e.target.closest('[data-tool]');
+      if (!host || !loaded) return;
+      clearTimeout(t);
+      t = setTimeout(function () {
+        gtag('event', 'calculation_complete', { tool_slug: host.getAttribute('data-tool') });
+      }, 1500);
+    });
+  })();
+</script>

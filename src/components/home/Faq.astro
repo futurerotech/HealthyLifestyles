@@ -1,0 +1,88 @@
+---
+import Icon from '../Icon.astro';
+import { HOME_FAQ } from '../../data/faq';
+---
+
+<section class="section" aria-labelledby="faq-title">
+  <div class="container container-narrow">
+    <div class="section-head">
+      <span class="eyebrow">FAQ</span>
+      <h2 id="faq-title">Frequently asked questions</h2>
+      <p class="lead">Everything you need to know about using our tools.</p>
+    </div>
+
+    <div class="faq">
+      {
+        HOME_FAQ.map((item) => (
+          <details class="faq__item">
+            <summary>
+              <span>{item.q}</span>
+              <Icon name="chevron-down" size={20} class="faq__chev" />
+            </summary>
+            <div class="faq__answer">
+              <p>{item.a}</p>
+            </div>
+          </details>
+        ))
+      }
+    </div>
+
+    <p class="faq__more">
+      Still have a question? <a href="/contact">Get in touch</a>.
+    </p>
+  </div>
+</section>
+
+<style>
+  .faq {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .faq__item {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    overflow: hidden;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+  .faq__item[open] {
+    border-color: #d1fae5;
+    box-shadow: var(--shadow-sm);
+  }
+  .faq__item summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.1rem 1.25rem;
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.02rem;
+    color: var(--ink);
+    list-style: none;
+  }
+  .faq__item summary::-webkit-details-marker {
+    display: none;
+  }
+  .faq__chev {
+    flex-shrink: 0;
+    color: var(--green-primary);
+    transition: transform 0.2s ease;
+  }
+  .faq__item[open] .faq__chev {
+    transform: rotate(180deg);
+  }
+  .faq__answer {
+    padding: 0 1.25rem 1.25rem;
+  }
+  .faq__answer p {
+    margin: 0;
+    color: var(--muted);
+  }
+  .faq__more {
+    text-align: center;
+    margin-top: 1.75rem;
+    color: var(--muted);
+  }
+</style>

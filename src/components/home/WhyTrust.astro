@@ -1,0 +1,76 @@
+---
+import Icon from '../Icon.astro';
+
+const pillars = [
+  {
+    icon: 'flask',
+    color: 'var(--c-body)',
+    title: 'Scientific formulas',
+    body: 'Every result comes from established, peer-reviewed equations used by clinicians and researchers — not guesswork.',
+  },
+  {
+    icon: 'book',
+    color: 'var(--c-nutrition)',
+    title: 'Sources cited',
+    body: 'We show the exact formula and link the original research on each tool page, so you can verify the method yourself.',
+  },
+  {
+    icon: 'lock',
+    color: 'var(--green-primary)',
+    title: 'No data stored',
+    body: 'Calculations run entirely in your browser. The numbers you enter are never uploaded, saved, or sold.',
+  },
+];
+---
+
+<section class="section section-mint" aria-labelledby="why-trust-title">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Why trust us</span>
+      <h2 id="why-trust-title">Trustworthy by design</h2>
+      <p class="lead">
+        HealthyLifeStyles is built on transparent science and real privacy — so
+        you can rely on the numbers and keep your data your own.
+      </p>
+    </div>
+
+    <ul class="trust-grid">
+      {
+        pillars.map((p) => (
+          <li class="trust-card card">
+            <span class="trust-card__icon icon-tile" style={`background:${p.color}1a;color:${p.color}`}>
+              <Icon name={p.icon} />
+            </span>
+            <h3>{p.title}</h3>
+            <p>{p.body}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .trust-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+  .trust-card {
+    padding: 1.75rem;
+  }
+  .trust-card h3 {
+    margin: 1rem 0 0.5rem;
+    font-size: 1.2rem;
+  }
+  .trust-card p {
+    color: var(--muted);
+    margin: 0;
+    font-size: 0.95rem;
+  }
+  @media (max-width: 860px) {
+    .trust-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

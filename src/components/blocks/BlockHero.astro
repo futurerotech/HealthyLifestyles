@@ -1,0 +1,51 @@
+---
+export interface Props {
+  title: string;
+  subtitle?: string | null;
+  cta: { label: string; url: string } | null;
+  backgroundImage?: { url: string; alt?: string } | null;
+  overlay?: 'dark' | 'light' | 'none';
+}
+
+const { title, subtitle, cta, backgroundImage, overlay = 'dark' } = Astro.props;
+---
+
+<section class="page-hero" style={backgroundImage?.url ? `background-image: url(${backgroundImage.url})` : undefined}>
+  <div class={`page-hero__overlay page-hero__overlay--${overlay}`}>
+    <div class="page-hero__body">
+      <h1 class="page-hero__title">{title}</h1>
+      {subtitle && <p class="page-hero__subtitle">{subtitle}</p>}
+      {cta?.label && cta?.url && (
+        <a href={cta.url} class="btn btn--primary btn--lg page-hero__cta">{cta.label}</a>
+      )}
+    </div>
+  </div>
+</section>
+
+<style>
+  .page-hero {
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    min-height: clamp(320px, 50vh, 520px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .page-hero__overlay--dark { background: linear-gradient(135deg, rgba(0,0,0,0.7), rgba(0,0,0,0.3)); }
+  .page-hero__overlay--light { background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,255,255,0.4)); }
+  .page-hero__overlay--none { background: none; }
+  .page-hero__overlay {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+  }
+  .page-hero__body { max-width: 720px; text-align: center; }
+  .page-hero__title { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; line-height: 1.15; margin: 0 0 0.75rem; color: var(--overlay === 'light' ? #111 : #fff); }
+  .page-hero--overlay-light .page-hero__title { color: #111; }
+  .page-hero__subtitle { font-size: 1.2rem; opacity: 0.9; margin: 0 0 1.5rem; color: var(--overlay === 'light' ? #333 : #fff); }
+  .page-hero__cta { display: inline-block; }
+</style>

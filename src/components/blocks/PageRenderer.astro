@@ -1,0 +1,37 @@
+---
+import BlockHero from './BlockHero.astro';
+import BlockCalculatorEmbed from './BlockCalculatorEmbed.astro';
+import BlockTwoColumn from './BlockTwoColumn.astro';
+import BlockViralHookBanner from './BlockViralHookBanner.astro';
+
+export interface Props {
+  layout: Block[];
+}
+
+type Block = {
+  blockType: string;
+  [key: string]: unknown;
+};
+
+const { layout } = Astro.props;
+
+function blockComponent(type: string): any {
+  const map: Record<string, any> = {
+    hero: BlockHero,
+    calculatorEmbed: BlockCalculatorEmbed,
+    twoColumn: BlockTwoColumn,
+    viralHookBanner: BlockViralHookBanner,
+  };
+  return map[type] || null;
+}
+---
+
+{
+  layout.map((block, i) => {
+    const Component = blockComponent(block.blockType);
+    if (!Component) {
+      return <div class="block-unknown" data-block={block.blockType}>Unsupported block: {block.blockType}</div>;
+    }
+    return <Component {...block} />;
+  })
+}

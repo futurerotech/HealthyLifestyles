@@ -1,0 +1,211 @@
+---
+import Breadcrumb from './Breadcrumb.astro';
+import Icon from './Icon.astro';
+import ToolEmbed from './ToolEmbed.astro';
+import ShareBar from './ShareBar.astro';
+import Byline from './Byline.astro';
+import Newsletter from './Newsletter.astro';
+import ArticleCard from './ArticleCard.astro';
+import AdSlot from './AdSlot.astro';
+import {
+  getArticleCategory,
+  getRelatedArticles,
+  articlePlainText,
+  type Article,
+} from '../data/articles';
+import { getTool } from '../data/tools';
+import { getCategory } from '../data/categories';
+import { renderInline, slugify, readingTimeMinutes, formatDate } from '../lib/text';
+
+interface Props {
+  article: Article;
+  pageUrl: string;
+}
+
+const { article, pageUrl } = Astro.props;
+const category = getArticleCategory(article.category)!;
+const minutes = readingTimeMinutes(articlePlainText(article));
+const related = getRelatedArticles(article.slug, 3);
+
+const breadcrumbItems = [
+  { label: 'Home', href: '/' },
+  { label: 'Wellness Hub', href: '/wellness-hub' },
+  { label: category.name, href: `/wellness-hub/${category.slug}` },
+  { label: article.title },
+];
+
+// Build the table of contents from heading blocks.
+const toc = article.body.flatMap((b) =>
+  b.type === 'h2' || b.type === 'h3'
+    ? [{ level: b.type, id: slugify(b.text), text: b.text }]
+    : [],
+);
+
+// Sidebar tools (only those that exist).
+const sidebarTools = article.relatedTools
+  .map((slug) => getTool(slug))
+  .filter((t): t is NonNullable<typeof t> => !!t && !!t.live);
+
+const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning: 'shield' };
+---
+
+<article class="wh-article">
+  <header class="wh-article__header">
+    <div class="container">
+      <Breadcrumb items={breadcrumbItems} />
+      <span class="wh-article__cat" style={`--c:${category.color}`}>
+        <Icon name={category.icon} size={15} /> {category.name}
+      </span>
+      <h1>{article.title}</h1>
+      <p class="lead wh-article__lead">{article.excerpt}</p>
+
+      <div class="wh-article__meta">
+        <span>{minutes} min read</span>
+        <span class="dot" aria-hidden="true"></span>
+        <span>Published {formatDate(article.publishDate)}</span>
+      </div>
+      <Byline author={article.author} updated={article.updatedDate} class="wh-article__byline" />
+    </div>
+  </header>
+
+  <div class="container wh-layout">
+    <div class="wh-article__main">
+      {toc.length > 2 && (
+        <nav class="wh-toc" aria-label="On this page">
+          <p class="wh-toc__title">On this page</p>
+          <ol>
+            {toc.map((h) => (
+              <li class:list={[{ 'is-sub': h.level === 'h3' }]}>
+                <a href={`#${h.id}`}>{h.text}</a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )}
+
+      <div class="wh-prose">
+        {article.body.map((block) => {
+          if (block.type === 'h2') return <h2 id={slugify(block.text)}>{block.text}</h2>;
+          if (block.type === 'h3') return <h3 id={slugify(block.text)}>{block.text}</h3>;
+          if (block.type === 'p') return <p set:html={renderInline(block.text)} />;
+          if (block.type === 'ul')
+            return <ul>{block.items.map((it) => <li set:html={renderInline(it)} />)}</ul>;
+          if (block.type === 'ol')
+            return <ol>{block.items.map((it) => <li set:html={renderInline(it)} />)}</ol>;
+          if (block.type === 'callout')
+            return (
+              <div class:list={['wh-callout', `wh-callout--${block.tone}`]} role="note">
+                <Icon name={calloutIcon[block.tone] ?? 'book'} size={20} />
+                <p>
+                  {block.title && <strong class="wh-callout__title">{block.title}</strong>}
+                  <span set:html={renderInline(block.text)} />
+                </p>
+              </div>
+            );
+          if (block.type === 'tool') return <ToolEmbed slug={block.slug} label={block.label} />;
+          if (block.type === 'table')
+            return (
+              <div class="wh-table-wrap">
+                <table class="wh-table">
+                  <thead>
+                    <tr>{block.headers.map((h) => <th set:html={renderInline(h)} />)}</tr>
+                  </thead>
+                  <tbody>
+                    {block.rows.map((r) => (
+                      <tr>{r.map((c) => <td set:html={renderInline(c)} />)}</tr>
+                    ))}
+                  </tbody>
+                </table>
+                {block.caption && <p class="wh-table-cap">{block.caption}</p>}
+              </div>
+            );
+          if (block.type === 'paa')
+            return (
+              <section aria-label="People also ask">
+                <h2 id="people-also-ask">{block.heading ?? 'People also ask'}</h2>
+                <div class="wh-paa">
+                  {block.items.map((qa) => (
+                    <details>
+                      <summary>
+                        <span>{qa.q}</span>
+                        <Icon name="chevron-down" size={20} class="wh-paa__chev" />
+                      </summary>
+                      <p set:html={renderInline(qa.a)} />
+                    </details>
+                  ))}
+                </div>
+              </section>
+            );
+          return null;
+        })}
+      </div>
+
+      {article.sources.length > 0 && (
+        <section class="wh-sources" aria-labelledby="wh-sources-title">
+          <h2 id="wh-sources-title">Reviewed &amp; sources</h2>
+          <ol>
+            {article.sources.map((s) => (
+              <li>
+                {s.url ? <a href={s.url} target="_blank" rel="noopener nofollow">{s.citation}</a> : s.citation}
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
+      <ShareBar url={pageUrl} title={article.title} />
+
+      <Newsletter variant="inline" />
+
+      <aside class="wh-disclaimer" role="note">
+        <Icon name="shield" size={20} />
+        <p>
+          <strong>Not medical advice.</strong> This article is for general information and education
+          only. It is not a substitute for professional diagnosis or treatment. Always consult a
+          qualified healthcare professional about your own health.
+        </p>
+      </aside>
+    </div>
+
+    <aside class="wh-sidebar">
+      {sidebarTools.length > 0 && (
+        <div class="wh-sidebar__box">
+          <h2>Try these tools</h2>
+          <div class="wh-sidebar__tools">
+            {sidebarTools.map((t) => {
+              const tc = getCategory(t.category);
+              return (
+                <a href={`/tools/${t.slug}`} class="wh-tool-link">
+                  <span
+                    class="wh-tool-link__icon"
+                    style={`background:${tc?.color}1a;color:${tc?.color}`}
+                  >
+                    <Icon name={tc?.icon ?? 'flask'} size={18} />
+                  </span>
+                  <span class="wh-tool-link__name">{t.title}</span>
+                  <Icon name="arrow-right" size={16} class="wh-tool-link__chev" />
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      <div class="wh-sidebar__box">
+        <AdSlot placement="sidebar" format="sidebar" />
+      </div>
+    </aside>
+  </div>
+
+  {related.length > 0 && (
+    <section class="section">
+      <div class="container wh-related">
+        <h2>Related guides</h2>
+        <ul class="wh-grid">
+          {related.map((a) => (
+            <li><ArticleCard article={a} /></li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+</article>

@@ -1,0 +1,132 @@
+---
+import LegalLayout from '../layouts/LegalLayout.astro';
+import { SITE, EDITORIAL } from '../consts';
+import { formatDate } from '../lib/text';
+
+const title = `Methodology & Formulas | ${SITE.name}`;
+const description = `The exact, published formulas behind every ${SITE.name} calculator — BMI, BMR, body fat, heart rate, due dates and more — with primary sources.`;
+const origin = Astro.site ?? new URL('https://www.healthylifestyles.com');
+
+// Each calculator uses an established, published equation. Grouped by area.
+const GROUPS: { heading: string; items: { name: string; formula: string; source: string; url: string }[] }[] = [
+  {
+    heading: 'Body & weight',
+    items: [
+      { name: 'BMI', formula: 'weight (kg) ÷ height (m)²; healthy range 18.5–24.9.', source: 'WHO — Body mass index', url: 'https://www.who.int/health-topics/obesity' },
+      { name: 'BMR', formula: 'Mifflin–St Jeor equation (sex-specific).', source: 'Mifflin MD, St Jeor ST, et al., 1990', url: 'https://pubmed.ncbi.nlm.nih.gov/2305711/' },
+      { name: 'TDEE', formula: 'BMR × an activity factor (1.2 sedentary → 1.9 very active).', source: 'NIDDK Body Weight Planner', url: 'https://www.niddk.nih.gov/bwp' },
+      { name: 'Body fat %', formula: 'U.S. Navy circumference method (neck, waist, and hip for women).', source: 'Hodgdon & Beckett, U.S. Navy', url: 'https://pubmed.ncbi.nlm.nih.gov/6602171/' },
+      { name: 'Lean body mass', formula: 'Boer formula from weight and height.', source: 'Boer P., 1984', url: 'https://pubmed.ncbi.nlm.nih.gov/6496691/' },
+      { name: 'Ideal weight', formula: 'Healthy-BMI weight range plus the Devine formula.', source: 'Devine BJ, 1974', url: 'https://pubmed.ncbi.nlm.nih.gov/28949128/' },
+      { name: 'Waist-to-height ratio', formula: 'waist ÷ height; keep below 0.5.', source: 'Ashwell M, et al., systematic review', url: 'https://pubmed.ncbi.nlm.nih.gov/22480243/' },
+      { name: 'Waist-to-hip ratio', formula: 'waist ÷ hip; risk thresholds by sex.', source: 'WHO waist–hip ratio report', url: 'https://www.who.int/publications/i/item/9789241501491' },
+    ],
+  },
+  {
+    heading: 'Nutrition',
+    items: [
+      { name: 'Calorie target', formula: 'TDEE minus a deficit; a safe pace is 0.5–1 kg (1–2 lb)/week.', source: 'CDC — Losing Weight', url: 'https://www.cdc.gov/healthyweight/losing_weight/index.html' },
+      { name: 'Protein', formula: '1.2–2.2 g per kg of body weight depending on goal and training.', source: 'ISSN Position Stand: Protein, 2017', url: 'https://pubmed.ncbi.nlm.nih.gov/28642676/' },
+      { name: 'Macros', formula: 'Protein from g/kg, fat ~0.8–1 g/kg, remaining calories as carbohydrate.', source: 'ISSN / Dietary Guidelines for Americans', url: 'https://www.dietaryguidelines.gov/' },
+      { name: 'Water intake', formula: '~35 ml per kg of body weight, adjusted for activity.', source: 'EFSA — Dietary reference values for water', url: 'https://www.efsa.europa.eu/en/efsajournal/pub/1459' },
+      { name: 'Alcohol calories', formula: 'Ethanol ≈ 7 kcal/g, by standard-drink sizes.', source: 'NIAAA — What is a standard drink?', url: 'https://www.niaaa.nih.gov/alcohols-effects-health/overview-alcohol-consumption/what-standard-drink' },
+    ],
+  },
+  {
+    heading: 'Fitness',
+    items: [
+      { name: 'Calories burned', formula: 'METs × weight (kg) × time (hours).', source: 'Compendium of Physical Activities (Ainsworth, 2011)', url: 'https://pubmed.ncbi.nlm.nih.gov/21681120/' },
+      { name: 'One-rep max', formula: 'Epley and Brzycki equations from reps × weight.', source: 'Epley 1985 / Brzycki 1993', url: 'https://en.wikipedia.org/wiki/One-repetition_maximum' },
+      { name: 'VO₂ max (estimate)', formula: '15.3 × (max HR ÷ resting HR).', source: 'Uth N, et al., 2004', url: 'https://pubmed.ncbi.nlm.nih.gov/14624296/' },
+      { name: 'Steps to calories', formula: 'Stride length (from height) × steps → distance × MET energy.', source: 'Compendium of Physical Activities', url: 'https://pubmed.ncbi.nlm.nih.gov/21681120/' },
+    ],
+  },
+  {
+    heading: 'Heart & vitals',
+    items: [
+      { name: 'Max heart rate', formula: '208 − 0.7 × age (Tanaka); the simpler 220 − age is also shown.', source: 'Tanaka H, et al., 2001', url: 'https://pubmed.ncbi.nlm.nih.gov/11153730/' },
+      { name: 'Target HR zones', formula: 'Karvonen method using heart-rate reserve (max − resting).', source: 'Karvonen / ACSM guidelines', url: 'https://pubmed.ncbi.nlm.nih.gov/13470504/' },
+      { name: 'Blood pressure categories', formula: 'ACC/AHA 2017 category thresholds.', source: 'Whelton PK, et al., 2017 (ACC/AHA)', url: 'https://pubmed.ncbi.nlm.nih.gov/29133356/' },
+    ],
+  },
+  {
+    heading: "Women's health",
+    items: [
+      { name: 'Due date', formula: 'Naegele’s rule: last period + 280 days (or conception + 266).', source: 'ACOG — Estimating the due date', url: 'https://www.acog.org/clinical/clinical-guidance/committee-opinion/articles/2017/05/methods-for-estimating-the-due-date' },
+      { name: 'Ovulation & fertile window', formula: 'Ovulation ≈ next period − 14 days; fertile window the preceding ~6 days.', source: 'ACOG — Fertility awareness', url: 'https://www.acog.org/womens-health/faqs/fertility-awareness-based-methods-of-family-planning' },
+      { name: 'Pregnancy weight gain', formula: 'Recommended ranges by pre-pregnancy BMI.', source: 'Institute of Medicine (IOM) guidelines', url: 'https://www.ncbi.nlm.nih.gov/books/NBK32813/' },
+    ],
+  },
+  {
+    heading: 'Sleep & metabolic',
+    items: [
+      { name: 'Sleep / nap timing', formula: 'Built around ~90-minute sleep cycles plus ~15 min to fall asleep.', source: 'Sleep Foundation — Sleep cycles', url: 'https://www.sleepfoundation.org/stages-of-sleep' },
+      { name: 'Caffeine timing', formula: 'First-order decay with a ~5-hour half-life.', source: 'Institute of Medicine — Caffeine pharmacology', url: 'https://www.ncbi.nlm.nih.gov/books/NBK223808/' },
+      { name: 'Metabolic age', formula: 'Your BMR vs the average BMR for your age — an illustrative estimate, not a clinical measure.', source: 'Based on the Mifflin–St Jeor BMR equation', url: 'https://pubmed.ncbi.nlm.nih.gov/2305711/' },
+    ],
+  },
+];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'MedicalWebPage',
+    name: title,
+    description,
+    url: new URL('/methodology', origin).href,
+    lastReviewed: EDITORIAL.lastReviewed,
+    reviewedBy: { '@type': 'Organization', name: SITE.name },
+    publisher: { '@type': 'Organization', name: SITE.name, url: origin.href },
+  },
+];
+---
+
+<LegalLayout
+  title={title}
+  description={description}
+  heading="Methodology & formulas"
+  updated={formatDate(EDITORIAL.lastReviewed)}
+  jsonLd={jsonLd}
+>
+  <p>
+    Every {SITE.name} calculator uses an established, published equation — no proprietary “black boxes.”
+    Below is the exact method behind each one, with a link to its primary source so you can check our work.
+  </p>
+
+  <div class="legal-note">
+    <p>
+      <strong>Estimates, not diagnoses.</strong> These formulas are population models. They give useful
+      ballpark figures for healthy adults but can’t account for everything about an individual. Use them for
+      education and direction, and consult a qualified professional for medical decisions.
+    </p>
+  </div>
+
+  {
+    GROUPS.map((g) => (
+      <>
+        <h2>{g.heading}</h2>
+        <ul>
+          {g.items.map((it) => (
+            <li>
+              <strong>{it.name}:</strong> {it.formula}{' '}
+              <a href={it.url} target="_blank" rel="noopener nofollow">{it.source}</a>.
+            </li>
+          ))}
+        </ul>
+      </>
+    ))
+  }
+
+  <h2>Units &amp; rounding</h2>
+  <p>
+    All math runs in metric base units; imperial inputs are converted consistently both ways. Results are
+    rounded for readability, so small differences from other calculators usually come down to rounding or a
+    different activity-factor / formula choice.
+  </p>
+
+  <h2>Reviewed by</h2>
+  <p>
+    Formulas and their sources are checked by our <a href="/author/medical-review">medical review board</a>.
+    Read how we work in our <a href="/editorial-policy">editorial policy</a>.
+  </p>
+</LegalLayout>

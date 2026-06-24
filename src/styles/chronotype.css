@@ -1,0 +1,48 @@
+/* Sleep Chronotype Quiz. Loaded only on its tool page. */
+.ch { display: grid; gap: 1rem; }
+.ch__h { font-size: 1.2rem; margin: 0 0 0.85rem; }
+.ch__intro { margin: 0; color: var(--muted); font-size: 1rem; line-height: 1.6; }
+.ch__progress-top { height: 6px; border-radius: var(--radius-pill); background: var(--surface-2); overflow: hidden; }
+.ch__progress-bar { height: 100%; background: var(--c-sleep); border-radius: var(--radius-pill); transition: width 0.25s ease; }
+
+.ch__q { padding: 1.1rem 1.25rem; border: 0; }
+.ch__q legend { font-family: var(--font-display); font-weight: 700; font-size: 1.02rem; padding: 0; margin-bottom: 0.75rem; }
+.ch__opts { display: grid; gap: 0.5rem; }
+.ch__opt {
+  display: flex; align-items: center; gap: 0.6rem; padding: 0.7rem 0.85rem;
+  border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2);
+  font-size: 0.92rem; font-weight: 600; cursor: pointer;
+}
+.ch__opt input { accent-color: var(--c-sleep); width: 17px; height: 17px; }
+.ch__opt.is-on { border-color: var(--c-sleep); background: #eef2ff; color: #4338ca; }
+.ch__error { margin: 0; padding: 0.7rem 0.9rem; border-radius: var(--radius-sm); background: #fffbeb; border: 1px solid #fde68a; color: #92400e; font-weight: 600; font-size: 0.9rem; }
+.ch__go { justify-self: start; }
+
+/* Result */
+.ch__hero {
+  text-align: center; padding: clamp(1.75rem, 5vw, 2.75rem) 1.25rem; border: 0; color: #fff;
+  background: radial-gradient(700px 320px at 50% 0%, rgba(99,102,241,0.4), transparent 60%), var(--dark);
+}
+.ch__hero-emoji { font-size: clamp(3.5rem, 12vw, 5rem); line-height: 1; }
+.ch__hero-cap { display: block; margin-top: 0.5rem; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #a5b4fc; }
+.ch__hero-name { color: #fff; font-size: clamp(2.25rem, 7vw, 3.25rem); margin: 0.1rem 0 0.4rem; }
+.ch__hero-tag { color: #c7d2fe; font-weight: 600; margin: 0 0 1rem; }
+.ch__hero-desc { color: #e2e8f0; max-width: 56ch; margin: 0 auto; line-height: 1.6; }
+
+.ch__schedule, .ch__tips, .ch__share { padding: clamp(1.25rem, 3vw, 1.6rem); }
+.ch__sched-list { display: grid; gap: 0; }
+.ch__sched-list li { display: grid; grid-template-columns: 150px 1fr; gap: 0.85rem; align-items: baseline; padding: 0.7rem 0; border-bottom: 1px solid var(--border); }
+.ch__sched-list li:last-child { border-bottom: 0; }
+.ch__sched-time { font-family: var(--font-display); font-weight: 800; font-size: 0.92rem; color: var(--c-sleep); }
+.ch__sched-label { color: #334155; }
+.ch__tips ul { display: grid; gap: 0.6rem; }
+.ch__tips li { display: flex; gap: 0.7rem; align-items: flex-start; color: #334155; line-height: 1.5; }
+.ch__tip-dot { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--c-sleep); color: #fff; font-size: 0.72rem; font-weight: 800; margin-top: 1px; }
+
+.ch__share { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.ch__share-sub { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.9rem; }
+.ch__share-btns { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.ch__share-msg { flex-basis: 100%; margin: 0; font-size: 0.85rem; color: var(--green-700); font-weight: 600; }
+.ch__note { margin: 0; font-size: 0.82rem; color: var(--muted); line-height: 1.55; }
+
+@media (max-width: 480px) { .ch__sched-list li { grid-template-columns: 1fr; gap: 0.1rem; } }

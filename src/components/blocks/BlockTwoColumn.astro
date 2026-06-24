@@ -1,0 +1,36 @@
+---
+export interface Props {
+  image?: { url: string; alt?: string } | null;
+  imageSide?: 'left' | 'right';
+  heading?: string | null;
+  text: string;
+  cta?: { label?: string | null; url?: string | null } | null;
+}
+
+const { image, imageSide = 'left', heading, text, cta } = Astro.props;
+---
+
+<div class="two-col two-col--{imageSide}">
+  {image?.url && (
+    <div class="two-col__media">
+      <img src={image.url} alt={image?.alt ?? ''} class="two-col__img" loading="lazy" />
+    </div>
+  )}
+  <div class="two-col__text">
+    {heading && <h2 class="two-col__heading">{heading}</h2>}
+    <p class="two-col__body">{text}</p>
+    {cta?.label && cta?.url && (
+      <a href={cta.url} class="btn btn--outline two-col__cta">{cta.label}</a>
+    )}
+  </div>
+</div>
+
+<style>
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: center; margin: 2.5rem 0; }
+  .two-col--right .two-col__media { order: 1; }
+  .two-col--right .two-col__text { order: 0; }
+  .two-col__img { width: 100%; border-radius: 12px; object-fit: cover; }
+  .two-col__heading { font-size: 1.5rem; font-weight: 700; margin: 0 0 0.75rem; }
+  .two-col__body { line-height: 1.7; color: #475569; margin: 0 0 1rem; }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } .two-col--right .two-col__media { order: 0; } }
+</style>

@@ -1,0 +1,16 @@
+---
+/**
+ * Dedicated route for the Strength Program Builder. Uses the shared
+ * ToolPageLayout but lives in its own file so its stylesheet only loads here.
+ * (Excluded from tools/[slug].astro via CUSTOM_PAGES.)
+ */
+import ToolPageLayout from '../../components/ToolPageLayout.astro';
+import { getTool } from '../../data/tools';
+import { getToolContent } from '../../data/tool-content';
+import '../../styles/strength-program.css';
+
+const tool = getTool('strength-program-builder')!;
+const content = getToolContent('strength-program-builder')!;
+---
+
+<ToolPageLayout tool={tool} content={content} />

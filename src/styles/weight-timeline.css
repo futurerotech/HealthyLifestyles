@@ -1,0 +1,47 @@
+/* Realistic Weight-Loss Timeline Planner. Loaded only on its tool page. */
+.wt { display: grid; gap: 1.25rem; }
+.wt__h { font-size: 1.2rem; margin: 0 0 0.85rem; }
+
+.wt__form { padding: clamp(1.25rem, 3vw, 1.6rem); display: grid; gap: 1rem; }
+.wt__form-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.wt__units { display: inline-flex; border: 1.5px solid var(--border); border-radius: var(--radius-pill); padding: 0.15rem; background: var(--surface-2); }
+.wt__units button { border: 0; background: transparent; padding: 0.4rem 1rem; border-radius: var(--radius-pill); font-weight: 700; font-size: 0.85rem; color: var(--muted); }
+.wt__units button.is-on { background: var(--green-primary); color: #fff; }
+.wt__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.85rem 1rem; }
+.wt__field { display: flex; flex-direction: column; gap: 0.3rem; font-weight: 600; font-size: 0.9rem; }
+.wt__iu { display: flex; align-items: center; gap: 0.4rem; }
+.wt__iu input { width: 100%; padding: 0.6rem 0.7rem; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font: inherit; font-weight: 600; background: #fff; }
+.wt__iu input.is-warn { border-color: #f59e0b; background: #fffbeb; }
+.wt__iu small { color: var(--muted); font-weight: 600; }
+.wt__safe { margin: 0; font-size: 0.85rem; color: var(--muted); }
+.wt__safe strong { color: var(--ink); }
+
+.wt__hero {
+  text-align: center; padding: clamp(1.5rem, 4vw, 2.5rem) 1.25rem; border: 0; color: #fff;
+  background: radial-gradient(600px 280px at 50% 0%, rgba(59,130,246,0.4), transparent 60%), var(--dark);
+}
+.wt__hero-cap { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #93c5fd; }
+.wt__hero-date { display: block; margin: 0.4rem 0 0.5rem; font-family: var(--font-display); font-weight: 800; font-size: clamp(2rem, 6vw, 3rem); line-height: 1.05; }
+.wt__hero-sub { color: #cbd5e1; font-size: 0.95rem; }
+
+.wt__warn { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; border-radius: var(--radius); padding: 1rem 1.25rem; font-size: 0.9rem; line-height: 1.55; }
+.wt__warn strong { display: block; margin-bottom: 0.2rem; }
+.wt__gain { padding: 1.25rem 1.5rem; background: var(--surface-2); }
+.wt__gain strong { display: block; font-family: var(--font-display); font-size: 1.05rem; margin-bottom: 0.3rem; }
+.wt__gain p { margin: 0; color: var(--muted); }
+
+.wt__chart-block { padding: clamp(1.25rem, 3vw, 1.6rem); }
+.wt__chart { width: 100%; height: auto; display: block; }
+
+.wt__milestones { padding: clamp(1.25rem, 3vw, 1.6rem); }
+.wt__ms-list { display: grid; gap: 0; }
+.wt__ms-list li { display: grid; grid-template-columns: 80px 1fr auto; gap: 0.85rem; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
+.wt__ms-list li:last-child { border-bottom: 0; }
+.wt__ms-week { font-family: var(--font-display); font-weight: 800; font-size: 0.82rem; color: var(--c-body); }
+.wt__ms-body { display: flex; flex-direction: column; }
+.wt__ms-body strong { font-size: 1rem; }
+.wt__ms-body small { color: var(--muted); font-size: 0.82rem; }
+.wt__ms-date { font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
+.wt__note { margin: 0; font-size: 0.82rem; color: var(--muted); line-height: 1.55; }
+
+@media (max-width: 560px) { .wt__grid { grid-template-columns: 1fr; } .wt__ms-list li { grid-template-columns: 64px 1fr; } .wt__ms-date { grid-column: 2; } }

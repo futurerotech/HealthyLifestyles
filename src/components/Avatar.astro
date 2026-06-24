@@ -1,0 +1,44 @@
+---
+/**
+ * Monogram avatar for authors/reviewers — initials on a brand-colored gradient
+ * disc. We use monograms (not stock-photo faces) for our organizational author
+ * entities; swap in a real photo via the `src` prop when a named person is added.
+ */
+interface Props {
+  initials: string;
+  color?: string;
+  size?: number;
+  src?: string;
+  alt?: string;
+  class?: string;
+}
+const { initials, color = '#16a34a', size = 44, src, alt = '', class: className } = Astro.props;
+---
+
+{
+  src ? (
+    <img class:list={['avatar', className]} src={src} alt={alt} width={size} height={size} style={`--sz:${size}px`} loading="lazy" />
+  ) : (
+    <span class:list={['avatar', className]} style={`--c:${color};--sz:${size}px`} aria-hidden="true">{initials}</span>
+  )
+}
+
+<style>
+  .avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--sz, 44px);
+    height: var(--sz, 44px);
+    border-radius: 50%;
+    flex-shrink: 0;
+    object-fit: cover;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--c, #16a34a) 80%, white), var(--c, #16a34a));
+    color: #fff;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: calc(var(--sz, 44px) * 0.36);
+    letter-spacing: 0.01em;
+    box-shadow: 0 2px 6px rgba(2, 6, 23, 0.12);
+  }
+</style>

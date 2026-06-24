@@ -1,0 +1,16 @@
+---
+/**
+ * Dedicated route for the Caffeine Curfew & Circadian Rhythm calculator. Uses
+ * the shared ToolPageLayout but lives in its own file so its stylesheet only
+ * loads here. (Excluded from tools/[slug].astro via CUSTOM_PAGES.)
+ */
+import ToolPageLayout from '../../components/ToolPageLayout.astro';
+import { getTool } from '../../data/tools';
+import { getToolContent } from '../../data/tool-content';
+import '../../styles/caffeine-curfew.css';
+
+const tool = getTool('caffeine-curfew-calculator')!;
+const content = getToolContent('caffeine-curfew-calculator')!;
+---
+
+<ToolPageLayout tool={tool} content={content} />

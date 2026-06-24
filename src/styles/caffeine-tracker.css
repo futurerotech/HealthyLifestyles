@@ -1,0 +1,40 @@
+/* Caffeine Total Tracker. Loaded only on its tool page. */
+.ct { display: grid; gap: 1.25rem; }
+.ct__h { font-size: 1.2rem; margin: 0; }
+
+.ct__log { padding: clamp(1.25rem, 3vw, 1.6rem); }
+.ct__log-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.85rem; }
+.ct__reset { border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius-pill); padding: 0.35rem 0.85rem; font-weight: 700; font-size: 0.8rem; color: var(--muted); }
+.ct__reset:hover { border-color: var(--green-accent); color: var(--green-700); }
+.ct__drinks { display: grid; gap: 0.5rem; }
+.ct__drink { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.65rem 0.85rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); }
+.ct__drink-name { display: flex; flex-direction: column; font-weight: 700; font-size: 0.95rem; }
+.ct__drink-name small { font-weight: 600; color: var(--muted); font-size: 0.8rem; }
+.ct__stepper { display: inline-flex; align-items: center; gap: 0.3rem; border: 1px solid var(--border); border-radius: var(--radius-pill); background: #fff; padding: 0.1rem; }
+.ct__stepper button { width: 30px; height: 30px; border: 0; background: transparent; border-radius: 50%; font-size: 1.2rem; font-weight: 700; color: var(--green-700); line-height: 1; }
+.ct__stepper button:hover:not(:disabled) { background: var(--mint-50); }
+.ct__stepper button:disabled { color: var(--border); cursor: default; }
+.ct__stepper span { min-width: 1.8rem; text-align: center; font-weight: 800; font-family: var(--font-display); }
+
+.ct__total { padding: clamp(1.5rem, 4vw, 2rem); text-align: center; }
+.ct__total-cap { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+.ct__total-num { display: block; font-family: var(--font-display); font-weight: 800; font-size: clamp(2.75rem, 9vw, 4rem); line-height: 1; margin: 0.3rem 0 1rem; color: var(--ink); }
+.ct__total-num small { font-size: 1.2rem; color: var(--muted); }
+.ct__total--over .ct__total-num { color: #b91c1c; }
+.ct__total--approaching .ct__total-num { color: #b45309; }
+.ct__total--ok .ct__total-num { color: var(--green-700); }
+.ct__bar { position: relative; height: 14px; border-radius: var(--radius-pill); background: var(--surface-2); overflow: hidden; }
+.ct__bar-fill { height: 100%; border-radius: var(--radius-pill); transition: width 0.3s ease; }
+.ct__bar-fill--ok { background: var(--green-accent); }
+.ct__bar-fill--approaching { background: #f59e0b; }
+.ct__bar-fill--over { background: #ef4444; }
+.ct__bar-fill--none { background: transparent; }
+.ct__bar-scale { display: flex; justify-content: space-between; margin-top: 0.4rem; font-size: 0.75rem; color: var(--muted); font-weight: 600; }
+.ct__status { margin: 0.85rem 0 0; font-size: 0.92rem; font-weight: 600; line-height: 1.5; }
+.ct__status--over { color: #b91c1c; }
+.ct__status--approaching { color: #b45309; }
+.ct__status--ok { color: var(--green-700); }
+.ct__status--none { color: var(--muted); }
+
+.ct__pair { margin: 0; font-size: 0.92rem; color: #334155; background: var(--mint-50); border: 1px solid #d1fae5; border-radius: var(--radius); padding: 0.85rem 1.1rem; }
+.ct__note { margin: 0; font-size: 0.82rem; color: var(--muted); line-height: 1.55; }

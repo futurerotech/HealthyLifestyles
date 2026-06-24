@@ -1,0 +1,286 @@
+/* ============================================================
+   Caffeine Curfew & Circadian Rhythm calculator.
+   Loaded only on /tools/caffeine-curfew-calculator.
+   ============================================================ */
+
+.cc {
+  display: grid;
+  gap: 1.25rem;
+}
+.cc__h {
+  font-size: 1.25rem;
+  margin: 0 0 0.85rem;
+}
+
+/* ---------- Inputs ---------- */
+.cc__form {
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  display: grid;
+  gap: 1.25rem;
+}
+.cc__times {
+  display: grid;
+  grid-template-columns: 1fr 1fr 0.8fr;
+  gap: 0.85rem;
+}
+.cc__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.cc__field input {
+  padding: 0.6rem 0.7rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-weight: 600;
+  background: #fff;
+}
+.cc__field input:focus-visible {
+  border-color: var(--green-accent);
+}
+.cc__dose-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.6rem;
+}
+.cc__dose-val {
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: var(--c-sleep);
+}
+.cc__presets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+.cc__preset {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  padding: 0.55rem 0.7rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-align: left;
+}
+.cc__preset small {
+  font-weight: 600;
+  color: var(--muted);
+}
+.cc__preset.is-on {
+  border-color: var(--c-sleep);
+  background: #eef2ff;
+  color: #4338ca;
+}
+.cc__preset.is-on small {
+  color: #6366f1;
+}
+.cc__mg {
+  margin-top: 0.85rem;
+  max-width: 240px;
+}
+
+/* ---------- Hero ---------- */
+.cc__hero {
+  text-align: center;
+  padding: clamp(1.75rem, 5vw, 2.75rem) 1.25rem;
+  border: 0;
+  color: #fff;
+  background:
+    radial-gradient(700px 320px at 0% 0%, rgba(99, 102, 241, 0.4), transparent 60%),
+    var(--dark);
+}
+.cc__hero-cap {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #a5b4fc;
+}
+.cc__hero-time {
+  display: block;
+  margin: 0.4rem 0 0.6rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-size: clamp(2.75rem, 9vw, 4.5rem);
+  background: linear-gradient(135deg, #818cf8, #c7d2fe);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.cc__hero-sub {
+  margin: 0 auto;
+  max-width: 56ch;
+  color: #e2e8f0;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+.cc__backup {
+  margin: 1rem auto 0;
+  max-width: 56ch;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+/* ---------- Timeline ---------- */
+.cc__timeline {
+  padding: clamp(1.25rem, 3vw, 1.6rem);
+}
+.cc__bar {
+  position: relative;
+  display: flex;
+  height: 38px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.cc__bar-green,
+.cc__bar-amber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  min-width: 0;
+  white-space: nowrap;
+}
+.cc__bar-green {
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+}
+.cc__bar-amber {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+.cc__bar-green span,
+.cc__bar-amber span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 0.5rem;
+}
+.cc__bar-tick {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 0 1px rgba(10, 22, 40, 0.25);
+}
+.cc__bar-ends {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+.cc__events {
+  display: grid;
+  gap: 0.1rem;
+  margin-top: 1.25rem;
+}
+.cc__event {
+  display: grid;
+  grid-template-columns: 18px 84px 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.cc__event:last-child {
+  border-bottom: 0;
+}
+.cc__event-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
+}
+.cc__event-time {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+.cc__event-body {
+  display: flex;
+  flex-direction: column;
+}
+.cc__event-body strong {
+  font-size: 0.95rem;
+}
+.cc__event-body small {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+/* ---------- Decay chart ---------- */
+.cc__decay {
+  padding: clamp(1.25rem, 3vw, 1.6rem);
+}
+.cc__decay-sub {
+  margin: -0.5rem 0 1rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+.cc__decay-sub strong {
+  color: var(--ink);
+}
+.cc__chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ---------- Share ---------- */
+.cc__share {
+  padding: clamp(1.1rem, 3vw, 1.5rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.cc__share-sub {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.cc__share-msg {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--green-700);
+  font-weight: 600;
+}
+.cc__note {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 640px) {
+  .cc__times {
+    grid-template-columns: 1fr 1fr;
+  }
+  .cc__presets {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 420px) {
+  .cc__event {
+    grid-template-columns: 14px 72px 1fr;
+    gap: 0.5rem;
+  }
+}

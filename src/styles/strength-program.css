@@ -1,0 +1,316 @@
+/* ============================================================
+   Periodized Strength Program Builder island.
+   Loaded only on /tools/strength-program-builder.
+   ============================================================ */
+
+.sp {
+  display: grid;
+  gap: 1.5rem;
+}
+.sp__h {
+  font-size: 1.3rem;
+  margin: 0 0 0.85rem;
+}
+
+/* ---------- Form ---------- */
+.sp__form {
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  display: grid;
+  gap: 1.1rem;
+}
+.sp__form-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.sp__form-head h2 {
+  font-size: 1.3rem;
+  margin: 0;
+}
+.sp__units {
+  display: inline-flex;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 0.15rem;
+  background: var(--surface-2);
+}
+.sp__units button {
+  border: 0;
+  background: transparent;
+  padding: 0.4rem 1rem;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.sp__units button.is-on {
+  background: var(--green-primary);
+  color: #fff;
+}
+.sp__lifts-hint {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.sp__lifts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.7rem 1rem;
+}
+.sp__lift {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 0.85rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.sp__lift.is-off {
+  opacity: 0.55;
+}
+.sp__lift-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+.sp__lift-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--green-primary);
+}
+.sp__lift-input {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+.sp__lift-input input {
+  width: 84px;
+  padding: 0.5rem 0.6rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-weight: 700;
+  text-align: right;
+  background: #fff;
+}
+.sp__lift-input input:focus-visible {
+  border-color: var(--green-accent);
+}
+.sp__lift-input small {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.sp__opts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.85rem;
+}
+.sp__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.sp__field select {
+  padding: 0.6rem 0.7rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-weight: 600;
+  background: #fff;
+}
+.sp__field select:focus-visible {
+  border-color: var(--green-accent);
+}
+.sp__error {
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radius-sm);
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.sp__go {
+  justify-self: start;
+}
+
+/* ---------- Result ---------- */
+.sp__result {
+  display: grid;
+  gap: 1.25rem;
+  scroll-margin-top: calc(var(--header-h) + 1rem);
+}
+.sp__summary {
+  padding: clamp(1.1rem, 3vw, 1.5rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.sp__summary .sp__h {
+  margin: 0;
+}
+.sp__summary-sub {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* Schedule */
+.sp__schedule {
+  padding: clamp(1.1rem, 3vw, 1.5rem);
+}
+.sp__days {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.7rem;
+}
+.sp__day {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.sp__day-num {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--c-fitness);
+}
+.sp__day-lifts {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+/* Lift blocks */
+.sp__lift-block {
+  padding: clamp(1.1rem, 3vw, 1.5rem);
+}
+.sp__lift-block-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+.sp__lift-block-head h3 {
+  font-size: 1.2rem;
+  margin: 0;
+}
+.sp__lift-1rm {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+.sp__warmup {
+  margin: 0 0 0.85rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.8rem;
+}
+.sp__warmup strong {
+  color: var(--ink);
+}
+.sp__table-wrap {
+  overflow-x: auto;
+}
+.sp__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+.sp__table th {
+  text-align: left;
+  font-family: var(--font-display);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  padding: 0.5rem 0.65rem;
+  border-bottom: 2px solid var(--border);
+}
+.sp__table td {
+  padding: 0.65rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+}
+.sp__table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.sp__table tr.is-deload {
+  background: var(--mint-50);
+}
+.sp__table tr.is-deload td:first-child {
+  color: var(--green-700);
+  font-weight: 800;
+}
+.sp__weight {
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+/* Chart */
+.sp__chart-block {
+  padding: clamp(1.1rem, 3vw, 1.5rem);
+}
+.sp__chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.sp__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.1rem;
+  margin-top: 0.75rem;
+}
+.sp__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+.sp__legend-item i {
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.sp__rest {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 640px) {
+  .sp__lifts {
+    grid-template-columns: 1fr;
+  }
+  .sp__opts {
+    grid-template-columns: 1fr;
+  }
+}

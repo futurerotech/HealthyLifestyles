@@ -1,0 +1,100 @@
+---
+import LegalLayout from '../layouts/LegalLayout.astro';
+import { SITE } from '../consts';
+
+const updated = 'June 1, 2026';
+const title = `Terms of Service | ${SITE.name}`;
+const description = `The terms that govern your use of ${SITE.name} — our free, science-backed health calculators and wellness content.`;
+---
+
+<LegalLayout title={title} description={description} heading="Terms of Service" updated={updated}>
+  <p>
+    These Terms of Service ("Terms") govern your access to and use of the {SITE.name}
+    website, calculators, and content (the "Service"). Please read them carefully. By
+    using the Service, you agree to be bound by these Terms. If you do not agree, please
+    do not use the Service.
+  </p>
+
+  <h2>1. Educational purpose only</h2>
+  <p>
+    {SITE.name} provides general informational and educational tools and content about
+    health and wellness. The Service is <strong>not</strong> a medical device and does
+    not provide medical advice, diagnosis, or treatment. Always seek the advice of a
+    qualified healthcare provider with any questions about your health. See our
+    <a href="/medical-disclaimer">Medical Disclaimer</a> for full details.
+  </p>
+
+  <h2>2. Acceptable use</h2>
+  <p>You agree to use the Service lawfully and responsibly. You will not:</p>
+  <ul>
+    <li>Use the Service in any way that violates applicable laws or regulations;</li>
+    <li>Attempt to disrupt, overload, or gain unauthorized access to the site or its systems;</li>
+    <li>Scrape, copy, or republish substantial portions of our content without permission;</li>
+    <li>Reverse engineer or misuse the tools to mislead or harm others.</li>
+  </ul>
+
+  <h2>3. No professional relationship</h2>
+  <p>
+    Using our calculators or reading our content does not create a doctor–patient,
+    therapist–client, or any other professional relationship between you and {SITE.name}.
+    Results are estimates based on general formulas and the information you provide.
+  </p>
+
+  <h2>4. Accuracy of results</h2>
+  <p>
+    We build our tools on established, peer-reviewed formulas and aim for accuracy.
+    However, results depend on the accuracy of the data you enter and on the inherent
+    limitations of population-based equations. We do not warrant that results are
+    error-free or suitable for any particular purpose.
+  </p>
+
+  <h2>5. Intellectual property</h2>
+  <p>
+    The Service, including its design, text, graphics, logos, and software, is owned by
+    {SITE.name} or its licensors and is protected by intellectual-property laws. We grant
+    you a limited, non-exclusive, non-transferable license to use the Service for your
+    personal, non-commercial purposes. All other rights are reserved.
+  </p>
+
+  <h2>6. Third-party links</h2>
+  <p>
+    The Service may link to third-party websites or sources (for example, the research
+    behind a formula). We provide these for convenience and reference only and are not
+    responsible for the content, policies, or practices of any third-party site.
+  </p>
+
+  <h2>7. Disclaimer of warranties</h2>
+  <p>
+    The Service is provided "as is" and "as available" without warranties of any kind,
+    whether express or implied, including but not limited to fitness for a particular
+    purpose, accuracy, and non-infringement. Your use of the Service is at your own risk.
+  </p>
+
+  <h2>8. Limitation of liability</h2>
+  <p>
+    To the fullest extent permitted by law, {SITE.name} and its operators will not be
+    liable for any indirect, incidental, special, consequential, or punitive damages, or
+    any loss arising from your use of — or inability to use — the Service, including any
+    decisions made based on its results.
+  </p>
+
+  <h2>9. Changes to the Service and Terms</h2>
+  <p>
+    We may modify or discontinue any part of the Service at any time. We may also update
+    these Terms; when we do, we'll revise the "Last updated" date above. Continued use of
+    the Service after changes take effect constitutes acceptance of the revised Terms.
+  </p>
+
+  <h2>10. Governing law</h2>
+  <p>
+    These Terms are governed by and construed in accordance with applicable law, without
+    regard to conflict-of-laws principles. Any disputes will be handled in the courts of
+    competent jurisdiction where the Service is operated.
+  </p>
+
+  <h2>11. Contact us</h2>
+  <p>
+    Questions about these Terms? Please reach out via our
+    <a href="/contact">contact page</a>.
+  </p>
+</LegalLayout>

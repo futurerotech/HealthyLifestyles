@@ -1,0 +1,17 @@
+---
+/**
+ * Dedicated route for the Meal Plan Generator. It uses the shared
+ * ToolPageLayout (for SEO, breadcrumb, content, affiliates, related tools) but
+ * lives in its own file so its stylesheet only loads on this page, not on the
+ * other 39 tool pages. (Excluded from tools/[slug].astro to avoid a duplicate.)
+ */
+import ToolPageLayout from '../../components/ToolPageLayout.astro';
+import { getTool } from '../../data/tools';
+import { getToolContent } from '../../data/tool-content';
+import '../../styles/meal-plan.css';
+
+const tool = getTool('meal-plan-generator')!;
+const content = getToolContent('meal-plan-generator')!;
+---
+
+<ToolPageLayout tool={tool} content={content} />

@@ -1,0 +1,67 @@
+---
+import Icon from './Icon.astro';
+import type { Category } from '../data/categories';
+import { countByCategory } from '../data/tools';
+
+interface Props {
+  category: Category;
+}
+
+const { category } = Astro.props;
+const count = countByCategory(category.id);
+---
+
+<a href={`/${category.slug}`} class="cat-card card">
+  <span
+    class="cat-card__icon icon-tile"
+    style={`background:${category.color}1a;color:${category.color}`}
+  >
+    <Icon name={category.icon} />
+  </span>
+  <h3 class="cat-card__title">{category.name}</h3>
+  <p class="cat-card__blurb">{category.blurb}</p>
+  <span class="cat-card__count" style={`color:${category.color}`}>
+    {count} {count === 1 ? 'tool' : 'tools'}
+    <Icon name="arrow-right" size={16} />
+  </span>
+</a>
+
+<style>
+  .cat-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 1.6rem;
+    height: 100%;
+    color: inherit;
+  }
+  .cat-card:hover {
+    text-decoration: none;
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
+  .cat-card__title {
+    font-size: 1.2rem;
+    margin: 0.2rem 0 0;
+  }
+  .cat-card__blurb {
+    font-size: 0.92rem;
+    color: var(--muted);
+    margin: 0;
+    line-height: 1.55;
+  }
+  .cat-card__count {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: auto;
+    padding-top: 0.4rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.88rem;
+  }
+  .cat-card:hover .cat-card__count {
+    gap: 0.55rem;
+  }
+</style>

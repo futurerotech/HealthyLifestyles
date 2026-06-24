@@ -1,0 +1,144 @@
+---
+/**
+ * Sitewide cookie consent. Non-essential scripts (analytics, ads) must wait for
+ * the `consent-update` event or check window.HLS_CONSENT before loading.
+ * Choice is stored in localStorage under `hls-consent`.
+ */
+---
+
+<div
+  id="cookie-banner"
+  class="cookie-banner"
+  role="region"
+  aria-label="Cookie consent"
+  hidden
+>
+  <div class="cookie-banner__inner">
+    <div class="cookie-banner__copy">
+      <h2 class="cookie-banner__title">We value your privacy</h2>
+      <p>
+        We use essential cookies to make this site work. With your consent we’d
+        also use analytics cookies to understand how the tools are used. We never
+        store the numbers you enter. See our
+        <a href="/cookie-policy">Cookie Policy</a>.
+      </p>
+    </div>
+    <div class="cookie-banner__actions">
+      <button type="button" class="btn btn-outline" data-consent="reject">
+        Reject non-essential
+      </button>
+      <button type="button" class="btn btn-primary" data-consent="accept">
+        Accept all
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .cookie-banner {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 150;
+    padding: 1rem clamp(1rem, 4vw, 2rem);
+    background: #fff;
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -8px 30px rgba(15, 23, 42, 0.1);
+    animation: cookie-rise 0.35s ease;
+  }
+  .cookie-banner[hidden] {
+    display: none;
+  }
+  @keyframes cookie-rise {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  .cookie-banner__inner {
+    max-width: var(--container);
+    margin-inline: auto;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .cookie-banner__title {
+    font-size: 1rem;
+    margin-bottom: 0.2rem;
+  }
+  .cookie-banner__copy p {
+    font-size: 0.88rem;
+    color: var(--muted);
+    margin: 0;
+    max-width: 70ch;
+  }
+  .cookie-banner__actions {
+    display: flex;
+    gap: 0.6rem;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+  .cookie-banner__actions .btn {
+    padding: 0.7rem 1.2rem;
+    font-size: 0.9rem;
+  }
+  @media (max-width: 720px) {
+    .cookie-banner__inner {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 1rem;
+    }
+    .cookie-banner__actions {
+      margin-left: 0;
+    }
+    .cookie-banner__actions .btn {
+      flex: 1;
+    }
+  }
+</style>
+
+<script>
+  const KEY = 'hls-consent';
+  const banner = document.getElementById('cookie-banner');
+
+  type Consent = 'accept' | 'reject';
+
+  const apply = (value: Consent) => {
+    // Expose for downstream scripts; fire an event analytics loaders can listen for.
+    (window as unknown as { HLS_CONSENT?: Consent }).HLS_CONSENT = value;
+    document.dispatchEvent(
+      new CustomEvent('consent-update', { detail: { analytics: value === 'accept' } })
+    );
+  };
+
+  const stored = (() => {
+    try {
+      return localStorage.getItem(KEY) as Consent | null;
+    } catch {
+      return null;
+    }
+  })();
+
+  if (stored) {
+    apply(stored);
+  } else if (banner) {
+    banner.hidden = false;
+  }
+
+  banner?.querySelectorAll<HTMLButtonElement>('[data-consent]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const value = btn.dataset.consent as Consent;
+      try {
+        localStorage.setItem(KEY, value);
+      } catch {
+        /* storage blocked — honour the choice for this session only */
+      }
+      apply(value);
+      if (banner) banner.hidden = true;
+    });
+  });
+</script>

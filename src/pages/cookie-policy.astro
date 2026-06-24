@@ -1,0 +1,85 @@
+---
+import LegalLayout from '../layouts/LegalLayout.astro';
+import { SITE } from '../consts';
+
+const updated = 'June 1, 2026';
+const title = `Cookie Policy | ${SITE.name}`;
+const description = `How ${SITE.name} uses cookies and local storage: essential only by default, optional analytics with your consent, and never to store the data you enter.`;
+---
+
+<LegalLayout title={title} description={description} heading="Cookie Policy" updated={updated}>
+  <p>
+    This Cookie Policy explains how {SITE.name} uses cookies and similar technologies
+    (such as browser local storage) when you visit our website. It should be read
+    alongside our <a href="/privacy">Privacy Policy</a>.
+  </p>
+
+  <h2>What are cookies?</h2>
+  <p>
+    Cookies are small text files placed on your device when you visit a website. They
+    help sites remember your actions and preferences. "Local storage" is a similar
+    technology that lets a site save small pieces of data in your browser. We use both
+    sparingly.
+  </p>
+
+  <h2>How we use them</h2>
+  <p>We keep our use of these technologies to a minimum, in two categories:</p>
+
+  <h3>Essential (always on)</h3>
+  <p>
+    These are necessary for the site to function and remember your basic choices. They
+    do not track you across other sites. For example, we store your cookie-consent
+    decision in local storage (under a key such as <code>hls-consent</code>) so we don't
+    ask you again on every visit.
+  </p>
+
+  <h3>Analytics (optional, consent-based)</h3>
+  <p>
+    With your consent, we may use privacy-respecting analytics to understand which tools
+    are useful and how to improve the site. These are loaded <strong>only</strong> after
+    you select "Accept all" in our cookie banner. If you choose "Reject non-essential",
+    no analytics cookies are set.
+  </p>
+
+  <h2>Cookies we do not use</h2>
+  <p>
+    We do not use advertising cookies to build marketing profiles of you, and we do not
+    sell your data. Crucially, <strong>we never use cookies to store the health
+    information you enter into our calculators</strong> — those values are processed in
+    your browser and discarded.
+  </p>
+
+  <h2>Managing your choices</h2>
+  <p>You are in control of cookies in two ways:</p>
+  <ul>
+    <li>
+      <strong>Our cookie banner:</strong> Choose "Accept all" or "Reject non-essential"
+      when you first visit. To change your decision later, clear this site's data in your
+      browser and the banner will reappear.
+    </li>
+    <li>
+      <strong>Your browser settings:</strong> Most browsers let you block or delete
+      cookies and local storage. Note that blocking essential storage may mean the consent
+      banner reappears on each visit.
+    </li>
+  </ul>
+
+  <h2>Third-party cookies</h2>
+  <p>
+    Any optional analytics provider we use may set its own cookies when enabled with your
+    consent. These providers are selected for their respect for user privacy and are not
+    permitted to use the data for their own advertising.
+  </p>
+
+  <h2>Changes to this policy</h2>
+  <p>
+    We may update this Cookie Policy as our practices or the law evolve. The "Last
+    updated" date above reflects the latest revision.
+  </p>
+
+  <h2>Contact us</h2>
+  <p>
+    If you have questions about our use of cookies, please
+    <a href="/contact">get in touch</a>.
+  </p>
+</LegalLayout>

@@ -1,0 +1,16 @@
+---
+/**
+ * Dedicated route for the Muscle Preservation Calculator. Uses the shared
+ * ToolPageLayout but lives in its own file so its stylesheet only loads here.
+ * (Excluded from tools/[slug].astro via CUSTOM_PAGES.)
+ */
+import ToolPageLayout from '../../components/ToolPageLayout.astro';
+import { getTool } from '../../data/tools';
+import { getToolContent } from '../../data/tool-content';
+import '../../styles/muscle-preservation.css';
+
+const tool = getTool('muscle-preservation-calculator')!;
+const content = getToolContent('muscle-preservation-calculator')!;
+---
+
+<ToolPageLayout tool={tool} content={content} />

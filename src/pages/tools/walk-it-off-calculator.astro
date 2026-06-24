@@ -1,0 +1,11 @@
+---
+import ToolPageLayout from '../../components/ToolPageLayout.astro';
+import { getTool } from '../../data/tools';
+import { getToolContent } from '../../data/tool-content';
+import '../../styles/walk-it-off.css';
+
+const tool = getTool('walk-it-off-calculator')!;
+const content = getToolContent('walk-it-off-calculator')!;
+---
+
+<ToolPageLayout tool={tool} content={content} />

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npm install --no-audit --no-fund 2>&1)",
+      "mcp__Claude_Preview__preview_start"
+    ]
+  }
+}

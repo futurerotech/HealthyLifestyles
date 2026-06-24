@@ -1,0 +1,98 @@
+---
+/**
+ * Lazy-loads AdSense slots — but ONLY when ADS.client is configured AND the
+ * visitor has accepted cookies.
+ *
+ * When Partytown is enabled (CMS config):
+ *   - The AdSense library is loaded via <script type="text/partytown"> so it
+ *     runs in a web worker (offloaded from main thread).
+ *   - The IntersectionObserver runs on main thread (data-pt-skip) to push each
+ *     slot individually as it enters the viewport.
+ *
+ * When Partytown is disabled (fallback):
+ *   - Loads the AdSense script dynamically on the main thread after consent.
+ *   - Same lazy-push via IntersectionObserver.
+ */
+import { ADS } from '../consts';
+import { getAdConfig } from '../lib/ad-config';
+
+const enabled = !!ADS.client && /^ca-pub-\d+$/.test(ADS.client);
+const adConfig = await getAdConfig();
+const usePartytown = adConfig?.partytownEnabled !== false;
+const clientId = adConfig?.adsenseClient || ADS.client;
+---
+
+{
+  enabled && (
+    <>
+      <!-- Partytown AdSense library (offloaded to web worker when enabled) -->
+      {usePartytown && (
+        <script type="text/partytown" data-pt-src={"https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" + clientId}
+          async crossOrigin="anonymous">
+        </script>
+      )}
+
+      <!-- Consent + Lazy loader (main thread) -->
+      <script is:inline data-pt-skip define:vars={{ client: clientId, usePt: usePartytown }}>
+        (function () {
+          var loaded = false;
+          function pushSlots() {
+            if (loaded) return;
+            loaded = true;
+
+            if (usePt) {
+              // Partytown loads adsbygoogle.js — we just lazy-push each slot
+              var io = new IntersectionObserver(
+                function (entries) {
+                  entries.forEach(function (e) {
+                    if (!e.isIntersecting) return;
+                    try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (err) {}
+                    io.unobserve(e.target);
+                  });
+                },
+                { rootMargin: '250px' }
+              );
+              document.querySelectorAll('ins[data-ad-lazy]').forEach(function (el) { io.observe(el); });
+            } else {
+              // No Partytown: dynamically load AdSense then lazy-push
+              var s = document.createElement('script');
+              s.async = true;
+              s.crossOrigin = 'anonymous';
+              s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + client;
+              s.onload = function () {
+                var io = new IntersectionObserver(
+                  function (entries) {
+                    entries.forEach(function (e) {
+                      if (!e.isIntersecting) return;
+                      try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (err) {}
+                      io.unobserve(e.target);
+                    });
+                  },
+                  { rootMargin: '250px' }
+                );
+                document.querySelectorAll('ins[data-ad-lazy]').forEach(function (el) { io.observe(el); });
+              };
+              document.head.appendChild(s);
+            }
+          }
+
+          if (window.HLS_CONSENT === 'accept') pushSlots();
+          document.addEventListener('consent-update', function (e) {
+            if (e && e.detail && e.detail.analytics) pushSlots();
+          });
+        })();
+      </script>
+
+      <!-- Sticky footer close button handler -->
+      <script is:inline data-pt-skip>
+        document.addEventListener('click', function (e) {
+          var btn = e.target?.closest && e.target.closest('[data-close-sticky]');
+          if (btn) {
+            var sticky = btn.closest('.ad--sticky');
+            if (sticky) sticky.classList.add('ad--sticky-hidden');
+          }
+        });
+      </script>
+    </>
+  )
+}

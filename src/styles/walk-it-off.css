@@ -1,0 +1,33 @@
+/* "Walk It Off" food → exercise calculator. Loaded only on its tool page. */
+.wo { display: grid; gap: 1.25rem; }
+.wo__h { font-size: 1.2rem; margin: 0 0 0.6rem; }
+
+.wo__form { padding: clamp(1.25rem, 3vw, 1.6rem); display: grid; gap: 1rem; }
+.wo__modes { display: inline-flex; border: 1.5px solid var(--border); border-radius: var(--radius-pill); padding: 0.15rem; background: var(--surface-2); width: fit-content; }
+.wo__modes button { border: 0; background: transparent; padding: 0.45rem 1rem; border-radius: var(--radius-pill); font-weight: 700; font-size: 0.88rem; color: var(--muted); }
+.wo__modes button.is-on { background: var(--c-fitness); color: #fff; }
+.wo__inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem 1rem; }
+.wo__field { display: flex; flex-direction: column; gap: 0.3rem; font-weight: 600; font-size: 0.9rem; }
+.wo__field select, .wo__field input { padding: 0.6rem 0.7rem; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font: inherit; font-weight: 600; background: #fff; width: 100%; }
+.wo__wt { display: flex; gap: 0.5rem; }
+.wo__wt input { flex: 1; }
+.wo__units { display: inline-flex; border: 1.5px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+.wo__units button { border: 0; background: var(--surface-2); padding: 0 0.8rem; font-weight: 700; font-size: 0.82rem; color: var(--muted); }
+.wo__units button.is-on { background: var(--green-primary); color: #fff; }
+
+.wo__result { padding: clamp(1.5rem, 4vw, 2rem); }
+.wo__food-line { margin: 0 0 1.25rem; font-size: 1.05rem; color: #334155; text-align: center; }
+.wo__food-line strong { color: var(--ink); }
+.wo__activities { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.wo__activity { text-align: center; padding: 1.25rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-2); display: grid; gap: 0.2rem; }
+.wo__activity-emoji { font-size: 2rem; line-height: 1; }
+.wo__activity-min { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.25rem, 7vw, 3rem); line-height: 1; color: var(--c-fitness); }
+.wo__activity-label { font-size: 0.85rem; font-weight: 700; color: var(--muted); }
+
+.wo__share { padding: clamp(1.1rem, 3vw, 1.5rem); display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.wo__share-sub { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.9rem; }
+.wo__share-msg { flex-basis: 100%; margin: 0; font-size: 0.85rem; color: var(--green-700); font-weight: 600; }
+.wo__note { margin: 0; font-size: 0.82rem; color: var(--muted); line-height: 1.55; }
+
+@media (max-width: 560px) { .wo__inputs { grid-template-columns: 1fr; } }
+@media (max-width: 420px) { .wo__activities { grid-template-columns: 1fr; } }

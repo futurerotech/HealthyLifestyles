@@ -1,0 +1,829 @@
+/* ============================================================
+   HealthyLifeStyles — Global stylesheet & design tokens
+   ============================================================ */
+
+/* ---------- Self-hosted variable fonts (preloaded in <head>) ---------- */
+@font-face {
+  font-family: 'Plus Jakarta Sans Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('/fonts/plus-jakarta-sans-variable.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('/fonts/inter-variable.woff2') format('woff2');
+}
+
+/* ---------- Design tokens ---------- */
+:root {
+  /* Brand */
+  --green-primary: #16a34a;
+  --green-accent: #22c55e;
+  --green-700: #15803d;
+  --green-800: #166534;
+  --mint-50: #f0fdf4;
+  --mint-100: #ecfdf5;
+
+  /* Neutrals */
+  --ink: #0f172a;        /* body text */
+  --dark: #0a1628;       /* hero / footer */
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+
+  /* Category accents */
+  --c-nutrition: #f97316;  /* orange */
+  --c-body: #3b82f6;       /* blue */
+  --c-fitness: #8b5cf6;    /* violet */
+  --c-heart: #ef4444;      /* red */
+  --c-women: #ec4899;      /* pink */
+  --c-sleep: #6366f1;      /* indigo */
+  --c-metabolic: #14b8a6;  /* teal */
+  --c-risk: #d97706;       /* amber */
+  --c-mind: #0ea5e9;       /* sky */
+
+  /* Typography */
+  --font-display: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-body: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  /* Type scale (12 / 14 / 16 / 18 / 24 / 32 / 44 / 56) */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-md: 1.125rem;
+  --text-lg: 1.5rem;
+  --text-xl: 2rem;
+  --text-2xl: 2.75rem;
+  --text-3xl: 3.5rem;
+  /* Comfortable reading measure for long-form text. */
+  --measure: 65ch;
+
+  /* Radius — 12 (inputs/small), 16 (cards), 20 (modals/hero) */
+  --radius-sm: 12px;
+  --radius: 16px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+
+  /* Shadows — soft, layered: a resting elevation and a hover lift. */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 20px -8px rgba(15, 23, 42, 0.1);
+  --shadow-md: 0 2px 4px rgba(15, 23, 42, 0.05), 0 18px 36px -12px rgba(15, 23, 42, 0.16);
+  --shadow-green: 0 8px 22px -8px rgba(22, 163, 74, 0.4);
+
+  /* Layout */
+  --container: 1180px;
+  --container-narrow: 760px;
+  --header-h: 76px;
+
+  --focus-ring: 0 0 0 4px rgba(34, 197, 94, 0.35);
+}
+
+/* ---------- Reset ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--header-h) + 1rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--surface);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100vh;
+}
+
+img,
+picture,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: var(--green-700);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+ul,
+ol {
+  list-style: none;
+  padding: 0;
+}
+
+/* ---------- Typography ---------- */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: clamp(2.25rem, 5vw + 1rem, var(--text-3xl)); /* up to 56 */
+  letter-spacing: -0.03em;
+}
+h2 {
+  font-size: clamp(1.75rem, 3vw + 0.5rem, var(--text-2xl)); /* up to 44 */
+}
+h3 {
+  font-size: clamp(1.2rem, 1.5vw + 0.5rem, 1.4rem);
+  font-weight: 700;
+}
+p {
+  text-wrap: pretty;
+}
+
+.eyebrow {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--green-primary);
+}
+
+.text-accent {
+  color: var(--green-primary);
+}
+
+.lead {
+  font-size: clamp(1.05rem, 1vw + 0.85rem, 1.25rem);
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* ---------- Layout helpers ---------- */
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 4vw, 2rem);
+}
+
+.container-narrow {
+  max-width: var(--container-narrow);
+}
+
+.section {
+  padding-block: clamp(3rem, 7vw, 6rem);
+}
+
+.section-mint {
+  background: var(--mint-50);
+}
+.section-mint-2 {
+  background: var(--mint-100);
+}
+.section-surface-2 {
+  background: var(--surface-2);
+}
+
+.section-head {
+  max-width: 640px;
+  margin-inline: auto;
+  text-align: center;
+  margin-bottom: clamp(2rem, 4vw, 3.5rem);
+}
+.section-head .lead {
+  margin-top: 0.85rem;
+}
+
+.stack > * + * {
+  margin-top: var(--space-4);
+}
+
+/* Subtle, once-only scroll reveal (opt-in via [data-reveal]). Only active when
+   JS adds .js-reveal and motion is allowed; otherwise content is always visible. */
+@media (prefers-reduced-motion: no-preference) {
+  .js-reveal [data-reveal] {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.5s ease, transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .js-reveal [data-reveal].is-revealed {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0.95rem 1.6rem;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid transparent;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease,
+    border-color 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.btn:hover {
+  text-decoration: none;
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn svg {
+  width: 1.1em;
+  height: 1.1em;
+}
+
+.btn-primary {
+  background: var(--green-primary);
+  color: #fff;
+  box-shadow: var(--shadow-green);
+}
+.btn-primary:hover {
+  background: var(--green-700);
+  transform: translateY(-2px);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--green-700);
+  border-color: var(--border);
+}
+.btn-outline:hover {
+  border-color: var(--green-accent);
+  background: var(--mint-50);
+}
+
+.btn-ghost-light {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+.btn-ghost-light:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-lg {
+  padding: 1.05rem 1.9rem;
+  font-size: 1.05rem;
+}
+
+/* ---------- Cards ---------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: transform 0.18s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+/* ---------- Pills / badges ---------- */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--radius-pill);
+  background: var(--mint-50);
+  color: var(--green-700);
+  border: 1px solid #d1fae5;
+}
+
+/* ---------- Accessibility ---------- */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: 6px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -100px;
+  z-index: 200;
+  background: var(--green-primary);
+  color: #fff;
+  padding: 0.7rem 1.1rem;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  transition: top 0.2s ease;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* Visually hidden, but available to screen readers (e.g. aria-live status). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Social / share icon buttons ---------- */
+/* Shared by the article <ShareBar> and the footer "Follow us" row. Neutral by
+   default; the per-button --brand custom property colors hover/focus. */
+.social-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.social-btn {
+  --brand: #64748b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  transition: transform 0.15s ease, color 0.15s ease, background-color 0.15s ease,
+    border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.social-btn:hover,
+.social-btn:focus-visible {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+.social-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 35%, transparent);
+}
+.social-btn:active {
+  transform: translateY(0);
+}
+/* Copy-link success state (toggled by JS). Lives here, alongside the base
+   rule, so it isn't outranked by unlayered globals the way a component-scoped
+   rule would be. */
+.social-btn.is-copied {
+  background: var(--green-primary);
+  border-color: var(--green-primary);
+  color: #fff;
+}
+
+/* Variant for dark backgrounds (footer). */
+.social-btn--on-dark {
+  background: rgba(148, 163, 184, 0.12);
+  border-color: rgba(148, 163, 184, 0.22);
+  color: #cbd5e1;
+}
+.social-btn--on-dark:hover,
+.social-btn--on-dark:focus-visible {
+  background: var(--brand);
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .social-btn,
+  .social-btn:hover,
+  .social-btn:focus-visible,
+  .social-btn:active {
+    transform: none;
+  }
+}
+
+/* ---------- Icon tile ---------- */
+.icon-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ti-size, 52px);
+  height: var(--ti-size, 52px);
+  border-radius: var(--ti-radius, 14px);
+  flex-shrink: 0;
+}
+.icon-tile svg {
+  width: var(--ti-icon, 26px);
+  height: var(--ti-icon, 26px);
+}
+/* Per-tool gradient tile: white icon on a 135° gradient, soft tinted shadow. */
+.icon-tile--grad {
+  background: linear-gradient(135deg, var(--from, #60a5fa), var(--to, #2563eb));
+  color: #fff;
+  box-shadow:
+    0 6px 16px -5px color-mix(in srgb, var(--to, #2563eb) 60%, transparent),
+    0 2px 5px rgba(2, 6, 23, 0.08);
+}
+
+/* ---------- Result actions: "Save & share your result" ---------- */
+.result-actions {
+  margin: 0 auto clamp(2rem, 4vw, 3rem);
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--border);
+}
+.result-actions__title {
+  margin: 0 0 0.9rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--ink);
+}
+.result-actions__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+.result-actions__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+.result-actions__divider {
+  width: 1px;
+  align-self: stretch;
+  min-height: 30px;
+  background: var(--border);
+}
+/* Drop the ShareBar's standalone framing inside the block. */
+.result-actions .share-bar {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* Action buttons: primary = Save as PDF, secondary = Download image. */
+.result-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 44px;
+  padding: 0 1.15rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+.result-action:hover {
+  border-color: var(--green-accent);
+  color: var(--green-700);
+  background: var(--mint-50);
+  text-decoration: none;
+}
+.result-action:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--green-primary) 32%, transparent);
+}
+.result-action:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+.result-action--primary {
+  background: var(--green-primary);
+  border-color: var(--green-primary);
+  color: #fff;
+  box-shadow: 0 8px 20px -8px color-mix(in srgb, var(--green-primary) 70%, transparent);
+}
+.result-action--primary:hover {
+  background: var(--green-700);
+  border-color: var(--green-700);
+  color: #fff;
+}
+.result-action__icon {
+  display: inline-flex;
+}
+.result-action__spinner {
+  display: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  animation: ra-spin 0.7s linear infinite;
+}
+.result-action.is-busy .result-action__icon {
+  display: none;
+}
+.result-action.is-busy .result-action__spinner {
+  display: inline-block;
+}
+@keyframes ra-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 600px) {
+  .result-actions__title {
+    text-align: center;
+  }
+  .result-actions__row {
+    flex-direction: column;
+    align-items: center;
+  }
+  .result-actions__buttons {
+    justify-content: center;
+  }
+  .result-actions__divider {
+    width: 100%;
+    min-height: 0;
+    height: 1px;
+  }
+}
+
+/* ---------- Branded print / PDF sheet ---------- */
+/* The print-only header/footer are hidden on screen; @media print reveals them
+   and strips all site chrome so a Save-as-PDF is a clean, branded one-pager. */
+.print-only {
+  display: none;
+}
+.print-band {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 2px solid var(--green-primary);
+}
+.print-band__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: right;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.print-band__url {
+  font-weight: 700;
+  color: var(--green-700);
+}
+.print-sheet-head__tool {
+  margin: 1.1rem 0 0.35rem;
+  font-size: 1.7rem;
+  line-height: 1.15;
+}
+.print-sheet-head__intro {
+  margin: 0;
+  max-width: 64ch;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.print-sheet-foot {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.print-sheet-foot__url {
+  margin-top: 0.4rem;
+  color: var(--green-700);
+  font-weight: 700;
+}
+
+/* "Your inputs" print summary — rendered (hidden) by the numeric calculator. */
+.calc__print-summary {
+  display: none;
+}
+.calc__print-summary-title {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+@media print {
+  /* Hide every site chrome + non-result section + interactive form bits. */
+  .skip-link,
+  .site-header,
+  .site-footer,
+  .cookie-banner,
+  .breadcrumb,
+  .tool__header,
+  .result-actions,
+  .tool__ad,
+  .tool__body,
+  .tool__result-note,
+  .ad-slot,
+  .calc__form,
+  .calc__cta {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+
+  /* Show the "Your inputs" summary in place of the interactive form. */
+  .calc__print-summary {
+    display: block !important;
+    margin: 1.4rem 0;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface-2);
+  }
+  .calc__print-summary dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.3rem 1.5rem;
+    margin: 0;
+  }
+  .calc__print-summary dl > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.12rem 0;
+    border-bottom: 1px dotted var(--border);
+  }
+  .calc__print-summary dt {
+    color: var(--muted);
+  }
+  .calc__print-summary dd {
+    margin: 0;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .calc {
+    display: block !important;
+  }
+  .calc__result {
+    margin: 0 !important;
+  }
+  .tool__calc {
+    margin: 0 0 1rem !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+  /* Print brand colors, gauges, and gradient tiles faithfully. */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  @page {
+    margin: 18mm;
+  }
+}
+
+/* ---- Share result (viral share component) ---- */
+.share-result {
+  margin-block: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+.share-result__heading {
+  font: 700 0.85rem/1.2 var(--font-display);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.85rem;
+}
+.share-result__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+.share-result__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1rem;
+  font: 600 0.82rem/1 var(--font-display);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.share-result__btn:hover {
+  background: var(--surface-2);
+  border-color: var(--text-muted);
+}
+.share-result__btn:active {
+  transform: scale(0.97);
+}
+.share-result__btn svg {
+  flex-shrink: 0;
+}
+.share-result__btn--x:hover { color: #000; border-color: #000; }
+.share-result__btn--fb:hover { color: #1877f2; border-color: #1877f2; }
+.share-result__btn--copy:hover { color: var(--green-primary); border-color: var(--green-primary); }
+.share-result__btn--download:hover { color: var(--green-primary); border-color: var(--green-primary); }
+.share-result__btn[disabled] { opacity: 0.6; pointer-events: none; }
+
+/* ---- Lead form (CTA card inside calculator results) ---- */
+.lead-form { display: flex; flex-direction: column; gap: 0.75rem; }
+.lead-form--done { align-items: center; text-align: center; padding: 0.5rem 0; }
+.lead-form__icon { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 50%; background: #f0fdf4; }
+.lead-form__success { font: 600 0.95rem/1.4 var(--font-display); color: var(--green-primary); max-width: 32em; }
+.lead-form__headline { font: 800 1.05rem/1.3 var(--font-display); color: var(--ink); }
+.lead-form__desc { font-size: 0.9rem; color: var(--muted); line-height: 1.4; margin: 0; }
+.lead-form__field input { display: block; width: 100%; padding: 0.7rem 0.95rem; border: 1px solid var(--border); border-radius: var(--radius); font: inherit; color: var(--ink); background: #fff; }
+.lead-form__field input:focus-visible { outline: none; border-color: var(--green-accent); box-shadow: var(--focus-ring); }
+.lead-form__error { font-size: 0.82rem; color: var(--red); }
+.lead-form__btn { align-self: flex-start; }
+.lead-form__btn[disabled] { opacity: 0.6; pointer-events: none; }
+.lead-form__note { font-size: 0.76rem; color: var(--muted); margin: 0; }

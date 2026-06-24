@@ -1,0 +1,180 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import Icon from '../components/Icon.astro';
+import AiAssistant from '../islands/AiAssistant.tsx';
+import { SITE } from '../consts';
+import '../styles/assistant.css';
+
+const items = [{ label: 'Home', href: '/' }, { label: 'AI Assistant' }];
+
+const features = [
+  { icon: 'search', color: 'var(--c-body)', title: 'Find the right tool fast', body: 'Describe your goal in plain language and get pointed straight to the calculator that answers it.' },
+  { icon: 'book', color: 'var(--c-nutrition)', title: 'Plain-English guidance', body: 'General explanations of BMI, macros, heart-rate zones, sleep and more — without the jargon.' },
+  { icon: 'shield', color: 'var(--c-heart)', title: 'Safe by design', body: 'It never diagnoses, never gives medication or dosage advice, and points you to a professional for anything clinical.' },
+  { icon: 'lock', color: 'var(--green-primary)', title: 'Private', body: 'Your conversation isn’t stored on our servers, and you’re never asked for identifying details.' },
+];
+
+const title = `AI Wellness Assistant | ${SITE.name}`;
+const description = `Ask the free ${SITE.name} wellness assistant general health, nutrition, fitness and sleep questions — get plain-English guidance and the right calculator. Not medical advice.`;
+
+const origin = Astro.site ?? new URL('https://www.healthylifestyles.com');
+const appLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: `${SITE.name} Wellness Assistant`,
+  url: new URL('/ai-assistant', origin).href,
+  applicationCategory: 'HealthApplication',
+  operatingSystem: 'Any (web browser)',
+  description,
+  isAccessibleForFree: true,
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+};
+---
+
+<BaseLayout title={title} description={description} jsonLd={[appLd]}>
+  <section class="aix-hero">
+    <div class="container">
+      <Breadcrumb items={items} />
+      <div class="aix-hero__copy">
+        <span class="aix-hero__badge"><Icon name="zap" size={16} /> Free · Private · Not medical advice</span>
+        <h1>The <span class="text-accent">Wellness Assistant</span></h1>
+        <p>
+          Ask a general wellness, nutrition, fitness, or sleep question. The assistant gives
+          plain-English guidance and points you to the right free {SITE.name} calculator.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="aix-chat-wrap">
+    <div class="container">
+      <div class="aix-disclaimer" role="note">
+        <Icon name="shield" size={22} />
+        <div>
+          <strong>Important: this is not a medical service.</strong>
+          The assistant provides general educational information only. It is not a doctor and cannot
+          diagnose conditions or give prescription, medication, or dosage advice. For any symptom,
+          medical condition, or medication question, please consult a qualified healthcare professional.
+          If you’re in distress or crisis, contact a local helpline now — US &amp; Canada 988, UK Samaritans
+          116 123, Australia Lifeline 13 11 14. See our <a href="/medical-disclaimer">medical disclaimer</a>.
+        </div>
+      </div>
+
+      <AiAssistant client:load />
+    </div>
+  </section>
+
+  <section class="section section-surface-2">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">What it can help with</span>
+        <h2>A smarter way to navigate your health</h2>
+        <p class="lead">It connects your questions to the right tools and explains the basics — safely.</p>
+      </div>
+      <ul class="aix-features">
+        {
+          features.map((f) => (
+            <li class="card aix-feature">
+              <span class="icon-tile" style={`background:${f.color}1a;color:${f.color}`}>
+                <Icon name={f.icon} />
+              </span>
+              <h3>{f.title}</h3>
+              <p>{f.body}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <div class="container cta-band__inner">
+      <div>
+        <h2>Prefer to jump straight in?</h2>
+        <p>Browse every free {SITE.name} calculator, or get your personalized Health Score.</p>
+      </div>
+      <a href="/tools" class="btn btn-primary btn-lg">
+        Browse all tools <Icon name="arrow-right" size={18} />
+      </a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .aix-hero {
+    background:
+      radial-gradient(700px 360px at 85% -10%, rgba(34, 197, 94, 0.25), transparent 60%),
+      var(--dark);
+    color: #fff;
+    padding-block: clamp(1.5rem, 4vw, 2rem) clamp(3.5rem, 8vw, 5.5rem);
+  }
+  .aix-hero :global(.crumbs a) { color: #94a3b8; }
+  .aix-hero :global(.crumbs [aria-current='page']) { color: #e2e8f0; }
+  .aix-hero :global(.crumbs__sep) { color: #475569; }
+  .aix-hero__copy { max-width: 640px; margin-top: 1.25rem; }
+  .aix-hero__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .aix-hero h1 { color: #fff; margin: 1rem 0 0.75rem; font-size: clamp(2.2rem, 5vw, 3.1rem); }
+  .aix-hero__copy p { color: #cbd5e1; font-size: 1.1rem; margin: 0; }
+
+  .aix-chat-wrap {
+    margin-top: clamp(-3rem, -6vw, -4.5rem);
+    position: relative;
+    z-index: 1;
+    padding-bottom: clamp(3rem, 6vw, 5rem);
+  }
+  .aix-disclaimer {
+    max-width: 720px;
+    margin: 0 auto 1.25rem;
+    display: flex;
+    gap: 0.8rem;
+    align-items: flex-start;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: var(--radius);
+    padding: 1.1rem 1.3rem;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: #92400e;
+  }
+  .aix-disclaimer svg { flex-shrink: 0; margin-top: 2px; }
+  .aix-disclaimer strong { color: #78350f; }
+  .aix-disclaimer a { color: #92400e; font-weight: 700; text-decoration: underline; }
+
+  .aix-features {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+  }
+  .aix-feature { padding: 1.5rem; }
+  .aix-feature h3 { margin: 0.8rem 0 0.4rem; font-size: 1.1rem; }
+  .aix-feature p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+
+  .cta-band {
+    background:
+      radial-gradient(600px 300px at 100% 0%, rgba(34, 197, 94, 0.2), transparent 60%),
+      var(--dark);
+    color: #fff;
+    padding-block: clamp(2.5rem, 5vw, 4rem);
+  }
+  .cta-band__inner { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; }
+  .cta-band h2 { color: #fff; margin: 0 0 0.5rem; }
+  .cta-band p { color: #cbd5e1; margin: 0; }
+
+  @media (max-width: 860px) {
+    .aix-features { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 520px) {
+    .aix-features { grid-template-columns: 1fr; }
+  }
+</style>

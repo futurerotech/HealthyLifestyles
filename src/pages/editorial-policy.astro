@@ -1,0 +1,92 @@
+---
+import LegalLayout from '../layouts/LegalLayout.astro';
+import { SITE, EDITORIAL, CONTACT } from '../consts';
+import { formatDate } from '../lib/text';
+
+const title = `Editorial Policy | ${SITE.name}`;
+const description = `How ${SITE.name} researches, writes, sources, medically reviews, and corrects its health calculators and guides.`;
+const origin = Astro.site ?? new URL('https://www.healthylifestyles.com');
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'AboutPage',
+    name: title,
+    description,
+    url: new URL('/editorial-policy', origin).href,
+    publisher: { '@type': 'Organization', name: SITE.name, url: origin.href },
+  },
+];
+---
+
+<LegalLayout
+  title={title}
+  description={description}
+  heading="Editorial Policy"
+  updated={formatDate(EDITORIAL.lastReviewed)}
+  jsonLd={jsonLd}
+>
+  <p>
+    {SITE.name} publishes free health calculators and educational guides. This policy explains how that
+    content is created, sourced, reviewed, and kept up to date — and where our money comes from — so you
+    can judge how much to trust it.
+  </p>
+
+  <div class="legal-note">
+    <p>
+      <strong>Educational, not medical advice.</strong> Our tools and articles are for general information
+      only and are not a substitute for professional diagnosis or treatment. Always consult a qualified
+      healthcare professional about your own health.
+    </p>
+  </div>
+
+  <h2>Who creates our content</h2>
+  <p>
+    Content is produced by our <a href="/author/editorial-team">editorial team</a> and checked by our
+    <a href="/author/medical-review">medical review board</a>. We do not publish AI-generated articles as
+    finished work, and we do not invent author names or credentials. As we add named, credentialed
+    reviewers, their profiles and qualifications will appear on their author pages.
+  </p>
+
+  <h2>How we research and write</h2>
+  <ul>
+    <li>We start from primary, authoritative sources — peer-reviewed studies and guidance from bodies such as the CDC, WHO, NIH, ACOG, the American Heart Association, and registered professional organizations.</li>
+    <li>Every calculator uses an established, published formula. The exact equations and their sources are documented on our <a href="/methodology">methodology page</a>.</li>
+    <li>We write in plain language, hedge where the science is uncertain, and avoid sensational or absolute health claims.</li>
+    <li>We do not fabricate statistics, testimonials, or “as used by” endorsements.</li>
+  </ul>
+
+  <h2>Medical &amp; accuracy review</h2>
+  <p>
+    Health-related tools and articles are reviewed for clinical accuracy, safe framing, and appropriate
+    disclaimers before they publish. The reviewer and the review date are shown in the byline on each page
+    (“Medically reviewed by …, Updated …”). Reviewers are {EDITORIAL.reviewerCredential.toLowerCase()}.
+  </p>
+
+  <h2>Sourcing &amp; citations</h2>
+  <p>
+    Articles list their sources in a “Reviewed &amp; sources” section, and tool pages include a “Sources &amp;
+    references” list. We link directly to the original research or guidance wherever possible so you can
+    verify it yourself.
+  </p>
+
+  <h2>Independence, ads &amp; affiliates</h2>
+  <ul>
+    <li>Editorial decisions are independent of advertising and affiliate relationships.</li>
+    <li>Some pages display ads or include affiliate links; affiliate links are disclosed where they appear, and we may earn a commission at no extra cost to you.</li>
+    <li>A product being recommended is never contingent on a commercial relationship — recommendations reflect relevance to the tool, not who pays us.</li>
+  </ul>
+
+  <h2>Corrections &amp; updates</h2>
+  <p>
+    We revisit content as the evidence changes and correct errors promptly. Each page shows when it was last
+    updated. If you spot a mistake, please tell us at <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
+    and we’ll review it.
+  </p>
+
+  <h2>Privacy</h2>
+  <p>
+    Calculations run in your browser; the numbers you enter are not uploaded or stored. See our
+    <a href="/privacy">privacy policy</a> for details.
+  </p>
+</LegalLayout>

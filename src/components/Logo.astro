@@ -1,0 +1,107 @@
+---
+/**
+ * Brand lockup: rounded green square + white pulse line, wordmark, and the
+ * small-caps "Trusted Wellness" subtitle. `tone` flips the wordmark colour for
+ * dark backgrounds (footer / hero).
+ */
+import { SITE } from '../consts';
+
+interface Props {
+  tone?: 'dark' | 'light';
+  /** Hide the wordmark, show only the mark. */
+  markOnly?: boolean;
+  class?: string;
+}
+
+const { tone = 'dark', markOnly = false, class: className } = Astro.props;
+---
+
+<a
+  href="/"
+  class:list={['logo', `logo--${tone}`, className]}
+  aria-label={`${SITE.name} — home`}
+>
+  <span class="logo__mark" aria-hidden="true">
+    <svg viewBox="0 0 48 48" width="44" height="44" role="img" aria-label="">
+      <rect x="2" y="2" width="44" height="44" rx="13" fill="url(#lg-grad)" />
+      <path
+        d="M9 25h6l3-9 5 16 4-11 2.5 4H39"
+        fill="none"
+        stroke="#ffffff"
+        stroke-width="3"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <defs>
+        <linearGradient id="lg-grad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#22c55e" />
+          <stop offset="1" stop-color="#16a34a" />
+        </linearGradient>
+      </defs>
+    </svg>
+  </span>
+  {
+    !markOnly && (
+      <span class="logo__text">
+        <span class="logo__name">{SITE.name}</span>
+        <span class="logo__sub">{SITE.tagline}</span>
+      </span>
+    )
+  }
+</a>
+
+<style>
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    text-decoration: none;
+    line-height: 1;
+  }
+  .logo:hover {
+    text-decoration: none;
+  }
+  .logo__mark {
+    display: inline-flex;
+    filter: drop-shadow(0 4px 10px rgba(22, 163, 74, 0.35));
+  }
+  .logo__mark svg {
+    width: 40px;
+    height: 40px;
+  }
+  .logo__text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    /* Share an optical baseline with the heartbeat mark. */
+    justify-content: center;
+  }
+  .logo__name {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.25rem;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    color: var(--ink);
+  }
+  .logo__sub {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--green-primary);
+  }
+  .logo--light .logo__name {
+    color: #fff;
+  }
+  .logo--light .logo__sub {
+    color: var(--green-accent);
+  }
+
+  @media (max-width: 460px) {
+    .logo__name {
+      font-size: 1.05rem;
+    }
+  }
+</style>

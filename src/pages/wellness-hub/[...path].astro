@@ -1,0 +1,170 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleBody from '../../components/ArticleBody.astro';
+import ArticleArchiveBody from '../../components/ArticleArchiveBody.astro';
+import '../../styles/wellness-hub.css';
+import { SITE } from '../../consts';
+import {
+  ARTICLES,
+  ARTICLE_CATEGORIES,
+  ARTICLES_PER_PAGE,
+  getArticle,
+  getArticleCategory,
+  getArticlesByCategory,
+  articleFaq,
+} from '../../data/articles';
+
+export function getStaticPaths() {
+  const paths: any[] = [];
+
+  // Article pages: /wellness-hub/[slug]
+  for (const a of ARTICLES) {
+    paths.push({ params: { path: a.slug }, props: { kind: 'article', slug: a.slug } });
+  }
+
+  // Category archives: /wellness-hub/[category] (+ /[category]/[n] for page 2+)
+  for (const c of ARTICLE_CATEGORIES) {
+    const count = getArticlesByCategory(c.id).length;
+    const totalPages = Math.max(1, Math.ceil(count / ARTICLES_PER_PAGE));
+    for (let p = 1; p <= totalPages; p++) {
+      paths.push({
+        params: { path: p === 1 ? c.slug : `${c.slug}/${p}` },
+        props: { kind: 'archive', categoryId: c.id, page: p },
+      });
+    }
+  }
+
+  return paths;
+}
+
+const props = Astro.props as
+  | { kind: 'article'; slug: string }
+  | { kind: 'archive'; categoryId: string; page: number };
+
+const origin = Astro.site ?? new URL('https://www.healthylifestyles.com');
+const pageUrl = new URL(Astro.url.pathname, origin).href.replace(/\/$/, '');
+
+let title = '';
+let description = '';
+let jsonLd: Record<string, unknown>[] = [];
+
+const breadcrumb = (crumbs: { label: string; href?: string }[]) => ({
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: crumbs.map((c, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: c.label,
+    ...(c.href ? { item: new URL(c.href, origin).href.replace(/\/$/, '') } : {}),
+  })),
+});
+
+// --- Article branch ---
+let article = props.kind === 'article' ? getArticle(props.slug)! : null;
+
+// --- Archive branch ---
+let archive: {
+  category: (typeof ARTICLE_CATEGORIES)[number];
+  pageArticles: typeof ARTICLES;
+  total: number;
+  page: number;
+  totalPages: number;
+} | null = null;
+
+if (props.kind === 'article' && article) {
+  const category = getArticleCategory(article.category)!;
+  title = article.seoTitle;
+  description = article.metaDescription;
+  const ogImage = new URL(SITE.ogImage, origin).href;
+
+  const articleLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: article.title,
+    description: article.metaDescription,
+    datePublished: article.publishDate,
+    dateModified: article.updatedDate,
+    author: { '@type': 'Organization', name: article.author },
+    publisher: {
+      '@type': 'Organization',
+      name: SITE.name,
+      logo: { '@type': 'ImageObject', url: new URL('/icon-512.png', origin).href },
+    },
+    mainEntityOfPage: pageUrl,
+    image: ogImage,
+    articleSection: category.name,
+    inLanguage: 'en',
+  };
+
+  jsonLd = [
+    breadcrumb([
+      { label: 'Home', href: '/' },
+      { label: 'Wellness Hub', href: '/wellness-hub' },
+      { label: category.name, href: `/wellness-hub/${category.slug}` },
+      { label: article.title },
+    ]),
+    articleLd,
+  ];
+
+  const faq = articleFaq(article);
+  if (faq.length) {
+    jsonLd.push({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: faq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    });
+  }
+} else if (props.kind === 'archive') {
+  const category = getArticleCategory(props.categoryId)!;
+  const all = getArticlesByCategory(category.id);
+  const totalPages = Math.max(1, Math.ceil(all.length / ARTICLES_PER_PAGE));
+  const page = props.page;
+  const pageArticles = all.slice((page - 1) * ARTICLES_PER_PAGE, page * ARTICLES_PER_PAGE);
+  archive = { category, pageArticles, total: all.length, page, totalPages };
+
+  title =
+    page > 1
+      ? `${category.name} Guides — Page ${page} | Wellness Hub`
+      : `${category.name} Guides | Wellness Hub`;
+  description = `${category.blurb} Evidence-based ${category.name.toLowerCase()} guides from the ${SITE.name} Wellness Hub.`;
+
+  jsonLd = [
+    breadcrumb([
+      { label: 'Home', href: '/' },
+      { label: 'Wellness Hub', href: '/wellness-hub' },
+      { label: category.name },
+    ]),
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: `${category.name} Guides`,
+      description,
+      url: pageUrl,
+      hasPart: all.map((a) => ({
+        '@type': 'Article',
+        headline: a.title,
+        url: new URL(`/wellness-hub/${a.slug}`, origin).href,
+        datePublished: a.publishDate,
+        dateModified: a.updatedDate,
+      })),
+    },
+  ];
+}
+---
+
+<BaseLayout title={title} description={description} type={article ? 'article' : 'website'} jsonLd={jsonLd}>
+  {article && <ArticleBody article={article} pageUrl={pageUrl} />}
+  {archive && (
+    <ArticleArchiveBody
+      category={archive.category}
+      articles={archive.pageArticles}
+      total={archive.total}
+      page={archive.page}
+      totalPages={archive.totalPages}
+    />
+  )}
+</BaseLayout>

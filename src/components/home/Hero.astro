@@ -1,0 +1,246 @@
+---
+import Icon from '../Icon.astro';
+import { getPopularTools, getLiveTools } from '../../data/tools';
+import { getCategory, CATEGORIES } from '../../data/categories';
+
+// Real, computed trust stats — no fabricated numbers. The tool count tracks the
+// actual live (non–coming-soon) tools and updates automatically as tools ship.
+const liveCount = getLiveTools().length;
+const TRUST = [
+  { value: `${liveCount}`, label: 'Free tools' },
+  { value: `${CATEGORIES.length}`, label: 'Health categories' },
+  { value: '100%', label: 'Free · no signup' },
+];
+
+// A small live-looking preview of popular tools beside the headline.
+const preview = getPopularTools(4);
+---
+
+<section class="hero">
+  <div class="container hero__grid">
+    <div class="hero__copy">
+      <span class="hero__badge">
+        <Icon name="shield" size={16} /> Science-backed · No signup
+      </span>
+      <h1 class="hero__title">
+        Free Health <span class="text-accent">Calculators &amp; Tools</span>
+      </h1>
+      <p class="hero__sub">
+        Get instant, accurate health insights based on scientific formulas —
+        private, instant, no signup.
+      </p>
+      <div class="hero__cta">
+        <a href="/health-score" class="btn btn-primary btn-lg">
+          Get My Health Score <Icon name="arrow-right" size={18} />
+        </a>
+        <a href="/tools" class="btn btn-ghost-light btn-lg">View All Tools</a>
+      </div>
+
+      <ul class="hero__trust">
+        {
+          TRUST.map((t) => (
+            <li>
+              <span class="hero__trust-value">{t.value}</span>
+              <span class="hero__trust-label">{t.label}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div class="hero__visual" aria-hidden="true">
+      <div class="hero__card">
+        <div class="hero__card-head">
+          <span class="hero__pulse">
+            <Icon name="heart-pulse" size={20} />
+          </span>
+          <div>
+            <strong>Popular right now</strong>
+            <span>Pick a tool to get started</span>
+          </div>
+        </div>
+        <ul class="hero__tools">
+          {
+            preview.map((tool) => {
+              const cat = getCategory(tool.category);
+              return (
+                <li>
+                  <span
+                    class="hero__tool-icon"
+                    style={`background:${cat?.color}1f;color:${cat?.color}`}
+                  >
+                    <Icon name={cat?.icon ?? 'flask'} size={18} />
+                  </span>
+                  <span class="hero__tool-name">{tool.title}</span>
+                  <Icon name="arrow-right" size={16} class="hero__tool-arrow" />
+                </li>
+              );
+            })
+          }
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    background:
+      radial-gradient(900px 500px at 85% -10%, rgba(34, 197, 94, 0.22), transparent 60%),
+      radial-gradient(700px 500px at 0% 110%, rgba(22, 163, 74, 0.18), transparent 55%),
+      var(--dark);
+    color: #fff;
+    overflow: hidden;
+    padding-block: clamp(3rem, 7vw, 6rem);
+  }
+  .hero__grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: center;
+  }
+
+  .hero__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.45rem 0.9rem;
+    border-radius: var(--radius-pill);
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #86efac;
+    margin-bottom: 1.4rem;
+  }
+  .hero__title {
+    color: #fff;
+    margin: 0 0 1.1rem;
+  }
+  .hero__title .text-accent {
+    color: var(--green-accent);
+  }
+  .hero__sub {
+    font-size: clamp(1.05rem, 1vw + 0.85rem, 1.25rem);
+    color: #cbd5e1;
+    max-width: 48ch;
+    margin: 0 0 2rem;
+  }
+  .hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+  }
+
+  .hero__trust {
+    display: flex;
+    gap: clamp(1.25rem, 4vw, 2.5rem);
+    margin-top: 2.5rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid rgba(148, 163, 184, 0.2);
+  }
+  .hero__trust li {
+    display: flex;
+    flex-direction: column;
+  }
+  .hero__trust-value {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.4rem, 2vw, 1.9rem);
+    color: #fff;
+    line-height: 1.1;
+  }
+  .hero__trust-label {
+    font-size: 0.85rem;
+    color: #94a3b8;
+  }
+
+  /* Visual card */
+  .hero__visual {
+    display: flex;
+    justify-content: center;
+  }
+  .hero__card {
+    width: 100%;
+    max-width: 360px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-lg);
+    padding: 1.4rem;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(6px);
+  }
+  .hero__card-head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-bottom: 1rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .hero__card-head strong {
+    display: block;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 0.98rem;
+  }
+  .hero__card-head span {
+    font-size: 0.82rem;
+    color: #94a3b8;
+  }
+  .hero__pulse {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--green-primary);
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .hero__tools {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .hero__tools li {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.7rem 0.75rem;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    transition: background 0.18s ease;
+  }
+  .hero__tools li:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .hero__tool-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    flex-shrink: 0;
+  }
+  .hero__tool-name {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #e2e8f0;
+  }
+  .hero__tool-arrow {
+    margin-left: auto;
+    color: #64748b;
+  }
+
+  @media (max-width: 900px) {
+    .hero__grid {
+      grid-template-columns: 1fr;
+    }
+    .hero__visual {
+      display: none;
+    }
+  }
+</style>

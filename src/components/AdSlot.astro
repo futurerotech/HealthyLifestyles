@@ -1,0 +1,169 @@
+---
+/**
+ * Ad slot container — reserves fixed-size space (no CLS) and renders either:
+ *   - An AdSense <ins> (loaded lazily via IntersectionObserver, then pushed).
+ *   - A custom affiliate banner image.
+ *   - Custom HTML/JS code.
+ *   - A reserved placeholder until a real ad is configured.
+ *
+ * Partytown: AdSense is loaded via type="text/partytown" (runs in a web worker).
+ * The IntersectionObserver push runs on the main thread (lightweight, data-pt-skip).
+ *
+ * All third-party scripts are consent-gated (inert until window.HLS_CONSENT === 'accept').
+ */
+
+import { ADS } from '../consts';
+import { getAdConfig } from '../lib/ad-config';
+
+const { placement, format = 'rectangle', class: cls } = Astro.props;
+
+// Fetch CMS ad config at build time (cached singleton).
+const adConfig = await getAdConfig();
+
+// Determine settings: CMS config > static consts
+const adsenseEnabled = adConfig
+  ? adConfig.adsenseEnabled && !!adConfig.adsenseClient
+  : !!ADS.client && /^ca-pub-\d+$/.test(ADS.client);
+const clientId = adConfig?.adsenseClient || ADS.client;
+const slot = adConfig
+  ? adConfig.slots?.find((s) => s.placement === placement)
+  : null;
+const slotId = adConfig
+  ? slot?.adsenseSlotId || ''
+  : ADS.slots[placement as keyof typeof ADS.slots] || '';
+const usePartytown = adConfig?.partytownEnabled !== false;
+const useLazy = adConfig?.lazyLoad !== false;
+
+// Check for custom code or affiliate override
+const hasCustom = slot?.customCode;
+const affiliate = slot?.affiliateBanner?.url && slot?.affiliateBanner?.image?.url ? slot.affiliateBanner : null;
+
+const showIns = adsenseEnabled && !!slotId && !hasCustom && !affiliate;
+
+const sizeClass = format === 'rectangle' ? 'ad--rectangle' : format === 'sidebar' ? 'ad--sidebar' : format === 'leaderboard' ? 'ad--leaderboard' : format === 'mobileBanner' ? 'ad--mobile' : 'ad--auto';
+const sticky = placement === 'stickyFooter';
+---
+
+<aside
+  class:list={['ad', sizeClass, `ad--${placement}`, sticky ? 'ad--sticky' : '', cls]}
+  role="complementary"
+  aria-label="Advertisement"
+>
+  {sticky && (
+    <button class="ad__close" data-close-sticky type="button" aria-label="Close advertisement">&times;</button>
+  )}
+
+  {affiliate ? (
+    <a href={affiliate.url} target="_blank" rel="noopener sponsored" class="ad__affiliate">
+      <img
+        src={affiliate.image.url}
+        alt={affiliate.alt || 'Advertisement'}
+        width={affiliate.width || undefined}
+        height={affiliate.height || undefined}
+        loading="lazy"
+      />
+    </a>
+  ) : hasCustom ? (
+    <Fragment set:html={hasCustom} />
+  ) : showIns ? (
+    <>
+      <span class="ad__label">Advertisement</span>
+      <ins
+        class="adsbygoogle"
+        data-ad-client={clientId}
+        data-ad-slot={slotId}
+        data-ad-format={format === 'auto' ? 'auto' : format === 'rectangle' ? 'rectangle' : format === 'leaderboard' ? 'leaderboard' : format === 'sidebar' ? 'vertical' : 'auto'}
+        data-full-width-responsive="false"
+        data-ad-lazy
+      />
+    </>
+  ) : (
+    <span class="ad__label">Advertisement</span>
+  )}
+</aside>
+
+<style>
+  .ad {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-block: clamp(1.5rem, 3vw, 2.25rem);
+    background:
+      repeating-linear-gradient(45deg, var(--surface-2), var(--surface-2) 10px, #fff 10px, #fff 20px);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .ad__label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    background: var(--surface);
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    z-index: 1;
+  }
+  .ad--rectangle { min-height: 280px; }
+  .ad--sidebar { min-height: 600px; }
+  .ad--leaderboard { min-height: 90px; }
+  .ad--mobile { min-height: 100px; }
+  .ad--auto { min-height: 100px; }
+
+  .ad--sticky {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    margin: 0;
+    min-height: 60px;
+    max-height: 120px;
+    background: #fff;
+    border: none;
+    border-top: 1px solid var(--border);
+    border-radius: 0;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease;
+  }
+  .ad--sticky-hidden { transform: translateY(100%); }
+  .ad__close {
+    position: absolute;
+    top: 0; right: 0;
+    z-index: 2;
+    width: 28px; height: 28px;
+    border: none;
+    background: var(--surface);
+    border-radius: 0 0 0 4px;
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ad__close:hover { color: var(--text); background: var(--surface-2); }
+
+  .ad__affiliate { display: block; width: 100%; height: 100%; }
+  .ad__affiliate img { display: block; width: 100%; height: 100%; object-fit: contain; }
+
+  .adsbygoogle {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  @media (max-width: 960px) {
+    .ad--sidebar { display: none; }
+  }
+</style><｜end▁of▁thinking｜>
+
+<｜｜DSML｜｜tool_calls>
+<｜｜DSML｜｜invoke name="read">
+<｜｜DSML｜｜parameter name="filePath" string="true">F:\cloud\src\components\AdManager.astro

@@ -1,0 +1,70 @@
+---
+/**
+ * E-E-A-T byline shown on every tool and article:
+ *   "Written by X · Medically reviewed by Y, [credential] · Updated [date]"
+ * Author + reviewer link to their /author/[slug] profile pages.
+ */
+import Avatar from './Avatar.astro';
+import Icon from './Icon.astro';
+import { resolveAuthor, getReviewer } from '../data/authors';
+import { formatDate } from '../lib/text';
+
+interface Props {
+  /** Author slug or display name; defaults to the editorial team. */
+  author?: string;
+  /** ISO date the content was last updated / reviewed. */
+  updated: string;
+  /** Show the "medically reviewed by" clause (default true). */
+  reviewed?: boolean;
+  class?: string;
+}
+const { author = 'editorial-team', updated, reviewed = true, class: className } = Astro.props;
+const a = resolveAuthor(author);
+const r = getReviewer();
+---
+
+<div class:list={['byline', className]}>
+  <Avatar initials={a.initials} color={a.color} size={40} class="byline__avatar" />
+  <p class="byline__text">
+    Written by <a href={`/author/${a.slug}`}>{a.name}</a>
+    {reviewed && (
+      <>
+        <span class="byline__sep" aria-hidden="true">·</span>
+        Medically reviewed by <a href={`/author/${r.slug}`}>{r.name}</a>, {r.credential}
+      </>
+    )}
+    <span class="byline__sep" aria-hidden="true">·</span>
+    <span class="byline__updated"><Icon name="check" size={13} /> Updated {formatDate(updated)}</span>
+  </p>
+</div>
+
+<style>
+  .byline {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+  .byline__text {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+  .byline__text a {
+    color: var(--green-700);
+    font-weight: 600;
+  }
+  .byline__sep {
+    margin: 0 0.35rem;
+    color: var(--border);
+  }
+  .byline__updated {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    white-space: nowrap;
+  }
+  .byline__updated svg {
+    color: var(--green-primary);
+  }
+</style>

@@ -1,0 +1,199 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../components/Breadcrumb.astro';
+import Avatar from '../../components/Avatar.astro';
+import Icon from '../../components/Icon.astro';
+import SocialIcon from '../../components/SocialIcon.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { AUTHORS, resolveAuthor, type Author } from '../../data/authors';
+import { ARTICLES } from '../../data/articles';
+import { SITE } from '../../consts';
+import { SOCIAL_NETWORKS } from '../../consts';
+
+export function getStaticPaths() {
+  return AUTHORS.map((author) => ({ params: { slug: author.slug }, props: { author } }));
+}
+
+interface Props {
+  author: Author;
+}
+const { author } = Astro.props;
+
+const origin = Astro.site ?? new URL('https://www.healthylifestyles.com');
+const pageUrl = new URL(`/author/${author.slug}`, origin).href.replace(/\/$/, '');
+
+// Articles this entity authored.
+const articles = ARTICLES.filter((a) => resolveAuthor(a.author).slug === author.slug);
+
+const items = [
+  { label: 'Home', href: '/' },
+  { label: 'Authors', href: '/editorial-policy' },
+  { label: author.name },
+];
+
+const title = `${author.name} | ${SITE.name}`;
+const description = author.bio.slice(0, 154);
+
+const sameAs = (author.links ?? []).map((l) => l.href).filter((h) => /^https?:\/\//.test(h));
+const profileLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfilePage',
+  url: pageUrl,
+  mainEntity: {
+    '@type': author.schemaType,
+    name: author.name,
+    description: author.bio,
+    url: pageUrl,
+    ...(author.schemaType === 'Person' && author.credential ? { jobTitle: author.credential } : {}),
+    ...(author.schemaType === 'Person' ? { worksFor: { '@type': 'Organization', name: SITE.name, url: origin.href } } : {}),
+    ...(sameAs.length ? { sameAs } : {}),
+  },
+};
+---
+
+<BaseLayout title={title} description={description} jsonLd={[profileLd]}>
+  <header class="author__header section-mint">
+    <div class="container container-narrow">
+      <Breadcrumb items={items} />
+      <div class="author__id">
+        <Avatar initials={author.initials} color={author.color} size={84} />
+        <div>
+          <h1>{author.name}</h1>
+          <p class="author__role">
+            {author.role}{author.credential && <span class="author__cred"> · {author.credential}</span>}
+          </p>
+        </div>
+      </div>
+      <p class="author__bio">{author.bio}</p>
+      {
+        author.links && author.links.length > 0 && (
+          <div class="social-row author__links">
+            {author.links.map((l) =>
+              l.network === 'website' ? (
+                <a class="social-btn" href={l.href} target="_blank" rel="noopener noreferrer" aria-label="Website" title="Website" style="--brand:#16a34a">
+                  <Icon name="link" size={18} />
+                </a>
+              ) : (
+                <a
+                  class="social-btn"
+                  href={l.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${SOCIAL_NETWORKS[l.network].label}`}
+                  title={SOCIAL_NETWORKS[l.network].label}
+                  style={`--brand:${SOCIAL_NETWORKS[l.network].color}`}
+                >
+                  <SocialIcon name={l.network} size={18} />
+                </a>
+              ),
+            )}
+          </div>
+        )
+      }
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="container container-narrow">
+      <p class="author__standards">
+        <Icon name="shield" size={18} />
+        <span>
+          How we research, write, and review content is documented in our
+          <a href="/editorial-policy">editorial policy</a> and
+          <a href="/methodology">methodology</a>.
+        </span>
+      </p>
+
+      {
+        articles.length > 0 ? (
+          <>
+            <h2 class="author__h2">Articles by {author.name}</h2>
+            <ul class="author__articles">
+              {articles.map((a) => (
+                <li>
+                  <ArticleCard article={a} />
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <p class="author__none">
+            This team reviews calculators and guides across the site for accuracy and safe framing
+            rather than authoring individual articles.
+          </p>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .author__header {
+    padding-block: clamp(1.75rem, 4vw, 2.75rem);
+  }
+  .author__id {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    margin-top: 1rem;
+  }
+  .author__id h1 {
+    margin: 0;
+    font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+  }
+  .author__role {
+    margin: 0.3rem 0 0;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .author__cred {
+    color: var(--green-700);
+  }
+  .author__bio {
+    margin: 1.25rem 0 0;
+    max-width: 65ch;
+    color: #334155;
+    line-height: 1.7;
+  }
+  .author__links {
+    margin-top: 1.25rem;
+  }
+  .author__standards {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.9rem 1.1rem;
+    font-size: 0.92rem;
+    color: var(--muted);
+    margin: 0 0 2rem;
+  }
+  .author__standards svg {
+    color: var(--green-primary);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .author__standards a {
+    color: var(--green-700);
+    font-weight: 600;
+  }
+  .author__h2 {
+    font-size: 1.4rem;
+    margin: 0 0 1.25rem;
+  }
+  .author__articles {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+  .author__none {
+    color: var(--muted);
+  }
+  @media (max-width: 640px) {
+    .author__articles {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

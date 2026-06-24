@@ -1,0 +1,423 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import Icon from '../components/Icon.astro';
+import { SITE, EDITORIAL } from '../consts';
+import { getLiveTools } from '../data/tools';
+import { CATEGORIES } from '../data/categories';
+
+const liveCount = getLiveTools().length;
+const items = [{ label: 'Home', href: '/' }, { label: 'About' }];
+
+const origin = Astro.site ?? new URL('https://www.healthylifestyles.com');
+const aboutLd = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  name: `About ${SITE.name}`,
+  url: new URL('/about', origin).href,
+  mainEntity: {
+    '@type': 'Organization',
+    name: SITE.name,
+    url: origin.href,
+    slogan: SITE.tagline,
+    description: SITE.description,
+    logo: new URL('/icon-512.png', origin).href,
+    knowsAbout: ['health calculators', 'nutrition', 'fitness', 'sleep', 'body composition', 'heart health'],
+  },
+};
+const reviewerLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: EDITORIAL.reviewerName,
+  jobTitle: EDITORIAL.reviewerCredential,
+  worksFor: { '@type': 'Organization', name: SITE.name },
+};
+
+const values = [
+  {
+    icon: 'flask',
+    color: 'var(--c-body)',
+    title: 'Science first',
+    body: 'Every calculator is built on established, peer-reviewed formulas — Mifflin-St Jeor for metabolism, the U.S. Navy method for body fat, and similar validated equations. We cite the source on each tool page.',
+  },
+  {
+    icon: 'lock',
+    color: 'var(--green-primary)',
+    title: 'Privacy by design',
+    body: 'Your numbers are processed entirely in your browser. We never upload, store, sell, or share the health data you enter. No account is required to use any tool.',
+  },
+  {
+    icon: 'check',
+    color: 'var(--c-metabolic)',
+    title: 'Free and accessible',
+    body: 'No paywalls, no subscriptions, no signup. Every tool supports both metric and imperial units so it works for people in the US, UK, Canada, Australia and beyond.',
+  },
+  {
+    icon: 'book',
+    color: 'var(--c-nutrition)',
+    title: 'Clear and honest',
+    body: 'We explain what each result means in plain English, show the formula behind it, and are upfront that our tools are for education and wellness — never a medical diagnosis.',
+  },
+];
+
+const stats = [
+  { value: `${liveCount}+`, label: 'Free tools' },
+  { value: `${CATEGORIES.length}`, label: 'Health categories' },
+  { value: '100%', label: 'Free, no signup' },
+  { value: '0', label: 'Data points stored' },
+];
+
+const title = `About ${SITE.name} | Our Mission & How We Work`;
+const description = `${SITE.name} builds free, private, science-backed health calculators. Learn about our mission, our values, and how we keep your data your own.`;
+---
+
+<BaseLayout title={title} description={description} jsonLd={[aboutLd, reviewerLd]}>
+  <header class="about__hero section-mint">
+    <div class="container">
+      <Breadcrumb items={items} />
+      <div class="about__hero-grid">
+        <div>
+          <span class="eyebrow">About us</span>
+          <h1>Trustworthy wellness tools, free for everyone</h1>
+          <p class="lead">
+            {SITE.name} makes accurate health insights accessible to anyone with a
+            browser. We turn the same formulas clinicians and researchers rely on
+            into fast, friendly calculators — with your privacy built in from the start.
+          </p>
+          <div class="about__hero-cta">
+            <a href="/tools" class="btn btn-primary btn-lg">
+              Explore the tools <Icon name="arrow-right" size={18} />
+            </a>
+            <a href="/health-score" class="btn btn-outline btn-lg">Get my Health Score</a>
+          </div>
+        </div>
+        <ul class="about__stats">
+          {stats.map((s) => (
+            <li class="card about__stat">
+              <span class="about__stat-value">{s.value}</span>
+              <span class="about__stat-label">{s.label}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="container container-narrow">
+      <span class="eyebrow">Our mission</span>
+      <h2 class="about__h2">Good health decisions start with good information</h2>
+      <p class="about__p">
+        Most people don't have easy access to clear, reliable answers about their
+        own health numbers. Calculators online are often cluttered with ads, hide
+        their methods, or quietly harvest the personal details you type in. We
+        built {SITE.name} to be the opposite: clean, transparent, and genuinely private.
+      </p>
+      <p class="about__p">
+        Our goal is simple — help you understand your body and your habits a little
+        better, using methods you can verify, without asking for anything in return.
+        Whether you're tracking a weight goal, dialing in your nutrition, training
+        for a race, or just curious, the right tool should be one click away and
+        free to use.
+      </p>
+    </div>
+  </section>
+
+  <section class="section section-surface-2">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">What we stand for</span>
+        <h2>Our values</h2>
+        <p class="lead">Four principles guide every tool and every line of content we publish.</p>
+      </div>
+      <ul class="about__values">
+        {values.map((v) => (
+          <li class="card about__value">
+            <span class="icon-tile" style={`background:${v.color}1a;color:${v.color}`}>
+              <Icon name={v.icon} />
+            </span>
+            <h3>{v.title}</h3>
+            <p>{v.body}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container container-narrow">
+      <span class="eyebrow">How it works</span>
+      <h2 class="about__h2">From research to result, in three steps</h2>
+      <ol class="about__steps">
+        <li>
+          <span class="about__step-num">1</span>
+          <div>
+            <h3>We start with the evidence</h3>
+            <p>Each tool implements a published, peer-reviewed formula. We document the equation and link the original research so you can check our work.</p>
+          </div>
+        </li>
+        <li>
+          <span class="about__step-num">2</span>
+          <div>
+            <h3>You enter your numbers privately</h3>
+            <p>Calculations run in your browser using JavaScript. The values you type never travel to a server — there's nothing for us to store or leak.</p>
+          </div>
+        </li>
+        <li>
+          <span class="about__step-num">3</span>
+          <div>
+            <h3>You get a clear, useful answer</h3>
+            <p>We translate the math into plain-English guidance, with context on what your result means and what to consider next.</p>
+          </div>
+        </li>
+      </ol>
+
+      <div class="about__disclaimer">
+        <p>
+          <strong>A note on medical advice.</strong> {SITE.name} provides general
+          educational and wellness information only. Our tools are not a substitute
+          for professional medical advice, diagnosis, or treatment. Always consult a
+          qualified healthcare provider about your health. Read our
+          <a href="/medical-disclaimer">full medical disclaimer</a>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-surface-2">
+    <div class="container container-narrow">
+      <span class="eyebrow">Editorial standards</span>
+      <h2 class="about__h2">How we create and review our content</h2>
+      <p class="about__p">
+        Every calculator and article is written by our content team, built on a published,
+        peer-reviewed formula, and checked against authoritative sources such as the WHO, CDC,
+        American Heart Association, and primary research. We cite those sources on each tool page
+        so you can verify our work, and we revisit content regularly to keep it current.
+      </p>
+      <div class="about__reviewer">
+        <span class="icon-tile" style="background:var(--c-heart)1a;color:var(--c-heart)">
+          <Icon name="shield" />
+        </span>
+        <div>
+          <span class="about__reviewer-label">Medically reviewed by</span>
+          <strong>{EDITORIAL.reviewerName}</strong>
+          <span class="about__reviewer-cred">{EDITORIAL.reviewerCredential}</span>
+          <p>
+            Our health content is reviewed for accuracy by qualified professionals. Reviews are
+            for general education only — they are not a substitute for personal medical advice.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <div class="container cta-band__inner">
+      <div>
+        <h2>Have a question or an idea?</h2>
+        <p>We'd love to hear which tools would help you most.</p>
+      </div>
+      <a href="/contact" class="btn btn-primary btn-lg">
+        Get in touch <Icon name="arrow-right" size={18} />
+      </a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .about__hero {
+    padding-block: clamp(1.75rem, 4vw, 2.75rem) clamp(2.5rem, 5vw, 4rem);
+  }
+  .about__hero-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: clamp(2rem, 5vw, 3.5rem);
+    align-items: center;
+    margin-top: 1rem;
+  }
+  .about__hero h1 {
+    margin: 0.4rem 0 0.75rem;
+  }
+  .about__hero-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+  .about__stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .about__stat {
+    padding: 1.4rem;
+    text-align: center;
+  }
+  .about__stat-value {
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 2rem;
+    color: var(--green-700);
+    line-height: 1;
+  }
+  .about__stat-label {
+    display: block;
+    margin-top: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .about__h2 {
+    margin: 0.4rem 0 1rem;
+  }
+  .about__p {
+    color: #334155;
+    margin-bottom: 1rem;
+    line-height: 1.75;
+  }
+
+  .about__values {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+  .about__value {
+    padding: 1.75rem;
+  }
+  .about__value h3 {
+    margin: 1rem 0 0.5rem;
+    font-size: 1.2rem;
+  }
+  .about__value p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+
+  .about__steps {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    list-style: none;
+    padding: 0;
+    counter-reset: step;
+  }
+  .about__steps li {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.4rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .about__step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--green-primary);
+    color: #fff;
+    font-family: var(--font-display);
+    font-weight: 800;
+  }
+  .about__steps h3 {
+    font-size: 1.1rem;
+    margin: 0.25rem 0 0.35rem;
+  }
+  .about__steps p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+
+  .about__reviewer {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    margin-top: 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.4rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .about__reviewer-label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+  .about__reviewer strong {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    margin: 0.15rem 0;
+  }
+  .about__reviewer-cred {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--green-700);
+    font-weight: 600;
+  }
+  .about__reviewer p {
+    margin: 0.6rem 0 0;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  .about__disclaimer {
+    margin-top: 2rem;
+    background: var(--mint-50);
+    border: 1px solid #d1fae5;
+    border-radius: var(--radius);
+    padding: 1.1rem 1.35rem;
+  }
+  .about__disclaimer p {
+    margin: 0;
+    font-size: 0.92rem;
+    color: #334155;
+  }
+
+  .cta-band {
+    background:
+      radial-gradient(600px 300px at 100% 0%, rgba(34, 197, 94, 0.2), transparent 60%),
+      var(--dark);
+    color: #fff;
+    padding-block: clamp(2.5rem, 5vw, 4rem);
+  }
+  .cta-band__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .cta-band h2 {
+    color: #fff;
+    margin: 0 0 0.5rem;
+  }
+  .cta-band p {
+    color: #cbd5e1;
+    margin: 0;
+  }
+
+  @media (max-width: 860px) {
+    .about__hero-grid,
+    .about__values {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 460px) {
+    .about__stats {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

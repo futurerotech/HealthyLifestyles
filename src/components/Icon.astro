@@ -1,0 +1,37 @@
+---
+/**
+ * Inline SVG icons (lucide-style, stroke = currentColor). Zero JS, zero deps.
+ * Paths live in src/lib/icon-paths.ts (shared with the OG image endpoint).
+ */
+import { ICON_PATHS } from '../lib/icon-paths';
+
+interface Props {
+  name: string;
+  size?: number;
+  class?: string;
+  /** Decorative icons get aria-hidden; pass a label to expose to AT. */
+  label?: string;
+}
+
+const { name, size = 24, class: className, label } = Astro.props;
+
+const inner = ICON_PATHS[name] ?? '';
+const decorative = !label;
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width={size}
+  height={size}
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  class={className}
+  aria-hidden={decorative ? 'true' : undefined}
+  role={decorative ? undefined : 'img'}
+  aria-label={label}
+  set:html={inner}
+/>

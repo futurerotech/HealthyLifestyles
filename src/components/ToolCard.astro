@@ -1,0 +1,99 @@
+---
+import Icon from './Icon.astro';
+import ToolIcon from './ToolIcon.astro';
+import { getCategory } from '../data/categories';
+import type { Tool } from '../data/tools';
+
+interface Props {
+  tool: Tool;
+}
+
+const { tool } = Astro.props;
+const category = getCategory(tool.category);
+const live = !!tool.live;
+const Wrapper = live ? 'a' : 'div';
+const wrapperProps = live ? { href: `/tools/${tool.slug}` } : {};
+---
+
+<Wrapper {...wrapperProps} class:list={['tool-card card', { 'is-soon': !live }]}>
+  <ToolIcon icon={tool.icon} gradient={tool.gradient} class="tool-card__icon" />
+  <span class="tool-card__body">
+    <span class="tool-card__cat">{category?.name}</span>
+    <h3 class="tool-card__title">{tool.title}</h3>
+    <span class="tool-card__blurb">{tool.blurb}</span>
+  </span>
+  {
+    live ? (
+      <span class="tool-card__cta">Open <Icon name="arrow-right" size={16} /></span>
+    ) : (
+      <span class="tool-card__cta tool-card__cta--soon">Coming soon</span>
+    )
+  }
+</Wrapper>
+
+<style>
+  .tool-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    padding: 1.4rem;
+    height: 100%;
+    color: inherit;
+  }
+  .tool-card:hover {
+    text-decoration: none;
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: #d1fae5;
+  }
+  .tool-card__cat {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 0.25rem;
+  }
+  .tool-card__title {
+    font-size: 1.15rem;
+    margin: 0;
+  }
+  .tool-card__blurb {
+    display: block;
+    margin-top: 0.4rem;
+    font-size: 0.92rem;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+  .tool-card__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: auto;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--green-700);
+  }
+  .tool-card:hover .tool-card__cta {
+    gap: 0.55rem;
+  }
+
+  /* Coming-soon (non-live) variant */
+  .tool-card.is-soon {
+    cursor: default;
+    opacity: 0.72;
+  }
+  .tool-card.is-soon:hover {
+    transform: none;
+    box-shadow: var(--shadow-sm);
+    border-color: var(--border);
+  }
+  .tool-card__cta--soon {
+    color: var(--muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+</style>

@@ -1,0 +1,136 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+import ToolCard from '../components/ToolCard.astro';
+import { getPopularTools } from '../data/tools';
+
+const popular = getPopularTools(4);
+---
+
+<BaseLayout
+  title="Page not found (404) | HealthyLifeStyles"
+  description="The page you’re looking for doesn’t exist. Search our free health calculators or jump to a popular tool."
+  noindex={true}
+>
+  <section class="section">
+    <div class="container container-narrow notfound">
+      <span class="notfound__code" aria-hidden="true">404</span>
+      <h1>We couldn’t find that page</h1>
+      <p class="lead">
+        The page may have moved or never existed. Try a search, or jump straight
+        to one of our most popular tools below.
+      </p>
+
+      <form class="notfound__search" action="/tools" method="get" role="search">
+        <label for="nf-search" class="visually-hidden">Search tools</label>
+        <Icon name="search" size={20} class="notfound__search-icon" />
+        <input
+          type="search"
+          id="nf-search"
+          name="q"
+          placeholder="Search calculators and tools…"
+          autocomplete="off"
+        />
+        <button type="submit" class="btn btn-primary">Search</button>
+      </form>
+
+      <div class="notfound__links">
+        <a href="/" class="btn btn-outline">Back to home</a>
+        <a href="/tools" class="btn btn-outline">View all tools</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-surface-2" aria-labelledby="nf-popular">
+    <div class="container">
+      <h2 id="nf-popular" class="notfound__heading">Popular tools</h2>
+      <ul class="notfound__grid">
+        {popular.map((tool) => (
+          <li><ToolCard tool={tool} /></li>
+        ))}
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .notfound {
+    text-align: center;
+  }
+  .notfound__code {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(3.5rem, 12vw, 6rem);
+    line-height: 1;
+    background: linear-gradient(135deg, var(--green-accent), var(--green-700));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 0.5rem;
+  }
+  .notfound .lead {
+    margin: 0.75rem auto 2rem;
+    max-width: 48ch;
+  }
+  .notfound__search {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-pill);
+    padding: 0.4rem 0.4rem 0.4rem 1rem;
+    max-width: 520px;
+    margin-inline: auto;
+  }
+  .notfound__search:focus-within {
+    border-color: var(--green-accent);
+    box-shadow: var(--focus-ring);
+  }
+  .notfound__search-icon {
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .notfound__search input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font: inherit;
+    background: transparent;
+    color: var(--ink);
+    min-width: 0;
+  }
+  .notfound__links {
+    display: flex;
+    gap: 0.6rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .notfound__heading {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .notfound__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+  }
+  .notfound__grid li {
+    display: flex;
+  }
+  .notfound__grid li > :global(*) {
+    width: 100%;
+  }
+  @media (max-width: 920px) {
+    .notfound__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 480px) {
+    .notfound__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

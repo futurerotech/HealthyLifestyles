@@ -1,0 +1,360 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../components/Breadcrumb.astro';
+import Icon from '../../components/Icon.astro';
+import ToolCard from '../../components/ToolCard.astro';
+import { CATEGORIES } from '../../data/categories';
+import { TOOLS, TOTAL_TOOLS, getLiveTools } from '../../data/tools';
+import { SITE } from '../../consts';
+
+const liveCount = getLiveTools().length;
+
+// Group tools by category, preserving the category display order.
+const grouped = CATEGORIES.map((category) => ({
+  category,
+  tools: TOOLS.filter((t) => t.category === category.id),
+})).filter((g) => g.tools.length > 0);
+
+const origin = Astro.site ?? new URL('https://www.healthylifestyles.com');
+const items = [{ label: 'Home', href: '/' }, { label: 'Calculators & Tools' }];
+
+const title = 'All Health Calculators & Tools | HealthyLifeStyles';
+const description = `Browse all ${liveCount} free health calculators — nutrition, body weight, fitness, heart health, sleep and more. No signup, metric & imperial units.`;
+
+const breadcrumbLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: items.map((c, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: c.label,
+    ...(c.href ? { item: new URL(c.href, origin).href.replace(/\/$/, '') } : {}),
+  })),
+};
+
+const collectionLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: title,
+  description,
+  url: new URL('/tools', origin).href,
+  hasPart: getLiveTools().map((t) => ({
+    '@type': 'WebApplication',
+    name: t.title,
+    url: new URL(`/tools/${t.slug}`, origin).href,
+    applicationCategory: 'HealthApplication',
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  })),
+};
+---
+
+<BaseLayout title={title} description={description} jsonLd={[breadcrumbLd, collectionLd]}>
+  <header class="tools__header section-mint">
+    <div class="container">
+      <Breadcrumb items={items} />
+      <div class="tools__head">
+        <span class="eyebrow">All tools</span>
+        <h1>Free health calculators &amp; tools</h1>
+        <p class="lead">
+          Every {SITE.name} calculator in one place — {liveCount} free tools across
+          {grouped.length} categories. Instant results, both metric and imperial units,
+          no signup, and nothing you enter ever leaves your device.
+        </p>
+      </div>
+
+      <div class="tools__search">
+        <label class="tools__search-field">
+          <Icon name="search" size={20} class="tools__search-icon" />
+          <input
+            type="search"
+            id="tool-search"
+            placeholder="Search tools (e.g. BMI, calories, sleep)…"
+            autocomplete="off"
+            aria-label="Search tools"
+          />
+        </label>
+        <p class="tools__count" id="tool-count" aria-live="polite"></p>
+      </div>
+
+      <nav class="tools__chips" aria-label="Jump to category">
+        {grouped.map((g) => (
+          <a href={`#cat-${g.category.slug}`} class="tools__chip">
+            <span class="tools__chip-dot" style={`background:${g.category.color}`}></span>
+            {g.category.name}
+          </a>
+        ))}
+      </nav>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="container">
+      {grouped.map((g) => (
+        <div class="tools__group" id={`cat-${g.category.slug}`} data-group>
+          <div class="tools__group-head">
+            <span class="icon-tile" style={`background:${g.category.color}1a;color:${g.category.color}`}>
+              <Icon name={g.category.icon} />
+            </span>
+            <div>
+              <h2>{g.category.name}</h2>
+              <p>{g.category.blurb}</p>
+            </div>
+            <a href={`/${g.category.slug}`} class="tools__group-link">
+              View category <Icon name="arrow-right" size={16} />
+            </a>
+          </div>
+          <ul class="tools__grid">
+            {g.tools.map((tool) => (
+              <li
+                data-tool
+                data-name={tool.title.toLowerCase()}
+                data-keywords={tool.keywords.join(' ').toLowerCase()}
+                data-desc={tool.blurb.toLowerCase()}
+              >
+                <ToolCard tool={tool} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+
+      <p class="tools__empty" id="tools-empty" hidden>
+        No tools match your search. Try a different keyword, or
+        <a href="/tools">view all tools</a>.
+      </p>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <div class="container cta-band__inner">
+      <div>
+        <h2>Not sure where to start?</h2>
+        <p>Take the free {SITE.name} Health Score and get a personalized snapshot in minutes.</p>
+      </div>
+      <a href="/health-score" class="btn btn-primary btn-lg">
+        Get My Health Score <Icon name="arrow-right" size={18} />
+      </a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .tools__header {
+    padding-block: clamp(1.75rem, 4vw, 2.75rem) clamp(2rem, 4vw, 3rem);
+  }
+  .tools__head {
+    max-width: 70ch;
+    margin-top: 1rem;
+  }
+  .tools__head h1 {
+    margin: 0.4rem 0 0.6rem;
+  }
+  .tools__head .lead {
+    margin: 0;
+  }
+
+  .tools__search {
+    margin-top: 1.75rem;
+    max-width: 640px;
+  }
+  .tools__search-field {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    padding: 0.35rem 0.5rem 0.35rem 1rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .tools__search-field:focus-within {
+    border-color: var(--green-accent);
+    box-shadow: var(--focus-ring);
+  }
+  .tools__search-icon {
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .tools__search input {
+    flex: 1;
+    border: 0;
+    outline: none;
+    background: transparent;
+    font: inherit;
+    padding: 0.6rem 0.25rem;
+    color: var(--ink);
+  }
+  .tools__count {
+    margin: 0.65rem 0 0;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--muted);
+    min-height: 1.2em;
+  }
+
+  .tools__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+  }
+  .tools__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: var(--radius-pill);
+    background: #fff;
+    border: 1px solid var(--border);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .tools__chip:hover {
+    text-decoration: none;
+    border-color: var(--green-accent);
+    color: var(--green-700);
+  }
+  .tools__chip-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .tools__group {
+    margin-bottom: clamp(2.5rem, 5vw, 3.75rem);
+  }
+  .tools__group:last-of-type {
+    margin-bottom: 0;
+  }
+  .tools__group-head {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .tools__group-head h2 {
+    font-size: 1.4rem;
+    margin: 0;
+  }
+  .tools__group-head p {
+    margin: 0.15rem 0 0;
+    font-size: 0.92rem;
+    color: var(--muted);
+  }
+  .tools__group-link {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--green-700);
+    white-space: nowrap;
+  }
+  .tools__group-link:hover {
+    text-decoration: none;
+    gap: 0.55rem;
+  }
+
+  .tools__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+  .tools__grid li {
+    display: flex;
+  }
+  .tools__grid li > :global(*) {
+    width: 100%;
+  }
+  .tools__grid li[hidden] {
+    display: none;
+  }
+
+  .tools__empty {
+    text-align: center;
+    color: var(--muted);
+    padding: 2rem 0;
+  }
+
+  @media (max-width: 920px) {
+    .tools__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 620px) {
+    .tools__group-link {
+      display: none;
+    }
+  }
+  @media (max-width: 560px) {
+    .tools__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .cta-band {
+    background:
+      radial-gradient(600px 300px at 100% 0%, rgba(34, 197, 94, 0.2), transparent 60%),
+      var(--dark);
+    color: #fff;
+    padding-block: clamp(2.5rem, 5vw, 4rem);
+  }
+  .cta-band__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .cta-band h2 {
+    color: #fff;
+    margin: 0 0 0.5rem;
+  }
+  .cta-band p {
+    color: #cbd5e1;
+    margin: 0;
+  }
+</style>
+
+<script>
+  // Client-side filter across tool name + keywords. Progressive enhancement:
+  // with JS off, every tool is visible and links work normally.
+  const input = document.getElementById('tool-search') as HTMLInputElement | null;
+  const countEl = document.getElementById('tool-count');
+  const emptyEl = document.getElementById('tools-empty');
+  const tools = Array.from(document.querySelectorAll<HTMLElement>('[data-tool]'));
+  const groups = Array.from(document.querySelectorAll<HTMLElement>('[data-group]'));
+
+  if (input) {
+    const apply = () => {
+      const q = input.value.trim().toLowerCase();
+      let visible = 0;
+      for (const li of tools) {
+        const hay = `${li.dataset.name ?? ''} ${li.dataset.keywords ?? ''} ${li.dataset.desc ?? ''}`;
+        const match = q === '' || hay.includes(q);
+        li.hidden = !match;
+        if (match) visible++;
+      }
+      // Hide whole groups with no visible tools.
+      for (const g of groups) {
+        const anyVisible = g.querySelector('[data-tool]:not([hidden])');
+        g.hidden = !anyVisible;
+      }
+      if (emptyEl) emptyEl.hidden = visible !== 0;
+      if (countEl) {
+        countEl.textContent = q === '' ? '' : `${visible} tool${visible === 1 ? '' : 's'} found`;
+      }
+    };
+    // Honour a ?q= query (e.g. from the sitewide search box / SearchAction).
+    const params = new URLSearchParams(window.location.search);
+    const initial = params.get('q');
+    if (initial) input.value = initial;
+    apply();
+    input.addEventListener('input', apply);
+  }
+</script>

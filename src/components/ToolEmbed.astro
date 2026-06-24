@@ -1,0 +1,77 @@
+---
+/**
+ * "Try it" inline calculator embed for articles. Renders the SAME live island
+ * the tool page uses (picked by getEngine), inside a branded card that links to
+ * the full tool. If the slug is missing or not live, renders a safe link card.
+ */
+import Icon from './Icon.astro';
+import Calculator from '../islands/Calculator.tsx';
+import SleepCalculator from '../islands/SleepCalculator.tsx';
+import DateCalculator from '../islands/DateCalculator.tsx';
+import PaceCalculator from '../islands/PaceCalculator.tsx';
+import QuizCalculator from '../islands/QuizCalculator.tsx';
+import BreathingTimer from '../islands/BreathingTimer.tsx';
+import MealPlanGenerator from '../islands/MealPlanGenerator.tsx';
+import LifestyleAge from '../islands/LifestyleAge.tsx';
+import StrengthProgram from '../islands/StrengthProgram.tsx';
+import CaffeineCurfew from '../islands/CaffeineCurfew.tsx';
+import MusclePreservation from '../islands/MusclePreservation.tsx';
+import SittingReversal from '../islands/SittingReversal.tsx';
+import Fasting from '../islands/Fasting.tsx';
+import Chronotype from '../islands/Chronotype.tsx';
+import WalkItOff from '../islands/WalkItOff.tsx';
+import WeightTimeline from '../islands/WeightTimeline.tsx';
+import CaffeineTracker from '../islands/CaffeineTracker.tsx';
+import '../styles/calculator.css';
+import { getTool } from '../data/tools';
+import { getEngine } from '../lib/toolEngine';
+
+interface Props {
+  slug: string;
+  label?: string;
+}
+
+const { slug, label } = Astro.props;
+const tool = getTool(slug);
+const live = !!tool?.live;
+const engine = tool ? getEngine(tool) : 'numeric';
+const heading = label ?? (tool ? `Try the ${tool.title}` : 'Try the calculator');
+---
+
+{tool && (
+  <div class="wh-embed" data-tool={tool.slug}>
+    <div class="wh-embed__head">
+      <span class="wh-embed__pill"><Icon name="zap" size={13} /> Try it</span>
+      <span class="wh-embed__title">{heading}</span>
+      {live && (
+        <a href={`/tools/${tool.slug}`} class="wh-embed__link">
+          Open full tool <Icon name="arrow-right" size={14} />
+        </a>
+      )}
+    </div>
+
+    {live ? (
+      <div aria-label={`${tool.title} calculator`}>
+        {engine === 'meal' && <MealPlanGenerator client:visible />}
+        {engine === 'lifestyle-age' && <LifestyleAge client:visible />}
+        {engine === 'strength' && <StrengthProgram client:visible />}
+        {engine === 'caffeine' && <CaffeineCurfew client:visible />}
+        {engine === 'muscle' && <MusclePreservation client:visible />}
+        {engine === 'sitting' && <SittingReversal client:visible />}
+        {engine === 'fasting' && <Fasting client:visible />}
+        {engine === 'chronotype' && <Chronotype client:visible />}
+        {engine === 'walk-it-off' && <WalkItOff client:visible />}
+        {engine === 'weight-timeline' && <WeightTimeline client:visible />}
+        {engine === 'caffeine-tracker' && <CaffeineTracker client:visible />}
+        {engine === 'sleep' && <SleepCalculator client:visible slug={tool.slug} />}
+        {engine === 'date' && <DateCalculator client:visible slug={tool.slug} />}
+        {engine === 'pace' && <PaceCalculator client:visible slug={tool.slug} />}
+        {engine === 'quiz' && <QuizCalculator client:visible slug={tool.slug} />}
+        {engine === 'breathing' && <BreathingTimer client:visible slug={tool.slug} />}
+        {engine === 'numeric' && <Calculator client:visible slug={tool.slug} />}
+      </div>
+    ) : (
+      <p style="margin:0;color:var(--muted);font-size:0.92rem;">This tool is coming soon.</p>
+    )}
+  </div>
+)}

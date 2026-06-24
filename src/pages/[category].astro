@@ -1,0 +1,204 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import Icon from '../components/Icon.astro';
+import ToolCard from '../components/ToolCard.astro';
+import { CATEGORIES, getCategory } from '../data/categories';
+import { getToolsByCategory } from '../data/tools';
+import { SITE } from '../consts';
+
+export function getStaticPaths() {
+  return CATEGORIES.map((category) => ({
+    params: { category: category.slug },
+    props: { category },
+  }));
+}
+
+const { category } = Astro.props;
+const tools = getToolsByCategory(category.id);
+const liveCount = tools.filter((t) => t.live).length;
+
+const origin = Astro.site ?? new URL('https://www.healthylifestyles.com');
+const items = [
+  { label: 'Home', href: '/' },
+  { label: category.name },
+];
+
+const title = `${category.name} Calculators & Tools`;
+const description = `${category.blurb} Free, accurate ${category.name.toLowerCase()} calculators with metric and imperial units — no signup required.`;
+
+const breadcrumbLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: items.map((c, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: c.label,
+    ...(c.href ? { item: new URL(c.href, origin).href.replace(/\/$/, '') } : {}),
+  })),
+};
+
+const collectionLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: title,
+  description,
+  url: new URL(Astro.url.pathname, origin).href.replace(/\/$/, ''),
+  hasPart: tools
+    .filter((t) => t.live)
+    .map((t) => ({
+      '@type': 'WebApplication',
+      name: t.title,
+      url: new URL(`/tools/${t.slug}`, origin).href,
+      applicationCategory: 'HealthApplication',
+    })),
+};
+---
+
+<BaseLayout title={title} description={description} jsonLd={[breadcrumbLd, collectionLd]}>
+  <header class="hub__header section-mint">
+    <div class="container">
+      <Breadcrumb items={items} />
+      <div class="hub__head">
+        <span class="hub__icon icon-tile" style={`background:${category.color}1a;color:${category.color}`}>
+          <Icon name={category.icon} size={30} />
+        </span>
+        <div>
+          <h1>{category.name} Calculators</h1>
+          <p class="lead">{category.blurb}</p>
+          <p class="hub__count">
+            {liveCount > 0 ? `${liveCount} free tool${liveCount === 1 ? '' : 's'} available` : 'Launching soon'}
+          </p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="container">
+      {
+        liveCount === 0 && (
+          <p class="hub__soon-note">
+            We’re putting the finishing touches on these tools. In the meantime,
+            explore our <a href="/body-weight">Body &amp; Weight calculators</a>.
+          </p>
+        )
+      }
+      <ul class="hub__grid">
+        {tools.map((tool) => (
+          <li><ToolCard tool={tool} /></li>
+        ))}
+      </ul>
+      <p class="hub__all">
+        <a href="/tools">Browse all {SITE.name} calculators &amp; tools <Icon name="arrow-right" size={16} /></a>
+      </p>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <div class="container cta-band__inner">
+      <div>
+        <h2>Want your full picture?</h2>
+        <p>Combine your results with the free {SITE.name} Health Score assessment.</p>
+      </div>
+      <a href="/health-score" class="btn btn-primary btn-lg">
+        Get My Health Score <Icon name="arrow-right" size={18} />
+      </a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hub__all {
+    margin: 2rem 0 0;
+    text-align: center;
+  }
+  .hub__all a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    color: var(--green-700);
+  }
+  .hub__header {
+    padding-block: clamp(1.5rem, 4vw, 2.5rem);
+  }
+  .hub__head {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.1rem;
+    margin-top: 1rem;
+  }
+  .hub__icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    flex-shrink: 0;
+  }
+  .hub__head h1 {
+    margin: 0 0 0.4rem;
+  }
+  .hub__head .lead {
+    margin: 0;
+    max-width: 56ch;
+  }
+  .hub__count {
+    margin: 0.75rem 0 0;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--green-700);
+  }
+  .hub__soon-note {
+    background: var(--mint-50);
+    border: 1px solid #d1fae5;
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    color: var(--ink);
+  }
+  .hub__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+  .hub__grid li {
+    display: flex;
+  }
+  .hub__grid li > :global(*) {
+    width: 100%;
+  }
+  @media (max-width: 920px) {
+    .hub__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 560px) {
+    .hub__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .cta-band {
+    background:
+      radial-gradient(600px 300px at 100% 0%, rgba(34, 197, 94, 0.2), transparent 60%),
+      var(--dark);
+    color: #fff;
+    padding-block: clamp(2.5rem, 5vw, 4rem);
+  }
+  .cta-band__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .cta-band h2 {
+    color: #fff;
+    margin: 0 0 0.5rem;
+  }
+  .cta-band p {
+    color: #cbd5e1;
+    margin: 0;
+  }
+</style>

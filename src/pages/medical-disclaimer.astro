@@ -1,0 +1,90 @@
+---
+import LegalLayout from '../layouts/LegalLayout.astro';
+import { SITE, EDITORIAL } from '../consts';
+
+const updated = 'June 1, 2026';
+const title = `Medical Disclaimer | ${SITE.name}`;
+const description = `${SITE.name} tools and content are for general education and wellness only — not medical advice, diagnosis, or treatment. Always consult a healthcare professional.`;
+
+const origin = Astro.site ?? new URL('https://www.healthylifestyles.com');
+const medicalLd = {
+  '@context': 'https://schema.org',
+  '@type': 'MedicalWebPage',
+  name: 'Medical Disclaimer',
+  url: new URL('/medical-disclaimer', origin).href,
+  description,
+  inLanguage: 'en',
+  lastReviewed: EDITORIAL.lastReviewed,
+  reviewedBy: { '@type': 'Organization', name: EDITORIAL.reviewerName },
+  publisher: { '@type': 'Organization', name: SITE.name },
+};
+---
+
+<LegalLayout title={title} description={description} heading="Medical Disclaimer" updated={updated} jsonLd={[medicalLd]}>
+  <div class="legal-note">
+    <p>
+      <strong>Important:</strong> The tools and content on {SITE.name} are for general
+      informational and educational purposes only. They are not a substitute for
+      professional medical advice, diagnosis, or treatment. If you think you may have a
+      medical emergency, call your doctor or your local emergency number immediately.
+    </p>
+  </div>
+
+  <h2>Not medical advice</h2>
+  <p>
+    The calculators, scores, articles, and other materials provided on {SITE.name}
+    (collectively, the "Content") are intended to support general wellness and
+    understanding. They do not constitute medical advice and should never be used as a
+    replacement for consultation with a qualified healthcare professional.
+  </p>
+
+  <h2>Estimates, not diagnoses</h2>
+  <p>
+    Our tools produce estimates based on general, population-level formulas and the
+    information you provide. Individual health is influenced by many factors — genetics,
+    medical history, medications, and more — that a simple calculator cannot account for.
+    A result from any tool on this site:
+  </p>
+  <ul>
+    <li>Is not a diagnosis of any condition;</li>
+    <li>Cannot confirm or rule out any disease or health risk;</li>
+    <li>Should not be used to start, stop, or change any treatment or medication.</li>
+  </ul>
+
+  <h2>Always consult a professional</h2>
+  <p>
+    Always seek the advice of your physician or another qualified healthcare provider with
+    any questions you may have about a medical condition, your diet, exercise, or before
+    making any changes to your health routine. Never disregard professional medical advice
+    or delay seeking it because of something you have read or calculated on this site.
+  </p>
+
+  <h2>Risk and screening tools</h2>
+  <p>
+    Some tools provide educational "risk" estimates (for example, related to lifestyle
+    factors). These are awareness aids only. A low estimate does not guarantee good health,
+    and a high estimate does not mean you have or will develop a condition. Only a
+    healthcare professional can properly assess your risk.
+  </p>
+
+  <h2>Pregnancy, children, and medical conditions</h2>
+  <p>
+    Tools related to pregnancy, fertility, body weight, or nutrition are general guides
+    only. If you are pregnant, nursing, managing a chronic condition, or caring for a
+    child, please consult a healthcare professional before relying on any result.
+  </p>
+
+  <h2>No liability</h2>
+  <p>
+    {SITE.name} and its operators are not liable for any action taken, or not taken, based
+    on the Content. Your use of the Service is entirely at your own risk. For more, see our
+    <a href="/terms">Terms of Service</a>.
+  </p>
+
+  <h2>In an emergency</h2>
+  <p>
+    Do not use this website in a medical emergency. If you are experiencing a medical
+    emergency, call your local emergency services or go to the nearest emergency department
+    immediately.
+  </p>
+</LegalLayout>

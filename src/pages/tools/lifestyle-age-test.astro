@@ -1,0 +1,16 @@
+---
+/**
+ * Dedicated route for the Lifestyle Age Test. Uses the shared ToolPageLayout
+ * (SEO, breadcrumb, content, related tools) but lives in its own file so its
+ * stylesheet only loads here. (Excluded from tools/[slug].astro.)
+ */
+import ToolPageLayout from '../../components/ToolPageLayout.astro';
+import { getTool } from '../../data/tools';
+import { getToolContent } from '../../data/tool-content';
+import '../../styles/lifestyle-age.css';
+
+const tool = getTool('lifestyle-age-test')!;
+const content = getToolContent('lifestyle-age-test')!;
+---
+
+<ToolPageLayout tool={tool} content={content} />

@@ -1,0 +1,29 @@
+---
+export interface Props {
+  hook: string;
+  subtext?: string | null;
+  bgColor?: string | null;
+  textColor?: string | null;
+  cta?: { label?: string | null; url?: string | null } | null;
+}
+
+const { hook, subtext, bgColor = '#f0fdf4', textColor = '#166534', cta } = Astro.props;
+---
+
+<div class="viral-banner" style={`background-color: ${bgColor}; color: ${textColor}`}>
+  <div class="viral-banner__body">
+    <p class="viral-banner__hook">{hook}</p>
+    {subtext && <p class="viral-banner__sub">{subtext}</p>}
+    {cta?.label && cta?.url && (
+      <a href={cta.url} class="viral-banner__cta" style={`color: ${textColor}`}>{cta.label}</a>
+    )}
+  </div>
+</div>
+
+<style>
+  .viral-banner { border-radius: 16px; padding: 2.5rem 2rem; margin: 2rem 0; text-align: center; }
+  .viral-banner__body { max-width: 600px; margin: 0 auto; }
+  .viral-banner__hook { font-size: 1.75rem; font-weight: 800; margin: 0 0 0.5rem; line-height: 1.2; }
+  .viral-banner__sub { font-size: 1.05rem; opacity: 0.85; margin: 0 0 1.25rem; line-height: 1.5; }
+  .viral-banner__cta { display: inline-block; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+</style>

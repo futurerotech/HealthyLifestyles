@@ -1,0 +1,127 @@
+---
+/**
+ * Polished, reusable share row. Branded simple-icons glyphs as circular icon
+ * buttons + a copy-link button that flips to a checkmark on success.
+ * Pure links + a tiny copy script — no third-party share SDKs, nothing loads
+ * until the visitor clicks. Pinterest & WhatsApp are ordered first (highest
+ * health/lifestyle share intent). Button styling lives in global.css (.social-btn).
+ */
+import SocialIcon from './SocialIcon.astro';
+import Icon from './Icon.astro';
+import { SOCIAL_NETWORKS } from '../consts';
+
+interface Props {
+  url: string;
+  title: string;
+  /** Show the "Share this" label (hide it when a parent already has a heading). */
+  showLabel?: boolean;
+}
+const { url, title, showLabel = true } = Astro.props;
+
+const u = encodeURIComponent(url);
+const t = encodeURIComponent(title);
+// WhatsApp prefers a single text blob (title + link).
+const wt = encodeURIComponent(`${title} ${url}`);
+
+const shares: { network: keyof typeof SOCIAL_NETWORKS; href: string }[] = [
+  { network: 'pinterest', href: `https://pinterest.com/pin/create/button/?url=${u}&description=${t}` },
+  { network: 'whatsapp', href: `https://wa.me/?text=${wt}` },
+  { network: 'facebook', href: `https://www.facebook.com/sharer/sharer.php?u=${u}` },
+  { network: 'x', href: `https://twitter.com/intent/tweet?url=${u}&text=${t}` },
+  { network: 'linkedin', href: `https://www.linkedin.com/sharing/share-offsite/?url=${u}` },
+  { network: 'reddit', href: `https://www.reddit.com/submit?url=${u}&title=${t}` },
+];
+---
+
+<div class="share-bar">
+  {showLabel && <span class="share-bar__label">Share this</span>}
+  <div class="social-row">
+    {
+      shares.map((s) => {
+        const net = SOCIAL_NETWORKS[s.network];
+        return (
+          <a
+            class="social-btn"
+            href={s.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={`--brand:${net.color}`}
+            aria-label={`Share on ${net.label}`}
+            title={`Share on ${net.label}`}
+          >
+            <SocialIcon name={s.network} size={19} />
+          </a>
+        );
+      })
+    }
+    <button
+      type="button"
+      class="social-btn share-copy"
+      data-url={url}
+      style="--brand:var(--green-primary)"
+      aria-label="Copy link"
+      title="Copy link"
+    >
+      <span class="share-copy__ico share-copy__link"><Icon name="link" size={18} /></span>
+      <span class="share-copy__ico share-copy__check"><Icon name="check" size={18} /></span>
+    </button>
+  </div>
+</div>
+
+<style>
+  .share-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.85rem 1rem;
+    margin: 2rem 0;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+  .share-bar__label {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .share-copy__ico {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .share-copy__check {
+    display: none;
+  }
+  .share-copy.is-copied .share-copy__link {
+    display: none;
+  }
+  .share-copy.is-copied .share-copy__check {
+    display: inline-flex;
+  }
+  /* Note: the green "copied" button background lives in global.css
+     (.social-btn.is-copied) — a scoped rule there loses to the unlayered
+     global .social-btn regardless of specificity. */
+</style>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.share-copy').forEach((btn) => {
+    let timer: number | undefined;
+    btn.addEventListener('click', async () => {
+      const url = btn.dataset.url || window.location.href;
+      try {
+        await navigator.clipboard.writeText(url);
+      } catch {
+        return; // clipboard unavailable — leave the button as-is
+      }
+      btn.classList.add('is-copied');
+      btn.setAttribute('aria-label', 'Link copied');
+      btn.setAttribute('title', 'Link copied!');
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        btn.classList.remove('is-copied');
+        btn.setAttribute('aria-label', 'Copy link');
+        btn.setAttribute('title', 'Copy link');
+      }, 1800);
+    });
+  });
+</script>

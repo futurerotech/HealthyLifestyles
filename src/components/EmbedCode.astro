@@ -1,0 +1,95 @@
+---
+/**
+ * "Embed this calculator" generator shown on each tool page. Outputs a copyable
+ * iframe snippet pointing at /embed/[slug], plus an attribution line that lives
+ * in the HOST page's HTML — a real, crawlable "Powered by HealthyLifeStyles"
+ * backlink (links inside the iframe wouldn't count, so the credit goes here).
+ */
+import Icon from './Icon.astro';
+import { SITE } from '../consts';
+
+interface Props {
+  slug: string;
+  title: string;
+  /** Suggested iframe height; tools vary, users can tweak it. */
+  height?: number;
+}
+const { slug, title, height = 640 } = Astro.props;
+
+const origin = (Astro.site ?? new URL('https://www.healthylifestyles.com')).href.replace(/\/$/, '');
+const embedUrl = `${origin}/embed/${slug}`;
+const toolUrl = `${origin}/tools/${slug}`;
+
+const snippet = `<iframe src="${embedUrl}" title="${title} — ${SITE.name}" width="100%" height="${height}" loading="lazy" style="border:1px solid #e2e8f0;border-radius:14px;max-width:520px"></iframe>
+<p style="font:13px/1.5 system-ui,-apple-system,sans-serif;margin:8px 0 0"><a href="${toolUrl}" target="_blank" rel="noopener">${title}</a> by <a href="${origin}" target="_blank" rel="noopener">${SITE.name}</a></p>`;
+---
+
+<section class="embed-gen prose" aria-labelledby="embed-gen-title">
+  <h2 id="embed-gen-title">Embed this calculator</h2>
+  <p>
+    Free to use on your own website, blog, or article — just copy the snippet below. It loads the live
+    calculator and includes a small link back to {SITE.name}.
+  </p>
+  <div class="embed-gen__box">
+    <label class="sr-only" for={`embed-code-${slug}`}>Embed code</label>
+    <textarea id={`embed-code-${slug}`} class="embed-gen__code" readonly rows="4" spellcheck="false">{snippet}</textarea>
+    <button type="button" class="result-action embed-gen__copy" data-embed-copy>
+      <Icon name="link" size={16} />
+      <span class="embed-gen__copy-text">Copy embed code</span>
+    </button>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll('[data-embed-copy]').forEach((btn) => {
+    const box = btn.closest('.embed-gen__box');
+    const code = box && box.querySelector('.embed-gen__code');
+    const label = btn.querySelector('.embed-gen__copy-text');
+    let timer;
+    btn.addEventListener('click', async () => {
+      if (!code) return;
+      const text = code.value;
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        code.removeAttribute('readonly');
+        code.select();
+        code.setAttribute('readonly', '');
+      }
+      if (label) {
+        const prev = label.textContent;
+        label.textContent = 'Copied!';
+        clearTimeout(timer);
+        timer = setTimeout(() => { label.textContent = prev; }, 1800);
+      }
+    });
+  });
+</script>
+
+<style>
+  .embed-gen__box {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+  .embed-gen__code {
+    width: 100%;
+    font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--ink);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.85rem 1rem;
+    resize: vertical;
+  }
+  .embed-gen__code:focus-visible {
+    outline: none;
+    border-color: var(--green-accent);
+    box-shadow: var(--focus-ring);
+  }
+  .embed-gen__copy {
+    justify-self: start;
+  }
+</style>

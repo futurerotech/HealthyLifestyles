@@ -1,0 +1,108 @@
+---
+/**
+ * Per-page <head> SEO: title, description, canonical, Open Graph, Twitter Card,
+ * favicons, manifest, theme-color, and JSON-LD. Drop one <SEO /> in every layout.
+ */
+import { SITE, ANALYTICS, SOCIAL_FOLLOW } from '../consts';
+
+interface Props {
+  title: string;
+  description: string;
+  /** Override the social image (absolute path under /public or full URL). */
+  image?: string;
+  /** OG type, e.g. "website" or "article". */
+  type?: string;
+  /** Set true on thin / utility pages you don't want indexed. */
+  noindex?: boolean;
+  /** Extra JSON-LD objects to inline (already plain objects). */
+  jsonLd?: Record<string, unknown>[];
+}
+
+const {
+  title,
+  description,
+  image = SITE.ogImage,
+  type = 'website',
+  noindex = false,
+  jsonLd = [],
+} = Astro.props;
+
+const siteOrigin = Astro.site ?? new URL('https://www.healthylifestyles.com');
+const canonical = new URL(Astro.url.pathname, siteOrigin).href.replace(/\/$/, '') || siteOrigin.href;
+const ogImage = new URL(image, siteOrigin).href;
+
+// Title is used verbatim — callers keep it ≤60 chars and brand-suffixed as needed.
+const fullTitle = title;
+
+// Baseline structured data present on every page.
+const baseJsonLd: Record<string, unknown>[] = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: SITE.name,
+    url: siteOrigin.href,
+    logo: new URL('/icon-512.png', siteOrigin).href,
+    slogan: SITE.tagline,
+    sameAs: SOCIAL_FOLLOW.map((s) => s.href),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE.name,
+    url: siteOrigin.href,
+    description: SITE.description,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: new URL('/tools?q={search_term_string}', siteOrigin).href,
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  },
+];
+
+const allJsonLd = [...baseJsonLd, ...jsonLd];
+---
+
+<!-- Primary meta -->
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+{noindex && <meta name="robots" content="noindex, nofollow" />}
+{ANALYTICS.searchConsoleVerification && (
+  <meta name="google-site-verification" content={ANALYTICS.searchConsoleVerification} />
+)}
+{ANALYTICS.bingVerification && (
+  <meta name="msvalidate.01" content={ANALYTICS.bingVerification} />
+)}
+<meta name="theme-color" content={SITE.themeColor} />
+
+<!-- Open Graph -->
+<meta property="og:type" content={type} />
+<meta property="og:site_name" content={SITE.name} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:locale" content={SITE.locale} />
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />
+<meta name="twitter:site" content={SITE.twitter} />
+
+<!-- Icons & manifest -->
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<!-- Structured data -->
+{
+  allJsonLd.map((obj) => (
+    <script type="application/ld+json" set:html={JSON.stringify(obj)} />
+  ))
+}

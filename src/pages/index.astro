@@ -1,0 +1,166 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/home/Hero.astro';
+import WhyTrust from '../components/home/WhyTrust.astro';
+import Faq from '../components/home/Faq.astro';
+import ToolCard from '../components/ToolCard.astro';
+import CategoryCard from '../components/CategoryCard.astro';
+import Icon from '../components/Icon.astro';
+import { getPopularTools } from '../data/tools';
+import { CATEGORIES } from '../data/categories';
+import { HOME_FAQ } from '../data/faq';
+import { SITE } from '../consts';
+
+const popular = getPopularTools(6);
+
+// FAQPage structured data for the homepage FAQ.
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: HOME_FAQ.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
+const title = 'Free Health Calculators & Tools | HealthyLifeStyles';
+const description =
+  'Free, instant, accurate health calculators built on scientific formulas. BMI, calorie, macro & more — no signup, no data stored. 100% free.';
+---
+
+<BaseLayout title={title} description={description} jsonLd={[faqJsonLd]}>
+  <Hero />
+
+  <!-- Popular tools -->
+  <section class="section" aria-labelledby="popular-title" data-reveal>
+    <div class="container">
+      <div class="section-head section-head--row">
+        <div>
+          <span class="eyebrow">Most used</span>
+          <h2 id="popular-title">Popular tools</h2>
+        </div>
+        <a href="/tools" class="btn btn-outline">
+          View all tools <Icon name="arrow-right" size={16} />
+        </a>
+      </div>
+      <ul class="grid grid--tools">
+        {popular.map((tool) => (
+          <li><ToolCard tool={tool} /></li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section class="section section-mint" aria-labelledby="cat-title" data-reveal>
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">Browse by topic</span>
+        <h2 id="cat-title">Explore tool categories</h2>
+        <p class="lead">
+          From nutrition to heart health, find the right calculator for whatever
+          you’re working on.
+        </p>
+      </div>
+      <ul class="grid grid--cats">
+        {CATEGORIES.map((category) => (
+          <li><CategoryCard category={category} /></li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <WhyTrust />
+  <Faq />
+
+  <!-- Final CTA -->
+  <section class="cta-band" data-reveal>
+    <div class="container cta-band__inner">
+      <div>
+        <h2>Ready to know your numbers?</h2>
+        <p>
+          Take the free Health Score assessment for a personalized snapshot of
+          your wellness in under two minutes.
+        </p>
+      </div>
+      <a href="/health-score" class="btn btn-primary btn-lg">
+        Get My Health Score <Icon name="arrow-right" size={18} />
+      </a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .section-head--row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    text-align: left;
+    max-width: none;
+    margin-inline: 0;
+  }
+  .section-head--row h2 {
+    margin-top: 0.3rem;
+  }
+
+  .grid {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .grid--tools {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .grid--cats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .grid li {
+    display: flex;
+  }
+  .grid li > :global(*) {
+    width: 100%;
+  }
+
+  @media (max-width: 920px) {
+    .grid--tools,
+    .grid--cats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 560px) {
+    .grid--tools,
+    .grid--cats {
+      grid-template-columns: 1fr;
+    }
+    .section-head--row {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
+  /* Final CTA band */
+  .cta-band {
+    background:
+      radial-gradient(600px 300px at 100% 0%, rgba(34, 197, 94, 0.2), transparent 60%),
+      var(--dark);
+    color: #fff;
+    padding-block: clamp(2.5rem, 5vw, 4rem);
+  }
+  .cta-band__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .cta-band h2 {
+    color: #fff;
+    margin: 0 0 0.5rem;
+  }
+  .cta-band p {
+    color: #cbd5e1;
+    margin: 0;
+    max-width: 52ch;
+  }
+</style>

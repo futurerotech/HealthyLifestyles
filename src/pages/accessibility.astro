@@ -1,0 +1,64 @@
+---
+import LegalLayout from '../layouts/LegalLayout.astro';
+import { SITE, EDITORIAL, CONTACT } from '../consts';
+import { formatDate } from '../lib/text';
+
+const title = `Accessibility | ${SITE.name}`;
+const description = `${SITE.name}'s accessibility statement: our WCAG 2.1 AA target, the measures we take, known limitations, and how to report an issue.`;
+const origin = Astro.site ?? new URL('https://www.healthylifestyles.com');
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: title,
+    description,
+    url: new URL('/accessibility', origin).href,
+    publisher: { '@type': 'Organization', name: SITE.name, url: origin.href },
+  },
+];
+---
+
+<LegalLayout
+  title={title}
+  description={description}
+  heading="Accessibility"
+  updated={formatDate(EDITORIAL.lastReviewed)}
+  jsonLd={jsonLd}
+>
+  <p>
+    We want {SITE.name} to be usable by everyone, including people who rely on assistive technology. We aim
+    to meet <strong>WCAG 2.1 Level AA</strong> and treat accessibility as an ongoing commitment rather than a
+    one-time checkbox.
+  </p>
+
+  <h2>What we do</h2>
+  <ul>
+    <li><strong>Semantic, keyboard-friendly HTML.</strong> Pages use proper headings and landmarks, every interactive control is reachable and operable by keyboard, and a “Skip to content” link is provided.</li>
+    <li><strong>Visible focus.</strong> Interactive elements show a clear focus ring (<code>:focus-visible</code>).</li>
+    <li><strong>Announced results.</strong> Calculator results use an <code>aria-live</code> region so screen readers announce the outcome when it changes.</li>
+    <li><strong>Color &amp; contrast.</strong> Text and UI aim for AA contrast, and we never rely on color alone to convey meaning.</li>
+    <li><strong>Reduced motion.</strong> Animations respect the <code>prefers-reduced-motion</code> setting.</li>
+    <li><strong>Scalable text.</strong> Layouts use relative units and reflow without breaking when text is zoomed.</li>
+    <li><strong>Meaningful alternatives.</strong> Icons are decorative or carry accessible labels; informative imagery has text equivalents.</li>
+  </ul>
+
+  <h2>Known limitations</h2>
+  <p>
+    Some interactive charts and shareable result images are inherently visual; we provide the same
+    information as text wherever possible. If you hit something that doesn’t work for you, we want to fix it.
+  </p>
+
+  <h2>Reporting a problem</h2>
+  <p>
+    Email <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a> with the page, your browser/assistive
+    technology, and what went wrong. We aim to respond promptly and prioritize accessibility fixes.
+  </p>
+
+  <h2>Standards</h2>
+  <p>
+    This site targets conformance with the
+    <a href="https://www.w3.org/TR/WCAG21/" target="_blank" rel="noopener nofollow">Web Content Accessibility Guidelines (WCAG) 2.1</a>
+    at Level AA.
+  </p>
+</LegalLayout>
