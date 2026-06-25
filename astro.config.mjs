@@ -19,7 +19,9 @@ await copyLibFiles(path.resolve('public', '~partytown'));
 // https://astro.build/config
 export default defineConfig({
   site: SITE_URL,
-  output: 'server',
+  // Static-first: pages prerender via getStaticPaths; only routes with
+  // `export const prerender = false` (the /api/* endpoints) run as Vercel functions.
+  output: 'static',
   adapter: vercel(),
   // Consistent policy: clean URLs with NO trailing slash (matches canonical tags).
   trailingSlash: 'never',
