@@ -1,30 +1,21 @@
 ---
 /**
- * Email-newsletter signup (footer + end of articles). Posts to the configured
- * NEWSLETTER.endpoint when set; otherwise falls back to a mailto: so the signup
- * still works and no address is lost. No third-party script loads.
+ * Email-newsletter signup (footer + end of articles). Submits via fetch() to the
+ * local /api/subscribe Astro endpoint, which proxies securely to the Payload CMS.
+ * No page reload, no new tab, no third-party script.
  */
 import Icon from './Icon.astro';
-import { NEWSLETTER, CONTACT } from '../consts';
 
 interface Props {
   variant?: 'footer' | 'inline';
 }
 const { variant = 'inline' } = Astro.props;
-
-const endpoint = NEWSLETTER.endpoint;
-const hasEndpoint = /^https?:\/\//.test(endpoint);
-const action = hasEndpoint ? endpoint : `mailto:${CONTACT.email}`;
-const enctype = hasEndpoint ? undefined : 'text/plain';
-const fieldName = hasEndpoint ? NEWSLETTER.emailField : 'email';
 const inputId = `nl-email-${variant}`;
 ---
 
 <form
   class:list={['newsletter', `newsletter--${variant}`]}
-  action={action}
-  method="post"
-  enctype={enctype}
+  data-newsletter
 >
   <div class="newsletter__copy">
     <strong>Get new calculators &amp; guides</strong>
@@ -35,7 +26,7 @@ const inputId = `nl-email-${variant}`;
     <input
       id={inputId}
       type="email"
-      name={fieldName}
+      name="email"
       required
       placeholder="you@example.com"
       autocomplete="email"
@@ -44,7 +35,63 @@ const inputId = `nl-email-${variant}`;
       Subscribe <Icon name="arrow-right" size={16} />
     </button>
   </div>
+  <p class="newsletter__status" data-newsletter-status role="status" aria-live="polite"></p>
 </form>
+
+<script>
+  document.querySelectorAll<HTMLFormElement>('form[data-newsletter]').forEach((form) => {
+    const input = form.querySelector<HTMLInputElement>('input[type="email"]');
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    const status = form.querySelector<HTMLElement>('[data-newsletter-status]');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = (input?.value || '').trim();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        if (status) {
+          status.textContent = 'Please enter a valid email address.';
+          status.dataset.state = 'error';
+        }
+        return;
+      }
+
+      if (button) button.disabled = true;
+      if (status) {
+        status.textContent = 'Subscribing…';
+        status.dataset.state = 'loading';
+      }
+
+      try {
+        const res = await fetch('/api/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+        const data = await res.json().catch(() => ({ ok: false }));
+
+        if (res.ok && data.ok) {
+          if (status) {
+            status.textContent = 'Thanks for subscribing!';
+            status.dataset.state = 'success';
+          }
+          if (input) input.value = '';
+        } else {
+          if (status) {
+            status.textContent = data.message || 'Something went wrong. Please try again.';
+            status.dataset.state = 'error';
+          }
+        }
+      } catch (err) {
+        if (status) {
+          status.textContent = 'Network error. Please try again.';
+          status.dataset.state = 'error';
+        }
+      } finally {
+        if (button) button.disabled = false;
+      }
+    });
+  });
+</script>
 
 <style>
   .newsletter {
@@ -100,6 +147,29 @@ const inputId = `nl-email-${variant}`;
   .newsletter__field button:hover {
     background: var(--green-700);
   }
+  .newsletter__field button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .newsletter__status {
+    margin: 0;
+    font-size: 0.88rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .newsletter__status[data-state] {
+    opacity: 1;
+  }
+  .newsletter__status[data-state='success'] {
+    color: var(--green-accent);
+  }
+  .newsletter__status[data-state='error'] {
+    color: #ef4444;
+  }
+  .newsletter__status[data-state='loading'] {
+    color: var(--muted);
+  }
 
   /* Footer variant: lighter text on the dark footer. */
   .newsletter--footer .newsletter__copy strong {
@@ -114,6 +184,9 @@ const inputId = `nl-email-${variant}`;
     color: #fff;
   }
   .newsletter--footer .newsletter__field input::placeholder {
+    color: #94a3b8;
+  }
+  .newsletter--footer .newsletter__status[data-state='loading'] {
     color: #94a3b8;
   }
 
