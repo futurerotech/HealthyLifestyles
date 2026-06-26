@@ -2,12 +2,12 @@
 import { defineConfig } from 'astro/config';
 import preact from '@astrojs/preact';
 import sitemap from '@astrojs/sitemap';
-import node from '@astrojs/node';
+import vercel from '@astrojs/vercel';
 import { partytownSnippet } from '@builder.io/partytown/integration';
 import { copyLibFiles } from '@builder.io/partytown/utils';
 import * as path from 'path';
 
-// ✅ FIXED: correct domain with double 's'
+// ✅ correct domain
 export const SITE_URL = 'https://www.healthylifesstyles.com';
 
 const BUILD_DATE = new Date().toISOString();
@@ -17,12 +17,8 @@ await copyLibFiles(path.resolve('public', '~partytown'));
 export default defineConfig({
   site: SITE_URL,
   output: 'server',
-  adapter: node({ mode: 'standalone' }),
+  adapter: vercel(),
   trailingSlash: 'never',
-  server: {
-    host: '0.0.0.0',
-    port: parseInt(process.env.PORT || '3000'),
-  },
   integrations: [
     preact({ compat: true }),
     sitemap({
