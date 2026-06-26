@@ -19,10 +19,6 @@ export default defineConfig({
   output: 'static',
   adapter: vercel(),
   trailingSlash: 'never',
-  redirects: {
-    '/game': '/',
-    '/game/[...slug]': '/',
-  },
   integrations: [
     preact({ compat: true }),
     sitemap({
