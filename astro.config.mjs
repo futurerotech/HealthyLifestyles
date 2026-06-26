@@ -16,7 +16,7 @@ await copyLibFiles(path.resolve('public', '~partytown'));
 
 export default defineConfig({
   site: SITE_URL,
-  output: 'server',
+  output: 'static',
   adapter: vercel(),
   trailingSlash: 'never',
   integrations: [
