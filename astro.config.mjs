@@ -2,37 +2,36 @@
 import { defineConfig } from 'astro/config';
 import preact from '@astrojs/preact';
 import sitemap from '@astrojs/sitemap';
-import vercel from '@astrojs/vercel';
+import node from '@astrojs/node';
 import { partytownSnippet } from '@builder.io/partytown/integration';
 import { copyLibFiles } from '@builder.io/partytown/utils';
 import * as path from 'path';
 
-// Canonical production origin. Update before deploying to a custom domain.
-export const SITE_URL = 'https://www.healthylifestyles.com';
+// ✅ FIXED: correct domain with double 's'
+export const SITE_URL = 'https://www.healthylifesstyles.com';
 
-// Build timestamp for sitemap <lastmod>.
 const BUILD_DATE = new Date().toISOString();
 
-// Copy Partytown web-worker library to public dir at build start.
 await copyLibFiles(path.resolve('public', '~partytown'));
 
-// https://astro.build/config
 export default defineConfig({
   site: SITE_URL,
-  // Static-first: pages prerender via getStaticPaths; only routes with
-  // `export const prerender = false` (the /api/* endpoints) run as Vercel functions.
-  output: 'static',
-  adapter: vercel(),
-  // Consistent policy: clean URLs with NO trailing slash (matches canonical tags).
+  output: 'server',
+  adapter: node({ mode: 'standalone' }),
   trailingSlash: 'never',
+  server: {
+    host: '0.0.0.0',
+    port: parseInt(process.env.PORT || '3000'),
+  },
   integrations: [
     preact({ compat: true }),
     sitemap({
-      // Keep image endpoints (and future /embed/*) out of the page sitemap.
-      filter: (page) => !page.includes('/404') && !page.includes('/og/') && !page.includes('/embed/'),
+      filter: (page) =>
+        !page.includes('/404') &&
+        !page.includes('/og/') &&
+        !page.includes('/embed/'),
       changefreq: 'weekly',
       priority: 0.7,
-      // Add lastmod and strip any trailing slash so sitemap URLs match canonicals.
       serialize: (item) => ({
         ...item,
         url: item.url.replace(/(.+?)\/$/, '$1'),
@@ -57,7 +56,6 @@ export default defineConfig({
         },
       },
     ],
-    // ✅ Exclude sharp from SSR bundle (native module, loaded at runtime)
     ssr: {
       external: ['sharp'],
     },
