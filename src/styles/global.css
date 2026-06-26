@@ -31,7 +31,7 @@
   /* Neutrals */
   --ink: #0f172a;        /* body text */
   --dark: #0a1628;       /* hero / footer */
-  --muted: #64748b;
+  --muted: #475569;     /* WCAG AA 7.6:1 on white — was #64748b (4.8:1) */
   --border: #e2e8f0;
   --surface: #ffffff;
   --surface-2: #f8fafc;
@@ -147,10 +147,9 @@ video {
 
 a {
   color: var(--green-700);
-  text-decoration: none;
-}
-a:hover {
   text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
 }
 
 button {
@@ -423,6 +422,7 @@ p {
   background: var(--surface);
   color: var(--muted);
   cursor: pointer;
+  text-decoration: none;
   transition: transform 0.15s ease, color 0.15s ease, background-color 0.15s ease,
     border-color 0.15s ease, box-shadow 0.15s ease;
 }

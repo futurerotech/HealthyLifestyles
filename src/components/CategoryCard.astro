@@ -1,14 +1,15 @@
 ---
 import Icon from './Icon.astro';
 import type { Category } from '../data/categories';
-import { countByCategory } from '../data/tools';
+import { getToolsByCategory } from '../lib/cms';
 
 interface Props {
   category: Category;
 }
 
 const { category } = Astro.props;
-const count = countByCategory(category.id);
+const tools = await getToolsByCategory(category.id);
+const count = tools.filter((t) => t.live).length;
 ---
 
 <a href={`/${category.slug}`} class="cat-card card">

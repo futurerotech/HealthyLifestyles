@@ -2,11 +2,12 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Breadcrumb from '../components/Breadcrumb.astro';
 import Icon from '../components/Icon.astro';
-import { SITE, EDITORIAL } from '../consts';
-import { getLiveTools } from '../data/tools';
-import { CATEGORIES } from '../data/categories';
+import { getLiveTools, getCategories } from '../lib/cms';
+import { getSiteConsts } from '../lib/cms';
 
-const liveCount = getLiveTools().length;
+const [siteConsts, liveTools, CATEGORIES] = await Promise.all([getSiteConsts(), getLiveTools(), getCategories()]);
+const { SITE, EDITORIAL } = siteConsts;
+const liveCount = liveTools.length;
 const items = [{ label: 'Home', href: '/' }, { label: 'About' }];
 
 const origin = Astro.site ?? new URL('https://www.healthylifestyles.com');

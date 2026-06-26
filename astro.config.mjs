@@ -20,8 +20,8 @@ export default defineConfig({
   adapter: vercel(),
   trailingSlash: 'never',
   redirects: {
-    '/game/[...slug]': '/',
     '/game': '/',
+    '/game/[...slug]': '/',
   },
   integrations: [
     preact({ compat: true }),

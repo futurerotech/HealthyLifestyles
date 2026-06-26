@@ -1,7 +1,7 @@
 ---
 import Icon from './Icon.astro';
 import ToolIcon from './ToolIcon.astro';
-import { getCategory } from '../data/categories';
+import { getCategories } from '../lib/cms';
 import type { Tool } from '../data/tools';
 
 interface Props {
@@ -9,7 +9,9 @@ interface Props {
 }
 
 const { tool } = Astro.props;
-const category = getCategory(tool.category);
+const allCats = await getCategories();
+const catLookup = Object.fromEntries(allCats.map((c) => [c.slug, c]));
+const category = catLookup[tool.category];
 const live = !!tool.live;
 const Wrapper = live ? 'a' : 'div';
 const wrapperProps = live ? { href: `/tools/${tool.slug}` } : {};
@@ -39,6 +41,7 @@ const wrapperProps = live ? { href: `/tools/${tool.slug}` } : {};
     padding: 1.4rem;
     height: 100%;
     color: inherit;
+    text-decoration: none;
   }
   .tool-card:hover {
     text-decoration: none;

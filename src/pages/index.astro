@@ -6,12 +6,12 @@ import Faq from '../components/home/Faq.astro';
 import ToolCard from '../components/ToolCard.astro';
 import CategoryCard from '../components/CategoryCard.astro';
 import Icon from '../components/Icon.astro';
-import { getPopularTools } from '../data/tools';
-import { CATEGORIES } from '../data/categories';
+import { getPopularTools, getCategories } from '../lib/cms';
+import { getSiteConsts } from '../lib/cms';
 import { HOME_FAQ } from '../data/faq';
-import { SITE } from '../consts';
 
-const popular = getPopularTools(6);
+const [popular, categories, siteConsts] = await Promise.all([getPopularTools(6), getCategories(), getSiteConsts()]);
+const SITE = siteConsts.SITE;
 
 // FAQPage structured data for the homepage FAQ.
 const faqJsonLd = {
@@ -64,7 +64,7 @@ const description =
         </p>
       </div>
       <ul class="grid grid--cats">
-        {CATEGORIES.map((category) => (
+        {categories.map((category) => (
           <li><CategoryCard category={category} /></li>
         ))}
       </ul>

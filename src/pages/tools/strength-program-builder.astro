@@ -5,11 +5,11 @@
  * (Excluded from tools/[slug].astro via CUSTOM_PAGES.)
  */
 import ToolPageLayout from '../../components/ToolPageLayout.astro';
-import { getTool } from '../../data/tools';
+import { getTool } from '../../lib/cms';
 import { getToolContent } from '../../data/tool-content';
 import '../../styles/strength-program.css';
 
-const tool = getTool('strength-program-builder')!;
+const tool = await getTool('strength-program-builder')!;
 const content = getToolContent('strength-program-builder')!;
 ---
 

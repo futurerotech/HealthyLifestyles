@@ -29,11 +29,12 @@ import WeightTimeline from '../islands/WeightTimeline.tsx';
 import CaffeineTracker from '../islands/CaffeineTracker.tsx';
 import LeadCTA from './LeadCTA.astro';
 import '../styles/calculator.css';
-import { SITE, EDITORIAL } from '../consts';
-import { getCategory } from '../data/categories';
-import { getRelatedTools, type Tool } from '../data/tools';
+import { getSiteConsts, getRelatedTools } from '../lib/cms';
+import { getCategory } from '../lib/cms';
+import { getArticlesForTool } from '../lib/cms';
+import type { Tool } from '../data/tools';
 import { getAffiliates } from '../data/affiliates';
-import { getArticlesForTool, articlePlainText } from '../data/articles';
+import { articlePlainText } from '../data/articles';
 import { readingTimeMinutes } from '../lib/text';
 import type { ToolContent } from '../data/content-types';
 
@@ -43,11 +44,15 @@ interface Props {
 }
 
 const { tool, content } = Astro.props;
-const category = getCategory(tool.category)!;
-const related = getRelatedTools(tool.slug, 4);
+const [siteConsts, category, related, guides] = await Promise.all([
+  getSiteConsts(),
+  getCategory(tool.category).then((c) => c!),
+  getRelatedTools(tool.slug, 4),
+  getArticlesForTool(tool.slug, 3),
+]);
+const SITE = siteConsts.SITE;
+const EDITORIAL = siteConsts.EDITORIAL;
 const affiliate = getAffiliates(tool.slug);
-// Wellness Hub guides that reference this tool (bidirectional internal links).
-const guides = getArticlesForTool(tool.slug, 3);
 
 // Result-level safety line (YMYL). Names the relevant authority for sensitive topics.
 const RESULT_AUTHORITY: Record<string, string> = {

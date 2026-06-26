@@ -3,16 +3,18 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/Breadcrumb.astro';
 import Icon from '../../components/Icon.astro';
 import ToolCard from '../../components/ToolCard.astro';
-import { CATEGORIES } from '../../data/categories';
-import { TOOLS, TOTAL_TOOLS, getLiveTools } from '../../data/tools';
-import { SITE } from '../../consts';
+import { getCategories, getTools } from '../../lib/cms';
+import { getSiteConsts } from '../../lib/cms';
 
-const liveCount = getLiveTools().length;
+const [categories, tools, siteConsts] = await Promise.all([getCategories(), getTools(), getSiteConsts()]);
+const SITE = siteConsts.SITE;
+const liveTools = tools.filter((t) => t.live);
+const liveCount = liveTools.length;
 
 // Group tools by category, preserving the category display order.
-const grouped = CATEGORIES.map((category) => ({
+const grouped = categories.map((category) => ({
   category,
-  tools: TOOLS.filter((t) => t.category === category.id),
+  tools: tools.filter((t) => t.category === category.id),
 })).filter((g) => g.tools.length > 0);
 
 const origin = Astro.site ?? new URL('https://www.healthylifestyles.com');
@@ -38,7 +40,7 @@ const collectionLd = {
   name: title,
   description,
   url: new URL('/tools', origin).href,
-  hasPart: getLiveTools().map((t) => ({
+  hasPart: liveTools.map((t) => ({
     '@type': 'WebApplication',
     name: t.title,
     url: new URL(`/tools/${t.slug}`, origin).href,

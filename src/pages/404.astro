@@ -2,9 +2,9 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
 import ToolCard from '../components/ToolCard.astro';
-import { getPopularTools } from '../data/tools';
+import { getPopularTools } from '../lib/cms';
 
-const popular = getPopularTools(4);
+const popular = await getPopularTools(4);
 ---
 
 <BaseLayout

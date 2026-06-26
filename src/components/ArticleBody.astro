@@ -10,11 +10,11 @@ import AdSlot from './AdSlot.astro';
 import {
   getArticleCategory,
   getRelatedArticles,
-  articlePlainText,
-  type Article,
-} from '../data/articles';
-import { getTool } from '../data/tools';
-import { getCategory } from '../data/categories';
+  getTool,
+  getCategories,
+} from '../lib/cms';
+import { articlePlainText } from '../data/articles';
+import type { Article } from '../data/articles';
 import { renderInline, slugify, readingTimeMinutes, formatDate } from '../lib/text';
 
 interface Props {
@@ -23,9 +23,17 @@ interface Props {
 }
 
 const { article, pageUrl } = Astro.props;
-const category = getArticleCategory(article.category)!;
+const [category, related, tools, allCats] = await Promise.all([
+  getArticleCategory(article.category).then((c) => c!),
+  getRelatedArticles(article.slug, 3),
+  Promise.all(article.relatedTools.map((slug) => getTool(slug))).then((results) =>
+    results.filter((t): t is NonNullable<typeof t> => !!t && !!t.live),
+  ),
+  getCategories(),
+]);
 const minutes = readingTimeMinutes(articlePlainText(article));
-const related = getRelatedArticles(article.slug, 3);
+const sidebarTools = tools;
+const catLookup = Object.fromEntries(allCats.map((c) => [c.slug, c]));
 
 const breadcrumbItems = [
   { label: 'Home', href: '/' },
@@ -41,10 +49,7 @@ const toc = article.body.flatMap((b) =>
     : [],
 );
 
-// Sidebar tools (only those that exist).
-const sidebarTools = article.relatedTools
-  .map((slug) => getTool(slug))
-  .filter((t): t is NonNullable<typeof t> => !!t && !!t.live);
+
 
 const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning: 'shield' };
 ---
@@ -173,7 +178,7 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
           <h2>Try these tools</h2>
           <div class="wh-sidebar__tools">
             {sidebarTools.map((t) => {
-              const tc = getCategory(t.category);
+              const tc = catLookup[t.category];
               return (
                 <a href={`/tools/${t.slug}`} class="wh-tool-link">
                   <span

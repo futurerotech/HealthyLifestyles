@@ -4,23 +4,28 @@ import Breadcrumb from '../../components/Breadcrumb.astro';
 import Icon from '../../components/Icon.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
 import '../../styles/wellness-hub.css';
-import { SITE } from '../../consts';
+import { getSiteConsts } from '../../lib/cms';
 import {
-  ARTICLES,
-  ARTICLE_CATEGORIES,
+  getArticles,
+  getArticleCategories,
   getFeaturedArticle,
   getLatestArticles,
   getArticleCategory,
   countArticlesByCategory,
-  articlePlainText,
-} from '../../data/articles';
+} from '../../lib/cms';
+import { articlePlainText } from '../../data/articles';
 import { readingTimeMinutes, formatDate } from '../../lib/text';
 
-const featured = getFeaturedArticle();
-const featuredCat = getArticleCategory(featured.category)!;
+const [siteConsts, articles, ARTICLE_CATEGORIES] = await Promise.all([
+  getSiteConsts(), getArticles(), getArticleCategories(),
+]);
+const SITE = siteConsts.SITE;
+
+const featured = await getFeaturedArticle();
+const featuredCat = (await getArticleCategory(featured.category))!;
 const featuredMinutes = readingTimeMinutes(articlePlainText(featured));
 // Everything else, newest first (featured already gets the hero spot).
-const latest = getLatestArticles(ARTICLES.length, featured.slug);
+const latest = await getLatestArticles(articles.length, featured.slug);
 
 const origin = Astro.site ?? new URL('https://www.healthylifestyles.com');
 const pageUrl = new URL('/wellness-hub', origin).href.replace(/\/$/, '');
@@ -51,7 +56,9 @@ const collectionLd = {
   name: 'Wellness Hub',
   description,
   url: pageUrl,
-  hasPart: ARTICLES.map((a) => ({
+  hasPart: articles.map((a) => ({
+
+
     '@type': 'Article',
     headline: a.title,
     url: new URL(`/wellness-hub/${a.slug}`, origin).href,

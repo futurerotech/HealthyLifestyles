@@ -3,8 +3,10 @@ import Logo from './Logo.astro';
 import Icon from './Icon.astro';
 import SocialIcon from './SocialIcon.astro';
 import Newsletter from './Newsletter.astro';
-import { SITE, FOOTER_LEGAL, FOOTER_COMPANY, SOCIAL_NETWORKS, SOCIAL_FOLLOW } from '../consts';
-import { CATEGORIES } from '../data/categories';
+import { getCategories, getSiteConsts } from '../lib/cms';
+
+const [siteConsts, categories] = await Promise.all([getSiteConsts(), getCategories()]);
+const { SITE, FOOTER_LEGAL, FOOTER_COMPANY, SOCIAL_NETWORKS, SOCIAL_FOLLOW } = siteConsts;
 
 const year = 2026;
 ---
@@ -54,7 +56,7 @@ const year = 2026;
       <h2 class="footer__heading">Categories</h2>
       <ul>
         {
-          CATEGORIES.map((c) => (
+          categories.map((c) => (
             <li>
               <a href={`/${c.slug}`}>{c.name}</a>
             </li>
@@ -137,6 +139,7 @@ const year = 2026;
     color: var(--green-accent);
     font-weight: 600;
     font-size: 0.95rem;
+    text-decoration: none;
   }
   .footer__follow {
     margin-top: 1.75rem;
@@ -167,6 +170,7 @@ const year = 2026;
   .footer__col a {
     color: #94a3b8;
     font-size: 0.95rem;
+    text-decoration: none;
     transition: color 0.15s ease;
   }
   .footer__col a:hover {

@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /game/
 
 Sitemap: https://www.healthylifesstyles.com/sitemap-index.xml

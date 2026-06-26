@@ -1,10 +1,10 @@
 ---
 import ToolPageLayout from '../../components/ToolPageLayout.astro';
-import { getTool } from '../../data/tools';
+import { getTool } from '../../lib/cms';
 import { getToolContent } from '../../data/tool-content';
 import '../../styles/fasting.css';
 
-const tool = getTool('intermittent-fasting-calculator')!;
+const tool = await getTool('intermittent-fasting-calculator')!;
 const content = getToolContent('intermittent-fasting-calculator')!;
 ---
 

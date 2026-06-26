@@ -23,7 +23,7 @@ import WalkItOff from '../islands/WalkItOff.tsx';
 import WeightTimeline from '../islands/WeightTimeline.tsx';
 import CaffeineTracker from '../islands/CaffeineTracker.tsx';
 import '../styles/calculator.css';
-import { getTool } from '../data/tools';
+import { getTool } from '../lib/cms';
 import { getEngine } from '../lib/toolEngine';
 
 interface Props {
@@ -32,7 +32,7 @@ interface Props {
 }
 
 const { slug, label } = Astro.props;
-const tool = getTool(slug);
+const tool = await getTool(slug);
 const live = !!tool?.live;
 const engine = tool ? getEngine(tool) : 'numeric';
 const heading = label ?? (tool ? `Try the ${tool.title}` : 'Try the calculator');

@@ -11,6 +11,7 @@
   height: 100%;
   overflow: hidden;
   color: inherit;
+  text-decoration: none;
 }
 .wh-card:hover {
   text-decoration: none;
@@ -613,6 +614,7 @@
   font-weight: 700;
   font-size: 0.85rem;
   white-space: nowrap;
+  text-decoration: none;
 }
 @media (max-width: 520px) {
   .wh-embed__head {
@@ -743,6 +745,7 @@
   border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--ink);
+  text-decoration: none;
 }
 .wh-tool-link:hover {
   text-decoration: none;

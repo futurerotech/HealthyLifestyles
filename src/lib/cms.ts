@@ -2,8 +2,9 @@
  * CMS data client (Astro build-time).
  *
  * Reads published content from the Payload CMS REST API and normalizes it into
- * the SAME shapes the site already uses (`Tool`, `Category`), so pages can move
- * from `import { TOOLS }` to `await getTools()` with no downstream changes.
+ * the SAME shapes the site already uses (`Tool`, `Category`, `Article`), so
+ * pages can move from `import { TOOLS }` to `await getTools()` with no
+ * downstream changes.
  *
  * If the CMS is unreachable, misconfigured, or returns nothing, every getter
  * falls back to the local `src/data/*` files. This keeps the site building even
@@ -13,8 +14,11 @@
  * to force local data (useful for CI / offline builds).
  */
 
-import { TOOLS as LOCAL_TOOLS, type Tool } from '../data/tools';
+import { TOOLS as LOCAL_TOOLS, getPopularTools as localPopularTools, getToolsByCategory as localToolsByCat, getRelatedTools as localRelatedTools, getLiveTools as localLiveTools, type Tool } from '../data/tools';
 import { CATEGORIES as LOCAL_CATEGORIES, type Category } from '../data/categories';
+import { ARTICLES as LOCAL_ARTICLES, ARTICLE_CATEGORIES as LOCAL_ARTICLE_CATEGORIES, ARTICLES_PER_PAGE, type Article, type ArticleCategory, type ArticleBlock } from '../data/articles';
+import { AUTHORS as LOCAL_AUTHORS, resolveAuthor as localResolveAuthor, type Author } from '../data/authors';
+import { SITE as LOCAL_SITE, NAV_LINKS as LOCAL_NAV_LINKS, FOOTER_LEGAL as LOCAL_FOOTER_LEGAL, FOOTER_COMPANY as LOCAL_FOOTER_COMPANY, SOCIAL_FOLLOW as LOCAL_SOCIAL_FOLLOW, SOCIAL_NETWORKS as LOCAL_SOCIAL_NETWORKS, ANALYTICS as LOCAL_ANALYTICS, EDITORIAL as LOCAL_EDITORIAL, CONTACT as LOCAL_CONTACT } from '../consts';
 
 const CMS_URL = (import.meta.env.CMS_URL as string) || 'http://localhost:3000';
 const DISABLED = (import.meta.env.CMS_DISABLE as string) === '1';
@@ -37,31 +41,160 @@ async function cmsFetch<T>(pathAndQuery: string): Promise<T | null> {
     if (!res.ok) return null;
     return (await res.json()) as T;
   } catch {
-    // Network error, timeout, bad JSON, CMS down — fall back to local data.
     return null;
   }
-}
-
-/** Resolve a relationship that may be an id string or a populated object. */
-function relSlug(rel: unknown): string {
-  if (rel && typeof rel === 'object') {
-    const o = rel as Record<string, unknown>;
-    if (typeof o.slug === 'string') return o.slug;
-    if (typeof o.id === 'string') return o.id;
-  }
-  return typeof rel === 'string' ? rel : '';
 }
 
 function str(v: unknown): string {
   return typeof v === 'string' ? v : '';
 }
 
-// ---------- Tools ----------
+function pickSlug(rel: unknown): string {
+  if (rel && typeof rel === 'object') {
+    const o = rel as Record<string, unknown>;
+    return str(o.slug || o.id);
+  }
+  return str(rel);
+}
+
+function pickId(rel: unknown): string {
+  if (rel && typeof rel === 'object') {
+    const o = rel as Record<string, unknown>;
+    return str(o.id || o.slug);
+  }
+  return str(rel);
+}
+
+/* ────────────────────────────────────────────  Settings / Site ── */
+
+interface CmsSettings {
+  siteTitle?: string;
+  tagline?: string;
+  description?: string;
+  primaryColor?: string;
+  ga4Id?: string;
+  searchConsoleId?: string;
+  affiliateDisclosure?: string;
+  contactEmail?: string;
+  copyrightText?: string;
+  nav?: { label: string; href: string }[];
+  footerLinks?: { label: string; href: string }[];
+  social?: { platform: string; url: string; color: string }[];
+}
+
+const PLATFORM_MAP: Record<string, string> = {
+  'X (Twitter)': 'x',
+  Facebook: 'facebook',
+  LinkedIn: 'linkedin',
+  Pinterest: 'pinterest',
+  Instagram: 'instagram',
+  YouTube: 'youtube',
+  TikTok: 'tiktok',
+  Threads: 'threads',
+  Bluesky: 'bluesky',
+  WhatsApp: 'whatsapp',
+  Reddit: 'reddit',
+};
+
+export interface SiteData {
+  name: string;
+  tagline: string;
+  shortName: string;
+  description: string;
+  ogImage: string;
+  twitter: string;
+  locale: string;
+  themeColor: string;
+}
+
+export interface NavLink { label: string; href: string }
+
+export interface SiteConsts {
+  SITE: SiteData;
+  NAV_LINKS: NavLink[];
+  FOOTER_LEGAL: NavLink[];
+  FOOTER_COMPANY: NavLink[];
+  SOCIAL_FOLLOW: { network: string; href: string }[];
+  SOCIAL_NETWORKS: Record<string, { label: string; color: string }>;
+  ANALYTICS: { ga4Id: string; searchConsoleVerification: string };
+  EDITORIAL: { reviewerName: string; reviewerCredential: string; lastReviewed: string };
+  CONTACT: { email: string };
+}
+
+function mapSocialNetwork(
+  platform: string,
+  url: string,
+  color: string,
+): { network: string; href: string } {
+  const network = PLATFORM_MAP[platform] || platform.toLowerCase().replace(/\s+/g, '-');
+  return { network, href: url };
+}
+
+async function getCmsSettings(): Promise<CmsSettings | null> {
+  return cmsFetch<CmsSettings>('/api/globals/settings?depth=0');
+}
+
+/** Consolidated site constants from CMS (settings global) with local fallback. */
+export async function getSiteConsts(): Promise<SiteConsts> {
+  const s = await getCmsSettings();
+  if (!s) {
+    return {
+      SITE: LOCAL_SITE as unknown as SiteData,
+      NAV_LINKS: [...LOCAL_NAV_LINKS] as NavLink[],
+      FOOTER_LEGAL: [...LOCAL_FOOTER_LEGAL] as NavLink[],
+      FOOTER_COMPANY: [...LOCAL_FOOTER_COMPANY] as NavLink[],
+      SOCIAL_FOLLOW: [...LOCAL_SOCIAL_FOLLOW].map((s) => ({ network: s.network, href: s.href })),
+      SOCIAL_NETWORKS: { ...LOCAL_SOCIAL_NETWORKS } as Record<string, { label: string; color: string }>,
+      ANALYTICS: { ...LOCAL_ANALYTICS } as { ga4Id: string; searchConsoleVerification: string },
+      EDITORIAL: { ...LOCAL_EDITORIAL } as { reviewerName: string; reviewerCredential: string; lastReviewed: string },
+      CONTACT: { ...LOCAL_CONTACT } as { email: string },
+    };
+  }
+
+  const socialFollow = (s.social || []).map((x) => mapSocialNetwork(x.platform, x.url, x.color));
+
+  const socialNetworks: Record<string, { label: string; color: string }> = {};
+  for (const x of s.social || []) {
+    const network = PLATFORM_MAP[x.platform] || x.platform.toLowerCase().replace(/\s+/g, '-');
+    socialNetworks[network] = { label: x.platform, color: x.color };
+  }
+
+  return {
+    SITE: {
+      name: s.siteTitle || LOCAL_SITE.name,
+      tagline: s.tagline || LOCAL_SITE.tagline,
+      shortName: s.siteTitle || LOCAL_SITE.name,
+      description: s.description || LOCAL_SITE.description,
+      ogImage: LOCAL_SITE.ogImage,
+      twitter: LOCAL_SITE.twitter,
+      locale: LOCAL_SITE.locale,
+      themeColor: s.primaryColor || LOCAL_SITE.themeColor,
+    },
+    NAV_LINKS: (s.nav || LOCAL_NAV_LINKS).map((l) => ({ label: l.label, href: l.href })),
+    FOOTER_LEGAL: [...LOCAL_FOOTER_LEGAL].map((l) => ({ label: l.label, href: l.href })),
+    FOOTER_COMPANY: [...LOCAL_FOOTER_COMPANY].map((l) => ({ label: l.label, href: l.href })),
+    SOCIAL_FOLLOW: socialFollow.length > 0 ? socialFollow : [...LOCAL_SOCIAL_FOLLOW].map((s) => ({ network: s.network, href: s.href })),
+    SOCIAL_NETWORKS: Object.keys(socialNetworks).length > 0 ? socialNetworks : { ...LOCAL_SOCIAL_NETWORKS } as Record<string, { label: string; color: string }>,
+    ANALYTICS: {
+      ga4Id: s.ga4Id || LOCAL_ANALYTICS.ga4Id,
+      searchConsoleVerification: s.searchConsoleId || LOCAL_ANALYTICS.searchConsoleVerification,
+    },
+    EDITORIAL: { ...LOCAL_EDITORIAL } as { reviewerName: string; reviewerCredential: string; lastReviewed: string },
+    CONTACT: {
+      email: s.contactEmail || LOCAL_CONTACT.email,
+    },
+  };
+}
+
+/* ────────────────────────────────────────────  Tools ── */
 
 interface CmsTool {
+  id?: string;
   slug?: string;
   name?: string;
   category?: unknown;
+  icon?: string;
+  gradient?: string;
   enabled?: boolean;
   featured?: boolean;
   sortOrder?: number;
@@ -74,10 +207,12 @@ function mapTool(t: CmsTool): Tool {
     slug: str(t.slug),
     title: str(t.name),
     blurb: str(t.seo?.metaDescription),
-    category: relSlug(t.category),
+    category: pickSlug(t.category),
     keywords: Array.isArray(t.seo?.keywords) ? t.seo!.keywords!.map(String) : [],
+    icon: str(t.icon) || undefined,
+    gradient: str(t.gradient) || undefined,
     popular: Boolean(t.featured),
-    related: Array.isArray(t.related) ? t.related.map(relSlug).filter(Boolean) : undefined,
+    related: Array.isArray(t.related) ? t.related.map(pickSlug).filter(Boolean) : undefined,
     live: t.enabled !== false,
   };
 }
@@ -93,7 +228,47 @@ export async function getTools(): Promise<Tool[]> {
   return LOCAL_TOOLS;
 }
 
-// ---------- Categories ----------
+export async function getPopularTools(limit = 6): Promise<Tool[]> {
+  const data = await cmsFetch<PayloadList<CmsTool>>(
+    `/api/tools?where[enabled][equals]=true&where[featured][equals]=true&limit=${limit}&depth=1&sort=sortOrder`,
+  );
+  if (data && Array.isArray(data.docs) && data.docs.length > 0) {
+    return data.docs.map(mapTool).filter((t) => t.slug && t.title);
+  }
+  return localPopularTools(limit);
+}
+
+export async function getToolsByCategory(catSlug: string): Promise<Tool[]> {
+  const all = await getTools();
+  const filtered = all.filter((t) => t.category === catSlug);
+  if (filtered.length > 0) return filtered;
+  return localToolsByCat(catSlug);
+}
+
+export async function getRelatedTools(slug: string, limit = 4): Promise<Tool[]> {
+  const all = await getTools();
+  const tool = all.find((t) => t.slug === slug);
+  if (!tool) return localRelatedTools(slug, limit);
+  const out: Tool[] = [];
+  const push = (t?: Tool) => { if (t && t.live && t.slug !== slug && !out.includes(t)) out.push(t); };
+  (tool.related ?? []).forEach((s) => push(all.find((t) => t.slug === s)));
+  const sameCat = all.filter((t) => t.category === tool.category && t.live && t.slug !== slug);
+  for (const t of sameCat) { if (out.length >= limit) break; push(t); }
+  for (const t of all) { if (out.length >= limit) break; push(t); }
+  return out.slice(0, limit);
+}
+
+export async function getLiveTools(): Promise<Tool[]> {
+  const all = await getTools();
+  return all.filter((t) => t.live);
+}
+
+export async function getTool(slug: string): Promise<Tool | undefined> {
+  const all = await getTools();
+  return all.find((t) => t.slug === slug);
+}
+
+/* ────────────────────────────────────────────  Categories (tool) ── */
 
 interface CmsCategory {
   slug?: string;
@@ -101,6 +276,7 @@ interface CmsCategory {
   description?: string;
   icon?: string;
   accentColor?: string;
+  accent?: string;
   order?: number;
 }
 
@@ -112,13 +288,11 @@ function mapCategory(c: CmsCategory): Category {
     slug: str(c.slug),
     blurb: str(c.description),
     icon: str(c.icon) || 'leaf',
-    // Local data uses a CSS var for `accent`; CMS stores only a hex, so reuse it.
-    accent: color,
+    accent: str(c.accent) || color,
     color,
   };
 }
 
-/** Tool categories. CMS-first, local fallback. */
 export async function getCategories(): Promise<Category[]> {
   const data = await cmsFetch<PayloadList<CmsCategory>>(
     '/api/categories?where[kind][equals]=tool&limit=50&depth=0&sort=order',
@@ -129,41 +303,304 @@ export async function getCategories(): Promise<Category[]> {
   return LOCAL_CATEGORIES;
 }
 
-// ---------- Articles ----------
+export async function getCategory(slug: string): Promise<Category | undefined> {
+  const all = await getCategories();
+  return all.find((c) => c.slug === slug || c.id === slug);
+}
+
+/* ────────────────────────────────────────────  Article Categories ── */
+
+interface CmsArticleCategory {
+  slug?: string;
+  name?: string;
+  description?: string;
+  icon?: string;
+  accentColor?: string;
+  accent?: string;
+  order?: number;
+}
+
+function mapArticleCategory(c: CmsArticleCategory): ArticleCategory {
+  const color = str(c.accentColor) || '#16a34a';
+  return {
+    id: str(c.slug),
+    name: str(c.name || str(c.slug)),
+    slug: str(c.slug),
+    blurb: str(c.description),
+    icon: str(c.icon) || 'book',
+    color,
+  };
+}
+
+async function getRawArticleCategories(): Promise<CmsArticleCategory[]> {
+  const data = await cmsFetch<PayloadList<CmsArticleCategory>>(
+    '/api/categories?where[kind][equals]=section&limit=50&depth=0&sort=order',
+  );
+  if (data && Array.isArray(data.docs) && data.docs.length > 0) return data.docs;
+  return [];
+}
+
+/** Article categories (content sections) — CMS-first, local fallback. */
+export async function getArticleCategories(): Promise<ArticleCategory[]> {
+  const cats = await getRawArticleCategories();
+  if (cats.length > 0) return cats.map(mapArticleCategory).filter((c) => c.id && c.name);
+  return LOCAL_ARTICLE_CATEGORIES;
+}
+
+export async function getArticleCategory(idOrSlug: string): Promise<ArticleCategory | undefined> {
+  const all = await getArticleCategories();
+  return all.find((c) => c.id === idOrSlug || c.slug === idOrSlug);
+}
+
+/* ────────────────────────────────────────────  Articles ── */
+
+interface CmsArticleBlock {
+  blockType?: string;
+  style?: string;
+  text?: string;
+  tone?: string;
+  title?: string;
+  items?: { text?: string }[] | string[];
+  tool?: unknown;
+  label?: string;
+  caption?: string;
+  headers?: string[];
+  rows?: { cells?: string[] }[] | string[][];
+  heading?: string;
+  question?: string;
+  answer?: string;
+}
 
 interface CmsArticle {
   id?: string;
   title?: string;
   slug?: string;
   excerpt?: string;
-  layout?: unknown[];
+  layout?: CmsArticleBlock[];
+  faq?: { question?: string; answer?: string }[];
+  sources?: { label?: string; url?: string }[];
   category?: unknown;
   author?: unknown;
+  reviewer?: unknown;
+  tags?: string[];
   publishDate?: string;
+  updatedDate?: string;
+  featured?: boolean;
+  primaryTool?: unknown;
+  relatedTools?: unknown[];
+  relatedArticles?: unknown[];
+  seo?: { metaTitle?: string; metaDescription?: string };
   _status?: string;
 }
 
-export async function getCmsArticle(slug: string): Promise<CmsArticle | null> {
+function mapArticle(a: CmsArticle): Article {
+  const catSlug = pickSlug(a.category);
+  const authorObj = a.author as Record<string, unknown> | undefined;
+
+  return {
+    slug: str(a.slug),
+    title: str(a.title),
+    seoTitle: str(a.seo?.metaTitle || a.title),
+    metaDescription: str(a.seo?.metaDescription || a.excerpt),
+    category: catSlug,
+    excerpt: str(a.excerpt),
+    author: str(authorObj?.name || pickSlug(a.author)),
+    authorBio: str(authorObj?.bio) || undefined,
+    publishDate: str(a.publishDate).split('T')[0],
+    updatedDate: str(a.updatedDate).split('T')[0] || str(a.publishDate).split('T')[0],
+    featured: Boolean(a.featured),
+    primaryTool: pickSlug(a.primaryTool),
+    relatedTools: (a.relatedTools || []).map(pickSlug).filter(Boolean),
+    relatedArticles: (a.relatedArticles || []).map(pickSlug).filter(Boolean),
+    sources: (a.sources || []).map((s) => ({
+      citation: str(s.label || s.url),
+      url: str(s.url) || undefined,
+    })),
+    body: mapArticleBlocks(a.layout || []) as ArticleBlock[],
+  };
+}
+
+function mapArticleBlocks(blocks: CmsArticleBlock[]): ArticleBlock[] {
+  return blocks.map((b) => {
+    switch (b.blockType) {
+      case 'text':
+        return { type: (b.style as 'p' | 'h2' | 'h3') || 'p', text: str(b.text) } as ArticleBlock;
+      case 'list':
+        return {
+          type: (b.style === 'ordered' ? 'ol' : 'ul') as 'ul' | 'ol',
+          items: (b.items || []).map((i: unknown) => typeof i === 'string' ? i : str((i as { text?: string })?.text)),
+        } as ArticleBlock;
+      case 'callout':
+        return {
+          type: 'callout',
+          tone: (b.tone as 'info' | 'tip' | 'warning') || 'info',
+          title: str(b.title),
+          text: str(b.text),
+        } as ArticleBlock;
+      case 'toolEmbed':
+        return {
+          type: 'tool',
+          slug: pickSlug(b.tool || b.label || ''),
+          label: str(b.label),
+        } as ArticleBlock;
+      case 'table':
+        return {
+          type: 'table',
+          caption: str(b.caption),
+          headers: Array.isArray(b.headers) ? b.headers : [],
+          rows: Array.isArray(b.rows) ? b.rows.map((r: unknown) => {
+            if (Array.isArray(r)) return r;
+            if (r && typeof r === 'object') {
+              const cells = (r as { cells?: string[] }).cells;
+              return Array.isArray(cells) ? cells : [];
+            }
+            return [];
+          }) : [],
+        } as ArticleBlock;
+      case 'peopleAlsoAsk':
+        return {
+          type: 'paa',
+          heading: str(b.heading),
+          items: (((b as Record<string, unknown>).items) as Array<Record<string, unknown>> || []).map((i) => ({
+            q: str((i as Record<string, unknown>).question || (i as Record<string, unknown>).q),
+            a: str((i as Record<string, unknown>).answer || (i as Record<string, unknown>).a),
+          })),
+        } as ArticleBlock;
+      default:
+        return { type: 'p', text: '' } as ArticleBlock;
+    }
+  }).filter((b: ArticleBlock) => !(b.type === 'p' && !(b as { text?: string }).text)) as ArticleBlock[];
+}
+
+export async function getArticle(slug: string): Promise<Article | null> {
   const data = await cmsFetch<PayloadList<CmsArticle>>(
     `/api/articles?where[slug][equals]=${slug}&depth=2&draft=false`,
   );
   if (data && Array.isArray(data.docs) && data.docs.length > 0) {
-    return data.docs[0] as CmsArticle;
+    return mapArticle(data.docs[0]);
   }
-  return null;
+  const local = LOCAL_ARTICLES.find((a) => a.slug === slug);
+  return local || null;
 }
 
-export async function getCmsArticles(): Promise<CmsArticle[]> {
+export async function getArticles(): Promise<Article[]> {
   const data = await cmsFetch<PayloadList<CmsArticle>>(
-    '/api/articles?limit=100&depth=1&sort=-publishDate&draft=false',
+    '/api/articles?limit=100&depth=2&sort=-publishDate&draft=false',
   );
-  if (data && Array.isArray(data.docs)) {
-    return data.docs as CmsArticle[];
+  if (data && Array.isArray(data.docs) && data.docs.length > 0) {
+    return data.docs.map(mapArticle).filter((a) => a.slug && a.title);
   }
-  return [];
+  return LOCAL_ARTICLES;
 }
 
-// ---------- Pages ----------
+const byNewest = (a: Article, b: Article) =>
+  (b.updatedDate || b.publishDate).localeCompare(a.updatedDate || a.publishDate);
+
+export async function getFeaturedArticle(): Promise<Article> {
+  const all = await getArticles();
+  return all.find((a) => a.featured) ?? [...all].sort(byNewest)[0];
+}
+
+export async function getLatestArticles(limit = 6, excludeSlug?: string): Promise<Article[]> {
+  const all = await getArticles();
+  return [...all].sort(byNewest).filter((a) => a.slug !== excludeSlug).slice(0, limit);
+}
+
+export async function getArticlesByCategory(categoryId: string): Promise<Article[]> {
+  const all = await getArticles();
+  return all.filter((a) => a.category === categoryId).sort(byNewest);
+}
+
+export async function countArticlesByCategory(categoryId: string): Promise<number> {
+  const all = await getArticles();
+  return all.filter((a) => a.category === categoryId).length;
+}
+
+export async function getRelatedArticles(slug: string, limit = 3): Promise<Article[]> {
+  const all = await getArticles();
+  const article = all.find((a) => a.slug === slug);
+  if (!article) return [];
+  const out: Article[] = [];
+  const push = (a?: Article) => { if (a && a.slug !== slug && !out.includes(a)) out.push(a); };
+  (article.relatedArticles ?? []).forEach((s) => push(all.find((a) => a.slug === s)));
+  for (const a of all.filter((a) => a.category === article.category)) push(a);
+  for (const a of [...all].sort(byNewest)) push(a);
+  return out.slice(0, limit);
+}
+
+export async function getArticlesForTool(toolSlug: string, limit = 3): Promise<Article[]> {
+  const all = await getArticles();
+  return all.filter((a) => a.primaryTool === toolSlug || a.relatedTools.includes(toolSlug))
+    .sort(byNewest)
+    .slice(0, limit);
+}
+
+export { ARTICLES_PER_PAGE, articlePlainText, articleFaq } from '../data/articles';
+
+/* ────────────────────────────────────────────  Authors ── */
+
+interface CmsAuthorLink {
+  label?: string;
+  url?: string;
+}
+
+interface CmsAuthor {
+  id?: string;
+  slug?: string;
+  name?: string;
+  role?: string;
+  credential?: string;
+  bio?: string;
+  initials?: string;
+  color?: string;
+  schemaType?: string;
+  links?: CmsAuthorLink[];
+}
+
+function mapAuthor(a: CmsAuthor): Author {
+  return {
+    slug: str(a.slug),
+    name: str(a.name),
+    role: str(a.role),
+    credential: str(a.credential) || undefined,
+    bio: str(a.bio),
+    initials: str(a.initials),
+    color: str(a.color) || '#16a34a',
+    schemaType: (a.schemaType === 'Person' ? 'Person' : 'Organization') as 'Organization' | 'Person',
+    links: (a.links || []).filter((l) => l.url).map((l) => ({
+      network: ((l.label || '').toLowerCase().replace(/\s+/g, '-') || 'website') as 'x' | 'facebook' | 'whatsapp' | 'linkedin' | 'pinterest' | 'reddit' | 'website',
+      href: str(l.url),
+    })),
+  };
+}
+
+export async function getAuthors(): Promise<Author[]> {
+  const data = await cmsFetch<PayloadList<CmsAuthor>>(
+    '/api/authors?limit=50&depth=0&sort=name',
+  );
+  if (data && Array.isArray(data.docs) && data.docs.length > 0) {
+    return data.docs.map(mapAuthor).filter((a) => a.slug && a.name);
+  }
+  return LOCAL_AUTHORS;
+}
+
+export async function getAuthor(slug: string): Promise<Author | undefined> {
+  const all = await getAuthors();
+  return all.find((a) => a.slug === slug);
+}
+
+export async function resolveAuthor(nameOrSlug: string): Promise<Author> {
+  const all = await getAuthors();
+  const bySlug = all.find((a) => a.slug === nameOrSlug);
+  if (bySlug) return bySlug;
+  const byName = all.find((a) => a.name === nameOrSlug);
+  if (byName) return byName;
+  return all[0] || LOCAL_AUTHORS[0]!;
+}
+
+export { DEFAULT_AUTHOR_SLUG, REVIEWER_SLUG } from '../data/authors';
+
+/* ────────────────────────────────────────────  Pages ── */
 
 interface CmsPage {
   id?: string;
@@ -196,20 +633,19 @@ export async function getCmsPages(): Promise<CmsPage[]> {
 }
 
 export async function getAllCmsSlugs(): Promise<string[]> {
-  const [articles, pages] = await Promise.all([getCmsArticles(), getCmsPages()]);
+  const [articles, pages] = await Promise.all([getArticles(), getCmsPages()]);
   return [
-    ...articles.filter((a) => a.slug).map((a) => a.slug!),
+    ...articles.filter((a) => a.slug).map((a) => a.slug),
     ...pages.filter((p) => p.slug).map((p) => p.slug!),
   ];
 }
 
-/** True when the CMS answered at least once this build (diagnostics). */
 export async function cmsIsReachable(): Promise<boolean> {
   const ping = await cmsFetch<unknown>('/api/categories?limit=1&depth=0');
   return ping !== null;
 }
 
-// ---------- Ad Management ----------
+/* ────────────────────────────────────────────  Ad Management ── */
 
 export interface AdSlot {
   placement: string;
@@ -245,11 +681,10 @@ export interface AdConfig {
 }
 
 export async function getAdConfig(): Promise<AdConfig | null> {
-  const data = await cmsFetch<AdConfig>('/api/globals/ad-management?depth=1');
-  return data;
+  return cmsFetch<AdConfig>('/api/globals/ad-management?depth=1');
 }
 
-// ---------- Lead Generation ----------
+/* ────────────────────────────────────────────  Lead Generation ── */
 
 export interface LeadOffer {
   id: string;
@@ -275,6 +710,5 @@ export interface LeadGenConfig {
 }
 
 export async function getLeadGenConfig(): Promise<LeadGenConfig | null> {
-  const data = await cmsFetch<LeadGenConfig>('/api/globals/lead-gen?depth=2');
-  return data;
+  return cmsFetch<LeadGenConfig>('/api/globals/lead-gen?depth=2');
 }

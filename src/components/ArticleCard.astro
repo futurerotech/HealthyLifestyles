@@ -1,6 +1,8 @@
 ---
 import Icon from './Icon.astro';
-import { getArticleCategory, articlePlainText, type Article } from '../data/articles';
+import { getArticleCategory } from '../lib/cms';
+import { articlePlainText } from '../data/articles';
+import type { Article } from '../data/articles';
 import { readingTimeMinutes, formatDate } from '../lib/text';
 
 interface Props {
@@ -10,7 +12,7 @@ interface Props {
 }
 
 const { article, size = 'default' } = Astro.props;
-const category = getArticleCategory(article.category);
+const category = await getArticleCategory(article.category);
 const minutes = readingTimeMinutes(articlePlainText(article));
 const color = category?.color ?? '#16a34a';
 ---

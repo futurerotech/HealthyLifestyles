@@ -3,19 +3,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Breadcrumb from '../components/Breadcrumb.astro';
 import Icon from '../components/Icon.astro';
 import ToolCard from '../components/ToolCard.astro';
-import { CATEGORIES, getCategory } from '../data/categories';
-import { getToolsByCategory } from '../data/tools';
-import { SITE } from '../consts';
+import { getCategories, getToolsByCategory } from '../lib/cms';
+import { getSiteConsts } from '../lib/cms';
 
-export function getStaticPaths() {
-  return CATEGORIES.map((category) => ({
+export async function getStaticPaths() {
+  const categories = await getCategories();
+  return categories.map((category) => ({
     params: { category: category.slug },
     props: { category },
   }));
 }
 
 const { category } = Astro.props;
-const tools = getToolsByCategory(category.id);
+const [tools, siteConsts] = await Promise.all([getToolsByCategory(category.id), getSiteConsts()]);
+const SITE = siteConsts.SITE;
 const liveCount = tools.filter((t) => t.live).length;
 
 const origin = Astro.site ?? new URL('https://www.healthylifestyles.com');

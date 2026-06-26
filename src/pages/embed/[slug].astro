@@ -38,13 +38,17 @@ import WalkItOff from '../../islands/WalkItOff.tsx';
 import WeightTimeline from '../../islands/WeightTimeline.tsx';
 import CaffeineTracker from '../../islands/CaffeineTracker.tsx';
 
-import { getLiveTools, getTool, type Tool } from '../../data/tools';
+import { getLiveTools, getSiteConsts } from '../../lib/cms';
+import type { Tool } from '../../data/tools';
 import { getEngine } from '../../lib/toolEngine';
-import { SITE } from '../../consts';
 
-export function getStaticPaths() {
-  return getLiveTools().map((tool) => ({ params: { slug: tool.slug }, props: { tool } }));
+export async function getStaticPaths() {
+  const liveTools = await getLiveTools();
+  return liveTools.map((tool) => ({ params: { slug: tool.slug }, props: { tool } }));
 }
+
+const siteConsts = await getSiteConsts();
+const { SITE } = siteConsts;
 
 interface Props {
   tool: Tool;

@@ -3,28 +3,30 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleBody from '../../components/ArticleBody.astro';
 import ArticleArchiveBody from '../../components/ArticleArchiveBody.astro';
 import '../../styles/wellness-hub.css';
-import { SITE } from '../../consts';
+import { getSiteConsts } from '../../lib/cms';
 import {
-  ARTICLES,
-  ARTICLE_CATEGORIES,
-  ARTICLES_PER_PAGE,
+  getArticles,
+  getArticleCategories,
   getArticle,
   getArticleCategory,
   getArticlesByCategory,
-  articleFaq,
-} from '../../data/articles';
+  ARTICLES_PER_PAGE,
+} from '../../lib/cms';
+import { articleFaq } from '../../data/articles';
 
-export function getStaticPaths() {
+export async function getStaticPaths() {
+  const [articles, ARTICLE_CATEGORIES] = await Promise.all([getArticles(), getArticleCategories()]);
   const paths: any[] = [];
 
   // Article pages: /wellness-hub/[slug]
-  for (const a of ARTICLES) {
+  for (const a of articles) {
     paths.push({ params: { path: a.slug }, props: { kind: 'article', slug: a.slug } });
   }
 
   // Category archives: /wellness-hub/[category] (+ /[category]/[n] for page 2+)
   for (const c of ARTICLE_CATEGORIES) {
-    const count = getArticlesByCategory(c.id).length;
+    const all = await getArticlesByCategory(c.id);
+    const count = all.length;
     const totalPages = Math.max(1, Math.ceil(count / ARTICLES_PER_PAGE));
     for (let p = 1; p <= totalPages; p++) {
       paths.push({
@@ -60,22 +62,28 @@ const breadcrumb = (crumbs: { label: string; href?: string }[]) => ({
 });
 
 // --- Article branch ---
-let article = props.kind === 'article' ? getArticle(props.slug)! : null;
+let article = props.kind === 'article' ? await getArticle(props.slug) : null;
 
 // --- Archive branch ---
 let archive: {
-  category: (typeof ARTICLE_CATEGORIES)[number];
-  pageArticles: typeof ARTICLES;
+  category: NonNullable<Awaited<ReturnType<typeof getArticleCategory>>>;
+  pageArticles: NonNullable<Awaited<ReturnType<typeof getArticle>>>[];
   total: number;
   page: number;
   totalPages: number;
 } | null = null;
 
 if (props.kind === 'article' && article) {
-  const category = getArticleCategory(article.category)!;
+  const [category, siteConsts] = await Promise.all([
+    getArticleCategory(article.category),
+    getSiteConsts(),
+  ]);
+  const SITE = siteConsts.SITE;
   title = article.seoTitle;
   description = article.metaDescription;
   const ogImage = new URL(SITE.ogImage, origin).href;
+
+  const categorySafe = category!;
 
   const articleLd = {
     '@context': 'https://schema.org',
@@ -92,7 +100,7 @@ if (props.kind === 'article' && article) {
     },
     mainEntityOfPage: pageUrl,
     image: ogImage,
-    articleSection: category.name,
+    articleSection: categorySafe.name,
     inLanguage: 'en',
   };
 
@@ -100,7 +108,7 @@ if (props.kind === 'article' && article) {
     breadcrumb([
       { label: 'Home', href: '/' },
       { label: 'Wellness Hub', href: '/wellness-hub' },
-      { label: category.name, href: `/wellness-hub/${category.slug}` },
+      { label: categorySafe.name, href: `/wellness-hub/${categorySafe.slug}` },
       { label: article.title },
     ]),
     articleLd,
@@ -119,29 +127,34 @@ if (props.kind === 'article' && article) {
     });
   }
 } else if (props.kind === 'archive') {
-  const category = getArticleCategory(props.categoryId)!;
-  const all = getArticlesByCategory(category.id);
+  const [category, siteConsts, all] = await Promise.all([
+    getArticleCategory(props.categoryId),
+    getSiteConsts(),
+    getArticlesByCategory(props.categoryId),
+  ]);
+  const SITE = siteConsts.SITE;
+  const categorySafe = category!;
   const totalPages = Math.max(1, Math.ceil(all.length / ARTICLES_PER_PAGE));
   const page = props.page;
   const pageArticles = all.slice((page - 1) * ARTICLES_PER_PAGE, page * ARTICLES_PER_PAGE);
-  archive = { category, pageArticles, total: all.length, page, totalPages };
+  archive = { category: categorySafe, pageArticles: pageArticles as typeof archive.pageArticles, total: all.length, page, totalPages };
 
   title =
     page > 1
-      ? `${category.name} Guides — Page ${page} | Wellness Hub`
-      : `${category.name} Guides | Wellness Hub`;
-  description = `${category.blurb} Evidence-based ${category.name.toLowerCase()} guides from the ${SITE.name} Wellness Hub.`;
+      ? `${categorySafe.name} Guides — Page ${page} | Wellness Hub`
+      : `${categorySafe.name} Guides | Wellness Hub`;
+  description = `${categorySafe.blurb} Evidence-based ${categorySafe.name.toLowerCase()} guides from the ${SITE.name} Wellness Hub.`;
 
   jsonLd = [
     breadcrumb([
       { label: 'Home', href: '/' },
       { label: 'Wellness Hub', href: '/wellness-hub' },
-      { label: category.name },
+      { label: categorySafe.name },
     ]),
     {
       '@context': 'https://schema.org',
       '@type': 'CollectionPage',
-      name: `${category.name} Guides`,
+      name: `${categorySafe.name} Guides`,
       description,
       url: pageUrl,
       hasPart: all.map((a) => ({

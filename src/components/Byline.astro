@@ -6,7 +6,7 @@
  */
 import Avatar from './Avatar.astro';
 import Icon from './Icon.astro';
-import { resolveAuthor, getReviewer } from '../data/authors';
+import { getAuthors } from '../lib/cms';
 import { formatDate } from '../lib/text';
 
 interface Props {
@@ -18,9 +18,15 @@ interface Props {
   reviewed?: boolean;
   class?: string;
 }
+
+const allAuthors = await getAuthors();
+const authorMap = Object.fromEntries(allAuthors.map((a) => [a.slug, a]));
+const nameMap = Object.fromEntries(allAuthors.map((a) => [a.name, a]));
+const resolveAuthorLocal = (nameOrSlug: string) => authorMap[nameOrSlug] || nameMap[nameOrSlug] || allAuthors[0]!;
+const getReviewerLocal = () => authorMap['medical-review'] || allAuthors[1] || allAuthors[0]!;
 const { author = 'editorial-team', updated, reviewed = true, class: className } = Astro.props;
-const a = resolveAuthor(author);
-const r = getReviewer();
+const a = resolveAuthorLocal(author);
+const r = getReviewerLocal();
 ---
 
 <div class:list={['byline', className]}>

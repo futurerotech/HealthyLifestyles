@@ -5,11 +5,11 @@
  * stylesheet only loads here. (Excluded from tools/[slug].astro.)
  */
 import ToolPageLayout from '../../components/ToolPageLayout.astro';
-import { getTool } from '../../data/tools';
+import { getTool } from '../../lib/cms';
 import { getToolContent } from '../../data/tool-content';
 import '../../styles/lifestyle-age.css';
 
-const tool = getTool('lifestyle-age-test')!;
+const tool = await getTool('lifestyle-age-test')!;
 const content = getToolContent('lifestyle-age-test')!;
 ---
 

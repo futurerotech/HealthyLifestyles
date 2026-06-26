@@ -6,11 +6,11 @@
  * other 39 tool pages. (Excluded from tools/[slug].astro to avoid a duplicate.)
  */
 import ToolPageLayout from '../../components/ToolPageLayout.astro';
-import { getTool } from '../../data/tools';
+import { getTool } from '../../lib/cms';
 import { getToolContent } from '../../data/tool-content';
 import '../../styles/meal-plan.css';
 
-const tool = getTool('meal-plan-generator')!;
+const tool = await getTool('meal-plan-generator')!;
 const content = getToolContent('meal-plan-generator')!;
 ---
 

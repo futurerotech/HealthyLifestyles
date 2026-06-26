@@ -5,13 +5,14 @@ import Avatar from '../../components/Avatar.astro';
 import Icon from '../../components/Icon.astro';
 import SocialIcon from '../../components/SocialIcon.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
-import { AUTHORS, resolveAuthor, type Author } from '../../data/authors';
-import { ARTICLES } from '../../data/articles';
-import { SITE } from '../../consts';
-import { SOCIAL_NETWORKS } from '../../consts';
+import { getAuthors, getArticles } from '../../lib/cms';
+import { getSiteConsts } from '../../lib/cms';
+import { resolveAuthor } from '../../data/authors';
+import type { Author } from '../../data/authors';
 
-export function getStaticPaths() {
-  return AUTHORS.map((author) => ({ params: { slug: author.slug }, props: { author } }));
+export async function getStaticPaths() {
+  const authors = await getAuthors();
+  return authors.map((author) => ({ params: { slug: author.slug }, props: { author } }));
 }
 
 interface Props {
@@ -23,7 +24,10 @@ const origin = Astro.site ?? new URL('https://www.healthylifestyles.com');
 const pageUrl = new URL(`/author/${author.slug}`, origin).href.replace(/\/$/, '');
 
 // Articles this entity authored.
-const articles = ARTICLES.filter((a) => resolveAuthor(a.author).slug === author.slug);
+const [allArticles, siteConsts] = await Promise.all([getArticles(), getSiteConsts()]);
+const SITE = siteConsts.SITE;
+const SOCIAL_NETWORKS = siteConsts.SOCIAL_NETWORKS;
+const articles = allArticles.filter((a) => resolveAuthor(a.author).slug === author.slug);
 
 const items = [
   { label: 'Home', href: '/' },

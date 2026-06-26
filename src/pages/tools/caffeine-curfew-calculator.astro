@@ -5,11 +5,11 @@
  * loads here. (Excluded from tools/[slug].astro via CUSTOM_PAGES.)
  */
 import ToolPageLayout from '../../components/ToolPageLayout.astro';
-import { getTool } from '../../data/tools';
+import { getTool } from '../../lib/cms';
 import { getToolContent } from '../../data/tool-content';
 import '../../styles/caffeine-curfew.css';
 
-const tool = getTool('caffeine-curfew-calculator')!;
+const tool = await getTool('caffeine-curfew-calculator')!;
 const content = getToolContent('caffeine-curfew-calculator')!;
 ---
 

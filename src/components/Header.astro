@@ -1,28 +1,32 @@
 ---
 import Logo from './Logo.astro';
 import Icon from './Icon.astro';
-import { NAV_LINKS } from '../consts';
-import { CATEGORIES } from '../data/categories';
-import { getToolsByCategory } from '../data/tools';
+import { getCategories } from '../lib/cms';
+import { getToolsByCategory as cmsGetToolsByCategory } from '../lib/cms';
+import { getSiteConsts } from '../lib/cms';
+
+const [categories, siteConsts] = await Promise.all([getCategories(), getSiteConsts()]);
+const NAV_LINKS = siteConsts.NAV_LINKS;
 
 const path = Astro.url.pathname;
 const isActive = (href: string) =>
   href === '/' ? path === '/' : path === href || path.startsWith(href + '/');
 
 // "Calculators & Tools" is active on /tools, any tool page, or any category hub.
-const catSlugs = CATEGORIES.map((c) => c.slug);
+const catSlugs = categories.map((c) => c.slug);
 const onToolsSection =
   path === '/tools' ||
   path.startsWith('/tools/') ||
   catSlugs.some((s) => path === `/${s}` || path.startsWith(`/${s}/`));
 
 // Top tools per category for the mega-menu (popular first, max 3, live only).
-const megaCats = CATEGORIES.map((c) => ({
+const getToolsByCat = (catId: string) => cmsGetToolsByCategory(catId);
+const megaCats = await Promise.all(categories.map(async (c) => ({
   ...c,
-  top: [...getToolsByCategory(c.id).filter((t) => t.live)]
+  top: (await getToolsByCat(c.id)).filter((t) => t.live)
     .sort((a, b) => (b.popular ? 1 : 0) - (a.popular ? 1 : 0))
     .slice(0, 3),
-}));
+})));
 
 // Everything except the "Calculators & Tools" trigger.
 const secondaryLinks = NAV_LINKS.filter((l) => l.href !== '/tools');
@@ -129,7 +133,7 @@ const navIcons: Record<string, string> = {
     <p class="mobile-group__title" id="m-tools">Calculators &amp; Tools</p>
     <ul class="mobile-cats" aria-labelledby="m-tools">
       {
-        CATEGORIES.map((c) => (
+        categories.map((c) => (
           <li>
             <a href={`/${c.slug}`} class="mobile-cat">
               <span class="mobile-cat__icon" style={`--c:${c.color}`}>
@@ -228,6 +232,7 @@ const navIcons: Record<string, string> = {
     background: none;
     border: 0;
     cursor: pointer;
+    text-decoration: none;
     transition: color 0.15s ease;
   }
   .nav-link::after {
@@ -342,6 +347,7 @@ const navIcons: Record<string, string> = {
     font-size: 0.88rem;
     color: var(--muted);
     line-height: 1.35;
+    text-decoration: none;
   }
   .mega__tool:hover {
     text-decoration: none;
@@ -360,6 +366,7 @@ const navIcons: Record<string, string> = {
     font-weight: 700;
     font-size: 0.92rem;
     color: var(--green-700);
+    text-decoration: none;
   }
   .mega__all:hover {
     text-decoration: none;
@@ -506,6 +513,7 @@ const navIcons: Record<string, string> = {
     color: var(--ink);
     font-weight: 600;
     font-size: 0.95rem;
+    text-decoration: none;
   }
   .mobile-cat:hover,
   .mobile-link:hover {

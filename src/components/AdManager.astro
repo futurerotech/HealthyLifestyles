@@ -52,7 +52,7 @@ const hasSticky = renderSlots.includes('stickyFooter');
 <!-- 2. Consent + Lazy loader (main thread — lightweight IntersectionObserver) -->
 {
   adsenseEnabled && (
-    <script is:inline data-pt-skip>
+    <script is:inline data-pt-skip define:vars={{ usePartytown, useLazy, clientId }}>
       (function () {
         var loaded = false;
 
@@ -60,8 +60,7 @@ const hasSticky = renderSlots.includes('stickyFooter');
           if (loaded) return;
           loaded = true;
 
-          if ({@usePartytown}) {
-            // Partytown handles the adsbygoogle.js load — we just push slots
+          if (usePartytown) {
             var io = new IntersectionObserver(
               function (entries) {
                 entries.forEach(function (e) {
@@ -70,15 +69,14 @@ const hasSticky = renderSlots.includes('stickyFooter');
                   io.unobserve(e.target);
                 });
               },
-              { rootMargin: '{@useLazy ? "250px" : "0px"}' }
+              { rootMargin: useLazy ? '250px' : '0px' }
             );
             document.querySelectorAll('ins[data-ad-lazy]').forEach(function (el) { io.observe(el); });
           } else {
-            // No Partytown: load AdSense on main thread, then lazy-push
             var s = document.createElement('script');
             s.async = true;
             s.crossOrigin = 'anonymous';
-            s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={@clientId}';
+            s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + clientId;
             s.onload = function () {
               var io = new IntersectionObserver(
                 function (entries) {
@@ -88,7 +86,7 @@ const hasSticky = renderSlots.includes('stickyFooter');
                     io.unobserve(e.target);
                   });
                 },
-                { rootMargin: '{@useLazy ? "250px" : "0px"}' }
+                { rootMargin: useLazy ? '250px' : '0px' }
               );
               document.querySelectorAll('ins[data-ad-lazy]').forEach(function (el) { io.observe(el); });
             };
