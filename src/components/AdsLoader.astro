@@ -1,17 +1,13 @@
 ---
 /**
- * Lazy-loads AdSense slots — but ONLY when ADS.client is configured AND the
- * visitor has accepted cookies.
+ * Lazy AdSense loader — loads adsbygoogle.js ONLY on first user interaction
+ * (scroll, mousemove, touchstart, click, keydown) after consent.
  *
- * When Partytown is enabled (CMS config):
- *   - The AdSense library is loaded via <script type="text/partytown"> so it
- *     runs in a web worker (offloaded from main thread).
- *   - The IntersectionObserver runs on main thread (data-pt-skip) to push each
- *     slot individually as it enters the viewport.
+ * Each <ins> slot pushes itself via inline <script is:inline> in AdSlot.astro.
+ * This component only gates the library load for PageSpeed.
  *
- * When Partytown is disabled (fallback):
- *   - Loads the AdSense script dynamically on the main thread after consent.
- *   - Same lazy-push via IntersectionObserver.
+ * Partytown: loads the script in a web worker (off main thread).
+ * Non-Partytown: dynamically injects <script async> on interaction.
  */
 import { ADS } from '../consts';
 import { getAdConfig } from '../lib/ad-config';
@@ -25,60 +21,48 @@ const clientId = adConfig?.adsenseClient || ADS.client;
 {
   enabled && (
     <>
-      <!-- Partytown AdSense library (offloaded to web worker when enabled) -->
+      <!-- Partytown snippet (loaded in web worker if enabled) -->
       {usePartytown && (
         <script type="text/partytown" data-pt-src={"https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" + clientId}
           async crossOrigin="anonymous">
         </script>
       )}
 
-      <!-- Consent + Lazy loader (main thread) -->
-      <script is:inline data-pt-skip define:vars={{ client: clientId, usePt: usePartytown }}>
+      <!-- Consent + Interaction-detection (main thread) -->
+      <script is:inline data-pt-skip define:vars={{ clientId, usePt: usePartytown }}>
         (function () {
           var loaded = false;
-          function pushSlots() {
+
+          function loadScript() {
             if (loaded) return;
             loaded = true;
-
-            if (usePt) {
-              // Partytown loads adsbygoogle.js — we just lazy-push each slot
-              var io = new IntersectionObserver(
-                function (entries) {
-                  entries.forEach(function (e) {
-                    if (!e.isIntersecting) return;
-                    try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (err) {}
-                    io.unobserve(e.target);
-                  });
-                },
-                { rootMargin: '250px' }
-              );
-              document.querySelectorAll('ins[data-ad-lazy]').forEach(function (el) { io.observe(el); });
-            } else {
-              // No Partytown: dynamically load AdSense then lazy-push
+            if (!usePt) {
               var s = document.createElement('script');
               s.async = true;
               s.crossOrigin = 'anonymous';
-              s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + client;
-              s.onload = function () {
-                var io = new IntersectionObserver(
-                  function (entries) {
-                    entries.forEach(function (e) {
-                      if (!e.isIntersecting) return;
-                      try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (err) {}
-                      io.unobserve(e.target);
-                    });
-                  },
-                  { rootMargin: '250px' }
-                );
-                document.querySelectorAll('ins[data-ad-lazy]').forEach(function (el) { io.observe(el); });
-              };
+              s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + clientId;
               document.head.appendChild(s);
             }
           }
 
-          if (window.HLS_CONSENT === 'accept') pushSlots();
+          var interactionEvents = ['scroll', 'mousemove', 'touchstart', 'click', 'keydown'];
+          function onInteraction() {
+            interactionEvents.forEach(function (ev) {
+              document.removeEventListener(ev, onInteraction);
+            });
+            loadScript();
+          }
+          interactionEvents.forEach(function (ev) {
+            document.addEventListener(ev, onInteraction, { passive: true, once: true });
+          });
+
           document.addEventListener('consent-update', function (e) {
-            if (e && e.detail && e.detail.analytics) pushSlots();
+            if (e && e.detail && e.detail.analytics) {
+              interactionEvents.forEach(function (ev) {
+                document.removeEventListener(ev, onInteraction);
+              });
+              loadScript();
+            }
           });
         })();
       </script>

@@ -158,6 +158,17 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
         </section>
       )}
 
+      {article.tags?.length > 0 && (
+        <div class="wh-tags">
+          <span class="wh-tags__label">Topics:</span>
+          <ul class="wh-tags__list">
+            {article.tags.map((t) => (
+              <li><a href={`/wellness-hub/tag/${t.slug}`} class="wh-tags__tag">{t.name}</a></li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <ShareBar url={pageUrl} title={article.title} />
 
       <Newsletter variant="inline" />
@@ -214,3 +225,44 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
     </section>
   )}
 </article>
+
+<style>
+  .wh-tags {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+  .wh-tags__label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .wh-tags__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .wh-tags__tag {
+    display: inline-block;
+    padding: 0.2rem 0.65rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    border-radius: var(--radius-pill);
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .wh-tags__tag:hover {
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+</style>

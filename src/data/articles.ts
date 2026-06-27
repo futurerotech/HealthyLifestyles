@@ -64,6 +64,7 @@ export interface Article {
   relatedArticles?: string[];
   sources: ArticleSource[];
   body: ArticleBlock[];
+  tags: { name: string; slug: string }[];
 }
 
 export const ARTICLE_CATEGORIES: ArticleCategory[] = [

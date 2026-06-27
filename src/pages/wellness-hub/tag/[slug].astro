@@ -1,0 +1,95 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ArticleCard from '../../../components/ArticleCard.astro';
+import { getArticlesByTag, getTag } from '../../../lib/cms';
+
+export async function getStaticPaths() {
+  const { getTags } = await import('../../../lib/cms');
+  const tags = await getTags();
+  return tags.map((t) => ({ params: { slug: t.slug }, props: { slug: t.slug } }));
+}
+
+const { slug } = Astro.props;
+const [tag, articles] = await Promise.all([getTag(slug), getArticlesByTag(slug)]);
+
+const title = tag ? `${tag.name} Articles` : 'Articles by Topic';
+const description = tag
+  ? `Browse all wellness articles tagged with "${tag.name}" on the Wellness Hub.`
+  : 'Browse articles by topic';
+const jsonLd: Record<string, unknown>[] = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).href },
+      { '@type': 'ListItem', position: 2, name: 'Wellness Hub', item: new URL('/wellness-hub', Astro.site).href },
+      { '@type': 'ListItem', position: 3, name: tag?.name || 'Topics' },
+    ],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: title,
+    description: `${articles.length} articles`,
+  },
+];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <section class="section">
+    <div class="container">
+      <nav aria-label="Breadcrumb">
+        <ol class="breadcrumb">
+          <li><a href="/">Home</a></li>
+          <li><a href="/wellness-hub">Wellness Hub</a></li>
+          <li aria-current="page">{tag?.name || 'Topics'}</li>
+        </ol>
+      </nav>
+
+      <h1 class="tag-page__title">{title}</h1>
+      {tag && <p class="tag-page__count">{articles.length} article{articles.length !== 1 ? 's' : ''}</p>}
+
+      <ul class="wh-grid">
+        {articles.map((a) => <li><ArticleCard article={a} /></li>)}
+      </ul>
+
+      {articles.length === 0 && (
+        <p class="tag-page__empty">No articles found for this topic.</p>
+      )}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .tag-page__title {
+    font-size: var(--fs-2xl);
+    margin-bottom: 0.25rem;
+  }
+  .tag-page__count {
+    color: var(--muted);
+    margin-bottom: 2rem;
+  }
+  .tag-page__empty {
+    color: var(--muted);
+    text-align: center;
+    padding: 3rem 0;
+  }
+  .breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .breadcrumb li + li::before {
+    content: '/';
+    margin-right: 0.4rem;
+    color: var(--border);
+  }
+  .breadcrumb a { color: var(--accent); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb [aria-current] { color: var(--text); }
+</style>

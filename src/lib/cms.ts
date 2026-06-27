@@ -416,6 +416,10 @@ function mapArticle(a: CmsArticle): Article {
       citation: str(s.label || s.url),
       url: str(s.url) || undefined,
     })),
+    tags: ((a.tags as Record<string, unknown>[] | undefined)?.map((t) => ({
+      name: str(t.name),
+      slug: str(t.slug || t.id),
+    })) || []),
     body: mapArticleBlocks(a.layout || []) as ArticleBlock[],
   };
 }
@@ -526,6 +530,26 @@ export async function getRelatedArticles(slug: string, limit = 3): Promise<Artic
   for (const a of all.filter((a) => a.category === article.category)) push(a);
   for (const a of [...all].sort(byNewest)) push(a);
   return out.slice(0, limit);
+}
+
+export async function getTags(): Promise<{ name: string; slug: string }[]> {
+  const data = await cmsFetch<PayloadList<{ name: string; slug: string }>>(
+    '/api/tags?limit=100&depth=0',
+  );
+  if (data && Array.isArray(data.docs)) {
+    return data.docs.map((t) => ({ name: str(t.name), slug: str(t.slug || t.name) }));
+  }
+  return [];
+}
+
+export async function getTag(slug: string): Promise<{ name: string; slug: string } | null> {
+  const all = await getTags();
+  return all.find((t) => t.slug === slug) || null;
+}
+
+export async function getArticlesByTag(tagSlug: string): Promise<Article[]> {
+  const all = await getArticles();
+  return all.filter((a) => a.tags.some((t) => t.slug === tagSlug)).sort(byNewest);
 }
 
 export async function getArticlesForTool(toolSlug: string, limit = 3): Promise<Article[]> {
