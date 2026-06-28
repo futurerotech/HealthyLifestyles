@@ -165,7 +165,7 @@ const hasSticky = renderSlots.includes('stickyFooter');
     // No ad configured — render a reserved placeholder (no CLS)
     const sizeClass = format === 'rectangle' ? 'ad--rectangle' : format === 'sidebar' ? 'ad--sidebar' : format === 'leaderboard' ? 'ad--leaderboard' : format === 'mobileBanner' ? 'ad--mobile' : 'ad--auto';
     return (
-      <aside class={`ad ad--placeholder ${sizeClass}`} role="complementary" aria-label="Advertisement">
+      <aside class={`ad ${sizeClass}`} role="complementary" aria-label="Advertisement">
         <span class="ad__label">Advertisement</span>
       </aside>
     );
@@ -195,9 +195,8 @@ const hasSticky = renderSlots.includes('stickyFooter');
     align-items: center;
     justify-content: center;
     margin-block: clamp(1.5rem, 3vw, 2.25rem);
-    background:
-      repeating-linear-gradient(45deg, var(--surface-2), var(--surface-2) 10px, #fff 10px, #fff 20px);
-    border: 1px dashed var(--border);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
     border-radius: var(--radius);
     overflow: hidden;
   }
@@ -219,7 +218,7 @@ const hasSticky = renderSlots.includes('stickyFooter');
   .ad--leaderboard { min-height: 90px; }
   .ad--mobile { min-height: 100px; }
   .ad--sidebar { min-height: 600px; }
-  .ad--placeholder { background: repeating-linear-gradient(45deg, var(--surface-2), var(--surface-2) 10px, #fff 10px, #fff 20px); }
+  
 
   /* ---- Sticky mobile footer ---- */
   .ad--sticky {

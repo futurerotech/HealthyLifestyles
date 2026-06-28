@@ -89,9 +89,8 @@ const sticky = placement === 'stickyFooter';
     align-items: center;
     justify-content: center;
     margin-block: clamp(1.5rem, 3vw, 2.25rem);
-    background:
-      repeating-linear-gradient(45deg, var(--surface-2), var(--surface-2) 10px, #fff 10px, #fff 20px);
-    border: 1px dashed var(--border);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
     border-radius: var(--radius);
     overflow: hidden;
   }
@@ -122,7 +121,7 @@ const sticky = placement === 'stickyFooter';
     margin: 0;
     min-height: 60px;
     max-height: 120px;
-    background: #fff;
+    background: var(--surface);
     border: none;
     border-top: 1px solid var(--border);
     border-radius: 0;
