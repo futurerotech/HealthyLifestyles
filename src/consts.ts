@@ -57,8 +57,8 @@ export const EDITORIAL = {
  * Advertising.
  */
 export const ADS = {
-  client: '',
-  slots: { afterResult: '', midContent: '', sidebar: '' },
+  client: 'ca-pub-6864777783219495',
+  slots: { header: '2243772537', afterResult: '', midContent: '', sidebar: '' },
 } as const;
 
 /**

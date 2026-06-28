@@ -144,7 +144,7 @@ const collectionLd = {
               </span>
               <span>
                 <span class="wh-cat-tile__name">{c.name}</span><br />
-                <span class="wh-cat-tile__count">{n} {n === 1 ? 'guide' : 'guides'}</span>
+                <span class="wh-cat-tile__count">{n === 0 ? 'Coming soon' : `${n} ${n === 1 ? 'guide' : 'guides'}`}</span>
               </span>
             </a>
           );

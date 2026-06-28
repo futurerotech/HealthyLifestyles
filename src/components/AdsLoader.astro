@@ -1,71 +1,71 @@
 ---
-// Lazy AdSense loader — loads adsbygoogle.js ONLY on first user interaction
-// (scroll, mousemove, touchstart, click, keydown) after consent.
-// This component only gates the library load for PageSpeed.
-// Partytown: loads the script in a web worker (off main thread).
-// Non-Partytown: dynamically injects a script tag on interaction.
+/**
+ * AdSense loader — loads adsbygoogle.js on the MAIN THREAD (deliberately NOT
+ * Partytown). AdSense's library makes same-origin-sensitive XHR/CORS calls that
+ * a Partytown web worker can't satisfy, which silently kills ad fill (incl.
+ * Auto Ads). Loading the publisher script main-thread is the safe, working path.
+ *
+ * The single script tag (with the publisher client) both enables Google Auto
+ * Ads (page-level, configured in the AdSense dashboard) AND provides the library
+ * that each <AdSlot>'s `(adsbygoogle=…).push({})` fills.
+ *
+ * Performance: deferred until consent is granted OR the first user interaction
+ * (scroll/move/touch/click/key), so it never blocks LCP. Consent-gated for GDPR
+ * via `window.HLS_CONSENT` / the `consent-update` event.
+ */
 import { ADS } from '../consts';
 import { getAdConfig } from '../lib/ad-config';
 
-const enabled = !!ADS.client && /^ca-pub-\d+$/.test(ADS.client);
 const adConfig = await getAdConfig();
-const usePartytown = adConfig?.partytownEnabled !== false;
 const clientId = adConfig?.adsenseClient || ADS.client;
+const enabled = !!clientId && /^ca-pub-\d+$/.test(clientId);
 ---
 
 {
   enabled && (
     <>
-      <!-- Partytown snippet (loaded in web worker if enabled) -->
-      {usePartytown && (
-        <script type="text/partytown" data-pt-src={"https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" + clientId}
-          async crossOrigin="anonymous">
-        </script>
-      )}
-
-      <!-- Consent + Interaction-detection (main thread) -->
-      <script is:inline data-pt-skip define:vars={{ clientId, usePt: usePartytown }}>
+      <script is:inline data-pt-skip define:vars={{ clientId }}>
         (function () {
           var loaded = false;
-
-          function loadScript() {
+          function loadAdSense() {
             if (loaded) return;
             loaded = true;
-            if (!usePt) {
-              var s = document.createElement('script');
-              s.async = true;
-              s.crossOrigin = 'anonymous';
-              s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + clientId;
-              document.head.appendChild(s);
-            }
+            var s = document.createElement('script');
+            s.async = true;
+            s.crossOrigin = 'anonymous';
+            s.src =
+              'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + clientId;
+            // Auto Ads + any queued <ins> pushes are processed once this loads.
+            document.head.appendChild(s);
           }
 
-          var interactionEvents = ['scroll', 'mousemove', 'touchstart', 'click', 'keydown'];
-          function onInteraction() {
-            interactionEvents.forEach(function (ev) {
-              document.removeEventListener(ev, onInteraction);
+          // Load as soon as we have consent…
+          if (window.HLS_CONSENT === 'accept') {
+            loadAdSense();
+          } else {
+            document.addEventListener('consent-update', function (e) {
+              if (e && e.detail && e.detail.analytics) loadAdSense();
             });
-            loadScript();
-          }
-          interactionEvents.forEach(function (ev) {
-            document.addEventListener(ev, onInteraction, { passive: true, once: true });
-          });
-
-          document.addEventListener('consent-update', function (e) {
-            if (e && e.detail && e.detail.analytics) {
-              interactionEvents.forEach(function (ev) {
+            // …or on the first interaction (covers implicit-consent setups),
+            // so ads still fill even before an explicit accept.
+            var evs = ['scroll', 'mousemove', 'touchstart', 'click', 'keydown'];
+            function onInteraction() {
+              evs.forEach(function (ev) {
                 document.removeEventListener(ev, onInteraction);
               });
-              loadScript();
+              loadAdSense();
             }
-          });
+            evs.forEach(function (ev) {
+              document.addEventListener(ev, onInteraction, { passive: true, once: true });
+            });
+          }
         })();
       </script>
 
-      <!-- Sticky footer close button handler -->
+      <!-- Sticky footer close button -->
       <script is:inline data-pt-skip>
         document.addEventListener('click', function (e) {
-          var btn = e.target?.closest && e.target.closest('[data-close-sticky]');
+          var btn = e.target && e.target.closest && e.target.closest('[data-close-sticky]');
           if (btn) {
             var sticky = btn.closest('.ad--sticky');
             if (sticky) sticky.classList.add('ad--sticky-hidden');

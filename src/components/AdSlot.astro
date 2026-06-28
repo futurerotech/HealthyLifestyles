@@ -20,19 +20,15 @@ const { placement, format = 'rectangle', class: cls } = Astro.props;
 // Fetch CMS ad config at build time (cached singleton).
 const adConfig = await getAdConfig();
 
-// Determine settings: CMS config > static consts
-const adsenseEnabled = adConfig
-  ? adConfig.adsenseEnabled && !!adConfig.adsenseClient
-  : !!ADS.client && /^ca-pub-\d+$/.test(ADS.client);
+// CMS config wins, but the static consts are ALWAYS a fallback so a valid
+// publisher ID works even when the CMS is unreachable or only partly configured.
 const clientId = adConfig?.adsenseClient || ADS.client;
-const slot = adConfig
-  ? adConfig.slots?.find((s) => s.placement === placement)
-  : null;
-const slotId = adConfig
-  ? slot?.adsenseSlotId || ''
-  : ADS.slots[placement as keyof typeof ADS.slots] || '';
-const usePartytown = adConfig?.partytownEnabled !== false;
-const useLazy = adConfig?.lazyLoad !== false;
+const adsenseEnabled =
+  !!clientId &&
+  /^ca-pub-\d+$/.test(clientId) &&
+  (adConfig ? adConfig.adsenseEnabled !== false : true);
+const slot = adConfig?.slots?.find((s) => s.placement === placement) || null;
+const slotId = slot?.adsenseSlotId || (ADS.slots as Record<string, string>)[placement] || '';
 
 // Check for custom code or affiliate override
 const hasCustom = slot?.customCode;
@@ -42,8 +38,15 @@ const showIns = adsenseEnabled && !!slotId && !hasCustom && !affiliate;
 
 const sizeClass = format === 'rectangle' ? 'ad--rectangle' : format === 'sidebar' ? 'ad--sidebar' : format === 'leaderboard' ? 'ad--leaderboard' : format === 'mobileBanner' ? 'ad--mobile' : 'ad--auto';
 const sticky = placement === 'stickyFooter';
+
+// A fixed sticky bar must never show an empty "Advertisement" placeholder —
+// render it only when there's a real ad / affiliate / custom unit (Google Auto
+// Ads supplies its own anchor anyway). Inline slots keep their muted,
+// space-reserving placeholder (Silent Design).
+const renderSlot = !sticky || showIns || !!hasCustom || !!affiliate;
 ---
 
+{renderSlot && (
 <aside
   class:list={['ad', sizeClass, `ad--${placement}`, sticky ? 'ad--sticky' : '', cls]}
   role="complementary"
@@ -75,12 +78,13 @@ const sticky = placement === 'stickyFooter';
         data-ad-format={format === 'auto' ? 'auto' : format === 'rectangle' ? 'rectangle' : format === 'leaderboard' ? 'leaderboard' : format === 'sidebar' ? 'vertical' : 'auto'}
         data-full-width-responsive="false"
       />
-      <script is:inline>(window.adsbygoogle = window.adsbygoogle || []).push({});</script>
+      <script is:inline data-pt-skip>(window.adsbygoogle = window.adsbygoogle || []).push({});</script>
     </>
   ) : (
     <span class="ad__label">Advertisement</span>
   )}
 </aside>
+)}
 
 <style>
   .ad {

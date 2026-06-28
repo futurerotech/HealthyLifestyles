@@ -152,6 +152,17 @@ a {
   text-decoration-thickness: 1px;
 }
 
+/* Card-style links (category/topic tiles, tool & article cards) are block UI,
+   not inline text — they must never show the default underline. Scoped to
+   `.card` so genuine inline content links keep their underline (accessibility).
+   `!important` defeats the unlayered base `a` rule above regardless of source
+   order or Astro's scoped cascade layer. */
+a.card,
+a.card:hover,
+a.card:focus {
+  text-decoration: none !important;
+}
+
 button {
   font: inherit;
   cursor: pointer;
@@ -911,12 +922,49 @@ html[data-theme='dark'] .site-header[data-state='scrolled'] {
   .tool__body,
   .tool__result-note,
   .ad-slot,
+  .ad,
+  ins.adsbygoogle,
   .calc__form,
   .calc__cta {
     display: none !important;
   }
   .print-only {
     display: block !important;
+  }
+
+  /* Premium lab-report layout: centered brand lockup + isolated result. */
+  .print-sheet-head {
+    text-align: center;
+  }
+  .print-band {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .print-band__meta {
+    text-align: center;
+  }
+  .print-sheet-head__tool {
+    text-align: center;
+    font-size: 1.9rem;
+  }
+  .print-sheet-head__intro {
+    margin-inline: auto;
+  }
+  .tool__calc {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+  }
+  .calc__result,
+  .calc__result-in {
+    margin-inline: auto !important;
+    text-align: center;
+  }
+  .calc__print-summary {
+    max-width: 30rem;
+    margin-inline: auto !important;
+    text-align: left;
   }
 
   /* Show the "Your inputs" summary in place of the interactive form. */
