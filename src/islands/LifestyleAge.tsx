@@ -157,7 +157,7 @@ export default function LifestyleAge() {
       ctx.font = `500 24px ${sans}`;
       ctx.fillText('Educational lifestyle estimate — not a medical or biological-age test', 64, 560);
       ctx.fillStyle = '#94a3b8';
-      ctx.fillText('healthylifestyles.com/tools/lifestyle-age-test', 64, 596);
+      ctx.fillText('healthylifesstyles.com/tools/lifestyle-age-test', 64, 596);
       c.toBlob((b) => resolve(b), 'image/png');
     });
 

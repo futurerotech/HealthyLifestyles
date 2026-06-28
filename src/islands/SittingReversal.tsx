@@ -67,7 +67,7 @@ export default function SittingReversal() {
       });
       ctx.fillStyle = '#64748b';
       ctx.font = `500 22px ${sans}`;
-      ctx.fillText('General wellness estimate · healthylifestyles.com/tools/sitting-disease-reversal-calculator', 64, 600);
+      ctx.fillText('General wellness estimate · healthylifesstyles.com/tools/sitting-disease-reversal-calculator', 64, 600);
       c.toBlob((b) => resolve(b), 'image/png');
     });
 

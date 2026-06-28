@@ -91,7 +91,7 @@ function buildSvg(tool: string, value: string, label: string, category?: string,
   </g>` : ''}
 
   <!-- URL -->
-  <text x="70" y="578" font-family="'Segoe UI', Arial, sans-serif" font-size="22" font-weight="700" fill="#64748b">healthylifestyles.com</text>
+  <text x="70" y="578" font-family="'Segoe UI', Arial, sans-serif" font-size="22" font-weight="700" fill="#64748b">healthylifesstyles.com</text>
   <text x="1130" y="578" font-family="'Segoe UI', Arial, sans-serif" font-size="18" font-weight="500" fill="#475569" text-anchor="end">Free &middot; No signup &middot; Science-backed</text>
 </svg>`;
 }

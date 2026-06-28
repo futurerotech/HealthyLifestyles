@@ -55,7 +55,7 @@ export default function Chronotype() {
     ctx.fillStyle = '#c7d2fe'; ctx.font = `500 30px ${sans}`;
     ctx.fillText(t.tagline, W / 2, 484);
     ctx.fillStyle = '#64748b'; ctx.font = `500 22px ${sans}`;
-    ctx.fillText('healthylifestyles.com/tools/sleep-chronotype-quiz', W / 2, 588);
+    ctx.fillText('healthylifesstyles.com/tools/sleep-chronotype-quiz', W / 2, 588);
     const blob = await new Promise<Blob | null>((res) => c.toBlob(res, 'image/png'));
     if (!blob) return;
     const file = new File([blob], 'my-chronotype.png', { type: 'image/png' });

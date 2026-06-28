@@ -16,7 +16,7 @@ interface Props {
 }
 const { slug, title, height = 640 } = Astro.props;
 
-const origin = (Astro.site ?? new URL('https://www.healthylifestyles.com')).href.replace(/\/$/, '');
+const origin = (Astro.site ?? new URL('https://www.healthylifesstyles.com')).href.replace(/\/$/, '');
 const embedUrl = `${origin}/embed/${slug}`;
 const toolUrl = `${origin}/tools/${slug}`;
 

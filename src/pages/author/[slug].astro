@@ -20,7 +20,7 @@ interface Props {
 }
 const { author } = Astro.props;
 
-const origin = Astro.site ?? new URL('https://www.healthylifestyles.com');
+const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
 const pageUrl = new URL(`/author/${author.slug}`, origin).href.replace(/\/$/, '');
 
 // Articles this entity authored.

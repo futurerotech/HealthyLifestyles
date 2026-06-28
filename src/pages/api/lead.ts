@@ -4,11 +4,24 @@ import { getLeadGenConfig } from '../../lib/lead-config';
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request }) => {
-  const cors = (origin: string) => ({
-    'Access-Control-Allow-Origin': origin || '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  });
+  // Strict allow-list. Reflecting `origin || '*'` is the reflected-origin
+  // anti-pattern (the CMS subscriberSync endpoint warns about the same thing).
+  const ALLOWED_ORIGINS = new Set<string>(
+    [
+      'https://www.healthylifesstyles.com',
+      'http://localhost:4321',
+      'http://localhost:3000',
+    ].filter(Boolean),
+  );
+  const cors = (origin: string): Record<string, string> => {
+    const h: Record<string, string> = {
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      Vary: 'Origin',
+    };
+    if (ALLOWED_ORIGINS.has(origin)) h['Access-Control-Allow-Origin'] = origin;
+    return h;
+  };
 
   const origin = request.headers.get('origin') || '';
 
@@ -30,11 +43,14 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Save to CMS subscribers collection
     const cmsUrl = import.meta.env.CMS_URL || 'http://localhost:3000';
-    const apiKey = import.meta.env.CMS_API_KEY || '';
+    // The CMS Subscribers/Leads collections gate `create` on this shared secret
+    // (header `x-internal-key`); it must equal the CMS's INTERNAL_API_KEY env.
+    // (Previously sent `Authorization: Bearer` which the gate does not check.)
+    const internalKey = import.meta.env.INTERNAL_API_KEY || import.meta.env.CMS_API_KEY || '';
     const cmsHeaders: Record<string, string> = {
       'Content-Type': 'application/json',
     };
-    if (apiKey) cmsHeaders['Authorization'] = `Bearer ${apiKey}`;
+    if (internalKey) cmsHeaders['x-internal-key'] = internalKey;
 
     fetch(`${cmsUrl}/api/subscribers`, {
       method: 'POST',

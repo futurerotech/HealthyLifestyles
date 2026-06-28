@@ -551,7 +551,7 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
     // Footer
     c.fillStyle = '#94a3b8';
     c.font = `700 ${wide ? 24 : 30}px ${CARD_FONT}`;
-    c.fillText('healthylifestyles.com', PAD, H - PAD);
+    c.fillText('healthylifesstyles.com', PAD, H - PAD);
 
     cv.toBlob((blob) => {
       if (!blob) {

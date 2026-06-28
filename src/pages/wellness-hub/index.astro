@@ -27,7 +27,7 @@ const featuredMinutes = readingTimeMinutes(articlePlainText(featured));
 // Everything else, newest first (featured already gets the hero spot).
 const latest = await getLatestArticles(articles.length, featured.slug);
 
-const origin = Astro.site ?? new URL('https://www.healthylifestyles.com');
+const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
 const pageUrl = new URL('/wellness-hub', origin).href.replace(/\/$/, '');
 
 const title = 'Wellness Hub — Evidence-Based Health Guides';

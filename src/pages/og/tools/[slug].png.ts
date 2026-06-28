@@ -14,7 +14,7 @@ import { SITE } from '../../../consts';
 
 const W = 1200;
 const H = 630;
-const SITE_URL = 'www.healthylifestyles.com';
+const SITE_URL = 'www.healthylifesstyles.com';
 
 const escapeXml = (s: string): string =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');

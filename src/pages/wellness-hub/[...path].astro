@@ -43,11 +43,12 @@ const props = Astro.props as
   | { kind: 'article'; slug: string }
   | { kind: 'archive'; categoryId: string; page: number };
 
-const origin = Astro.site ?? new URL('https://www.healthylifestyles.com');
+const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
 const pageUrl = new URL(Astro.url.pathname, origin).href.replace(/\/$/, '');
 
 let title = '';
 let description = '';
+let image: string | undefined;
 let jsonLd: Record<string, unknown>[] = [];
 
 const breadcrumb = (crumbs: { label: string; href?: string }[]) => ({
@@ -81,7 +82,9 @@ if (props.kind === 'article' && article) {
   const SITE = siteConsts.SITE;
   title = article.seoTitle;
   description = article.metaDescription;
-  const ogImage = new URL(SITE.ogImage, origin).href;
+  // Per-article branded OG card (build-time PNG); falls back to the site default.
+  const ogImage = new URL(`/og/articles/${article.slug}.png`, origin).href;
+  image = ogImage;
 
   const categorySafe = category!;
 
@@ -169,7 +172,7 @@ if (props.kind === 'article' && article) {
 }
 ---
 
-<BaseLayout title={title} description={description} type={article ? 'article' : 'website'} jsonLd={jsonLd}>
+<BaseLayout title={title} description={description} image={image} type={article ? 'article' : 'website'} jsonLd={jsonLd}>
   {article && <ArticleBody article={article} pageUrl={pageUrl} />}
   {archive && (
     <ArticleArchiveBody

@@ -50,7 +50,7 @@ export default function WalkItOff() {
       ctx.fillText(`${r.emoji}  ${r.label}: ${r.minutes} min`, 64, 350 + i * 70);
     });
     ctx.fillStyle = '#64748b'; ctx.font = `500 22px ${sans}`;
-    ctx.fillText('Estimate · healthylifestyles.com/tools/walk-it-off-calculator', 64, 600);
+    ctx.fillText('Estimate · healthylifesstyles.com/tools/walk-it-off-calculator', 64, 600);
     const blob = await new Promise<Blob | null>((res) => c.toBlob(res, 'image/png')); if (!blob) return;
     const file = new File([blob], 'walk-it-off.png', { type: 'image/png' });
     const nav = navigator as Navigator & { canShare?: (d: any) => boolean };

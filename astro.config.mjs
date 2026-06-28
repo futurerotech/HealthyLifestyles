@@ -46,7 +46,11 @@ export default defineConfig({
         transformIndexHtml: {
           enforce: 'post',
           transform(html) {
-            const snippet = partytownSnippet({ forward: ['dataLayer.push'] });
+            // adsbygoogle.push MUST be forwarded: AdSense loads in the Partytown
+            // web worker (AdsLoader uses type="text/partytown"), but the per-slot
+            // `(adsbygoogle=...).push({})` runs on the main thread. Without this
+            // forward the push never reaches the worker and ads never fill.
+            const snippet = partytownSnippet({ forward: ['dataLayer.push', 'adsbygoogle.push'] });
             return html.replace('</head>', `${snippet}</head>`);
           },
         },

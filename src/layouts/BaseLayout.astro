@@ -51,6 +51,32 @@ const {
     <!-- Preload the two variable fonts used above the fold (LCP/CLS) -->
     <link rel="preload" href="/fonts/plus-jakarta-sans-variable.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
     <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <!-- Speculation Rules: prerender same-origin pages on hover/pointerdown
+         (moderate eagerness) for near-instant navigation, with a conservative
+         prefetch fallback. Excludes API routes, framable /embed pages, OG image
+         endpoints, and any link tagged [data-no-prerender]. Progressive
+         enhancement — browsers without support ignore it. GA4 + the lazy ad
+         loader are activation/interaction-driven, so prerender won't double-fire. -->
+    <script type="speculationrules" is:inline set:html={JSON.stringify({
+      prerender: [{
+        where: { and: [
+          { href_matches: '/*' },
+          { not: { href_matches: '/api/*' } },
+          { not: { href_matches: '/embed/*' } },
+          { not: { href_matches: '/og/*' } },
+          { not: { selector_matches: '[data-no-prerender]' } },
+          { not: { selector_matches: '[rel~="nofollow"]' } },
+        ] },
+        eagerness: 'moderate',
+      }],
+      prefetch: [{
+        where: { and: [
+          { href_matches: '/*' },
+          { not: { href_matches: '/api/*' } },
+        ] },
+        eagerness: 'conservative',
+      }],
+    })} />
     <SEO
       title={title}
       description={description}

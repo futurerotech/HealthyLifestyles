@@ -84,7 +84,7 @@ export default function CaffeineCurfew() {
       });
       ctx.fillStyle = '#64748b';
       ctx.font = `500 22px ${sans}`;
-      ctx.fillText('Sleep-hygiene estimate · ~5 h caffeine half-life · healthylifestyles.com', 64, 600);
+      ctx.fillText('Sleep-hygiene estimate · ~5 h caffeine half-life · healthylifesstyles.com', 64, 600);
       c.toBlob((b) => resolve(b), 'image/png');
     });
 

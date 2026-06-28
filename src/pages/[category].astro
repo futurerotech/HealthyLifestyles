@@ -19,7 +19,7 @@ const [tools, siteConsts] = await Promise.all([getToolsByCategory(category.id), 
 const SITE = siteConsts.SITE;
 const liveCount = tools.filter((t) => t.live).length;
 
-const origin = Astro.site ?? new URL('https://www.healthylifestyles.com');
+const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
 const items = [
   { label: 'Home', href: '/' },
   { label: category.name },

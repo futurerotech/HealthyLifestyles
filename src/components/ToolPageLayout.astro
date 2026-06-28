@@ -89,7 +89,7 @@ const engine =
   : tool.slug === 'box-breathing-timer' ? 'breathing'
   : 'numeric';
 
-const origin = Astro.site ?? new URL('https://www.healthylifestyles.com');
+const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
 const pageUrl = new URL(Astro.url.pathname, origin).href.replace(/\/$/, '');
 
 // Clean report name for the print/PDF title + filename (drops the tool-type suffix).

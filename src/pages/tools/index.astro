@@ -17,7 +17,7 @@ const grouped = categories.map((category) => ({
   tools: tools.filter((t) => t.category === category.id),
 })).filter((g) => g.tools.length > 0);
 
-const origin = Astro.site ?? new URL('https://www.healthylifestyles.com');
+const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
 const items = [{ label: 'Home', href: '/' }, { label: 'Calculators & Tools' }];
 
 const title = 'All Health Calculators & Tools | HealthyLifeStyles';
