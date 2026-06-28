@@ -1,14 +1,9 @@
 ---
-/**
- * Lazy AdSense loader — loads adsbygoogle.js ONLY on first user interaction
- * (scroll, mousemove, touchstart, click, keydown) after consent.
- *
- * Each <ins> slot pushes itself via inline <script is:inline> in AdSlot.astro.
- * This component only gates the library load for PageSpeed.
- *
- * Partytown: loads the script in a web worker (off main thread).
- * Non-Partytown: dynamically injects <script async> on interaction.
- */
+// Lazy AdSense loader — loads adsbygoogle.js ONLY on first user interaction
+// (scroll, mousemove, touchstart, click, keydown) after consent.
+// This component only gates the library load for PageSpeed.
+// Partytown: loads the script in a web worker (off main thread).
+// Non-Partytown: dynamically injects a script tag on interaction.
 import { ADS } from '../consts';
 import { getAdConfig } from '../lib/ad-config';
 
