@@ -553,12 +553,12 @@ export async function getTag(slug: string): Promise<{ name: string; slug: string
 
 export async function getArticlesByTag(tagSlug: string): Promise<Article[]> {
   const all = await getArticles();
-  return all.filter((a) => a.tags.some((t) => t.slug === tagSlug)).sort(byNewest);
+  return all.filter((a) => (a.tags || []).some((t) => t.slug === tagSlug)).sort(byNewest);
 }
 
 export async function getArticlesForTool(toolSlug: string, limit = 3): Promise<Article[]> {
   const all = await getArticles();
-  return all.filter((a) => a.primaryTool === toolSlug || a.relatedTools.includes(toolSlug))
+  return all.filter((a) => a.primaryTool === toolSlug || (a.relatedTools || []).includes(toolSlug))
     .sort(byNewest)
     .slice(0, limit);
 }
