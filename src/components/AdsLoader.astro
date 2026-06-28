@@ -1,77 +1,17 @@
 ---
 /**
- * AdSense loader — loads adsbygoogle.js on the MAIN THREAD (deliberately NOT
- * Partytown). AdSense's library makes same-origin-sensitive XHR/CORS calls that
- * a Partytown web worker can't satisfy, which silently kills ad fill (incl.
- * Auto Ads). Loading the publisher script main-thread is the safe, working path.
- *
- * The single script tag (with the publisher client) both enables Google Auto
- * Ads (page-level, configured in the AdSense dashboard) AND provides the library
- * that each <AdSlot>'s `(adsbygoogle=…).push({})` fills.
- *
- * Performance: deferred until consent is granted OR the first user interaction
- * (scroll/move/touch/click/key), so it never blocks LCP. Consent-gated for GDPR
- * via `window.HLS_CONSENT` / the `consent-update` event.
+ * Ad UX helper. The AdSense library itself is loaded on the MAIN THREAD from
+ * <head> (see BaseLayout — Partytown can't serve AdSense reliably). This file
+ * only wires the sticky-footer ad's close button.
  */
-import { ADS } from '../consts';
-import { getAdConfig } from '../lib/ad-config';
-
-const adConfig = await getAdConfig();
-const clientId = adConfig?.adsenseClient || ADS.client;
-const enabled = !!clientId && /^ca-pub-\d+$/.test(clientId);
 ---
 
-{
-  enabled && (
-    <>
-      <script is:inline data-pt-skip define:vars={{ clientId }}>
-        (function () {
-          var loaded = false;
-          function loadAdSense() {
-            if (loaded) return;
-            loaded = true;
-            var s = document.createElement('script');
-            s.async = true;
-            s.crossOrigin = 'anonymous';
-            s.src =
-              'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + clientId;
-            // Auto Ads + any queued <ins> pushes are processed once this loads.
-            document.head.appendChild(s);
-          }
-
-          // Load as soon as we have consent…
-          if (window.HLS_CONSENT === 'accept') {
-            loadAdSense();
-          } else {
-            document.addEventListener('consent-update', function (e) {
-              if (e && e.detail && e.detail.analytics) loadAdSense();
-            });
-            // …or on the first interaction (covers implicit-consent setups),
-            // so ads still fill even before an explicit accept.
-            var evs = ['scroll', 'mousemove', 'touchstart', 'click', 'keydown'];
-            function onInteraction() {
-              evs.forEach(function (ev) {
-                document.removeEventListener(ev, onInteraction);
-              });
-              loadAdSense();
-            }
-            evs.forEach(function (ev) {
-              document.addEventListener(ev, onInteraction, { passive: true, once: true });
-            });
-          }
-        })();
-      </script>
-
-      <!-- Sticky footer close button -->
-      <script is:inline data-pt-skip>
-        document.addEventListener('click', function (e) {
-          var btn = e.target && e.target.closest && e.target.closest('[data-close-sticky]');
-          if (btn) {
-            var sticky = btn.closest('.ad--sticky');
-            if (sticky) sticky.classList.add('ad--sticky-hidden');
-          }
-        });
-      </script>
-    </>
-  )
-}
+<script is:inline data-pt-skip>
+  document.addEventListener('click', function (e) {
+    var btn = e.target && e.target.closest && e.target.closest('[data-close-sticky]');
+    if (btn) {
+      var sticky = btn.closest('.ad--sticky');
+      if (sticky) sticky.classList.add('ad--sticky-hidden');
+    }
+  });
+</script>

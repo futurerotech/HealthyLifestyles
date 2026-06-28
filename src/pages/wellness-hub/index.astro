@@ -137,8 +137,8 @@ const collectionLd = {
       <div class="wh-cats">
         {ARTICLE_CATEGORIES.map((c) => {
           const n = countArticlesByCategory(c.id);
-          return (
-            <a href={`/wellness-hub/${c.slug}`} class="wh-cat-tile card">
+          const inner = (
+            <>
               <span class="wh-cat-tile__icon" style={`background:${c.color}1a;color:${c.color}`}>
                 <Icon name={c.icon} size={22} />
               </span>
@@ -146,7 +146,13 @@ const collectionLd = {
                 <span class="wh-cat-tile__name">{c.name}</span><br />
                 <span class="wh-cat-tile__count">{n === 0 ? 'Coming soon' : `${n} ${n === 1 ? 'guide' : 'guides'}`}</span>
               </span>
-            </a>
+            </>
+          );
+          // 0-guide categories render as a muted, non-clickable tile (no <a>).
+          return n === 0 ? (
+            <div class="wh-cat-tile wh-cat-tile--soon card" aria-disabled="true">{inner}</div>
+          ) : (
+            <a href={`/wellness-hub/${c.slug}`} class="wh-cat-tile card">{inner}</a>
           );
         })}
       </div>

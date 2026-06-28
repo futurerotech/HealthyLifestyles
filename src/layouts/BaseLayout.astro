@@ -7,6 +7,10 @@ import CookieConsent from '../components/CookieConsent.astro';
 import Analytics from '../components/Analytics.astro';
 import AdSlot from '../components/AdSlot.astro';
 import AdsLoader from '../components/AdsLoader.astro';
+import { ADS } from '../consts';
+
+// AdSense publisher client for the main-thread Auto Ads <head> script.
+const adsClient = /^ca-pub-\d+$/.test(ADS.client) ? ADS.client : '';
 
 interface Props {
   title: string;
@@ -77,6 +81,16 @@ const {
         eagerness: 'conservative',
       }],
     })} />
+    {/* Google AdSense — Auto Ads + the library each <AdSlot> fills. Loaded on
+        the MAIN THREAD in <head> (Partytown can't serve AdSense's CORS/XHR). */}
+    {adsClient && (
+      <script
+        async
+        src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsClient}`}
+        crossorigin="anonymous"
+        is:inline
+      ></script>
+    )}
     <SEO
       title={title}
       description={description}

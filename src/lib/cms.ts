@@ -390,6 +390,7 @@ interface CmsArticle {
   relatedTools?: unknown[];
   relatedArticles?: unknown[];
   seo?: { metaTitle?: string; metaDescription?: string };
+  semanticEntities?: { term?: string; url?: string }[];
   _status?: string;
 }
 
@@ -420,6 +421,9 @@ function mapArticle(a: CmsArticle): Article {
       name: str(t.name),
       slug: str(t.slug || t.id),
     })) || []),
+    semanticEntities: (a.semanticEntities || [])
+      .map((e) => ({ term: str(e.term), url: str(e.url) || undefined }))
+      .filter((e) => e.term),
     body: mapArticleBlocks(a.layout || []) as ArticleBlock[],
   };
 }

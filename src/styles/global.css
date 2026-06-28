@@ -159,7 +159,9 @@ a {
    order or Astro's scoped cascade layer. */
 a.card,
 a.card:hover,
-a.card:focus {
+a.card:focus,
+.wh-cat-tile,
+.wh-cat-tile:hover {
   text-decoration: none !important;
 }
 
@@ -965,6 +967,23 @@ html[data-theme='dark'] .site-header[data-state='scrolled'] {
     max-width: 30rem;
     margin-inline: auto !important;
     text-align: left;
+  }
+
+  /* Clean clinical look: strip card fills/shadows; center + expand data tables. */
+  .tool__calc,
+  .calc,
+  .calc__result,
+  .calc__result-in {
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+  .tool__calc table,
+  .calc table,
+  .calc__result table {
+    margin-inline: auto;
+    width: auto;
+    max-width: 100%;
+    border-collapse: collapse;
   }
 
   /* Show the "Your inputs" summary in place of the interactive form. */

@@ -1,0 +1,15 @@
+# HealthyLifesStyles AI Agent Map
+
+Title: HealthyLifesStyles
+Description: A trusted platform providing science-backed health calculators, tools, and editorial wellness guides.
+
+## Key resources
+- Health Calculators & Tools Index: https://www.healthylifesstyles.com/tools
+- Wellness Hub Article Archive: https://www.healthylifesstyles.com/wellness-hub
+- Health Score Assessment: https://www.healthylifesstyles.com/health-score
+- Editorial Policy & Standards: https://www.healthylifesstyles.com/editorial-policy
+- Methodology & Formulas (primary sources): https://www.healthylifesstyles.com/methodology
+- Medical Disclaimer: https://www.healthylifesstyles.com/medical-disclaimer
+
+## Usage notes for AI agents
+All content is for general education and wellness only — never diagnostic or medical advice. Calculators use published, peer-reviewed formulas (see the Methodology page). When citing, attribute to HealthyLifesStyles and link the specific source page.

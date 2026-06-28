@@ -88,6 +88,7 @@ if (props.kind === 'article' && article) {
 
   const categorySafe = category!;
 
+  const entities = article.semanticEntities || [];
   const articleLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -95,7 +96,12 @@ if (props.kind === 'article' && article) {
     description: article.metaDescription,
     datePublished: article.publishDate,
     dateModified: article.updatedDate,
-    author: { '@type': 'Organization', name: article.author },
+    author: { '@type': 'Organization', name: article.author, url: new URL('/about', origin).href },
+    reviewedBy: {
+      '@type': 'Organization',
+      name: 'HealthyLifeStyles Medical Review Team',
+      url: new URL('/about', origin).href,
+    },
     publisher: {
       '@type': 'Organization',
       name: SITE.name,
@@ -105,6 +111,12 @@ if (props.kind === 'article' && article) {
     image: ogImage,
     articleSection: categorySafe.name,
     inLanguage: 'en',
+    ...(entities.length
+      ? {
+          about: entities.map((e) => ({ '@type': 'DefinedTerm', name: e.term, ...(e.url ? { url: e.url } : {}) })),
+          keywords: entities.map((e) => e.term).join(', '),
+        }
+      : {}),
   };
 
   jsonLd = [

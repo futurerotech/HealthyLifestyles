@@ -6,10 +6,9 @@
  *   - Custom HTML/JS code.
  *   - A reserved placeholder until a real ad is configured.
  *
- * Partytown: AdSense is loaded via type="text/partytown" (runs in a web worker).
- * The IntersectionObserver push runs on the main thread (lightweight, data-pt-skip).
- *
- * All third-party scripts are consent-gated (inert until window.HLS_CONSENT === 'accept').
+ * The AdSense library is loaded MAIN-THREAD from <head> (BaseLayout); each unit
+ * here just renders the responsive <ins> + pushes it. data-pt-skip keeps
+ * Partytown from ever touching the push.
  */
 
 import { ADS } from '../consts';
@@ -73,10 +72,11 @@ const renderSlot = !sticky || showIns || !!hasCustom || !!affiliate;
       <span class="ad__label">Advertisement</span>
       <ins
         class="adsbygoogle"
+        style="display:block"
         data-ad-client={clientId}
         data-ad-slot={slotId}
-        data-ad-format={format === 'auto' ? 'auto' : format === 'rectangle' ? 'rectangle' : format === 'leaderboard' ? 'leaderboard' : format === 'sidebar' ? 'vertical' : 'auto'}
-        data-full-width-responsive="false"
+        data-ad-format="auto"
+        data-full-width-responsive="true"
       />
       <script is:inline data-pt-skip>(window.adsbygoogle = window.adsbygoogle || []).push({});</script>
     </>
@@ -90,8 +90,10 @@ const renderSlot = !sticky || showIns || !!hasCustom || !!affiliate;
   .ad {
     position: relative;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 0.4rem;
     margin-block: clamp(1.5rem, 3vw, 2.25rem);
     background: var(--surface-2);
     border: 1px solid var(--border);
@@ -154,12 +156,12 @@ const renderSlot = !sticky || showIns || !!hasCustom || !!affiliate;
   .ad__affiliate { display: block; width: 100%; height: 100%; }
   .ad__affiliate img { display: block; width: 100%; height: 100%; object-fit: contain; }
 
+  /* Responsive auto ad: let it flow + size itself (no absolute box that would
+     clip a full-width-responsive unit). align-self defeats the column center. */
   .adsbygoogle {
-    position: absolute;
-    inset: 0;
     display: block;
     width: 100%;
-    height: 100%;
+    align-self: stretch;
   }
 
   @media (max-width: 960px) {

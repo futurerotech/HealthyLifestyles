@@ -221,6 +221,20 @@
   font-size: 0.78rem;
   color: var(--muted);
 }
+/* Categories with no guides yet: muted + un-clickable, not a broken link. */
+.wh-cat-tile--soon {
+  opacity: 0.6;
+  cursor: default;
+  pointer-events: none;
+}
+.wh-cat-tile--soon:hover {
+  transform: none;
+  box-shadow: var(--shadow);
+  border-color: var(--border);
+}
+.wh-cat-tile--soon .wh-cat-tile__count {
+  font-style: italic;
+}
 @media (max-width: 900px) {
   .wh-cats {
     grid-template-columns: repeat(2, 1fr);
