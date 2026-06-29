@@ -2,11 +2,11 @@
 /**
  * The ONE and ONLY AdSense loader for the whole site.
  *
- * Loads adsbygoogle.js (our ca-pub client) exactly once, on the main thread,
- * and ONLY after cookie consent (window.HLS_CONSENT === 'accept' or the
- * `consent-update` event with analytics granted). Every ad UNIT comes from the
- * <AdSlot> component, driven by the Ad Management global — no ad code lives
- * anywhere else. Also wires the sticky-footer ad's close button.
+ * Loads adsbygoogle.js (our ca-pub client) exactly once for all visitors, using
+ * the standard async Google integration so it never blocks the main thread or
+ * degrades PageSpeed. No consent gate (US-first audience). Every ad UNIT comes
+ * from the <AdSlot> component, driven by the Ad Management global — no ad code
+ * lives anywhere else. Also wires the sticky-footer ad's close button.
  */
 import { ADS } from '../consts';
 import { getAdConfig } from '../lib/ad-config';
@@ -18,25 +18,12 @@ const enabled = !!clientId && /^ca-pub-\d+$/.test(clientId);
 
 {
   enabled && (
-    <script is:inline data-pt-skip define:vars={{ clientId }}>
-      (function () {
-        var loaded = false;
-        function loadAdSense() {
-          if (loaded) return;
-          loaded = true;
-          var s = document.createElement('script');
-          s.async = true;
-          s.crossOrigin = 'anonymous';
-          s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + clientId;
-          document.head.appendChild(s);
-        }
-        // Gated behind cookie consent — never loads before the user accepts.
-        if (window.HLS_CONSENT === 'accept') loadAdSense();
-        document.addEventListener('consent-update', function (e) {
-          if (e && e.detail && e.detail.analytics) loadAdSense();
-        });
-      })();
-    </script>
+    <script
+      async
+      src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${clientId}`}
+      crossorigin="anonymous"
+      is:inline
+    />
   )
 }
 
