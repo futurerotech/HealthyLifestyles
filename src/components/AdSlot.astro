@@ -1,26 +1,24 @@
 ---
 /**
- * Ad slot container — reserves fixed-size space (no CLS) and renders either:
- *   - An AdSense <ins> (loaded lazily via IntersectionObserver, then pushed).
- *   - A custom affiliate banner image.
- *   - Custom HTML/JS code.
- *   - A reserved placeholder until a real ad is configured.
+ * Ad slot — renders a single ad unit driven by the Ad Management global.
  *
- * The AdSense library is loaded MAIN-THREAD from <head> (BaseLayout); each unit
- * here just renders the responsive <ins> + pushes it. data-pt-skip keeps
- * Partytown from ever touching the push.
+ * - Renders ONLY when there's a real unit (AdSense slot id, custom code, or an
+ *   affiliate banner). Empty slots render nothing — no gray box, no
+ *   "Advertisement" placeholder, no reserved height (it collapses).
+ * - The <ins> is followed immediately by its own push so AdSense fills it as
+ *   soon as it renders. Unfilled units collapse via the data-ad-status CSS.
+ * - NEVER uses Partytown for ads (Partytown breaks AdSense iframe injection):
+ *   the library loads main-thread from <AdsLoader>, and the push is data-pt-skip.
  */
 
 import { ADS } from '../consts';
 import { getAdConfig } from '../lib/ad-config';
 
-const { placement, format = 'rectangle', class: cls } = Astro.props;
+const { placement, class: cls } = Astro.props;
 
-// Fetch CMS ad config at build time (cached singleton).
 const adConfig = await getAdConfig();
 
-// CMS config wins, but the static consts are ALWAYS a fallback so a valid
-// publisher ID works even when the CMS is unreachable or only partly configured.
+// CMS config wins; static consts are always a fallback.
 const clientId = adConfig?.adsenseClient || ADS.client;
 const adsenseEnabled =
   !!clientId &&
@@ -29,25 +27,19 @@ const adsenseEnabled =
 const slot = adConfig?.slots?.find((s) => s.placement === placement) || null;
 const slotId = slot?.adsenseSlotId || (ADS.slots as Record<string, string>)[placement] || '';
 
-// Check for custom code or affiliate override
 const hasCustom = slot?.customCode;
 const affiliate = slot?.affiliateBanner?.url && slot?.affiliateBanner?.image?.url ? slot.affiliateBanner : null;
-
 const showIns = adsenseEnabled && !!slotId && !hasCustom && !affiliate;
 
-const sizeClass = format === 'rectangle' ? 'ad--rectangle' : format === 'sidebar' ? 'ad--sidebar' : format === 'leaderboard' ? 'ad--leaderboard' : format === 'mobileBanner' ? 'ad--mobile' : 'ad--auto';
 const sticky = placement === 'stickyFooter';
 
-// A fixed sticky bar must never show an empty "Advertisement" placeholder —
-// render it only when there's a real ad / affiliate / custom unit (Google Auto
-// Ads supplies its own anchor anyway). Inline slots keep their muted,
-// space-reserving placeholder (Silent Design).
-const renderSlot = !sticky || showIns || !!hasCustom || !!affiliate;
+// Render ONLY when there's something real to show — otherwise collapse entirely.
+const hasAd = showIns || !!hasCustom || !!affiliate;
 ---
 
-{renderSlot && (
+{hasAd && (
 <aside
-  class:list={['ad', sizeClass, `ad--${placement}`, sticky ? 'ad--sticky' : '', cls]}
+  class:list={['ad', `ad--${placement}`, sticky ? 'ad--sticky' : '', cls]}
   role="complementary"
   aria-label="Advertisement"
 >
@@ -67,9 +59,8 @@ const renderSlot = !sticky || showIns || !!hasCustom || !!affiliate;
     </a>
   ) : hasCustom ? (
     <Fragment set:html={hasCustom} />
-  ) : showIns ? (
+  ) : (
     <>
-      <span class="ad__label">Advertisement</span>
       <ins
         class="adsbygoogle"
         style="display:block"
@@ -78,45 +69,31 @@ const renderSlot = !sticky || showIns || !!hasCustom || !!affiliate;
         data-ad-format="auto"
         data-full-width-responsive="true"
       />
-      <script is:inline data-pt-skip>(window.adsbygoogle = window.adsbygoogle || []).push({});</script>
+      <script is:inline data-pt-skip>(adsbygoogle = window.adsbygoogle || []).push({});</script>
     </>
-  ) : (
-    <span class="ad__label">Advertisement</span>
   )}
 </aside>
 )}
 
 <style>
+  /* Invisible/collapsed by default — only takes space once a real ad fills it. */
   .ad {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
+    display: block;
     margin-block: clamp(1.5rem, 3vw, 2.25rem);
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
   }
-  .ad__label {
-    font-size: 0.68rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--muted);
-    background: var(--surface);
-    padding: 0.25rem 0.6rem;
-    border-radius: var(--radius-pill);
-    border: 1px solid var(--border);
-    z-index: 1;
+  .adsbygoogle {
+    display: block;
+    width: 100%;
   }
-  .ad--rectangle { min-height: 280px; }
-  .ad--sidebar { min-height: 600px; }
-  .ad--leaderboard { min-height: 90px; }
-  .ad--mobile { min-height: 100px; }
-  .ad--auto { min-height: 100px; }
+  /* Collapse an unfilled AdSense unit (and its wrapper) — no empty box. */
+  ins.adsbygoogle[data-ad-status='unfilled'] {
+    display: none !important;
+  }
+  .ad:has(ins.adsbygoogle[data-ad-status='unfilled']) {
+    display: none !important;
+    margin: 0 !important;
+  }
 
   .ad--sticky {
     position: fixed;
@@ -125,13 +102,9 @@ const renderSlot = !sticky || showIns || !!hasCustom || !!affiliate;
     right: 0;
     z-index: 100;
     margin: 0;
-    min-height: 60px;
-    max-height: 120px;
-    background: var(--surface);
-    border: none;
+    background: #fff;
     border-top: 1px solid var(--border);
-    border-radius: 0;
-    box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
     transition: transform 0.3s ease;
   }
   .ad--sticky-hidden { transform: translateY(100%); }
@@ -153,17 +126,10 @@ const renderSlot = !sticky || showIns || !!hasCustom || !!affiliate;
   }
   .ad__close:hover { color: var(--text); background: var(--surface-2); }
 
-  .ad__affiliate { display: block; width: 100%; height: 100%; }
-  .ad__affiliate img { display: block; width: 100%; height: 100%; object-fit: contain; }
+  .ad__affiliate { display: block; width: 100%; }
+  .ad__affiliate img { display: block; width: 100%; height: auto; object-fit: contain; }
 
-  /* Responsive auto ad: let it flow + size itself (no absolute box that would
-     clip a full-width-responsive unit). align-self defeats the column center. */
-  .adsbygoogle {
-    display: block;
-    width: 100%;
-    align-self: stretch;
-  }
-
+  /* Sidebar ads hidden on mobile (no room). */
   @media (max-width: 960px) {
     .ad--sidebar { display: none; }
   }
