@@ -13,7 +13,10 @@ import { getAdConfig } from '../lib/ad-config';
 
 const adConfig = await getAdConfig();
 const clientId = adConfig?.adsenseClient || ADS.client;
-const enabled = !!clientId && /^ca-pub-\d+$/.test(clientId);
+// Master toggle: when the CMS is reachable, "Adsense Enabled = false" stops the
+// library from loading at all. consts only apply when the CMS is unreachable.
+const masterOn = adConfig ? adConfig.adsenseEnabled !== false : true;
+const enabled = masterOn && !!clientId && /^ca-pub-\d+$/.test(clientId);
 ---
 
 {

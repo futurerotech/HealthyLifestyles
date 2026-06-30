@@ -36,6 +36,8 @@ async function cmsFetch<T>(pathAndQuery: string): Promise<T | null> {
   try {
     const res = await fetch(`${CMS_URL}${pathAndQuery}`, {
       headers: { Accept: 'application/json' },
+      // Always pull fresh CMS data — never serve a cached ad/content config.
+      cache: 'no-store',
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
     if (!res.ok) return null;
