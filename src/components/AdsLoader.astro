@@ -8,14 +8,14 @@
  * from the <AdSlot> component, driven by the Ad Management global — no ad code
  * lives anywhere else. Also wires the sticky-footer ad's close button.
  */
-import { ADS } from '../consts';
 import { getAdConfig } from '../lib/ad-config';
 
 const adConfig = await getAdConfig();
-const clientId = adConfig?.adsenseClient || ADS.client;
-// Master toggle: when the CMS is reachable, "Adsense Enabled = false" stops the
-// library from loading at all. consts only apply when the CMS is unreachable.
-const masterOn = adConfig ? adConfig.adsenseEnabled !== false : true;
+
+// When the CMS is unreachable, the AdSense library never loads.
+// There is no static fallback — the CMS is the sole authority.
+const masterOn = adConfig ? adConfig.adsenseEnabled === true : false;
+const clientId = adConfig?.adsenseClient || '';
 const enabled = masterOn && !!clientId && /^ca-pub-\d+$/.test(clientId);
 ---
 

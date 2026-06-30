@@ -11,25 +11,22 @@
  *   the library loads main-thread from <AdsLoader>, and the push is data-pt-skip.
  */
 
-import { ADS } from '../consts';
 import { getAdConfig } from '../lib/ad-config';
 
 const { placement, class: cls } = Astro.props;
 
 const adConfig = await getAdConfig();
-const cmsPresent = !!adConfig;
+
+// When the CMS is unreachable or returns no ad config, no ad renders.
+// The static fallback has been intentionally removed — the CMS is the
+// sole authority for ad rendering. If you see an ad, the CMS said yes.
 const slot = adConfig?.slots?.find((s) => s.placement === placement) || null;
+const slotEnabled = adConfig ? slot?.enabled === true : false;
+const masterOn = adConfig ? adConfig.adsenseEnabled === true : false;
 
-// STRICT CMS obedience. When the CMS is reachable, this slot is governed ENTIRELY
-// by its CMS entry: a missing OR disabled slot renders absolutely nothing — no
-// <ins>, no wrapper, no push. The static consts (ADS.*) are used ONLY as an
-// offline fallback when the CMS itself is unreachable at build time.
-const slotEnabled = cmsPresent ? slot?.enabled === true : true;
-const masterOn = adConfig ? adConfig.adsenseEnabled !== false : true;
-
-const clientId = adConfig?.adsenseClient || ADS.client;
+const clientId = adConfig?.adsenseClient || '';
 const validClient = !!clientId && /^ca-pub-\d+$/.test(clientId);
-const slotId = slotEnabled ? slot?.adsenseSlotId || (ADS.slots as Record<string, string>)[placement] || '' : '';
+const slotId = slotEnabled ? slot?.adsenseSlotId || '' : '';
 
 const hasCustom = slotEnabled ? slot?.customCode : undefined;
 const affiliate =

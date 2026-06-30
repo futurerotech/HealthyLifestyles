@@ -711,7 +711,22 @@ export interface AdConfig {
 }
 
 export async function getAdConfig(): Promise<AdConfig | null> {
-  return cmsFetch<AdConfig>('/api/globals/ad-management?depth=1');
+  if (DISABLED) return null;
+  try {
+    const res = await fetch(`${CMS_URL}/api/globals/ad-management?depth=1`, {
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    if (!res.ok) {
+      console.error(`[CMS] AdManagement fetch failed — ${res.status} ${res.statusText}`, `URL: ${res.url}`);
+      return null;
+    }
+    return (await res.json()) as AdConfig;
+  } catch (err) {
+    console.error('[CMS] AdManagement fetch threw an unexpected error:', err);
+    return null;
+  }
 }
 
 /* ────────────────────────────────────────────  Lead Generation ── */

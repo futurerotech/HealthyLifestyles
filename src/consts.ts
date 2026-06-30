@@ -55,10 +55,13 @@ export const EDITORIAL = {
 
 /**
  * Advertising.
+ *
+ * Slot IDs and the publisher ID are sourced exclusively from the Payload CMS
+ * AdManagement global. If the CMS fetch fails at build time, no ads render.
+ * There is no static fallback.
  */
 export const ADS = {
-  client: 'ca-pub-6864777783219495',
-  slots: { header: '2243772537', afterResult: '', midContent: '', sidebar: '' },
+  publisherId: process.env.ADSENSE_PUBLISHER_ID ?? null,
 } as const;
 
 /**
