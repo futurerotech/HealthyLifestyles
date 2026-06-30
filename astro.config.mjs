@@ -27,12 +27,22 @@ export default defineConfig({
         !page.includes('/og/') &&
         !page.includes('/embed/'),
       changefreq: 'weekly',
-      priority: 0.7,
-      serialize: (item) => ({
-        ...item,
-        url: item.url.replace(/(.+?)\/$/, '$1'),
-        lastmod: BUILD_DATE,
-      }),
+      serialize: (item) => {
+        const url = item.url.replace(/(.+?)\/$/, '$1');
+        let priority = 0.7;
+        if (url === 'https://www.healthylifesstyles.com') {
+          priority = 1.0;
+        } else if (/\/wellness-hub\/[^/]+$/.test(url) && !/\/wellness-hub$/.test(url)) {
+          priority = 0.8;
+        } else if (/\/tools\/[^/]+$/.test(url)) {
+          priority = 0.8;
+        } else if (/\/(author|wellness-hub|tools)$/.test(url)) {
+          priority = 0.9;
+        } else if (/\/(about|privacy|contact|terms|accessibility|editorial-policy|methodology|medical-disclaimer|cookie-policy|health-score|ai-assistant)$/.test(url)) {
+          priority = 0.5;
+        }
+        return { ...item, url, lastmod: BUILD_DATE, priority };
+      },
     }),
   ],
   build: {

@@ -495,7 +495,7 @@ export async function getArticle(slug: string): Promise<Article | null> {
 
 export async function getArticles(): Promise<Article[]> {
   const data = await cmsFetch<PayloadList<CmsArticle>>(
-    '/api/articles?limit=100&depth=2&sort=-publishDate&draft=false',
+    '/api/articles?limit=1000&depth=2&sort=-publishDate&draft=false',
   );
   if (data && Array.isArray(data.docs) && data.docs.length > 0) {
     return data.docs.map(mapArticle).filter((a) => a.slug && a.title);
@@ -654,7 +654,7 @@ export async function getCmsPage(slug: string): Promise<CmsPage | null> {
 
 export async function getCmsPages(): Promise<CmsPage[]> {
   const data = await cmsFetch<PayloadList<CmsPage>>(
-    '/api/pages?limit=100&depth=1&sort=-publishDate&draft=false',
+    '/api/pages?limit=500&depth=1&sort=-publishDate&draft=false',
   );
   if (data && Array.isArray(data.docs)) {
     return data.docs as CmsPage[];

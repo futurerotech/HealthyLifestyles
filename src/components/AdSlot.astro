@@ -80,13 +80,17 @@ const hasAd = slotEnabled && (showIns || !!hasCustom || !!affiliate);
 <style>
   /* Invisible/collapsed by default — only takes space once a real ad fills it. */
   .ad {
-    position: relative;
-    display: block;
-    margin-block: clamp(1.5rem, 3vw, 2.25rem);
-  }
-  .adsbygoogle {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     width: 100%;
+    margin-block: clamp(1.5rem, 3vw, 2.25rem);
+    overflow: hidden;
+  }
+  ins.adsbygoogle {
+    display: block !important;
+    margin: 0 auto !important;
   }
   /* Collapse an unfilled AdSense unit (and its wrapper) — no empty box. */
   ins.adsbygoogle[data-ad-status='unfilled'] {
