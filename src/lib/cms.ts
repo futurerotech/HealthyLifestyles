@@ -51,6 +51,17 @@ function str(v: unknown): string {
   return typeof v === 'string' ? v : '';
 }
 
+/**
+ * Absolute media URL. S3/R2 public URLs (http…) pass through unchanged; a
+ * relative CMS path (/api/media/… or /media/…) is resolved against the CMS
+ * origin so the static site never requests it from its own domain (which 404s).
+ */
+function absMediaUrl(v: unknown): string {
+  const s = str(v);
+  if (!s) return '';
+  return /^https?:\/\//i.test(s) ? s : `${CMS_URL}${s.startsWith('/') ? '' : '/'}${s}`;
+}
+
 function pickSlug(rel: unknown): string {
   if (rel && typeof rel === 'object') {
     const o = rel as Record<string, unknown>;
@@ -408,7 +419,7 @@ function mapArticle(a: CmsArticle): Article {
     metaDescription: str(a.seo?.metaDescription || a.excerpt),
     category: catSlug,
     excerpt: str(a.excerpt),
-    heroImage: a.heroImage ? { url: str(a.heroImage.url), alt: str(a.heroImage.alt) } : undefined,
+    heroImage: a.heroImage ? { url: absMediaUrl(a.heroImage.url), alt: str(a.heroImage.alt) } : undefined,
     author: str(authorObj?.name || pickSlug(a.author)),
     authorBio: str(authorObj?.bio) || undefined,
     publishDate: str(a.publishDate).split('T')[0],
