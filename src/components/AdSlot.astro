@@ -90,6 +90,12 @@ const hasAd = slotEnabled && (showIns || !!hasCustom || !!affiliate);
   }
   ins.adsbygoogle {
     display: block !important;
+    /* Must have a real width or AdSense throws "availableWidth=0" — the flex
+       column above won't stretch a width-less child. min sizes also reserve
+       space (less CLS) until the unit fills or collapses as unfilled. */
+    width: 100%;
+    min-width: 320px;
+    min-height: 100px;
     margin: 0 auto !important;
   }
   /* Collapse an unfilled AdSense unit (and its wrapper) — no empty box. */
