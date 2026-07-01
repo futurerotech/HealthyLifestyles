@@ -104,9 +104,11 @@ const collectionLd = {
       >
         <span
           class="wh-featured__media"
-          style={`background: linear-gradient(135deg, ${featuredCat.color}, color-mix(in srgb, ${featuredCat.color} 65%, #0a1628))`}
+          style={featured.heroImage?.url
+            ? `background-image: url('${featured.heroImage.url}'); background-size: cover; background-position: center`
+            : `background: linear-gradient(135deg, ${featuredCat.color}, color-mix(in srgb, ${featuredCat.color} 65%, #0a1628))`}
         >
-          <Icon name={featuredCat.icon} />
+          {!featured.heroImage?.url && <Icon name={featuredCat.icon} />}
         </span>
         <span class="wh-featured__body">
           <span class="wh-featured__tag" style={`color:${featuredCat.color}`}>

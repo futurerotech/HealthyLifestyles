@@ -25,7 +25,7 @@ const color = category?.color ?? '#16a34a';
   <span
     class="wh-card__media"
     style={article.heroImage?.url
-      ? `background-image: url(${article.heroImage.url}); background-size: cover; background-position: center`
+      ? `background-image: url('${article.heroImage.url}'); background-size: cover; background-position: center`
       : `background: linear-gradient(135deg, ${color}, color-mix(in srgb, ${color} 70%, #0a1628))`}
   >
     {!article.heroImage?.url && <Icon name={category?.icon ?? 'book'} />}
