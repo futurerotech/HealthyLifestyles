@@ -73,6 +73,12 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
     </div>
   </header>
 
+  {article.heroImage?.url && (
+    <div class="container wh-article__hero-wrap">
+      <img src={article.heroImage.url} alt={article.heroImage.alt} class="wh-article__hero" loading="eager" />
+    </div>
+  )}
+
   <div class="container wh-layout">
     <div class="wh-article__main">
       {toc.length > 2 && (
@@ -264,5 +270,16 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
   }
   .wh-tags__tag:hover {
     background: color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+  .wh-article__hero-wrap {
+    max-width: 1000px;
+    margin: 1.5rem auto 0;
+    padding: 0 1.5rem;
+  }
+  .wh-article__hero {
+    width: 100%;
+    border-radius: 12px;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
   }
 </style>

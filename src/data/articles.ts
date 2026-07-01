@@ -50,6 +50,8 @@ export interface Article {
   category: string; // ArticleCategory id
   /** Card + intro lead. */
   excerpt: string;
+  /** CMS-uploaded hero image (url + alt) or undefined if not set. */
+  heroImage?: { url: string; alt: string };
   author: string;
   /** One-line author bio shown under the byline (E-E-A-T). */
   authorBio?: string;

@@ -378,6 +378,7 @@ interface CmsArticle {
   title?: string;
   slug?: string;
   excerpt?: string;
+  heroImage?: { url?: string; alt?: string } | null;
   layout?: CmsArticleBlock[];
   faq?: { question?: string; answer?: string }[];
   sources?: { label?: string; url?: string }[];
@@ -407,6 +408,7 @@ function mapArticle(a: CmsArticle): Article {
     metaDescription: str(a.seo?.metaDescription || a.excerpt),
     category: catSlug,
     excerpt: str(a.excerpt),
+    heroImage: a.heroImage ? { url: str(a.heroImage.url), alt: str(a.heroImage.alt) } : undefined,
     author: str(authorObj?.name || pickSlug(a.author)),
     authorBio: str(authorObj?.bio) || undefined,
     publishDate: str(a.publishDate).split('T')[0],
