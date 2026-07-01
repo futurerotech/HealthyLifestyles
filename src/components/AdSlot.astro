@@ -5,10 +5,13 @@
  * - Renders ONLY when there's a real unit (AdSense slot id, custom code, or an
  *   affiliate banner). Empty slots render nothing — no gray box, no
  *   "Advertisement" placeholder, no reserved height (it collapses).
- * - The <ins> is followed immediately by its own push so AdSense fills it as
- *   soon as it renders. Unfilled units collapse via the data-ad-status CSS.
+ * - Renders ONLY the <ins> tag — NO inline push. A single global initializer in
+ *   BaseLayout owns every adsbygoogle.push(), so it can defer the push until the
+ *   page is actually shown (Speculation-Rules prerenders would otherwise fill a
+ *   hidden page and leave the slot permanently blank). Unfilled units collapse
+ *   via the data-ad-status CSS.
  * - NEVER uses Partytown for ads (Partytown breaks AdSense iframe injection):
- *   the library loads main-thread from <AdsLoader>, and the push is data-pt-skip.
+ *   the library loads main-thread from <AdsLoader>.
  */
 
 import { getAdConfig } from '../lib/ad-config';
@@ -62,17 +65,14 @@ const hasAd = slotEnabled && (showIns || !!hasCustom || !!affiliate);
   ) : hasCustom ? (
     <Fragment set:html={hasCustom} />
   ) : (
-    <>
-      <ins
-        class="adsbygoogle"
-        style="display:block"
-        data-ad-client={clientId}
-        data-ad-slot={slotId}
-        data-ad-format="auto"
-        data-full-width-responsive="true"
-      />
-      <script is:inline data-pt-skip>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    </>
+    <ins
+      class="adsbygoogle"
+      style="display:block"
+      data-ad-client={clientId}
+      data-ad-slot={slotId}
+      data-ad-format="auto"
+      data-full-width-responsive="true"
+    />
   )}
 </aside>
 )}

@@ -101,6 +101,36 @@ const {
     <AdSlot placement="stickyFooter" format="mobileBanner" />
     <AdsLoader />
 
+    <!-- Global AdSense initializer — the ONE and ONLY place adsbygoogle.push()
+         is called. AdSlot renders bare <ins> tags; this pushes each one that
+         isn't initialized yet. It is deliberately prerender-aware: a push inside
+         a Speculation-Rules prerender (hidden page) leaves the slot permanently
+         blank, so we skip while document.prerendering is true and (re)run on
+         activation. The :not([data-adsbygoogle-status]) guard makes every
+         re-run idempotent (no "already have ads" errors). astro:page-load is
+         included so it keeps working if View Transitions is ever added. -->
+    <script is:inline>
+      function initUninitializedAds() {
+        if (document.prerendering) return; // never fill ads in a hidden prerender
+        document.querySelectorAll('.adsbygoogle:not([data-adsbygoogle-status])').forEach(function () {
+          try {
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+          } catch (e) {
+            console.error('[AdSense] push() failed:', e);
+          }
+        });
+      }
+      // Direct (non-prerendered) load fires now; guarded no-op while prerendering.
+      initUninitializedAds();
+      // Activation of a prerendered page — the real fix for this site.
+      document.addEventListener('prerenderingchange', initUninitializedAds);
+      // First load + back/forward cache restores.
+      document.addEventListener('DOMContentLoaded', initUninitializedAds);
+      window.addEventListener('pageshow', initUninitializedAds);
+      // Future-proof: fires only if <ClientRouter/> (View Transitions) is added.
+      document.addEventListener('astro:page-load', initUninitializedAds);
+    </script>
+
     <script>
       // Reveal [data-reveal] sections once as they scroll into view. Failsafe:
       // anything still hidden after 2.4s is revealed, so content can never get
