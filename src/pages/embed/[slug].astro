@@ -58,6 +58,10 @@ const engine = getEngine(tool);
 
 const origin = (Astro.site ?? new URL('https://www.healthylifesstyles.com')).href.replace(/\/$/, '');
 const toolUrl = `${origin}/tools/${tool.slug}`;
+
+// CMS origin baked at build time for the embed-load tracker. When unset the
+// tracking script is omitted entirely — embeds must never depend on the CMS.
+const cmsOrigin = ((import.meta.env.CMS_URL as string) || '').replace(/\/$/, '');
 ---
 
 <!doctype html>
@@ -89,6 +93,29 @@ const toolUrl = `${origin}/tools/${tool.slug}`;
       {engine === 'breathing' && <BreathingTimer client:load slug={tool.slug} />}
       {engine === 'numeric' && <Calculator client:load slug={tool.slug} />}
     </main>
+
+    {cmsOrigin && (
+      <script
+        is:inline
+        data-pt-skip
+        define:vars={{ endpoint: `${cmsOrigin}/api/track/embed`, toolSlug: tool.slug }}
+      >
+        // Log where this calculator is embedded (fire-and-forget; referrer =
+        // the host page framing us). Skipped when opened directly (no referrer)
+        // or when embedded on our own site — the endpoint drops those too.
+        try {
+          var ref = document.referrer || '';
+          if (ref && window.self !== window.top) {
+            var payload = JSON.stringify({ toolSlug: toolSlug, referrer: ref });
+            if (navigator.sendBeacon) {
+              navigator.sendBeacon(endpoint, new Blob([payload], { type: 'application/json' }));
+            } else {
+              fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload, keepalive: true }).catch(function () {});
+            }
+          }
+        } catch (e) {}
+      </script>
+    )}
 
     <a class="embed__brand" href={toolUrl} rel="noopener">
       <span class="embed__mark" aria-hidden="true">
