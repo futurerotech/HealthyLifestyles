@@ -22,13 +22,13 @@ if (!page) {
 
 const title = page.title ?? '';
 const blocks = (page.layout as any[]) ?? [];
-const heroImage = page.heroImage as { url?: string; alt?: string } | undefined;
+const heroImage = page.heroImage as { url?: string; alt?: string; width?: number; height?: number } | undefined;
 ---
 
 <BaseLayout title={title} description={title}>
   <article class="cms-page">
     {heroImage?.url && (
-      <img src={heroImage.url} alt={heroImage.alt ?? ''} class="cms-page__hero" loading="eager" />
+      <img src={heroImage.url} alt={heroImage.alt ?? ''} width={heroImage.width || undefined} height={heroImage.height || undefined} class="cms-page__hero" loading="eager" />
     )}
     <PageRenderer layout={blocks} />
   </article>

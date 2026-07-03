@@ -8,7 +8,7 @@ const MIFFLIN: Source = {
 };
 const CDC_ALCOHOL: Source = {
   citation: 'Centers for Disease Control and Prevention (CDC). "Dietary Guidelines for Alcohol" — up to 1 drink/day (women) or 2 (men).',
-  url: 'https://www.cdc.gov/alcohol/fact-sheets/moderate-drinking.htm',
+  url: 'https://www.cdc.gov/alcohol/about-alcohol-use/moderate-alcohol-use.html',
 };
 const NHS_ALCOHOL: Source = {
   citation: 'UK National Health Service (NHS). "Alcohol units" — keep to 14 units a week or less.',

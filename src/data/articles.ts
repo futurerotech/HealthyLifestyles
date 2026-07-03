@@ -50,8 +50,8 @@ export interface Article {
   category: string; // ArticleCategory id
   /** Card + intro lead. */
   excerpt: string;
-  /** CMS-uploaded hero image (url + alt) or undefined if not set. */
-  heroImage?: { url: string; alt: string };
+  /** CMS-uploaded hero image (url + alt + intrinsic size for CLS) or undefined if not set. */
+  heroImage?: { url: string; alt: string; width?: number; height?: number };
   author: string;
   /** One-line author bio shown under the byline (E-E-A-T). */
   authorBio?: string;
@@ -106,7 +106,7 @@ export const ARTICLES: Article[] = [
     sources: [
       { citation: 'Mifflin MD, St Jeor ST, et al. A new predictive equation for resting energy expenditure in healthy individuals. Am J Clin Nutr. 1990.', url: 'https://pubmed.ncbi.nlm.nih.gov/2305711/' },
       { citation: 'National Institute of Diabetes and Digestive and Kidney Diseases (NIDDK). Body Weight Planner.', url: 'https://www.niddk.nih.gov/bwp' },
-      { citation: 'CDC. Losing Weight — healthy weight loss is about 1 to 2 pounds per week.', url: 'https://www.cdc.gov/healthyweight/losing_weight/index.html' },
+      { citation: 'CDC. Losing Weight — healthy weight loss is about 1 to 2 pounds per week.', url: 'https://www.cdc.gov/healthy-weight-growth/losing-weight/index.html' },
     ],
     body: [
       { type: 'p', text: 'If you want to lose weight, you have to eat fewer calories than your body burns. That is the whole mechanism — a **calorie deficit**. The hard part is not the principle; it is finding a daily number that is low enough to make progress but high enough to be sustainable, protect your muscle, and keep you sane.' },
@@ -116,7 +116,7 @@ export const ARTICLES: Article[] = [
       { type: 'p', text: 'Eat at your TDEE and your weight holds steady. Eat below it and you lose. So your maintenance number is the anchor for everything else.' },
       { type: 'tool', slug: 'calorie-calculator', label: 'Find your calorie target' },
       { type: 'h2', text: 'Step 2: Subtract a safe deficit' },
-      { type: 'p', text: 'A pound of fat stores roughly 3,500 calories, so a daily deficit of 500 calories trends toward about a pound of loss per week. The [CDC](https://www.cdc.gov/healthyweight/losing_weight/index.html) considers **1 to 2 pounds (about 0.5–1 kg) per week** a healthy, sustainable pace.' },
+      { type: 'p', text: 'A pound of fat stores roughly 3,500 calories, so a daily deficit of 500 calories trends toward about a pound of loss per week. The [CDC](https://www.cdc.gov/healthy-weight-growth/losing-weight/index.html) considers **1 to 2 pounds (about 0.5–1 kg) per week** a healthy, sustainable pace.' },
       { type: 'ul', items: [
         '**Modest deficit (about 250/day):** slow but very easy to maintain — good if you have less to lose.',
         '**Standard deficit (about 500/day):** ~1 lb/week; the sweet spot for most people.',
@@ -607,7 +607,7 @@ export const ARTICLES: Article[] = [
     relatedTools: ['weight-loss-timeline-calculator', 'calorie-deficit-calculator', 'calorie-calculator'],
     relatedArticles: ['how-many-calories-to-lose-weight', 'how-to-keep-muscle-while-losing-weight'],
     sources: [
-      { citation: 'Centers for Disease Control and Prevention (CDC). "Losing Weight" — about 1 to 2 pounds per week.', url: 'https://www.cdc.gov/healthyweight/losing_weight/index.html' },
+      { citation: 'Centers for Disease Control and Prevention (CDC). "Losing Weight" — about 1 to 2 pounds per week.', url: 'https://www.cdc.gov/healthy-weight-growth/losing-weight/index.html' },
       { citation: 'Hall KD, et al. "Metabolic adaptation to weight loss." Obesity / energy-balance research.', url: 'https://pubmed.ncbi.nlm.nih.gov/26399868/' },
       { citation: 'National Institute of Diabetes and Digestive and Kidney Diseases (NIDDK). Body Weight Planner.', url: 'https://www.niddk.nih.gov/bwp' },
     ],

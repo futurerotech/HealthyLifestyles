@@ -221,11 +221,16 @@ const medicalLd = {
       {engine === 'numeric' && <Calculator client:visible slug={tool.slug} toolName={tool.title} />}
     </section>
 
-    <!-- Required result-level disclaimer (shown with every tool's result) -->
+    <!-- Required result-level disclaimer, sized to the tool's YMYL risk tier. -->
     <div class="container">
-      <p class="tool__result-note" role="note">
+      <p class:list={['tool__result-note', tool.riskLevel === 'high' && 'tool__result-note--high']} role="note">
         <Icon name="shield" size={16} />
-        <span>This is an educational estimate, not medical advice. Consult a qualified professional.{resultAuthority}</span>
+        <span>
+          {tool.riskLevel === 'high'
+            ? 'This tool is for general education and is not medical advice, diagnosis, or treatment. Do not use it to make health decisions — talk to a qualified professional about your health.'
+            : 'This is an educational estimate, not medical advice. Consult a qualified professional.'}
+          {resultAuthority}
+        </span>
       </p>
     </div>
 
@@ -373,8 +378,8 @@ const medicalLd = {
           </ol>
         </section>
 
-        <!-- Disclaimer -->
-        <aside class="tool__disclaimer" role="note">
+        <!-- Disclaimer (sized to risk: high-risk tools get the prominent variant) -->
+        <aside class:list={['tool__disclaimer', tool.riskLevel === 'high' && 'tool__disclaimer--high']} role="note">
           <Icon name="shield" size={20} />
           <p>
             <strong>Medical disclaimer:</strong> This calculator is for general
@@ -688,6 +693,24 @@ const medicalLd = {
     font-size: 0.86rem;
     color: var(--muted);
   }
+  /* High-risk (YMYL) tools: the disclaimer must be unmissable, not a footnote. */
+  .tool__disclaimer--high {
+    background: #fffbeb;
+    border: 1px solid #f0c36d;
+    border-left: 4px solid #d97706;
+  }
+  .tool__disclaimer--high svg { color: #b45309; }
+  .tool__disclaimer--high p { color: #7c4a03; font-size: 0.92rem; }
+  .tool__result-note--high {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #7c4a03;
+    background: #fffbeb;
+    border: 1px solid #f0c36d;
+    border-radius: var(--radius-sm);
+    padding: 0.7rem 0.9rem;
+  }
+  .tool__result-note--high svg { color: #b45309; }
 
   /* Related */
   .tool__related {

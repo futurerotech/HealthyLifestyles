@@ -52,7 +52,7 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
       { q: 'Is the projected date a guarantee?', a: 'No — it’s a motivating estimate. Real loss isn’t linear and slows over time, so treat the date as a target to aim for, not a promise.' },
     ],
     sources: [
-      { citation: 'Centers for Disease Control and Prevention (CDC). "Losing Weight" — aiming for 1 to 2 pounds per week.', url: 'https://www.cdc.gov/healthyweight/losing_weight/index.html' },
+      { citation: 'Centers for Disease Control and Prevention (CDC). "Losing Weight" — aiming for 1 to 2 pounds per week.', url: 'https://www.cdc.gov/healthy-weight-growth/losing-weight/index.html' },
       WHO_OBESITY,
     ],
   },

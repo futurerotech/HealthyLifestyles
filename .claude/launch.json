@@ -12,6 +12,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "preview", "--", "--port", "4322"],
       "port": 4322
+    },
+    {
+      "name": "cms-admin",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "cms", "run", "dev"],
+      "port": 3000
     }
   ]
 }

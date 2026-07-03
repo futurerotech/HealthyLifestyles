@@ -212,6 +212,7 @@ interface CmsTool {
   featured?: boolean;
   sortOrder?: number;
   related?: unknown[];
+  riskLevel?: string;
   seo?: { metaDescription?: string; keywords?: string[] };
 }
 
@@ -227,6 +228,7 @@ function mapTool(t: CmsTool): Tool {
     popular: Boolean(t.featured),
     related: Array.isArray(t.related) ? t.related.map(pickSlug).filter(Boolean) : undefined,
     live: t.enabled !== false,
+    riskLevel: t.riskLevel === 'high' || t.riskLevel === 'medium' ? t.riskLevel : 'low',
   };
 }
 
@@ -389,7 +391,7 @@ interface CmsArticle {
   title?: string;
   slug?: string;
   excerpt?: string;
-  heroImage?: { url?: string; alt?: string } | null;
+  heroImage?: { url?: string; alt?: string; width?: number; height?: number } | null;
   layout?: CmsArticleBlock[];
   faq?: { question?: string; answer?: string }[];
   sources?: { label?: string; url?: string }[];
@@ -419,7 +421,16 @@ function mapArticle(a: CmsArticle): Article {
     metaDescription: str(a.seo?.metaDescription || a.excerpt),
     category: catSlug,
     excerpt: str(a.excerpt),
-    heroImage: a.heroImage ? { url: absMediaUrl(a.heroImage.url), alt: str(a.heroImage.alt) } : undefined,
+    heroImage: a.heroImage
+      ? {
+          url: absMediaUrl(a.heroImage.url),
+          alt: str(a.heroImage.alt),
+          // Intrinsic dimensions from the media doc → width/height attributes on
+          // the <img>, so the browser reserves space and the hero causes no CLS.
+          width: typeof a.heroImage.width === 'number' ? a.heroImage.width : undefined,
+          height: typeof a.heroImage.height === 'number' ? a.heroImage.height : undefined,
+        }
+      : undefined,
     author: str(authorObj?.name || pickSlug(a.author)),
     authorBio: str(authorObj?.bio) || undefined,
     publishDate: str(a.publishDate).split('T')[0],
@@ -506,14 +517,29 @@ export async function getArticle(slug: string): Promise<Article | null> {
   return local || null;
 }
 
-export async function getArticles(): Promise<Article[]> {
-  const data = await cmsFetch<PayloadList<CmsArticle>>(
-    '/api/articles?limit=1000&depth=2&sort=-publishDate&draft=false',
-  );
-  if (data && Array.isArray(data.docs) && data.docs.length > 0) {
-    return data.docs.map(mapArticle).filter((a) => a.slug && a.title);
+// One shared fetch for the whole build. Previously EVERY prerendered page
+// re-ran this heavy depth-2 query; any single 4s timeout silently dropped that
+// one page to the local fallback (no hero images, stale copy) — builds were
+// nondeterministic per page. The promise is cached so all pages await the same
+// result, and the fetch retries twice before falling back for everyone.
+let _articlesPromise: Promise<Article[]> | null = null;
+
+export function getArticles(): Promise<Article[]> {
+  if (!_articlesPromise) {
+    _articlesPromise = (async () => {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const data = await cmsFetch<PayloadList<CmsArticle>>(
+          '/api/articles?limit=1000&depth=2&sort=-publishDate&draft=false',
+        );
+        if (data && Array.isArray(data.docs) && data.docs.length > 0) {
+          return data.docs.map(mapArticle).filter((a) => a.slug && a.title);
+        }
+      }
+      console.error('[CMS] getArticles failed 3× — building from LOCAL article data (no hero images).');
+      return LOCAL_ARTICLES;
+    })();
   }
-  return LOCAL_ARTICLES;
+  return _articlesPromise;
 }
 
 const byNewest = (a: Article, b: Article) =>

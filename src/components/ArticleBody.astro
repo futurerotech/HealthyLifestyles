@@ -75,7 +75,14 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
 
   {article.heroImage?.url && (
     <div class="container wh-article__hero-wrap">
-      <img src={article.heroImage.url} alt={article.heroImage.alt} class="wh-article__hero" loading="eager" />
+      <img
+        src={article.heroImage.url}
+        alt={article.heroImage.alt}
+        width={article.heroImage.width || undefined}
+        height={article.heroImage.height || undefined}
+        class="wh-article__hero"
+        loading="eager"
+      />
     </div>
   )}
 

@@ -116,9 +116,10 @@ export const SOCIAL_NETWORKS = {
 
 export type SocialNetwork = keyof typeof SOCIAL_NETWORKS;
 
+// NOTE: only list profiles that actually exist — dead social links hurt E-E-A-T
+// (the x.com/healthylifestyles handle 404s and was removed by the site audit).
 export const SOCIAL_FOLLOW: { network: SocialNetwork; href: string }[] = [
   { network: 'facebook', href: 'https://www.facebook.com/healthylifestyles' },
-  { network: 'x', href: 'https://x.com/healthylifestyles' },
   { network: 'pinterest', href: 'https://www.pinterest.com/healthylifestyles' },
   { network: 'linkedin', href: 'https://www.linkedin.com/company/healthylifestyles' },
 ];

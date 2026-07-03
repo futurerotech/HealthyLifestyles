@@ -201,7 +201,7 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
     sources: [
       { citation: 'U.S. Department of Agriculture & HHS. "Dietary Guidelines for Americans, 2020–2025."', url: 'https://www.dietaryguidelines.gov/' },
       { citation: 'Academy of Nutrition and Dietetics. "How to Build a Healthy Eating Routine."', url: 'https://www.eatright.org/' },
-      { citation: 'CDC. "Healthy Weight: losing weight at about 1–2 pounds per week."', url: 'https://www.cdc.gov/healthyweight/losing_weight/index.html' },
+      { citation: 'CDC. "Healthy Weight: losing weight at about 1–2 pounds per week."', url: 'https://www.cdc.gov/healthy-weight-growth/losing-weight/index.html' },
       MIFFLIN,
       ISSN_PROTEIN,
     ],

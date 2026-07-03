@@ -21,6 +21,8 @@ export interface Tool {
   related?: string[];
   /** True once the tool has a built /tools/[slug] page. Gates links to avoid 404s. */
   live?: boolean;
+  /** YMYL risk tier from the CMS — sizes the medical disclaimer (high = prominent). */
+  riskLevel?: 'low' | 'medium' | 'high';
 }
 
 export const TOOLS: Tool[] = [
