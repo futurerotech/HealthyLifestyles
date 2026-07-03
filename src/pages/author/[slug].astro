@@ -27,6 +27,11 @@ const pageUrl = new URL(`/author/${author.slug}`, origin).href.replace(/\/$/, ''
 const [allArticles, siteConsts] = await Promise.all([getArticles(), getSiteConsts()]);
 const SITE = siteConsts.SITE;
 const SOCIAL_NETWORKS = siteConsts.SOCIAL_NETWORKS;
+/** Safe lookup: an author link's network may not exist in the site-wide social
+ *  config (e.g. a profile removed from Settings while the author still lists
+ *  it) — fall back to the raw network name instead of crashing the build. */
+const netInfo = (network: string) =>
+  SOCIAL_NETWORKS[network] ?? { label: network.charAt(0).toUpperCase() + network.slice(1), color: '#16a34a' };
 const articles = allArticles.filter((a) => resolveAuthor(a.author).slug === author.slug);
 
 const items = [
@@ -83,9 +88,9 @@ const profileLd = {
                   href={l.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={`${SOCIAL_NETWORKS[l.network].label}`}
-                  title={SOCIAL_NETWORKS[l.network].label}
-                  style={`--brand:${SOCIAL_NETWORKS[l.network].color}`}
+                  aria-label={netInfo(l.network).label}
+                  title={netInfo(l.network).label}
+                  style={`--brand:${netInfo(l.network).color}`}
                 >
                   <SocialIcon name={l.network} size={18} />
                 </a>
