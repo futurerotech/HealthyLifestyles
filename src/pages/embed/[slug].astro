@@ -19,6 +19,7 @@ import '../../styles/chronotype.css';
 import '../../styles/walk-it-off.css';
 import '../../styles/weight-timeline.css';
 import '../../styles/caffeine-tracker.css';
+import '../../styles/healthspan.css';
 
 import Calculator from '../../islands/Calculator.tsx';
 import SleepCalculator from '../../islands/SleepCalculator.tsx';
@@ -37,6 +38,7 @@ import Chronotype from '../../islands/Chronotype.tsx';
 import WalkItOff from '../../islands/WalkItOff.tsx';
 import WeightTimeline from '../../islands/WeightTimeline.tsx';
 import CaffeineTracker from '../../islands/CaffeineTracker.tsx';
+import HealthspanScore from '../../islands/HealthspanScore.tsx';
 
 import { getLiveTools, getSiteConsts } from '../../lib/cms';
 import type { Tool } from '../../data/tools';
@@ -86,6 +88,7 @@ const cmsOrigin = ((import.meta.env.CMS_URL as string) || '').replace(/\/$/, '')
       {engine === 'walk-it-off' && <WalkItOff client:load />}
       {engine === 'weight-timeline' && <WeightTimeline client:load />}
       {engine === 'caffeine-tracker' && <CaffeineTracker client:load />}
+      {engine === 'healthspan' && <HealthspanScore client:load />}
       {engine === 'sleep' && <SleepCalculator client:load slug={tool.slug} />}
       {engine === 'date' && <DateCalculator client:load slug={tool.slug} />}
       {engine === 'pace' && <PaceCalculator client:load slug={tool.slug} />}

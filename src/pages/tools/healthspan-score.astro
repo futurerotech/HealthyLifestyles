@@ -1,0 +1,16 @@
+---
+/**
+ * Dedicated route for the Healthspan Score. Uses the shared ToolPageLayout
+ * (SEO, breadcrumb, content, related tools) but lives in its own file so its
+ * stylesheet only loads here. (Excluded from tools/[slug].astro.)
+ */
+import ToolPageLayout from '../../components/ToolPageLayout.astro';
+import { getTool } from '../../lib/cms';
+import { getToolContent } from '../../data/tool-content';
+import '../../styles/healthspan.css';
+
+const tool = await getTool('healthspan-score')!;
+const content = getToolContent('healthspan-score')!;
+---
+
+<ToolPageLayout tool={tool} content={content} />

@@ -18,6 +18,8 @@ import QuizCalculator from '../islands/QuizCalculator.tsx';
 import BreathingTimer from '../islands/BreathingTimer.tsx';
 import MealPlanGenerator from '../islands/MealPlanGenerator.tsx';
 import LifestyleAge from '../islands/LifestyleAge.tsx';
+import HealthspanScore from '../islands/HealthspanScore.tsx';
+import { getEngine } from '../lib/toolEngine';
 import StrengthProgram from '../islands/StrengthProgram.tsx';
 import CaffeineCurfew from '../islands/CaffeineCurfew.tsx';
 import MusclePreservation from '../islands/MusclePreservation.tsx';
@@ -62,32 +64,11 @@ const RESULT_AUTHORITY: Record<string, string> = {
 };
 const resultAuthority = RESULT_AUTHORITY[tool.category] ?? '';
 
-// Which calculator island powers this tool.
-const DATE_TOOLS = new Set([
-  'due-date-calculator',
-  'pregnancy-week-calculator',
-  'ovulation-calculator',
-  'period-calculator',
-]);
-const QUIZ_TOOLS = new Set(['sleep-quality-check', 'stress-level-check', 'burnout-self-check']);
-const engine =
-  tool.slug === 'meal-plan-generator' ? 'meal'
-  : tool.slug === 'lifestyle-age-test' ? 'lifestyle-age'
-  : tool.slug === 'strength-program-builder' ? 'strength'
-  : tool.slug === 'caffeine-curfew-calculator' ? 'caffeine'
-  : tool.slug === 'muscle-preservation-calculator' ? 'muscle'
-  : tool.slug === 'sitting-disease-reversal-calculator' ? 'sitting'
-  : tool.slug === 'intermittent-fasting-calculator' ? 'fasting'
-  : tool.slug === 'sleep-chronotype-quiz' ? 'chronotype'
-  : tool.slug === 'walk-it-off-calculator' ? 'walk-it-off'
-  : tool.slug === 'weight-loss-timeline-calculator' ? 'weight-timeline'
-  : tool.slug === 'caffeine-intake-calculator' ? 'caffeine-tracker'
-  : tool.category === 'sleep' ? 'sleep'
-  : DATE_TOOLS.has(tool.slug) ? 'date'
-  : tool.slug === 'running-pace-calculator' ? 'pace'
-  : QUIZ_TOOLS.has(tool.slug) ? 'quiz'
-  : tool.slug === 'box-breathing-timer' ? 'breathing'
-  : 'numeric';
+// Which calculator island powers this tool — the ONE shared mapping in
+// lib/toolEngine.ts (this used to be a duplicated inline ternary chain, and
+// the two copies drifting apart made new coded tools silently fall back to
+// the numeric engine here).
+const engine = getEngine(tool);
 
 const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
 const pageUrl = new URL(Astro.url.pathname, origin).href.replace(/\/$/, '');
@@ -219,6 +200,7 @@ const medicalLd = {
       {engine === 'quiz' && <QuizCalculator client:visible slug={tool.slug} />}
       {engine === 'breathing' && <BreathingTimer client:visible slug={tool.slug} />}
       {engine === 'numeric' && <Calculator client:visible slug={tool.slug} toolName={tool.title} />}
+      {engine === 'healthspan' && <HealthspanScore client:visible />}
     </section>
 
     <!-- Required result-level disclaimer, sized to the tool's YMYL risk tier. -->

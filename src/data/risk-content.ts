@@ -27,6 +27,90 @@ const ADA: Source = {
 
 export const RISK_CONTENT: Record<string, ToolContent> = {
   // ============================================================
+  'healthspan-score': {
+    seoTitle: 'Healthspan Score – Free Healthy-Habits Calculator',
+    metaDescription:
+      'Score your everyday habits (0–100) against WHO and CDC lifestyle guidance and see your 2–3 highest-impact next steps. Educational — not a lifespan prediction.',
+    intro:
+      'Answer ten quick questions about your everyday habits and get a transparent 0–100 healthspan-habits score — with a bar for every factor and your highest-impact next steps. It reflects habits linked with more healthy years, not a prediction of your lifespan.',
+    notice:
+      'Educational habits score only. It is NOT a lifespan prediction, biological-age measurement, or medical diagnosis — it summarizes everyday habits that public-health guidance links with more healthy, disease-free years. Talk to a qualified professional about your health.',
+    sections: [
+      {
+        h2: 'What is a healthspan score? (And what it isn’t)',
+        paragraphs: [
+          'Healthspan is the number of years lived in good health — free of major disease and disability — as opposed to lifespan, which is simply years lived. Nobody can compute your personal healthspan from a questionnaire, and this tool doesn’t try. What it does is simpler and honest: it scores the everyday, modifiable habits that public-health bodies consistently link with more healthy years.',
+          'Every point is visible. Each factor shows exactly how many points it contributed as a bar, so you can see why your score is what it is — no black box, no hidden weighting, no predictions.',
+        ],
+      },
+      {
+        h2: 'How the score is calculated',
+        paragraphs: [
+          'The score is a transparent points model over nine habit factors, anchored to public guidance on modifiable risk: physical activity (20 points, full credit at the WHO’s 150 minutes of moderate activity a week), fruit & vegetables (12 points, full credit at 5 servings — roughly the WHO’s 400 g a day), ultra-processed food (8), smoking (15), alcohol (10, using the Dietary Guidelines’ moderation thresholds by sex), sleep (15, full credit for 7–9 hours), self-rated stress (6), social connection (4), and — optionally — waist-to-height ratio (10, full credit under 0.5).',
+          'The weights sum to exactly 100, so with every factor answered the visible points literally add up to your score. If you skip the optional waist-to-height factor the score is rescaled from 90, so skipping never counts against you. Age and sex are context only: sex sets the alcohol guideline, and age doesn’t change the score at all — good habits count at every age.',
+        ],
+      },
+      {
+        h2: 'How to read your result',
+        list: {
+          intro: 'Three bands, always shown as color plus text:',
+          items: [
+            '80–100 · Excellent — your habits strongly match healthy-aging guidance; protect them.',
+            '50–79 · Good — a solid base with clear room to gain points; check your top next steps.',
+            '0–49 · Needs attention — the good news: these are the habits with the biggest, best-evidenced payoff for change.',
+          ],
+        },
+      },
+      {
+        h2: 'A worked example',
+        paragraphs: [
+          'Sam, 42: 60 minutes of activity a week (8/20), 3 servings of fruit & veg (7/12), ultra-processed food some days (4/8), never smoked (15/15), 5 drinks a week (8/10), 6.5 hours of sleep (9/15), high stress (0/6), some social connection (2/4), waist-to-height 0.54 (5/10). Total: 58/100 — Good.',
+          'Sam’s top next steps, straight from the biggest point gaps: physical activity (+12 available), stress (+6), and sleep (+6). That’s the point of the tool — not the number, but knowing which two or three habits pay off most.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Does this predict how long I will live?',
+        a: 'No — and it doesn’t try to. It scores everyday habits that public-health guidance associates with more healthy years. Lifespan depends on many things a questionnaire cannot know (genetics, medical history, environment, luck).',
+      },
+      {
+        q: 'Why doesn’t my age change the score?',
+        a: 'Because the score reflects habits, not biology — and the evidence says improving these habits pays off at every age. Age is collected only as context; sex is used solely to apply the correct alcohol guideline.',
+      },
+      {
+        q: 'What counts as a "standard drink" and a "serving" of fruit or veg?',
+        a: 'A standard drink is roughly 350 ml of beer, 150 ml of wine, or 45 ml of spirits. A serving of fruit or vegetables is about 80 g — a piece of fruit, half a cup of cooked vegetables, or a cup of salad.',
+      },
+      {
+        q: 'Is skipping the waist-to-height question a disadvantage?',
+        a: 'No. The score is rescaled to 0–100 without that factor, so skipping it never lowers your result. If you can measure, though, it adds a useful body-shape signal — a waist under half your height is the common healthy guide.',
+      },
+      {
+        q: 'Where do the point values come from?',
+        a: 'Each factor is anchored to public guidance: the WHO physical-activity and healthy-diet fact sheets, CDC activity and sleep guidance, and the Dietary Guidelines for Americans for alcohol. The weights themselves are editorial simplifications so the score stays transparent — they are documented on this page, not hidden.',
+      },
+    ],
+    sources: [
+      {
+        citation: 'World Health Organization. "Physical activity" fact sheet — 150–300 minutes of moderate activity per week for adults.',
+        url: 'https://www.who.int/news-room/fact-sheets/detail/physical-activity',
+      },
+      {
+        citation: 'World Health Organization. "Healthy diet" fact sheet — at least 400 g (about 5 servings) of fruit and vegetables a day.',
+        url: 'https://www.who.int/news-room/fact-sheets/detail/healthy-diet',
+      },
+      {
+        citation: 'Centers for Disease Control and Prevention (CDC). "Adult Activity: An Overview" — physical activity guidelines for adults.',
+        url: 'https://www.cdc.gov/physical-activity-basics/guidelines/adults.html',
+      },
+      {
+        citation: 'U.S. Dietary Guidelines for Americans — including moderation guidance on alcoholic beverages.',
+        url: 'https://odphp.health.gov/our-work/nutrition-physical-activity/dietary-guidelines',
+      },
+    ],
+  },
+  // ============================================================
   'lifestyle-age-test': {
     seoTitle: 'Lifestyle Age Test – Free Body Age Estimate',
     metaDescription:
