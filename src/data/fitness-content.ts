@@ -409,6 +409,92 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
     ],
   },
   // ============================================================
+  'recovery-time-calculator': {
+    seoTitle: 'Recovery Time Calculator — Rest Between Workouts',
+    metaDescription:
+      'Estimate how long to rest before training the same muscle group again. A transparent heuristic from sports-science recovery principles. Free, no signup.',
+    intro:
+      'Enter your workout type, effort, and how your body feels to get a suggested recovery window. This is general guidance from sports-science principles — not a medical prescription.',
+    notice:
+      'General fitness guidance, not medical advice. Sharp pain, joint pain, or pain that worsens with activity is not normal soreness — stop and consult a qualified professional.',
+    sections: [
+      {
+        h2: 'How recovery time is estimated',
+        paragraphs: [
+          'This calculator uses a transparent heuristic built on well-known recovery principles. Heavy resistance training typically needs 48–72 hours of recovery per muscle group before it is trained hard again. HIIT and endurance work usually need a little less, and light sessions recover quickly.',
+          'We start from a base recovery time for your workout type, then adjust it up or down for five factors: how hard you pushed (RPE), how long the session lasted, your training age, your sleep quality, and how sore you currently feel. The result is a range, not a single number, because individual recovery varies.',
+        ],
+      },
+      {
+        h2: 'What changes your recovery',
+        list: {
+          intro: 'The five factors and how they move the estimate:',
+          items: [
+            'Intensity (RPE): higher effort means more muscle damage and central nervous system fatigue, so more recovery time.',
+            'Duration: a 2-hour session needs more recovery than a 30-minute one, all else equal.',
+            'Training age: beginners generally need more recovery — their muscles are less conditioned to repeated hard work. Advanced athletes recover faster for the same stimulus.',
+            'Sleep: most muscle repair and adaptation happens during deep sleep. Poor sleep is one of the biggest recovery killers.',
+            'Soreness (DOMS): if you are still sore from a previous session, your body is telling you it is not finished repairing yet.',
+          ],
+        },
+      },
+      {
+        h2: 'Tips to recover faster',
+        list: {
+          intro: 'Recovery is not just waiting — you can actively improve it:',
+          items: [
+            'Prioritize 7–9 hours of quality sleep — it is the single most impactful recovery tool. Use the Sleep Debt Calculator to track shortfalls.',
+            'Eat enough protein spread across the day — aim for 0.25 g per kg per meal, 3–4 meals. Use the Protein Intake Calculator to find your target.',
+            'Stay hydrated — even mild dehydration increases perceived effort and slows recovery. Use the Water Intake Calculator for your daily target.',
+            'Use active recovery — light walking, cycling, or mobility work on rest days increases blood flow without adding damage.',
+            'Manage total training load — if you are constantly under-recovered, you may be doing too much, too often.',
+          ],
+        },
+      },
+      {
+        h2: 'Listening to your body',
+        paragraphs: [
+          'No calculator can replace your own feedback. The most reliable signs that you are ready to train hard again: soreness is fading, your heart rate and perceived effort on a warm-up set feel normal, and your motivation is high.',
+          'Conversely, if your resting heart rate is elevated, you feel sluggish or weak, or performance drops from your last session, those are signs to rest longer. Pushing through persistent fatigue does not speed up progress — it tends to slow it down or lead to injury.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'How many rest days between training the same muscle group?',
+        a: 'For heavy resistance training, the general guideline is 48–72 hours before hitting the same muscle group hard again. This calculator personalises that starting point based on your effort, duration, training age, sleep, and soreness.',
+      },
+      {
+        q: 'Can I train while still sore?',
+        a: 'Mild soreness is usually fine for a different muscle group or a lighter session. Moderate or severe soreness means you should either rest, train a different muscle group, or do active recovery. Training the same hard session on a severely sore muscle increases injury risk.',
+      },
+      {
+        q: 'Does sleep really affect muscle recovery?',
+        a: 'Yes — significantly. Most muscle repair, protein synthesis, and anabolic hormone release happen during deep sleep. Consistently sleeping less than 7 hours demonstrably slows recovery and reduces strength and muscle gains over time.',
+      },
+      {
+        q: 'Why do beginners need more recovery?',
+        a: 'Beginners experience more muscle damage and soreness (DOMS) from a given workout because their muscles are not yet adapted to the stress. As training age increases, the body becomes more efficient at repairing and adapting, so recovery times shorten for the same relative effort.',
+      },
+    ],
+    sources: [
+      {
+        citation: 'American College of Sports Medicine. "Progression Models in Resistance Training for Healthy Adults." Med Sci Sports Exerc. 2009.',
+        url: pubmed('Progression models in resistance training for healthy adults ACSM position stand'),
+      },
+      {
+        citation: 'Helms J, Arsenault J, Trexler E, Fitschen P. ' +
+          '"Recommendations for natural bodybuilding contest preparation: nutrition and supplementation." J Int Soc Sports Nutr. 2014.',
+        url: pubmed('Recommendations natural bodybuilding contest preparation nutrition Helms'),
+      },
+      {
+        citation: 'Dattilo M, Antunes HK, Medeiros A, et al. ' +
+          '"Sleep and muscle recovery: endocrinological and behavioral basis." Med Hypotheses. 2011.',
+        url: pubmed('Sleep muscle recovery endocrinological behavioral basis Dattilo'),
+      },
+    ],
+  },
+  // ============================================================
   'steps-to-calories-calculator': {
     seoTitle: 'Steps to Calories & Distance Calculator',
     metaDescription:

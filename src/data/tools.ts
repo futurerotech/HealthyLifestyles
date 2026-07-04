@@ -283,6 +283,17 @@ export const TOOLS: Tool[] = [
     live: true,
   },
   {
+    slug: 'recovery-time-calculator',
+    title: 'Recovery Time Calculator',
+    blurb: 'Estimate how long to rest before training the same muscle group again — a heuristic from sports-science recovery principles.',
+    category: 'fitness',
+    icon: 'heart-pulse',
+    gradient: 'green',
+    keywords: ['recovery time calculator', 'muscle recovery time', 'rest between workouts', 'doms recovery', 'recovery window'],
+    related: ['strength-program-builder', 'one-rep-max-calculator', 'sleep-debt-calculator', 'protein-intake-calculator'],
+    live: true,
+  },
+  {
     slug: 'running-pace-calculator',
     title: 'Running Pace Calculator',
     blurb: 'Solve pace, finish time, or distance — and see your splits.',

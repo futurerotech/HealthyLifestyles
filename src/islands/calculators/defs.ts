@@ -1224,6 +1224,142 @@ export const DEFS: Record<string, CalcDef> = {
     },
   },
 
+  // ---- Recovery Time (heuristic guidance) ----
+  'recovery-time-calculator': {
+    slug: 'recovery-time-calculator',
+    heading: 'Estimate your recovery time',
+    hasSex: false,
+    fields: [
+      {
+        key: 'workoutType', label: 'Workout type', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: 'strength',
+        options: [
+          { value: 'strength', label: 'Strength / heavy resistance' },
+          { value: 'hiit', label: 'HIIT / intervals' },
+          { value: 'endurance', label: 'Endurance / steady cardio' },
+          { value: 'light', label: 'Light / recovery session' },
+        ],
+      },
+      { key: 'rpe', label: 'Effort (RPE)', type: 'number', metricDefault: 7, min: 1, max: 10, suffix: '/10', help: 'Rate of Perceived Exertion: 1 = very easy, 10 = all-out max.' },
+      { key: 'duration', label: 'Duration', type: 'number', metricDefault: 60, min: 5, max: 240, suffix: 'min' },
+      {
+        key: 'trainingAge', label: 'Training age', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: 'intermediate',
+        options: [
+          { value: 'beginner', label: 'Beginner — < 1 yr consistent training' },
+          { value: 'intermediate', label: 'Intermediate — 1–3 yrs' },
+          { value: 'advanced', label: 'Advanced — 3+ yrs' },
+        ],
+      },
+      {
+        key: 'sleep', label: 'Last night\'s sleep quality', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: 'good',
+        options: [
+          { value: 'poor', label: 'Poor — restless / too short' },
+          { value: 'fair', label: 'Fair' },
+          { value: 'good', label: 'Good' },
+          { value: 'excellent', label: 'Excellent — deep & long' },
+        ],
+      },
+      {
+        key: 'soreness', label: 'Current soreness (DOMS)', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: 'mild',
+        options: [
+          { value: 'none', label: 'None' },
+          { value: 'mild', label: 'Mild' },
+          { value: 'moderate', label: 'Moderate' },
+          { value: 'severe', label: 'Severe — affecting movement' },
+        ],
+      },
+    ],
+    compute: ({ vals, selects }) => {
+      const workoutType = selects.workoutType || 'strength';
+      const trainingAge = selects.trainingAge || 'intermediate';
+      const sleep = selects.sleep || 'good';
+      const soreness = selects.soreness || 'mild';
+      const rpe = vals.rpe;
+      const duration = vals.duration;
+
+      // Base recovery (hours) by workout type — general sports-science guidance:
+      // heavy resistance needs ~48-72h per muscle group; HIIT/endurance less.
+      const BASE: Record<string, number> = {
+        strength: 48,
+        hiit: 36,
+        endurance: 30,
+        light: 18,
+      };
+      const base = BASE[workoutType] ?? 30;
+
+      // RPE: linear multiplier from ×0.7 (RPE 1) to ×1.3 (RPE 10).
+      const rpeMult = 0.7 + ((rpe - 1) / 9) * 0.6;
+
+      // Duration factor.
+      let durMult: number;
+      if (duration < 30) durMult = 0.85;
+      else if (duration <= 60) durMult = 1.0;
+      else if (duration <= 90) durMult = 1.15;
+      else durMult = 1.3;
+
+      // Training age: beginners need more recovery; advanced recover faster.
+      const AGE_MULT: Record<string, number> = {
+        beginner: 1.3,
+        intermediate: 1.0,
+        advanced: 0.85,
+      };
+      const ageMult = AGE_MULT[trainingAge] ?? 1.0;
+
+      // Sleep quality: poor sleep impairs muscle repair and recovery.
+      const SLEEP_MULT: Record<string, number> = {
+        poor: 1.25,
+        fair: 1.1,
+        good: 1.0,
+        excellent: 0.9,
+      };
+      const sleepMult = SLEEP_MULT[sleep] ?? 1.0;
+
+      // Soreness (DOMS): more soreness = more recovery needed.
+      const SORENESS_MULT: Record<string, number> = {
+        none: 0.9,
+        mild: 1.0,
+        moderate: 1.15,
+        severe: 1.35,
+      };
+      const sorenessMult = SORENESS_MULT[soreness] ?? 1.0;
+
+      const center = base * rpeMult * durMult * ageMult * sleepMult * sorenessMult;
+      const low = Math.round(center * 0.85);
+      const high = Math.round(center * 1.15);
+
+      const useDays = high >= 48;
+      const fmtWindow = (h: number) =>
+        useDays ? `${fmt(h / 24, 1)} days` : `${h} hrs`;
+
+      return {
+        ok: true,
+        primaryLabel: 'Suggested recovery window',
+        primaryValue: `${fmtWindow(low)} – ${fmtWindow(high)}`,
+        visual: { kind: 'none' },
+        rows: [
+          { label: 'Workout type base', value: `${base} hrs`, strong: true },
+          { label: `Intensity (RPE ${fmt(rpe, 0)})`, value: `×${fmt(rpeMult, 2)}` },
+          { label: `Duration (${fmt(duration, 0)} min)`, value: `×${fmt(durMult, 2)}` },
+          { label: 'Training age', value: `×${fmt(ageMult, 2)}` },
+          { label: 'Sleep quality', value: `×${fmt(sleepMult, 2)}` },
+          { label: 'Soreness level', value: `×${fmt(sorenessMult, 2)}` },
+        ],
+        callout: {
+          tone: 'info',
+          text: 'Listen to your body. These are general guidance ranges from sports-science principles, not a prescription. If you\'re still sore, fatigued, or your performance is down, rest longer. Sharp or joint pain is never normal — stop and see a qualified professional.',
+        },
+        cta: {
+          label: 'Check your protein target for recovery →',
+          href: '/tools/protein-intake-calculator',
+        },
+        note: 'Method: a transparent heuristic. We start from a base recovery time for your workout type (e.g. ~48h for heavy resistance training, per the general 48–72h guideline), then adjust it up or down for intensity (RPE), duration, training age, sleep quality, and current soreness. The ±15% window reflects individual variation. This is general fitness guidance, not medical advice.',
+      };
+    },
+  },
+
   // ---- Steps to Calories / Distance ----
   'steps-to-calories-calculator': {
     slug: 'steps-to-calories-calculator',
