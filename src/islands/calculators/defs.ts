@@ -1731,6 +1731,219 @@ export const DEFS: Record<string, CalcDef> = {
     },
   },
 
+  // ---- Gut Health Score (lifestyle/diet, NOT a diagnosis) ----
+  'gut-health-score': {
+    slug: 'gut-health-score',
+    heading: 'Score your gut habits',
+    hasSex: false,
+    fields: [
+      {
+        key: 'redFlags', label: 'Any digestive red flags?', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: 'none',
+        help: 'If you have any of these, see a doctor — do not rely on this score.',
+        options: [
+          { value: 'none', label: 'None — just curious about my gut habits' },
+          { value: 'blood', label: 'Blood in stool' },
+          { value: 'weight', label: 'Unexplained weight loss' },
+          { value: 'pain', label: 'Persistent pain or change in bowel habits' },
+        ],
+      },
+      {
+        key: 'fiber', label: 'Daily fiber intake', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: 'some',
+        help: 'Fiber feeds gut bacteria. Aim for 25–35g/day from whole grains, veg, fruit, legumes.',
+        options: [
+          { value: 'low', label: 'Low — little fiber' },
+          { value: 'some', label: 'Some — occasional whole grains, veg' },
+          { value: 'good', label: 'Good — daily whole grains, veg, fruit' },
+          { value: 'high', label: 'High — 30g+ fiber/day, lots of plants' },
+        ],
+      },
+      {
+        key: 'fermented', label: 'Fermented foods per week', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: '1-2',
+        help: 'Yogurt, kefir, sauerkraut, kimchi, kombucha — these add live cultures to your gut.',
+        options: [
+          { value: 'rarely', label: 'Rarely' },
+          { value: '1-2', label: '1–2 times/week' },
+          { value: '3-5', label: '3–5 times/week' },
+          { value: 'daily', label: 'Daily' },
+        ],
+      },
+      {
+        key: 'plantDiversity', label: 'Plant diversity (different plants/week)', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: '10-20',
+        help: 'Different plants feed different gut bacteria. Aim for 30+ types/week (grains, veg, fruit, nuts, seeds, herbs).',
+        options: [
+          { value: '0-10', label: '0–10 different plants' },
+          { value: '10-20', label: '10–20 different plants' },
+          { value: '20-30', label: '20–30 different plants' },
+          { value: '30+', label: '30+ different plants' },
+        ],
+      },
+      {
+        key: 'water', label: 'Daily water intake', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: '1-2',
+        help: 'Hydration keeps things moving through your digestive tract.',
+        options: [
+          { value: 'under-1', label: 'Under 1 L' },
+          { value: '1-2', label: '1–2 L' },
+          { value: '2-3', label: '2–3 L' },
+          { value: '3+', label: '3+ L' },
+        ],
+      },
+      {
+        key: 'processed', label: 'Processed/ultra-processed food', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: 'several',
+        help: 'Highly processed foods low in fiber and high in additives can disrupt gut bacteria.',
+        options: [
+          { value: 'daily', label: 'Daily' },
+          { value: 'several', label: 'Several times/week' },
+          { value: 'occasionally', label: 'Occasionally' },
+          { value: 'rarely', label: 'Rarely' },
+        ],
+      },
+      {
+        key: 'sleep', label: 'Sleep quality', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: 'fair',
+        help: 'Poor sleep disrupts the gut-brain axis and gut rhythm.',
+        options: [
+          { value: 'poor', label: 'Poor' },
+          { value: 'fair', label: 'Fair' },
+          { value: 'good', label: 'Good' },
+          { value: 'excellent', label: 'Excellent' },
+        ],
+      },
+      {
+        key: 'stress', label: 'Stress level', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: 'moderate',
+        help: 'Chronic stress affects gut motility and the gut-brain connection.',
+        options: [
+          { value: 'high', label: 'High' },
+          { value: 'moderate', label: 'Moderate' },
+          { value: 'low', label: 'Low' },
+          { value: 'minimal', label: 'Minimal' },
+        ],
+      },
+      {
+        key: 'activity', label: 'Physical activity', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: 'light',
+        help: 'Movement stimulates gut motility and is linked to a more diverse microbiome.',
+        options: [
+          { value: 'sedentary', label: 'Sedentary' },
+          { value: 'light', label: 'Light — occasional walks' },
+          { value: 'moderate', label: 'Moderate — 3–5×/week' },
+          { value: 'active', label: 'Active — daily exercise' },
+        ],
+      },
+      {
+        key: 'regularity', label: 'Bowel-habit regularity', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: 'variable',
+        help: 'General regularity only — not a clinical assessment. Regular = consistent timing and form.',
+        options: [
+          { value: 'irregular', label: 'Irregular — often constipated or loose' },
+          { value: 'variable', label: 'Variable' },
+          { value: 'fairly', label: 'Fairly regular' },
+          { value: 'regular', label: 'Regular and consistent' },
+        ],
+      },
+    ],
+    compute: ({ selects }) => {
+      const redFlag = selects.redFlags || 'none';
+
+      // Points per factor. Key gut-health factors (fiber, plant diversity,
+      // fermented) max 4; lifestyle factors max 3. Grand max = 30.
+      const FIBER_PTS: Record<string, number> = { low: 0, some: 1, good: 2, high: 4 };
+      const FERMENTED_PTS: Record<string, number> = { rarely: 0, '1-2': 1, '3-5': 2, daily: 4 };
+      const PLANT_PTS: Record<string, number> = { '0-10': 0, '10-20': 1, '20-30': 2, '30+': 4 };
+      const WATER_PTS: Record<string, number> = { 'under-1': 0, '1-2': 1, '2-3': 2, '3+': 3 };
+      const PROCESSED_PTS: Record<string, number> = { daily: 0, several: 1, occasionally: 2, rarely: 3 };
+      const SLEEP_PTS: Record<string, number> = { poor: 0, fair: 1, good: 2, excellent: 3 };
+      const STRESS_PTS: Record<string, number> = { high: 0, moderate: 1, low: 2, minimal: 3 };
+      const ACTIVITY_PTS: Record<string, number> = { sedentary: 0, light: 1, moderate: 2, active: 3 };
+      const REGULARITY_PTS: Record<string, number> = { irregular: 0, variable: 1, fairly: 2, regular: 3 };
+
+      const factors = [
+        { name: 'Fiber intake', key: 'fiber', pts: FIBER_PTS[selects.fiber] ?? 1, max: 4, suggestion: 'Add whole grains, legumes, vegetables, and fruit. Aim for 25–35g fiber/day.' },
+        { name: 'Plant diversity', key: 'plantDiversity', pts: PLANT_PTS[selects.plantDiversity] ?? 1, max: 4, suggestion: 'Eat 30+ different plants/week — nuts, seeds, herbs, and spices all count.' },
+        { name: 'Fermented foods', key: 'fermented', pts: FERMENTED_PTS[selects.fermented] ?? 1, max: 4, suggestion: 'Add yogurt, kefir, sauerkraut, or kimchi 3–5×/week.' },
+        { name: 'Hydration', key: 'water', pts: WATER_PTS[selects.water] ?? 1, max: 3, suggestion: 'Drink 2–3L water/day to keep digestion moving.' },
+        { name: 'Processed foods (less is better)', key: 'processed', pts: PROCESSED_PTS[selects.processed] ?? 1, max: 3, suggestion: 'Swap ultra-processed snacks for whole foods.' },
+        { name: 'Sleep', key: 'sleep', pts: SLEEP_PTS[selects.sleep] ?? 1, max: 3, suggestion: 'Aim for 7–9 hours — gut and brain are linked.' },
+        { name: 'Stress (lower is better)', key: 'stress', pts: STRESS_PTS[selects.stress] ?? 1, max: 3, suggestion: 'Breathing, walks, or mindfulness calm the gut-brain axis.' },
+        { name: 'Activity', key: 'activity', pts: ACTIVITY_PTS[selects.activity] ?? 1, max: 3, suggestion: 'Even a daily 20-minute walk improves gut motility.' },
+        { name: 'Regularity', key: 'regularity', pts: REGULARITY_PTS[selects.regularity] ?? 1, max: 3, suggestion: 'Consistent meals, hydration, and movement support regularity.' },
+      ];
+
+      const total = factors.reduce((sum, f) => sum + f.pts, 0);
+      const maxPts = 30;
+      const score = Math.round((total / maxPts) * 100);
+
+      const segments: Segment[] = [
+        { upTo: 33, label: 'Needs improvement', color: C.red },
+        { upTo: 50, label: 'Fair', color: C.amber },
+        { upTo: 70, label: 'Good', color: C.teal },
+        { upTo: 85, label: 'Very good', color: C.green },
+        { upTo: 100, label: 'Excellent', color: C.blue },
+      ];
+      const band = bandFor(score, segments);
+
+      // Per-factor zones with bars.
+      const areaColor = (pts: number, max: number): string => {
+        const pct = pts / max;
+        if (pct >= 0.85) return C.blue;
+        if (pct >= 0.6) return C.green;
+        if (pct >= 0.4) return C.teal;
+        if (pct > 0) return C.amber;
+        return C.red;
+      };
+
+      const zones = factors.map((f) => ({
+        label: f.name,
+        detail: `${f.pts}/${f.max} pts`,
+        color: areaColor(f.pts, f.max),
+      }));
+
+      // Top improvements: 2-3 lowest-scoring factors.
+      const weakest = [...factors].sort((a, b) => a.pts / a.max - b.pts / b.max).slice(0, 3);
+      const improvements = weakest.map((f) => `${f.name}: ${f.suggestion}`).join('  ');
+
+      // Red flag label for the danger callout.
+      const RED_FLAG_LABELS: Record<string, string> = {
+        blood: 'Blood in stool',
+        weight: 'Unexplained weight loss',
+        pain: 'Persistent pain or change in bowel habits',
+      };
+
+      const hasRedFlag = redFlag !== 'none';
+      const callout = hasRedFlag
+        ? {
+            tone: 'danger' as const,
+            text: `⚠️ ${RED_FLAG_LABELS[redFlag] ?? 'Your symptom'} is a digestive red flag that needs prompt medical evaluation — do not rely on this score. See your doctor. Blood in stool, unexplained weight loss, or persistent changes in bowel habits can signal serious conditions that need clinical assessment, not lifestyle scoring.`,
+          }
+        : {
+            tone: 'info' as const,
+            text: 'Red flags that need prompt medical care: blood in stool, unexplained weight loss, persistent abdominal pain, or a lasting change in bowel habits. If you develop any of these, see a doctor — do not score them away with lifestyle changes alone.',
+          };
+
+      return {
+        ok: true,
+        primaryLabel: 'Gut-habits score',
+        primaryValue: `${score}/100`,
+        category: { label: band.label, color: band.color },
+        visual: { kind: 'zones', items: zones },
+        rows: [
+          { label: 'Total points', value: `${total}/${maxPts}` },
+          { label: 'Top factor', value: factors.sort((a, b) => b.pts / b.max - a.pts / a.max)[0].name, strong: true },
+        ],
+        callout,
+        note: hasRedFlag
+          ? 'Your score reflects general gut-friendly habits only. Red-flag symptoms override any score — see a doctor promptly. This tool is not a microbiome test and does not diagnose any condition.'
+          : `${improvements} Method: 9 factors scored on points (fiber, plant diversity, and fermented foods weighted higher at max 4; others max 3; grand max 30 → 0–100). This is a lifestyle self-check, not a microbiome test or diagnosis. Sources: Dietary Guidelines for Americans, NIH fiber recommendations.`,
+      };
+    },
+  },
+
   // ---- Steps to Calories / Distance ----
   'steps-to-calories-calculator': {
     slug: 'steps-to-calories-calculator',

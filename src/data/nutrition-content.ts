@@ -619,4 +619,85 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
       },
     ],
   },
+
+  // ============================================================
+  'gut-health-score': {
+    seoTitle: 'Gut Health Score — Lifestyle & Diet Self-Check',
+    metaDescription:
+      'Score your gut-friendly habits from fiber, plant diversity, fermented foods, sleep, stress, and more. Educational lifestyle tool — not a microbiome test or diagnosis.',
+    intro:
+      'Answer nine quick questions about your diet and lifestyle to get a 0–100 gut-habits score with per-factor bars and targeted improvements. This is a lifestyle self-check, not a microbiome test.',
+    notice:
+      'Educational lifestyle score only — NOT a diagnosis or a microbiome test. Red flags (blood in stool, unexplained weight loss, persistent pain or change in bowel habits) need a doctor, not a score.',
+    sections: [
+      {
+        h2: 'What this score measures',
+        paragraphs: [
+          'Your gut is home to trillions of bacteria that influence digestion, immunity, and even mood. While a real microbiome test requires a lab, your daily habits give a strong indication of whether you are feeding and supporting a healthy gut ecosystem.',
+          'This tool scores nine lifestyle factors backed by general gut-health evidence: fiber intake, plant diversity, fermented foods, hydration, processed-food intake, sleep, stress, activity, and bowel regularity. The result is a 0–100 gut-habits score — a lifestyle indicator, not a clinical measurement.',
+        ],
+      },
+      {
+        h2: 'The three most important factors',
+        list: {
+          intro: 'These carry the most weight in your score:',
+          items: [
+            'Fiber: the single most important fuel for beneficial gut bacteria. Aim for 25–35g/day from whole grains, vegetables, fruit, legumes, nuts, and seeds.',
+            'Plant diversity: research shows that people who eat 30+ different plants per week have a more diverse microbiome, which is associated with better health outcomes.',
+            'Fermented foods: yogurt, kefir, sauerkraut, kimchi, and kombucha add live cultures that may support gut microbial balance.',
+          ],
+        },
+      },
+      {
+        h2: 'How your score is calculated',
+        paragraphs: [
+          'Each of the nine factors earns 0–3 points (0–4 for fiber, plant diversity, and fermented foods, which carry more weight). The maximum is 30 points, scaled to a 0–100 score. The bars show each factor individually so you can see exactly where to focus.',
+          'The bands range from "Needs improvement" (0–33) through "Fair" and "Good" to "Very good" (71–85) and "Excellent" (86–100). Most people land in the middle — the goal is steady improvement, not perfection.',
+        ],
+      },
+      {
+        h2: 'Improving your gut health',
+        paragraphs: [
+          'Start with the weakest areas shown in your per-factor bars. Small, consistent changes compound — adding a daily serving of vegetables, swapping a processed snack for fruit and nuts, or eating yogurt a few times a week can move the needle within a few weeks.',
+          'The gut microbiome responds to dietary changes surprisingly fast — some studies show shifts within 24–48 hours of changing what you eat. The key is consistency over weeks and months, not a single perfect day.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Is this a microbiome test?',
+        a: 'No. This is a lifestyle and diet self-check based on habits known to support gut health. A real microbiome test analyses a stool sample in a lab. If you want to know your actual gut bacteria composition, talk to your doctor or a registered dietitian.',
+      },
+      {
+        q: 'What are the red flags I should not ignore?',
+        a: 'Blood in your stool, unexplained weight loss, persistent abdominal pain, or a lasting change in your bowel habits all need prompt medical evaluation. Do not try to "score" these away with lifestyle changes — see a doctor.',
+      },
+      {
+        q: 'How much fiber should I eat for gut health?',
+        a: 'Most adults should aim for 25–35 grams of fiber per day. The average person eats far less than that. Increase gradually over a week or two and drink plenty of water — a sudden fiber jump can cause bloating.',
+      },
+      {
+        q: 'Why does plant diversity matter?',
+        a: 'Different plants feed different beneficial bacteria. Research shows that people who eat 30+ different plant types per week have a more diverse microbiome, which is generally associated with better digestive and overall health.',
+      },
+      {
+        q: 'Do I need probiotic supplements?',
+        a: 'Not necessarily. Fermented foods like yogurt, kefir, sauerkraut, and kimchi provide live cultures naturally. If you are considering a probiotic supplement for a specific issue, talk to your doctor or dietitian — quality and strain specificity matter.',
+      },
+    ],
+    sources: [
+      {
+        citation: 'U.S. Departments of Agriculture and Health and Human Services. "Dietary Guidelines for Americans, 2020–2025." 9th ed.',
+        url: 'https://www.dietaryguidelines.gov/',
+      },
+      {
+        citation: 'National Institutes of Health, Office of Dietary Supplements. "Dietary Fiber." Consumer & Health Professional Fact Sheet.',
+        url: 'https://ods.od.nih.gov/factsheets/Fiber-Consumer/',
+      },
+      {
+        citation: 'McDonald D, Hyde E, Debelius JW, et al. "American Gut: an open platform for citizen science microbiome research." mSystems. 2018;3(3):e00031-18.',
+        url: pubmed('American Gut open platform citizen science microbiome research McDonald'),
+      },
+    ],
+  },
 };

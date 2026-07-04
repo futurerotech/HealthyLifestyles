@@ -138,6 +138,17 @@ export const TOOLS: Tool[] = [
     live: true,
   },
   {
+    slug: 'gut-health-score',
+    title: 'Gut Health Score',
+    blurb: 'Score your gut-friendly habits — fiber, plant diversity, fermented foods, sleep, stress, and more. Lifestyle self-check, not a microbiome test.',
+    category: 'nutrition',
+    icon: 'percent',
+    gradient: 'green',
+    keywords: ['gut health score', 'gut health calculator', 'microbiome diet', 'fiber gut bacteria', 'digestive health score'],
+    related: ['fiber-intake-calculator', 'anti-inflammatory-score', 'water-intake-calculator', 'vitamin-d-sun-calculator'],
+    live: true,
+  },
+  {
     slug: 'bmr-calculator',
     title: 'BMR Calculator',
     blurb: 'Calculate the calories your body burns completely at rest.',
