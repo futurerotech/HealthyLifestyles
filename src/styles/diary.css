@@ -1,0 +1,491 @@
+/* ── Food & Symptom Diary ───────────────────────────────────────────── */
+
+.diary {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Emergency banner ─────────────────────────────────────────────── */
+.diary__emergency {
+  background: #fef2f2;
+  border: 2px solid #ef4444;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: #991b1b;
+  animation: diary-pulse 2s ease-in-out infinite;
+}
+
+@keyframes diary-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3); }
+  50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+}
+
+/* ── Safety notice ─────────────────────────────────────────────────── */
+.diary__safety {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 10px;
+  padding: 0.85rem 1.1rem;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: #075985;
+}
+
+.diary__safety em { font-style: italic; }
+
+/* ── Toolbar ──────────────────────────────────────────────────────── */
+.diary__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+}
+
+.diary__stats {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.diary__stat {
+  font-size: 0.85rem;
+  color: var(--muted, #64748b);
+}
+
+.diary__stat strong {
+  font-size: 1.1rem;
+  color: var(--ink, #1e293b);
+}
+
+.diary__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────── */
+.diary__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+  white-space: nowrap;
+}
+
+.diary__btn--primary {
+  background: var(--green-primary, #16a34a);
+  color: #fff;
+}
+
+.diary__btn--primary:hover { background: var(--green-700, #15803d); }
+
+.diary__btn--danger {
+  background: transparent;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+}
+
+.diary__btn--danger:hover { background: #fef2f2; }
+
+.diary__btn--print {
+  background: transparent;
+  color: var(--ink, #1e293b);
+  border: 1px solid var(--border, #e2e8f0);
+}
+
+.diary__btn--print:hover { background: #f8fafc; }
+
+.diary__btn--lg {
+  width: 100%;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+}
+
+/* ── Add-entry form ────────────────────────────────────────────────── */
+.diary__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: #f8fafc;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.diary__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.diary__label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink, #1e293b);
+}
+
+.diary__input,
+.diary__select,
+.diary__textarea {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--border, #cbd5e1);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  background: #fff;
+  color: var(--ink, #1e293b);
+  transition: border-color 0.15s;
+}
+
+.diary__input:focus,
+.diary__select:focus,
+.diary__textarea:focus {
+  outline: none;
+  border-color: var(--green-primary, #16a34a);
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
+}
+
+.diary__textarea { resize: vertical; }
+
+.diary__hint {
+  font-size: 0.75rem;
+  color: var(--muted, #64748b);
+  margin: 0;
+}
+
+/* ── Symptom chips ─────────────────────────────────────────────────── */
+.diary__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+}
+
+.diary__chips--red { margin-top: 0.5rem; }
+
+.diary__chip {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border, #cbd5e1);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--ink, #1e293b);
+}
+
+.diary__chip--on {
+  background: var(--green-primary, #16a34a);
+  border-color: var(--green-primary, #16a34a);
+  color: #fff;
+}
+
+.diary__chip--red {
+  border-color: #fecaca;
+  background: #fff5f5;
+  color: #b91c1c;
+}
+
+.diary__chip--red.diary__chip--on {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #fff;
+}
+
+.diary__redflag-note {
+  font-size: 0.8rem;
+  color: #b91c1c;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+/* ── Pattern observations ──────────────────────────────────────────── */
+.diary__patterns {
+  background: #fefce8;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+}
+
+.diary__patterns-title {
+  margin: 0 0 0.3rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #92400e;
+}
+
+.diary__patterns-intro {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: #78350f;
+  margin: 0 0 0.6rem;
+}
+
+.diary__patterns-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.diary__pattern {
+  font-size: 0.82rem;
+  color: #78350f;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.diary__pattern-food {
+  font-weight: 700;
+  background: #fde68a;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+
+.diary__pattern-sym {
+  font-weight: 600;
+  color: #92400e;
+}
+
+.diary__pattern-count {
+  margin-left: auto;
+  font-weight: 700;
+  color: #b45309;
+  background: #fef3c7;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+}
+
+/* ── Empty state ───────────────────────────────────────────────────── */
+.diary__empty {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--muted, #64748b);
+}
+
+.diary__empty p { margin-bottom: 1rem; font-size: 0.9rem; }
+
+/* ── Timeline ──────────────────────────────────────────────────────── */
+.diary__timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+  padding-left: 0.5rem;
+}
+
+.diary__entry {
+  display: flex;
+  gap: 0.85rem;
+  position: relative;
+  padding-bottom: 1.25rem;
+}
+
+.diary__entry::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 16px;
+  bottom: 0;
+  width: 2px;
+  background: var(--border, #e2e8f0);
+}
+
+.diary__entry:last-child::before { display: none; }
+
+.diary__entry-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--green-primary, #16a34a);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px var(--green-primary, #16a34a);
+  flex-shrink: 0;
+  margin-top: 6px;
+  position: relative;
+  z-index: 1;
+}
+
+.diary__entry--red .diary__entry-dot {
+  background: #ef4444;
+  box-shadow: 0 0 0 2px #ef4444;
+}
+
+.diary__entry-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.diary__entry-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.35rem;
+}
+
+.diary__entry-time {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink, #1e293b);
+}
+
+.diary__sev {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
+
+.diary__sev--1, .diary__sev--2 { background: #dcfce7; color: #166534; }
+.diary__sev--3 { background: #fef9c3; color: #854d0e; }
+.diary__sev--4, .diary__sev--5 { background: #fee2e2; color: #991b1b; }
+
+.diary__entry-del {
+  margin-left: auto;
+  border: none;
+  background: none;
+  color: var(--muted, #94a3b8);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0 0.3rem;
+  line-height: 1;
+}
+
+.diary__entry-del:hover { color: #ef4444; }
+
+.diary__entry-foods,
+.diary__entry-symptoms,
+.diary__entry-notes {
+  font-size: 0.83rem;
+  line-height: 1.5;
+  margin: 0.15rem 0;
+  color: var(--ink, #334155);
+}
+
+.diary__entry-label {
+  font-weight: 700;
+  color: var(--muted, #64748b);
+}
+
+.diary__entry-notes {
+  font-style: italic;
+  color: var(--muted, #64748b);
+}
+
+.diary__tag {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  margin: 0.1rem 0.2rem 0.1rem 0;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  background: #f1f5f9;
+  color: var(--ink, #334155);
+}
+
+.diary__tag--red {
+  background: #fee2e2;
+  color: #991b1b;
+  font-weight: 600;
+}
+
+.diary__entry-redflag {
+  font-size: 0.78rem;
+  color: #b91c1c;
+  font-weight: 600;
+  margin-top: 0.4rem;
+  padding: 0.35rem 0.6rem;
+  background: #fef2f2;
+  border-radius: 6px;
+  border-left: 3px solid #ef4444;
+}
+
+/* ── Print ─────────────────────────────────────────────────────────── */
+@media print {
+  .diary__toolbar,
+  .diary__form,
+  .diary__actions,
+  .diary__entry-del,
+  .diary__empty button,
+  .diary__emergency {
+    display: none !important;
+  }
+
+  .diary__safety {
+    border: 1px solid #94a3b8;
+    background: #fff !important;
+    color: #000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .diary__patterns {
+    background: #fff !important;
+    border: 1px solid #94a3b8;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .diary__timeline {
+    page-break-inside: avoid;
+  }
+
+  .diary__entry {
+    page-break-inside: avoid;
+    padding-bottom: 0.75rem;
+  }
+
+  .diary__entry-dot {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* ── Dark mode ─────────────────────────────────────────────────────── */
+[data-theme='dark'] .diary__form {
+  background: var(--dark, #0f172a);
+  border-color: var(--border, #334155);
+}
+
+[data-theme='dark'] .diary__input,
+[data-theme='dark'] .diary__select,
+[data-theme='dark'] .diary__textarea {
+  background: var(--dark, #1e293b);
+  border-color: var(--border, #475569);
+  color: var(--ink, #e2e8f0);
+}
+
+[data-theme='dark'] .diary__chip {
+  background: var(--dark, #1e293b);
+  border-color: var(--border, #475569);
+  color: var(--ink, #e2e8f0);
+}
+
+[data-theme='dark'] .diary__empty { color: var(--muted, #94a3b8); }
+
+[data-theme='dark'] .diary__btn--print {
+  background: transparent;
+  color: var(--ink, #e2e8f0);
+  border-color: var(--border, #475569);
+}
+
+[data-theme='dark'] .diary__btn--print:hover { background: var(--dark, #1e293b); }

@@ -160,6 +160,17 @@ export const TOOLS: Tool[] = [
     live: true,
   },
   {
+    slug: 'food-symptom-diary',
+    title: 'Food & Symptom Diary',
+    blurb: 'Log meals, timing, and symptoms over days. Print a clean timeline for your doctor or dietitian. A tracker — not a diagnostic test.',
+    category: 'nutrition',
+    icon: 'utensils',
+    gradient: 'amber',
+    keywords: ['food diary', 'symptom diary', 'food symptom tracker', 'food allergy diary', 'diet diary'],
+    related: ['anti-inflammatory-score', 'gut-health-score', 'fiber-intake-calculator', 'meal-plan-generator'],
+    live: true,
+  },
+  {
     slug: 'bmr-calculator',
     title: 'BMR Calculator',
     blurb: 'Calculate the calories your body burns completely at rest.',

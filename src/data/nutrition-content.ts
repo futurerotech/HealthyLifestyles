@@ -773,4 +773,80 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
       },
     ],
   },
+
+  // ============================================================
+  'food-symptom-diary': {
+    seoTitle: 'Food & Symptom Diary Tracker — Print for Your Doctor',
+    metaDescription:
+      'Free food and symptom diary tracker. Log meals, timing, and symptoms over days, then print a clean timeline to show your doctor or dietitian. Not a diagnostic test.',
+    intro:
+      'Log what you eat, when you eat it, and any symptoms you notice. Over several days, a clear timeline emerges that you can print and bring to your doctor or dietitian. This is a diary, not a test — it does not diagnose allergies or intolerances.',
+    notice:
+      'True food allergy can be life-threatening. If you experience trouble breathing, throat swelling, or feel faint after eating, call your local emergency number immediately. This diary is not a substitute for professional medical evaluation.',
+    sections: [
+      {
+        h2: 'How to use this diary',
+        paragraphs: [
+          'Log each meal or symptom as it happens — or at the end of each day while memory is fresh. Include what you ate, the time, any symptoms, and how strong they were. The more consistent you are over 1–2 weeks, the more useful the timeline will be.',
+          'You can also log symptoms on their own (without a food) — for example, waking up with a headache or bloating before breakfast. This helps your clinician see patterns across the full day, not just after meals.',
+        ],
+      },
+      {
+        h2: 'The pattern observations feature',
+        paragraphs: [
+          'After several entries, the diary highlights foods that appeared before symptoms more than once. These are observations, not conclusions. They do not mean you are allergic or intolerant to those foods.',
+          'Many factors cause symptoms after eating — stress, sleep, portion size, exercise, medications, and normal digestion. Only a qualified healthcare professional can interpret patterns in the context of your full health history.',
+        ],
+      },
+      {
+        h2: 'What to share with your doctor',
+        paragraphs: [
+          'Click "Print timeline" to generate a clean, one-page summary of your diary. Bring it to your appointment along with any questions you have. Your doctor or dietitian can use it alongside their own assessment.',
+          'If you suspect a food allergy (especially if symptoms appeared quickly after eating), ask about referral to an allergist for proper testing. Self-elimination diets can mask real problems and cause unnecessary restriction.',
+        ],
+      },
+      {
+        h2: 'Your data stays private',
+        paragraphs: [
+          'All entries are stored locally in your browser. Nothing is sent to a server, and clearing your browser data will erase your diary. You can also use "Clear all" to start fresh at any time.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Can this diary diagnose a food allergy or intolerance?',
+        a: 'No. This is a tracking tool, not a diagnostic test. It records what you eat and any symptoms you notice so you can share that information with a healthcare professional. Only a qualified doctor or allergist can diagnose food allergies or intolerances using validated tests.',
+      },
+      {
+        q: 'What should I do if I have a severe reaction?',
+        a: 'If you experience trouble breathing, throat swelling, lip or tongue swelling, widespread hives, or feel faint after eating, call your local emergency number immediately. Severe allergic reactions (anaphylaxis) can be life-threatening and require immediate emergency care.',
+      },
+      {
+        q: 'How long should I keep the diary?',
+        a: 'One to two weeks is usually enough for your doctor to see meaningful patterns. If you are working with a dietitian on an elimination and reintroduction protocol, follow their guidance on timing.',
+      },
+      {
+        q: 'Are the pattern observations a diagnosis?',
+        a: 'No. The observations simply note that a food appeared before a symptom in your log more than once. This could be coincidence, or it could be worth discussing with your doctor. It is not a statement that you are sensitive or allergic to that food.',
+      },
+      {
+        q: 'Is my diary data sent anywhere?',
+        a: 'No. All entries are stored only in your browser local storage. Nothing is uploaded to a server. If you clear your browser data or use "Clear all," your diary is permanently erased.',
+      },
+    ],
+    sources: [
+      {
+        citation: 'American Academy of Allergy, Asthma & Immunology. "Food Allergies." Patient resources on food allergy symptoms, diagnosis, and management.',
+        url: 'https://www.aaaai.org/conditions-treatments/allergies/food-allergies',
+      },
+      {
+        citation: 'Tuck CJ, Biesiekierski JR, Scholten G, et al. "Food intolerances." Nutrients. 2019;11(7):1684.',
+        url: pubmed('Food intolerances Tuck Biesiekierski Nutrients'),
+      },
+      {
+        citation: 'Staudacher HM, Whelan K. "The low FODMAP diet: recent advances in understanding its mechanisms and efficacy in IBS." Gut. 2017;66(8):1517–1527.',
+        url: pubmed('low FODMAP diet recent advances mechanisms efficacy IBS Staudacher'),
+      },
+    ],
+  },
 };
