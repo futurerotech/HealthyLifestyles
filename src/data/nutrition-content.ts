@@ -540,4 +540,83 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
       },
     ],
   },
+
+  // ============================================================
+  'vitamin-d-sun-calculator': {
+    seoTitle: 'Vitamin D & Sun Exposure Calculator',
+    metaDescription:
+      'Estimate your vitamin D synthesis potential from sun, skin type, and diet. Educational guide with safe-sun reminders. This does NOT measure blood vitamin D — ask for a test if concerned.',
+    intro:
+      'See how your sun exposure, skin type, and diet combine to affect your vitamin D potential. This is an educational estimator — it does not measure your actual blood level.',
+    notice:
+      'Educational estimator only — this does NOT measure your blood vitamin D. Only a 25(OH)D blood test can confirm your status. Never sunburn to "get vitamin D." No megadose supplement advice — do not exceed 4,000 IU/day without medical supervision.',
+    sections: [
+      {
+        h2: 'How your body makes vitamin D from sun',
+        paragraphs: [
+          'When UVB rays from sunlight hit your skin, they trigger a reaction that produces vitamin D. The amount depends on four things: the UV index (which changes with latitude, season, and time of day), your skin type (darker skin needs more UVB), how much skin is exposed, and how long you are out.',
+          'This tool combines those factors into a qualitative synthesis likelihood — Low, Moderate, or Good. It is not a precise IU estimate, because too many variables affect real-world production to calculate accurately from a few inputs.',
+        ],
+      },
+      {
+        h2: 'Skin type matters — a lot',
+        paragraphs: [
+          'The Fitzpatrick scale ranges from Type I (very fair, always burns) to Type VI (dark, never burns). Melanin is nature\'s sunscreen — it absorbs UVB before it can trigger vitamin D synthesis. So someone with Type VI skin may need 3–6 times more sun exposure than someone with Type I to make the same amount of vitamin D.',
+          'This is not a flaw — it means darker skin is naturally protected from UV damage. But it also means that at higher latitudes or in winter, people with darker skin are at higher risk of deficiency. A blood test is the way to know for sure.',
+        ],
+      },
+      {
+        h2: 'Dietary vitamin D',
+        paragraphs: [
+          'Few foods naturally contain vitamin D. The main sources are fatty fish (salmon, mackerel, sardines), cod liver oil, egg yolks, and fortified foods like milk, plant milks, and some cereals. The NIH recommended dietary allowance (RDA) is about 600 IU/day for adults under 70 and 800 IU/day for those 70+.',
+          'If you get little sun (live far north, work indoors, or it is winter), diet and supplements become more important. A daily supplement of 1,000–2,000 IU is common and within safe limits — but do not take megadoses. The safe upper limit for adults is 4,000 IU/day from all sources.',
+        ],
+      },
+      {
+        h2: 'Balancing sun and skin safety',
+        list: {
+          intro: 'The same UVB that makes vitamin D also causes skin damage and raises cancer risk. Balance both:',
+          items: [
+            'Aim for short, sensible exposure — 10–30 minutes of midday sun on exposed skin (less if you burn easily, more if your skin is darker).',
+            'Never sunburn. Sunburn is never "worth it" for vitamin D — the damage far outweighs any benefit.',
+            'Apply SPF 30+ after your short exposure if you will be outdoors longer.',
+            'In winter or at high latitudes (UV index 0–2), your skin makes almost no vitamin D — focus on diet and consider a supplement.',
+            'If you are concerned about your level, ask your doctor for a 25(OH)D blood test. It is the only way to know your true status.',
+          ],
+        },
+      },
+    ],
+    faq: [
+      {
+        q: 'Does this calculator tell me my vitamin D level?',
+        a: 'No. It estimates whether your sun exposure and diet give you a low, moderate, or good chance of adequate vitamin D. Only a 25(OH)D blood test can measure your actual blood level. If you are concerned about deficiency, ask your doctor for the test.',
+      },
+      {
+        q: 'How much sun do I need for vitamin D?',
+        a: 'It depends on your skin type, latitude, and the UV index. As a general guide, 10–30 minutes of midday sun on exposed arms and face (without sunscreen) is enough for most people with Type I–III skin in summer. Darker skin types need more; in winter or far north, everyone makes less.',
+      },
+      {
+        q: 'Should I take a vitamin D supplement?',
+        a: 'If you get little sun, live far north, have darker skin, or are older, a daily supplement of 1,000–2,000 IU is reasonable and within safe limits. Do not exceed 4,000 IU/day from all sources without medical supervision. Talk to your doctor if unsure.',
+      },
+      {
+        q: 'Does sunscreen block vitamin D production?',
+        a: 'Yes — sunscreen reduces UVB absorption, which lowers vitamin D synthesis. A common compromise is a short period of unprotected exposure (10–15 minutes) before applying sunscreen. Never extend unprotected exposure to the point of burning.',
+      },
+    ],
+    sources: [
+      {
+        citation: 'National Institutes of Health, Office of Dietary Supplements. "Vitamin D Fact Sheet for Consumers and Health Professionals." Updated 2022.',
+        url: 'https://ods.od.nih.gov/factsheets/VitaminD-Consumer/',
+      },
+      {
+        citation: 'World Health Organization. "UV Radiation and Health." Intersun Programme.',
+        url: 'https://www.who.int/teams/environment-climate-change-and-health/health-protection/ultraviolet-radiation-and-health',
+      },
+      {
+        citation: 'U.S. Environmental Protection Agency. "UV Index." SunWise Program.',
+        url: 'https://www.epa.gov/sunsafety/uv-index-scale-0',
+      },
+    ],
+  },
 };

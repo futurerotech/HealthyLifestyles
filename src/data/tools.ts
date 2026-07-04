@@ -127,6 +127,17 @@ export const TOOLS: Tool[] = [
     live: true,
   },
   {
+    slug: 'vitamin-d-sun-calculator',
+    title: 'Vitamin D & Sun Exposure Calculator',
+    blurb: 'Estimate your vitamin D synthesis potential from sun, skin type, and diet. Educational — does not measure blood levels.',
+    category: 'nutrition',
+    icon: 'gauge',
+    gradient: 'amber',
+    keywords: ['vitamin d calculator', 'sun exposure vitamin d', 'vitamin d synthesis', 'fitzpatrick skin type', 'sun vitamin d'],
+    related: ['uv-index-sun-safety', 'dri-calculator', 'water-intake-calculator', 'calorie-calculator'],
+    live: true,
+  },
+  {
     slug: 'bmr-calculator',
     title: 'BMR Calculator',
     blurb: 'Calculate the calories your body burns completely at rest.',
