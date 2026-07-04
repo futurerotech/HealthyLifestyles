@@ -1360,6 +1360,93 @@ export const DEFS: Record<string, CalcDef> = {
     },
   },
 
+  // ---- Push-Up Test (muscular endurance norms) ----
+  'push-up-test-calculator': {
+    slug: 'push-up-test-calculator',
+    heading: 'Score your push-up test',
+    hasSex: true,
+    fields: [
+      F.age(30),
+      { key: 'pushups', label: 'Push-ups completed', type: 'number', metricDefault: 20, min: 0, max: 200, suffix: 'reps', allowZero: true, help: 'Count strict reps: chest to fist height, body straight, full extension at the top.' },
+      { key: 'plank', label: 'Plank hold (optional)', type: 'number', metricDefault: 0, min: 0, max: 600, suffix: 'sec', allowZero: true, help: 'If you also held a forearm plank, enter your time in seconds.' },
+    ],
+    compute: ({ vals, sex }) => {
+      const age = vals.age;
+      const pushups = vals.pushups;
+
+      // Normative thresholds (inclusive max per band) by sex and age bracket.
+      // Source: ACSM push-up test norms. bands = [belowAvg, avg, aboveAvg, good] upTo values.
+      const NORMS: Record<Sex, Array<{ ageMax: number; bands: [number, number, number, number] }>> = {
+        male: [
+          { ageMax: 29, bands: [21, 28, 36, 44] },
+          { ageMax: 39, bands: [16, 23, 29, 38] },
+          { ageMax: 49, bands: [12, 18, 24, 30] },
+          { ageMax: 59, bands: [9, 13, 18, 24] },
+          { ageMax: 200, bands: [7, 10, 14, 20] },
+        ],
+        female: [
+          { ageMax: 29, bands: [9, 14, 20, 25] },
+          { ageMax: 39, bands: [7, 12, 16, 21] },
+          { ageMax: 49, bands: [5, 10, 13, 17] },
+          { ageMax: 59, bands: [4, 7, 10, 13] },
+          { ageMax: 200, bands: [3, 5, 8, 12] },
+        ],
+      };
+
+      const norms = NORMS[sex];
+      const bracket = norms.find((b) => age <= b.ageMax) ?? norms[norms.length - 1];
+      const [below, avg, above, good] = bracket.bands;
+
+      const segments: Segment[] = [
+        { upTo: below, label: 'Below average', color: C.red },
+        { upTo: avg, label: 'Average', color: C.amber },
+        { upTo: above, label: 'Above average', color: C.teal },
+        { upTo: good, label: 'Good', color: C.green },
+        { upTo: 200, label: 'Excellent', color: C.blue },
+      ];
+      const band = bandFor(pushups, segments);
+      const gaugeMax = Math.max(good + 15, pushups + 5);
+
+      const ageBracketLabel = age <= 29 ? '20–29' : age <= 39 ? '30–39' : age <= 49 ? '40–49' : age <= 59 ? '50–59' : '60+';
+
+      const rows: ResultRow[] = [
+        { label: 'Percentile band', value: band.label, strong: true },
+        { label: `Norm for ${sex === 'male' ? 'men' : 'women'} aged ${ageBracketLabel}`, value: `Excellent ≥ ${good + 1} reps` },
+        { label: 'Average starts at', value: `${below + 1} reps` },
+      ];
+
+      // Optional plank assessment (general guidance, no formal age/sex norms).
+      if (vals.plank > 0) {
+        const plankBands: Array<{ upTo: number; label: string }> = [
+          { upTo: 30, label: 'Needs improvement' },
+          { upTo: 45, label: 'Average' },
+          { upTo: 60, label: 'Good' },
+          { upTo: 90, label: 'Very good' },
+        ];
+        const plankBand = plankBands.find((b) => vals.plank <= b.upTo) ?? { label: 'Excellent' };
+        rows.push({ label: 'Plank hold', value: `${fmt(vals.plank, 0)} sec — ${plankBand.label}`, strong: true });
+      }
+
+      return {
+        ok: true,
+        primaryLabel: 'Push-up score',
+        primaryValue: `${fmt(pushups, 0)} reps`,
+        category: { label: band.label, color: band.color },
+        visual: { kind: 'gauge', value: pushups, min: 0, max: gaugeMax, segments },
+        rows,
+        callout: {
+          tone: 'info',
+          text: 'Stop immediately if you feel chest pain, dizziness, or severe shortness of breath. These are red flags — seek medical care, not another rep.',
+        },
+        cta: {
+          label: 'Build a strength program to improve →',
+          href: '/tools/strength-program-builder',
+        },
+        note: `Norms are from the ACSM push-up test (reps to failure with proper form) for ${sex === 'male' ? 'men' : 'women'} in the ${ageBracketLabel} age bracket. Retest every 4–6 weeks under the same conditions to track progress. To improve: train push-ups or bench press 2–3× per week at 8–15 reps, progress with the Strength Program Builder, and manage recovery with the Recovery Time Calculator.`,
+      };
+    },
+  },
+
   // ---- Steps to Calories / Distance ----
   'steps-to-calories-calculator': {
     slug: 'steps-to-calories-calculator',

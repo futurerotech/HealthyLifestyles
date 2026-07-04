@@ -294,6 +294,17 @@ export const TOOLS: Tool[] = [
     live: true,
   },
   {
+    slug: 'push-up-test-calculator',
+    title: 'Push-Up Test Calculator',
+    blurb: 'Score your push-up test against ACSM age and sex norms — see your percentile band and how to improve.',
+    category: 'fitness',
+    icon: 'person-standing',
+    gradient: 'green',
+    keywords: ['push up test', 'push up norms', 'muscular endurance test', 'push up score', 'push up percentile'],
+    related: ['one-rep-max-calculator', 'strength-program-builder', 'vo2-max-calculator', 'recovery-time-calculator'],
+    live: true,
+  },
+  {
     slug: 'running-pace-calculator',
     title: 'Running Pace Calculator',
     blurb: 'Solve pace, finish time, or distance — and see your splits.',

@@ -495,6 +495,80 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
     ],
   },
   // ============================================================
+  'push-up-test-calculator': {
+    seoTitle: 'Push-Up Test Calculator — Score by Age & Sex Norms',
+    metaDescription:
+      'Score your push-up test against ACSM age and sex normative tables. See your percentile band, how to improve, and when to retest. Free fitness self-assessment.',
+    intro:
+      'The push-up test measures upper-body muscular endurance. Enter your age, sex, and the number of strict push-ups you completed to see where you rank against published norms.',
+    notice:
+      'Fitness self-assessment, not a medical test. Stop immediately if you feel chest pain, dizziness, or severe shortness of breath — these are red flags that need medical care.',
+    sections: [
+      {
+        h2: 'How to do the test properly',
+        paragraphs: [
+          'Form matters more than the number. A rep only counts if you lower your body until your chest is about fist height above the floor, keep your body in a straight line from head to heels, and push back up to full arm extension. If your hips sag, your chin leads, or you half-rep, the number is not comparable to the norms.',
+          'Do the test after a short warm-up (arm circles, a few easy reps). Pace yourself — most people do better with a steady rhythm than an explosive start that burns them out early. Rest between reps in the plank position, not on the floor.',
+        ],
+      },
+      {
+        h2: 'Reading your percentile band',
+        paragraphs: [
+          'Your result is compared to the ACSM push-up test norms for your age and sex, which are based on population data collected from thousands of adults. The bands run from "Below average" through "Average," "Above average," and "Good" to "Excellent" (roughly the 90th percentile or higher).',
+          'If you land in "Below average" or "Average," that is common — most adults do not train push-ups regularly. The good news is that push-up capacity responds quickly to consistent training; most people see measurable improvement in 4–6 weeks.',
+        ],
+      },
+      {
+        h2: 'How to improve your push-up score',
+        list: {
+          intro: 'The most effective strategies:',
+          items: [
+            'Train push-ups 2–3 times per week — frequency drives adaptation more than marathon sets.',
+            'Use progressive overload: add 1–2 reps per session, or add a weighted vest or resistance band once bodyweight sets of 15+ are easy.',
+            'Supplement with bench press and overhead press to build the triceps, chest, and shoulder strength that push-ups demand.',
+            'Include triceps dips and plank holds to strengthen the lockout position and core stability.',
+            'Use the Strength Program Builder to turn your current max into a structured 4-week progression.',
+          ],
+        },
+      },
+      {
+        h2: 'When to retest',
+        paragraphs: [
+          'Retest every 4–6 weeks under the same conditions: same time of day, same warm-up, same surface. Progress in muscular endurance is real but gradual — testing too often just measures daily variation.',
+          'A 3–5 rep improvement in a month is solid progress. If your score stalls for two consecutive tests, change your training stimulus: add volume, increase frequency, or address weak points like core or triceps strength.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'What counts as a proper push-up rep?',
+        a: 'Your body must stay in a straight line from head to heels, your chest must lower to about fist height above the floor, and you must push back to full arm extension. Hips sagging, knees touching, or half-range reps do not count toward the normative comparison.',
+      },
+      {
+        q: 'Can women do the standard push-up test?',
+        a: 'Yes. The norms here use the standard (knees-off-the-floor) push-up position for both men and women. If you are not yet strong enough for standard push-ups, start with knee push-ups or incline push-ups and work toward the full version before comparing to these norms.',
+      },
+      {
+        q: 'Why does the norm change with age?',
+        a: 'Muscular endurance naturally declines with age as muscle mass and neural efficiency decrease. The norms account for this — a "Good" score at 55 is lower in absolute reps than at 25, but represents the same relative fitness for your age group.',
+      },
+      {
+        q: 'Is the push-up test safe?',
+        a: 'For most healthy adults, yes. But stop immediately if you feel chest pain, dizziness, irregular heartbeat, or severe shortness of breath. These are not signs of effort — they are red flags that need medical evaluation. If you have heart disease risk factors, check with your doctor before maximal-effort testing.',
+      },
+    ],
+    sources: [
+      {
+        citation: 'American College of Sports Medicine. "ACSM\'s Health-Related Physical Fitness Assessment Manual." 5th ed. Lippincott Williams & Wilkins; 2021.',
+        url: pubmed('ACSM Health-Related Physical Fitness Assessment Manual push-up test norms'),
+      },
+      {
+        citation: 'American College of Sports Medicine. "ACSM\'s Guidelines for Exercise Testing and Prescription." 11th ed. Wolters Kluwer; 2021.',
+        url: pubmed('ACSM Guidelines Exercise Testing Prescription muscular fitness push-up'),
+      },
+    ],
+  },
+  // ============================================================
   'steps-to-calories-calculator': {
     seoTitle: 'Steps to Calories & Distance Calculator',
     metaDescription:
