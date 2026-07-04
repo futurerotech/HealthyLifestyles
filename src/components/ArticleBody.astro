@@ -80,7 +80,7 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
         alt={article.heroImage.alt}
         width={article.heroImage.width || undefined}
         height={article.heroImage.height || undefined}
-        class="wh-article__hero w-full h-auto object-cover"
+        class="wh-article__hero w-full max-w-full h-auto object-contain"
         loading="eager"
       />
     </div>
@@ -285,6 +285,5 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
   }
   .wh-article__hero {
     border-radius: 12px;
-    object-fit: cover;
   }
 </style>
