@@ -80,7 +80,7 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
         alt={article.heroImage.alt}
         width={article.heroImage.width || undefined}
         height={article.heroImage.height || undefined}
-        class="wh-article__hero w-full max-w-full h-auto object-contain"
+        class="wh-article__hero"
         loading="eager"
       />
     </div>
@@ -284,6 +284,11 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
     padding: 0 1.5rem;
   }
   .wh-article__hero {
+    display: block;
+    /* Full image, responsive, no crop. width/height attrs on the <img> still
+       reserve the correct box (no CLS); height:auto keeps the natural ratio. */
+    width: 100%;
+    height: auto;
     border-radius: 12px;
   }
 </style>
