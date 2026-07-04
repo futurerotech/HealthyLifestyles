@@ -28,7 +28,7 @@ const heroImage = page.heroImage as { url?: string; alt?: string; width?: number
 <BaseLayout title={title} description={title}>
   <article class="cms-page">
     {heroImage?.url && (
-      <img src={heroImage.url} alt={heroImage.alt ?? ''} width={heroImage.width || undefined} height={heroImage.height || undefined} class="cms-page__hero" loading="eager" />
+      <img src={heroImage.url} alt={heroImage.alt ?? ''} width={heroImage.width || undefined} height={heroImage.height || undefined} class="cms-page__hero w-full h-auto object-cover" loading="eager" />
     )}
     <PageRenderer layout={blocks} />
   </article>
@@ -36,5 +36,5 @@ const heroImage = page.heroImage as { url?: string; alt?: string; width?: number
 
 <style>
   .cms-page { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
-  .cms-page__hero { width: 100%; max-height: 400px; object-fit: cover; border-radius: 12px; margin-bottom: 2rem; }
+  .cms-page__hero { border-radius: 12px; margin-bottom: 2rem; object-fit: cover; }
 </style>
