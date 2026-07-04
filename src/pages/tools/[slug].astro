@@ -7,7 +7,7 @@ export async function getStaticPaths() {
   // One statically generated page per live tool that has authored content.
   // These tools have their own dedicated pages (so each can load its own
   // stylesheet) — exclude them here to avoid duplicate routes.
-  const CUSTOM_PAGES = new Set(['meal-plan-generator', 'lifestyle-age-test', 'strength-program-builder', 'caffeine-curfew-calculator', 'muscle-preservation-calculator', 'sitting-disease-reversal-calculator', 'intermittent-fasting-calculator', 'sleep-chronotype-quiz', 'walk-it-off-calculator', 'weight-loss-timeline-calculator', 'caffeine-intake-calculator', 'healthspan-score', 'food-symptom-diary']);
+  const CUSTOM_PAGES = new Set(['meal-plan-generator', 'lifestyle-age-test', 'strength-program-builder', 'caffeine-curfew-calculator', 'muscle-preservation-calculator', 'sitting-disease-reversal-calculator', 'intermittent-fasting-calculator', 'sleep-chronotype-quiz', 'walk-it-off-calculator', 'weight-loss-timeline-calculator', 'caffeine-intake-calculator', 'healthspan-score', 'food-symptom-diary', 'hrv-explainer-log']);
   const liveTools = await getLiveTools();
   return liveTools
     .filter((tool) => !CUSTOM_PAGES.has(tool.slug))

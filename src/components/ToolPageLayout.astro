@@ -30,6 +30,7 @@ import WalkItOff from '../islands/WalkItOff.tsx';
 import WeightTimeline from '../islands/WeightTimeline.tsx';
 import CaffeineTracker from '../islands/CaffeineTracker.tsx';
 import FoodSymptomDiary from '../islands/FoodSymptomDiary.tsx';
+import HRVLog from '../islands/HRVLog.tsx';
 import LeadCTA from './LeadCTA.astro';
 import '../styles/calculator.css';
 import { getSiteConsts, getRelatedTools } from '../lib/cms';
@@ -203,6 +204,7 @@ const medicalLd = {
       {engine === 'numeric' && <Calculator client:visible slug={tool.slug} toolName={tool.title} />}
       {engine === 'healthspan' && <HealthspanScore client:visible />}
       {engine === 'diary' && <FoodSymptomDiary client:load />}
+      {engine === 'hrv' && <HRVLog client:load />}
     </section>
 
     <!-- Required result-level disclaimer, sized to the tool's YMYL risk tier. -->

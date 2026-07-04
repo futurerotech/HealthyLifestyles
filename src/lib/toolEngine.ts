@@ -7,7 +7,7 @@ import type { Tool } from '../data/tools';
 export type Engine =
   | 'meal' | 'lifestyle-age' | 'strength' | 'caffeine' | 'muscle' | 'sitting'
   | 'fasting' | 'chronotype' | 'walk-it-off' | 'weight-timeline' | 'caffeine-tracker'
-  | 'healthspan' | 'sleep' | 'date' | 'pace' | 'quiz' | 'breathing' | 'numeric' | 'diary';
+  | 'healthspan' | 'sleep' | 'date' | 'pace' | 'quiz' | 'breathing' | 'numeric' | 'diary' | 'hrv';
 
 const DATE_TOOLS = new Set([
   'due-date-calculator',
@@ -33,6 +33,7 @@ const CODED: Record<string, Engine> = {
   'caffeine-intake-calculator': 'caffeine-tracker',
   'healthspan-score': 'healthspan',
   'food-symptom-diary': 'diary',
+  'hrv-explainer-log': 'hrv',
 };
 
 export function getEngine(tool: Tool): Engine {

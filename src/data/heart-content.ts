@@ -242,4 +242,81 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
     ],
     sources: [AHA_BP, AHA_GUIDELINE],
   },
+
+  // ============================================================
+  'hrv-explainer-log': {
+    seoTitle: 'HRV Explainer & Log — Track Your Heart Rate Variability',
+    metaDescription:
+      'Learn what HRV is, log readings from your own device, and see your trend over time. Educational — HRV cannot be calculated from age or pulse alone. Not medical advice.',
+    intro:
+      'Heart Rate Variability (HRV) reflects how flexible your autonomic nervous system is. This tool explains what HRV is, what affects it, and lets you log readings from your own device to track your personal trend over time.',
+    notice:
+      'HRV cannot be computed from your age or pulse alone — it requires a device that measures beat-to-beat intervals (chest strap, smartwatch, or ring). This tool does not estimate HRV. It helps you log and interpret readings from your own device. Educational only, not medical advice.',
+    sections: [
+      {
+        h2: 'What HRV actually measures',
+        paragraphs: [
+          'HRV is the variation in time between consecutive heartbeats, measured in milliseconds. A higher HRV generally indicates better autonomic nervous system flexibility and recovery. A lower HRV can signal stress, fatigue, insufficient recovery, or illness.',
+          'The most common metric is RMSSD (root mean square of successive differences). Your device may report RMSSD, SDNN, or LnRMSSD — these are different metrics and should not be compared directly. Stick with one metric from one device for meaningful trend tracking.',
+        ],
+      },
+      {
+        h2: 'Why your baseline matters more than one number',
+        paragraphs: [
+          'HRV is highly individual. Age, genetics, fitness level, and even body size affect it. A reading of 40 ms might be excellent for one person and below-average for another. There is no universal "good" HRV number.',
+          'What matters is your personal trend over days and weeks. Is your HRV stable? Trending up? Dropping after poor sleep or stress? That context is far more useful than any single reading compared to population averages.',
+        ],
+      },
+      {
+        h2: 'Why absolute values vary by device',
+        paragraphs: [
+          'Different devices use different sensors (optical vs electrical), measurement durations, and algorithms. A chest strap (electrical) will generally give different RMSSD values than a wrist optical sensor or a ring. This is normal and expected.',
+          'For meaningful trends, use the same device, measured at the same time of day (morning is standard), under similar conditions. Comparing a morning chest-strap reading to an evening wrist reading is not meaningful.',
+        ],
+      },
+      {
+        h2: 'How to use this log',
+        paragraphs: [
+          'Each morning (or at your chosen consistent time), enter the HRV reading from your device along with optional context: resting heart rate, hours slept, stress level, and whether you drank alcohol the evening before.',
+          'After several entries, the trend chart shows whether your HRV is stable, improving, or declining. The interpretation text explains what the trend might mean in plain language. Over time, you will see which lifestyle factors correlate with your HRV changes.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Can this tool calculate my HRV from my age or pulse?',
+        a: 'No. That would be fake. HRV requires measuring the actual time intervals between heartbeats, which needs a device with the right sensor (chest strap, smartwatch, or ring). Any tool that claims to compute HRV from age and pulse is not measuring HRV — it is making up a number.',
+      },
+      {
+        q: 'What is a "good" HRV number?',
+        a: 'There is no universal good number. HRV depends on age, genetics, fitness, and the device used. A 25-year-old athlete might have 80+ ms RMSSD; a 60-year-old might have 20 ms and be perfectly healthy. What matters is your personal trend over time, not a single number.',
+      },
+      {
+        q: 'Why do my chest strap and smartwatch give different HRV values?',
+        a: 'Different sensors and algorithms produce different absolute values. Chest straps measure electrical signals; wrist watches use optical sensors. Both can track trends accurately, but their raw numbers should not be compared. Use the same device consistently.',
+      },
+      {
+        q: 'My HRV dropped suddenly — should I worry?',
+        a: 'A single low reading is not alarming. HRV drops with poor sleep, stress, alcohol, hard training, dehydration, or oncoming illness. Look at the pattern over several days. If it stays low with no obvious lifestyle cause, mention it to your doctor — but remember HRV is not a diagnostic metric.',
+      },
+      {
+        q: 'Is HRV the same as heart rate?',
+        a: 'No. Heart rate is beats per minute (e.g. 60 bpm). HRV is the variation in time between those beats (measured in milliseconds). Two people can have the same heart rate but very different HRV.',
+      },
+    ],
+    sources: [
+      {
+        citation: 'Shaffer F, Ginsberg JP. "An Overview of Heart Rate Variability Metrics and Norms." Front Public Health. 2017;5:258.',
+        url: pubmed('Overview Heart Rate Variability Metrics Norms Shaffer Ginsberg'),
+      },
+      {
+        citation: 'Plews DJ, Laursen PB, Stanley J, Kilding AE, Buchheit M. "Training adaptation and heart rate variability in elite endurance athletes." Sports Med. 2013;43(9):773–781.',
+        url: pubmed('Training adaptation heart rate variability elite endurance athletes Plews'),
+      },
+      {
+        citation: 'Buchheit M. "Monitoring training status with HR measures: do all roads lead to Rome?" Front Physiol. 2014;5:73.',
+        url: pubmed('Monitoring training status HR measures roads lead Rome Buchheit'),
+      },
+    ],
+  },
 };

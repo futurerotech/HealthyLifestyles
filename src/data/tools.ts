@@ -443,6 +443,17 @@ export const TOOLS: Tool[] = [
     related: ['target-heart-rate-calculator', 'max-heart-rate-calculator', 'vo2-max-calculator'],
     live: true,
   },
+  {
+    slug: 'hrv-explainer-log',
+    title: 'HRV Explainer & Log',
+    blurb: 'Learn what HRV is and log readings from your own device to track your trend. Honest — does not invent HRV from age or pulse. Educational, not medical.',
+    category: 'heart-vitals',
+    icon: 'activity',
+    gradient: 'blue',
+    keywords: ['hrv', 'heart rate variability', 'hrv tracker', 'hrv log', 'rmssd', 'hrv chart'],
+    related: ['resting-heart-rate-checker', 'stress-level-check', 'sleep-quality-check'],
+    live: true,
+  },
 
   // ---- Metabolic Health ----
   {
