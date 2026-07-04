@@ -93,6 +93,7 @@ export interface ChronotypeInfo {
   share: number; // approx % of population
   description: string;
   tips: string[];
+  circadianTips: string[];
   schedule: ScheduleItem[];
 }
 
@@ -101,49 +102,53 @@ export const TYPES: Record<TypeKey, ChronotypeInfo> = {
     key: 'lion', name: 'Lion', emoji: '🦁', tagline: 'Early riser, morning powerhouse', share: 15,
     description: 'You wake early and naturally, with your best energy and focus in the first half of the day. Evenings wind down fast — and that’s fine. Lean into mornings for your most important work.',
     tips: ['Tackle your hardest task before noon.', 'Protect an early, consistent bedtime.', 'Schedule social plans earlier in the evening.'],
+    circadianTips: ['Get bright outdoor light within 30 min of waking — it reinforces your early clock.', 'Dim lights by 8 PM and switch to warm lamps to protect your early sleep window.', 'Avoid bright screens after 8:30 PM — your body wants to wind down early.'],
     schedule: [
-      { time: '5:30–6:00 AM', label: 'Wake naturally' },
-      { time: '6:30–11:00 AM', label: 'Peak focus — deep work' },
+      { time: '5:30-6:00 AM', label: 'Wake naturally' },
+      { time: '6:30-11:00 AM', label: 'Peak focus - deep work' },
       { time: '7:00 AM', label: 'Best time to exercise' },
       { time: '9:00 PM', label: 'Wind down' },
-      { time: '9:30–10:00 PM', label: 'Bedtime' },
+      { time: '9:30-10:00 PM', label: 'Bedtime' },
     ],
   },
   bear: {
-    key: 'bear', name: 'Bear', emoji: '🐻', tagline: 'Solar-cycle, the most common type', share: 55,
+    key: 'bear', name: 'Bear', emoji: '\uD83D\uDC3B', tagline: 'Solar-cycle, the most common type', share: 55,
     description: 'Your clock follows the sun. You do well on a conventional 9-to-5, with focus peaking late morning to midday and a natural dip in the early afternoon. Most people are Bears.',
     tips: ['Front-load deep work between mid-morning and noon.', 'Use the post-lunch dip for lighter tasks or a short walk.', 'Keep a steady wake time to feel your best.'],
+    circadianTips: ['Morning daylight anchors your rhythm — step outside for 5-10 min after waking.', 'Dim overhead lights after sunset and use warm lamps.', 'Keep a consistent wake time, even on weekends — your clock thrives on regularity.'],
     schedule: [
       { time: '7:00 AM', label: 'Wake' },
-      { time: '10:00 AM–12:00 PM', label: 'Peak focus' },
-      { time: '12:00–1:00 PM', label: 'Lunch + short walk' },
+      { time: '10:00 AM-12:00 PM', label: 'Peak focus' },
+      { time: '12:00-1:00 PM', label: 'Lunch + short walk' },
       { time: '6:00 PM', label: 'Best time to exercise' },
       { time: '10:30 PM', label: 'Wind down' },
       { time: '11:00 PM', label: 'Bedtime' },
     ],
   },
   wolf: {
-    key: 'wolf', name: 'Wolf', emoji: '🐺', tagline: 'Night owl, evening creative', share: 15,
+    key: 'wolf', name: 'Wolf', emoji: '\uD83D\uDC3A', tagline: 'Night owl, evening creative', share: 15,
     description: 'Mornings are hard and your engine really starts in the afternoon, peaking into the evening. Where you can, shift demanding work later and protect your morning from early commitments.',
-    tips: ['Schedule creative or hard work for late afternoon/evening.', 'Ease into mornings with light and a slow start.', 'Set a firm wind-down so a late peak doesn’t become a 2 a.m. bedtime.'],
+    tips: ['Schedule creative or hard work for late afternoon/evening.', 'Ease into mornings with light and a slow start.', 'Set a firm wind-down so a late peak doesn\u2019t become a 2 a.m. bedtime.'],
+    circadianTips: ['Bright light in the first hour of waking helps shift your clock earlier over time.', 'Avoid bright screens after 10 PM — use night mode and dim your environment.', 'Keep caffeine before 2 PM so it doesn\u2019t push your already-late clock later still.'],
     schedule: [
-      { time: '7:30–9:00 AM', label: 'Wake (reluctantly) — get bright light' },
+      { time: '7:30-9:00 AM', label: 'Wake (reluctantly) - get bright light' },
       { time: '1:00 PM', label: 'Focus starts to build' },
-      { time: '5:00–9:00 PM', label: 'Peak focus & creativity' },
+      { time: '5:00-9:00 PM', label: 'Peak focus & creativity' },
       { time: '7:00 PM', label: 'Best time to exercise' },
       { time: '12:00 AM', label: 'Wind down' },
-      { time: '12:30–1:00 AM', label: 'Bedtime' },
+      { time: '12:30-1:00 AM', label: 'Bedtime' },
     ],
   },
   dolphin: {
-    key: 'dolphin', name: 'Dolphin', emoji: '🐬', tagline: 'Light, alert sleeper', share: 10,
-    description: 'You’re a light sleeper who can wake easily and often feels unrefreshed. A calm, consistent routine and good sleep hygiene help most — your focus tends to be best in the late morning.',
+    key: 'dolphin', name: 'Dolphin', emoji: '\uD83D\uDC2C', tagline: 'Light, alert sleeper', share: 10,
+    description: 'You\u2019re a light sleeper who can wake easily and often feels unrefreshed. A calm, consistent routine and good sleep hygiene help most — your focus tends to be best in the late morning.',
     tips: ['Keep a strict, calming wind-down and wake time.', 'Reserve late morning for your most important work.', 'Limit caffeine after midday and keep the bedroom cool and dark.'],
+    circadianTips: ['Minimize evening light — use blackout curtains and dim warm lamps after sunset.', 'Get morning light to anchor your clock, but avoid bright light in the evening.', 'Keep the bedroom cool (18-20C) and completely dark — you are especially light-sensitive.'],
     schedule: [
-      { time: '6:30 AM', label: 'Wake — get light, avoid snoozing' },
-      { time: '10:00 AM–12:00 PM', label: 'Peak focus' },
+      { time: '6:30 AM', label: 'Wake - get light, avoid snoozing' },
+      { time: '10:00 AM-12:00 PM', label: 'Peak focus' },
       { time: '3:30 PM', label: 'Best time to (gently) exercise' },
-      { time: '10:00 PM', label: 'Strict wind-down — no screens' },
+      { time: '10:00 PM', label: 'Strict wind-down - no screens' },
       { time: '11:30 PM', label: 'Bedtime' },
     ],
   },

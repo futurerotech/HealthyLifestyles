@@ -265,6 +265,14 @@ export default function HealthspanScore() {
             </div>
           </div>
 
+          {result.lifeEstimate && (
+            <div class="hs__life-exp">
+              <div class="hs__life-exp-num">~{result.lifeEstimate} <span>years</span></div>
+              <div class="hs__life-exp-label">Estimated life expectancy<br />if current habits continued</div>
+              <p class="hs__life-exp-note">{result.lifeNote}</p>
+            </div>
+          )}
+
           <h3 class="hs__h3">Where your points come from</h3>
           <ul class="hs__bars">
             {result.factors.map((f) => {

@@ -2334,6 +2334,7 @@ export const DEFS: Record<string, CalcDef> = {
     compute: ({ vals }) => {
       const hrMax = 220 - vals.age;
       const vo2 = 15.3 * (hrMax / vals.rest);
+      const fitnessAge = Math.max(18, Math.min(90, Math.round(0.5 * vals.age + 50 - vo2)));
       const segments: Segment[] = [
         { upTo: 30, label: 'Below average', color: C.red },
         { upTo: 40, label: 'Fair', color: C.amber },
@@ -2344,15 +2345,25 @@ export const DEFS: Record<string, CalcDef> = {
       const band = bandFor(vo2, segments);
       return {
         ok: true,
-        primaryLabel: 'Estimated VO₂ max',
+        primaryLabel: 'Estimated VO2 max',
         primaryValue: `${fmt(vo2, 1)} ml/kg/min`,
         category: { label: band.label, color: band.color },
         visual: { kind: 'gauge', value: vo2, min: 20, max: 70, segments },
         rows: [
+          { label: 'Fitness age', value: `${fmt(fitnessAge, 0)} years`, strong: true },
+          { label: 'Chronological age', value: `${fmt(vals.age, 0)} years` },
           { label: 'Estimated max heart rate', value: `${fmt(hrMax, 0)} bpm` },
           { label: 'Resting heart rate', value: `${fmt(vals.rest, 0)} bpm` },
         ],
-        note: 'Uses the Uth–Sørensen estimate: VO₂ max ≈ 15.3 × (max HR ÷ resting HR). Healthy ranges depend on age and sex — treat the category as a general guide.',
+        callout: {
+          tone: 'info',
+          text: fitnessAge < vals.age
+            ? `Your VO2 max is typical of someone about ${fitnessAge} years old — ${vals.age - fitnessAge} years younger than your actual age. This suggests above-average cardio fitness for your age.`
+            : fitnessAge > vals.age
+              ? `Your VO2 max is typical of someone about ${fitnessAge} years old — ${fitnessAge - vals.age} years older than your actual age. This suggests room to improve cardio fitness.`
+              : `Your VO2 max is typical for your actual age (${vals.age}).`,
+        },
+        note: 'Uses the Uth-Sorensen estimate: VO2 max ~ 15.3 x (max HR / resting HR). Fitness age compares your VO2 max to age-normative averages (approx 50 - 0.5 x age). Both are rough estimates — healthy ranges depend on age and sex. Educational only.',
       };
     },
   },

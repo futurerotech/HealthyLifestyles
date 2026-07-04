@@ -97,6 +97,11 @@ export default function Chronotype() {
           <ul>{t.tips.map((tip) => <li><span class="ch__tip-dot" aria-hidden="true">✓</span><span>{tip}</span></li>)}</ul>
         </section>
 
+        <section class="ch__tips card">
+          <h2 class="ch__h">Circadian rhythm tips</h2>
+          <ul>{t.circadianTips.map((tip) => <li><span class="ch__tip-dot" aria-hidden="true">✓</span><span>{tip}</span></li>)}</ul>
+        </section>
+
         <section class="ch__share card">
           <div><h2 class="ch__h">Share your type</h2><p class="ch__share-sub">Post your chronotype and compare with friends.</p></div>
           <div class="ch__share-btns">

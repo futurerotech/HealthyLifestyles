@@ -21,6 +21,20 @@ const BREATH_REVIEW: Source = {
   citation: 'Zaccaro A, Piarulli A, Laurino M, et al. "How Breath-Control Can Change Your Life: A Systematic Review on Psycho-Physiological Correlates of Slow Breathing." Front Hum Neurosci. 2018;12:353.',
   url: pubmed('How Breath-Control Can Change Your Life slow breathing Zaccaro'),
 };
+const PHQ9_SOURCE: Source = {
+  citation: 'Kroenke K, Spitzer RL, Williams JB. "The PHQ-9: validity of a brief depression severity measure." J Gen Intern Med. 2001;16(9):606–613.',
+  url: pubmed('PHQ-9 validity brief depression severity measure Kroenke'),
+};
+const GAD7_SOURCE: Source = {
+  citation: 'Spitzer RL, Kroenke K, Williams JB, Löwe B. "A brief measure for assessing generalized anxiety disorder: the GAD-7." Arch Intern Med. 2006;166(10):1092–1097.',
+  url: pubmed('brief measure assessing generalized anxiety disorder GAD-7 Spitzer'),
+};
+const WHO5_SOURCE: Source = {
+  citation: 'Topp CW, Østergaard SD, Søndergaard S, Bech P. "The WHO-5 Well-Being Index: a systematic review of the literature." Psychother Psychosom. 2015;84(3):167–176.',
+  url: pubmed('WHO-5 Well-Being Index systematic review Topp'),
+};
+const SCREENER_DISCLAIMER =
+  'This is a validated screening tool, not a diagnosis. Only a qualified healthcare or mental health professional can diagnose depression, anxiety, or any condition. If your results concern you, please reach out for professional help.';
 
 export const MENTAL_CONTENT: Record<string, ToolContent> = {
   // ============================================================
@@ -227,5 +241,154 @@ export const MENTAL_CONTENT: Record<string, ToolContent> = {
       },
     ],
     sources: [BREATH_REVIEW, APA_STRESS],
+  },
+
+  // ============================================================
+  'phq-9-depression-screener': {
+    seoTitle: 'PHQ-9 Depression Screener — Validated Self-Report',
+    metaDescription:
+      'Take the PHQ-9, a validated depression screening questionnaire. 9 questions, 2 minutes. Not a diagnosis — share results with your doctor. Crisis resources included.',
+    intro:
+      'The Patient Health Questionnaire (PHQ-9) is a validated, 9-item depression screener used widely in primary care. Answer honestly about the past two weeks. Your score helps you decide whether to seek professional support.',
+    notice: SCREENER_DISCLAIMER + CRISIS,
+    sections: [
+      {
+        h2: 'What the PHQ-9 measures',
+        paragraphs: [
+          'The PHQ-9 asks about the nine symptoms of depression from the DSM-5 over the past two weeks. Each item is scored 0 (not at all) to 3 (nearly every day). The total ranges from 0 to 27.',
+          'The bands — minimal, mild, moderate, moderately severe, and severe — are the standard cutoffs from the instrument developers. Higher scores indicate more depression symptoms, not a diagnosis.',
+        ],
+      },
+      {
+        h2: 'Question 9 and safety',
+        paragraphs: [
+          'Question 9 asks about thoughts of self-harm. If you indicated anything other than "Not at all" for question 9, please contact a crisis line or your doctor immediately, regardless of your total score. A single positive response on item 9 requires clinical follow-up.',
+          'If you are in immediate danger, call your local emergency number now.',
+        ],
+      },
+      {
+        h2: 'What to do with your result',
+        paragraphs: [
+          'If your score is 10 or higher, the PHQ-9 guideline suggests you should be assessed for depression by a healthcare professional. A score of 15 or higher suggests you should seek treatment.',
+          'Bring your results to your doctor or a mental health professional. They will interpret them in the context of your full health history, not as a standalone diagnosis.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Can the PHQ-9 diagnose depression?',
+        a: 'No. The PHQ-9 is a screening tool — it helps identify whether depression symptoms are present and how severe they appear. Only a qualified healthcare or mental health professional can diagnose depression, using a clinical interview and your full history.',
+      },
+      {
+        q: 'What does a score of 10 mean?',
+        a: 'A score of 10 or above is the standard cutoff for "major depression" screening on the PHQ-9. It means you should talk to your doctor or a mental health professional for a proper assessment. It does not mean you definitely have depression.',
+      },
+      {
+        q: 'What if I scored positive on question 9 (self-harm)?',
+        a: 'If you indicated anything other than "Not at all" for question 9, please seek help immediately — contact a crisis line (988 in the US/Canada, 116 123 in the UK, 13 11 14 in Australia) or your doctor. Do not wait. A single positive response on item 9 requires clinical attention.',
+      },
+      {
+        q: 'How often should I take the PHQ-9?',
+        a: 'The PHQ-9 measures symptoms over the past two weeks. If you are being monitored by a healthcare professional, they will advise on frequency. If you are self-monitoring, retake it every 2-4 weeks and track the trend — not every day.',
+      },
+    ],
+    sources: [PHQ9_SOURCE],
+  },
+
+  // ============================================================
+  'gad-7-anxiety-screener': {
+    seoTitle: 'GAD-7 Anxiety Screener — Validated Self-Report',
+    metaDescription:
+      'Take the GAD-7, a validated anxiety screening questionnaire. 7 questions, 2 minutes. Not a diagnosis — share results with your doctor. Crisis resources included.',
+    intro:
+      'The Generalized Anxiety Disorder 7-item (GAD-7) scale is a validated anxiety screener used widely in primary care. Answer honestly about the past two weeks. Your score helps you decide whether to seek professional support.',
+    notice: SCREENER_DISCLAIMER + CRISIS,
+    sections: [
+      {
+        h2: 'What the GAD-7 measures',
+        paragraphs: [
+          'The GAD-7 asks about seven core symptoms of generalized anxiety over the past two weeks. Each item is scored 0 (not at all) to 3 (nearly every day). The total ranges from 0 to 21.',
+          'The bands — minimal, mild, moderate, and severe — are the standard cutoffs from the instrument developers. Higher scores indicate more anxiety symptoms, not a diagnosis.',
+        ],
+      },
+      {
+        h2: 'What to do with your result',
+        paragraphs: [
+          'A score of 10 or above is the standard cutoff for further assessment. If your score is 10 or higher, please consider speaking with a healthcare professional about your anxiety symptoms.',
+          'Anxiety is highly treatable — therapy, lifestyle changes, and medication are all options. Your doctor or a mental health professional can help you find the right approach.',
+        ],
+      },
+      {
+        h2: 'Anxiety vs normal worry',
+        paragraphs: [
+          'Everyone worries sometimes. The GAD-7 asks whether worry and anxiety have been frequent and interfering over the past two weeks. A low score does not mean you never worry — it means anxiety is not currently a significant problem.',
+          'If anxiety is affecting your sleep, work, relationships, or daily life, please reach out for support — regardless of your score.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Can the GAD-7 diagnose anxiety?',
+        a: 'No. The GAD-7 is a screening tool — it identifies whether anxiety symptoms are present and how severe they appear. Only a qualified healthcare or mental health professional can diagnose an anxiety disorder.',
+      },
+      {
+        q: 'What score should concern me?',
+        a: 'A score of 10 or above suggests moderate anxiety and is the standard cutoff for further assessment. A score of 15 or above suggests severe anxiety. If either applies, please talk to your doctor or a mental health professional.',
+      },
+      {
+        q: 'Does the GAD-7 cover panic attacks?',
+        a: 'The GAD-7 screens for generalized anxiety symptoms, not panic disorder specifically. If you experience sudden, intense episodes of fear with physical symptoms (racing heart, shortness of breath, feeling faint), mention this to your doctor — panic disorder is assessed separately.',
+      },
+      {
+        q: 'Can I use the GAD-7 to track my anxiety over time?',
+        a: 'Yes. The GAD-7 is commonly used to monitor symptom severity over time. If you are in treatment, your provider may ask you to retake it every few weeks. If self-monitoring, retake every 2-4 weeks and discuss the trend with your doctor.',
+      },
+    ],
+    sources: [GAD7_SOURCE],
+  },
+
+  // ============================================================
+  'who-5-wellbeing-screener': {
+    seoTitle: 'WHO-5 Well-Being Index — Validated Screener',
+    metaDescription:
+      'Take the WHO-5 Well-Being Index, a validated 5-question screener. 2 minutes. Low scores suggest further screening for depression. Not a diagnosis. Crisis resources included.',
+    intro:
+      'The WHO-5 Well-Being Index is a short, validated questionnaire from the World Health Organization. It measures positive well-being over the past two weeks — not just the absence of problems, but how good you have been feeling.',
+    notice: SCREENER_DISCLAIMER + CRISIS,
+    sections: [
+      {
+        h2: 'What the WHO-5 measures',
+        paragraphs: [
+          'The WHO-5 asks five positive statements about well-being (cheerful, calm, active, rested, interested) over the past two weeks. Each is scored 0 (at no time) to 5 (all of the time). The raw score ranges from 0 to 25.',
+          'Unlike the PHQ-9 or GAD-7, the WHO-5 measures positive well-being — a higher score is better. A raw score of 13 or below suggests poor well-being and the WHO guideline recommends further screening for depression.',
+        ],
+      },
+      {
+        h2: 'Why well-being matters',
+        paragraphs: [
+          'Well-being is more than the absence of illness. The WHO-5 captures whether you are thriving, not just whether you are symptom-free. Low scores can be an early signal — sometimes before specific symptoms are noticed.',
+          'If your score is 13 or below, please consider talking to your doctor. The WHO-5 is specifically recommended as a first-step screen for depression — a low score does not mean you are depressed, but it means further assessment is a good idea.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Is the WHO-5 a depression test?',
+        a: 'No. The WHO-5 measures positive well-being. However, a raw score of 13 or below is the standard cutoff for recommending further screening for depression. If your score is low, your doctor may follow up with a depression-specific tool like the PHQ-9.',
+      },
+      {
+        q: 'My score is low but I do not feel depressed — what should I do?',
+        a: 'Well-being fluctuates for many reasons — stress, poor sleep, life events, or simply a difficult couple of weeks. If your score is 13 or below, it is still worth mentioning to your doctor, especially if it persists. But a single low score does not mean you are depressed.',
+      },
+      {
+        q: 'Can the WHO-5 diagnose anything?',
+        a: 'No. The WHO-5 is a screening and monitoring tool. It cannot diagnose depression, anxiety, or any condition. Only a qualified professional can make a diagnosis after a clinical assessment.',
+      },
+      {
+        q: 'How often should I take the WHO-5?',
+        a: 'The WHO-5 measures the past two weeks. If you are being monitored by a healthcare professional, follow their guidance. If self-monitoring, retake every 2-4 weeks and track the trend.',
+      },
+    ],
+    sources: [WHO5_SOURCE],
   },
 };

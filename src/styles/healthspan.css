@@ -160,6 +160,40 @@
   color: var(--muted);
   line-height: 1.5;
 }
+.hs__life-exp {
+  margin: 1rem 0 0;
+  padding: 0.9rem 1.1rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.hs__life-exp-num {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #15803d;
+  line-height: 1;
+}
+.hs__life-exp-num span {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.hs__life-exp-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #166534;
+  line-height: 1.4;
+}
+.hs__life-exp-note {
+  flex-basis: 100%;
+  margin: 0.5rem 0 0;
+  font-size: 0.76rem;
+  color: #15803d;
+  line-height: 1.5;
+}
 .hs__h3 {
   margin: 1.4rem 0 0.6rem;
   font-size: 1rem;

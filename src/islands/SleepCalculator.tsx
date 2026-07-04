@@ -107,7 +107,10 @@ function SleepCycleCalc() {
                 </li>
               ))}
             </ul>
-            <p class="calc__note">Most adults do best with 5–6 full cycles (7.5–9 hours). Waking at the end of a cycle helps you feel refreshed rather than groggy.</p>
+            <p class="calc__note">Most adults do best with 5-6 full cycles (7.5-9 hours). Waking at the end of a cycle helps you feel refreshed rather than groggy.</p>
+            <div class="calc__callout calc__callout--info">
+              <strong>Circadian tip:</strong> Get bright light (ideally outdoors) within 30 minutes of waking to anchor your body clock. Dim lights and screens 60 minutes before bed.
+            </div>
           </>
         )}
       </div>
@@ -153,8 +156,11 @@ function NapCalc() {
               </li>
             </ul>
             <p class="calc__callout calc__callout--info">
-              Avoid naps of 30–60 minutes: you’re likely to wake mid-cycle in deep sleep and feel groggy (sleep inertia). Keep it short, or commit to a full 90-minute cycle.
+              Avoid naps of 30-60 minutes: you're likely to wake mid-cycle in deep sleep and feel groggy (sleep inertia). Keep it short, or commit to a full 90-minute cycle.
             </p>
+            <div class="calc__callout calc__callout--info">
+              <strong>Circadian tip:</strong> Nap before 3 PM if you can - late naps eat into your sleep drive and can push bedtime later. Bright light after your nap helps shake off grogginess.
+            </div>
           </>
         )}
       </div>
@@ -253,6 +259,9 @@ function SleepDebtCalc() {
           <ul>
             {tips.map((t) => <li>{t}</li>)}
           </ul>
+        </div>
+        <div class="calc__callout calc__callout--info">
+          <strong>Circadian tip:</strong> To repay sleep debt, go to bed 30-60 min earlier rather than sleeping in - a consistent wake time protects your body clock. Get morning light to lock the rhythm in.
         </div>
       </div>
     </div>

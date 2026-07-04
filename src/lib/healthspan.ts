@@ -62,6 +62,10 @@ export interface HealthspanResult {
   /** The 2–3 factors with the most points left on the table. */
   improvements: Factor[];
   usedWaist: boolean;
+  /** Rough life-expectancy estimate if current habits continued (years). */
+  lifeEstimate?: number;
+  /** Careful framing text for the life-expectancy number. */
+  lifeNote?: string;
 }
 
 const round = (n: number) => Math.round(n);
@@ -174,5 +178,16 @@ export function computeHealthspan(input: HealthspanInput): HealthspanResult {
     .sort((a, b) => b.max - b.earned - (a.max - a.earned))
     .slice(0, 3);
 
-  return { score, band, bandLabel, factors, improvements, usedWaist };
+  // Rough life-expectancy estimate: base average +/- score adjustment.
+  // Framed as a statistical estimate, never a personal prediction.
+  const baseLE = input.sex === 'male' ? 77 : 82;
+  const adj = Math.round((score - 50) * 0.12); // +-6 years at extremes
+  const lifeEstimate = Math.max(45, Math.min(95, baseLE + adj));
+  const lifeNote =
+    `If your current habits stayed the same, your healthspan score is consistent with an estimated life expectancy of roughly ${lifeEstimate} years. `
+    + `This is a statistical estimate based on general population data, not a personal prediction. `
+    + `Genetics, access to healthcare, and many other factors influence actual lifespan. `
+    + `Changing any single habit does not guarantee a specific outcome.`;
+
+  return { score, band, bandLabel, factors, improvements, usedWaist, lifeEstimate, lifeNote };
 }
