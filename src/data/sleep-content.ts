@@ -302,4 +302,80 @@ export const SLEEP_CONTENT: Record<string, ToolContent> = {
       NSF_DURATION,
     ],
   },
+
+  // ============================================================
+  'blue-light-exposure-estimator': {
+    seoTitle: 'Blue Light Exposure Estimator — Evening Screen Habits & Sleep',
+    metaDescription:
+      'Score your evening light hygiene: screen time before bed, device type, night mode, room lighting. Get a 0-100 score with specific tips to improve. Educational, not medical.',
+    intro:
+      'Answer 7 quick questions about your evening screen habits and lighting. Get a 0-100 evening light hygiene score with specific, actionable tips to reduce blue light before bed.',
+    notice:
+      'This is a habit score based on general circadian and sleep hygiene guidance. It does not measure melatonin suppression or circadian phase shift. Individual sensitivity to evening light varies. Educational only — not medical advice.',
+    sections: [
+      {
+        h2: 'Why evening light matters for sleep',
+        paragraphs: [
+          'Your circadian rhythm uses light as its primary time cue. Bright, blue-rich light in the evening tells your brain it is still daytime, which can delay melatonin onset and push your sleep window later. The hour closest to bedtime has the strongest effect.',
+          'Phones, tablets, and laptops emit blue-rich light directly toward your eyes. TV is further away but still adds ambient light. E-readers with e-ink displays emit far less blue light and are a better evening option.',
+        ],
+      },
+      {
+        h2: 'How the score works',
+        paragraphs: [
+          'Six factors are scored on points: pre-bed screen time (max 10), total evening screen time (max 8), device type (max 6), night mode or filter use (max 8), room lighting (max 5), and screen curfew before bed (max 3). The maximum is 40 points, scaled to 0-100.',
+          'Your bedtime is contextual only — it does not affect the score but helps tailor the tips to your schedule.',
+        ],
+      },
+      {
+        h2: 'Practical tips to improve',
+        paragraphs: [
+          'The highest-impact changes are usually: (1) enable night mode or a blue-light filter 2 hours before bed, (2) dim room lights after dinner, (3) build a 30-60 minute screen curfew before bed, and (4) switch from a phone (held close to the face) to a larger screen further away or audio-only.',
+          'You do not need to eliminate screens entirely — even reducing brightness, enabling warm filters, and putting the phone down 30 minutes earlier can make a noticeable difference in how easily you fall asleep.',
+        ],
+      },
+      {
+        h2: 'How this differs from the Caffeine Curfew and Sleep Calculator',
+        paragraphs: [
+          'This tool focuses specifically on light exposure in the evening. The Caffeine Curfew Calculator handles caffeine half-life and timing. The Sleep Calculator finds optimal bed/wake times using 90-minute sleep cycles. The Chronotype Quiz identifies your natural morning/evening tendency. Together, they cover the main lifestyle levers for better sleep.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Does blue light from screens really affect sleep?',
+        a: 'Research shows that bright, blue-rich light in the evening can delay melatonin onset and push your sleep window later. The effect varies by individual, brightness, duration, and proximity to the eyes. The biggest concern is the hour closest to bedtime — that is why the score weights pre-bed screen time most heavily.',
+      },
+      {
+        q: 'Is night mode or a blue-light filter enough?',
+        a: 'Night mode helps — it shifts screen color to warmer tones and reduces blue light. But it does not eliminate all light, and brightness still matters. Combining night mode with dim room lights and a screen curfew is more effective than relying on night mode alone.',
+      },
+      {
+        q: 'Are e-readers better than phones before bed?',
+        a: 'E-ink e-readers (like the Kindle Paperwhite) emit far less blue light than phones, tablets, or laptops with LCD/OLED screens. They are a better choice for evening reading. However, even an e-reader with a frontlight adds some light — the darkest environment is still best for sleep.',
+      },
+      {
+        q: 'Does this tool measure my melatonin levels?',
+        a: 'No. This is a habit score based on your self-reported evening light behaviors. It does not measure melatonin, circadian phase, or any biological marker. If you have persistent sleep problems, talk to your doctor or a sleep specialist.',
+      },
+      {
+        q: 'What about TV — is it as bad as phone use?',
+        a: 'TV is typically viewed from across the room, so less light reaches your eyes directly. The score gives TV a higher rating (better) than phones for this reason. However, TV in a bright room late at night still adds ambient light that can affect sleep — dim the room and avoid watching right up to bedtime.',
+      },
+    ],
+    sources: [
+      {
+        citation: 'Harvard Health. "Blue light has a dark side." — Blue light at night suppresses melatonin and can disrupt circadian rhythms.',
+        url: 'https://www.health.harvard.edu/healthblog/blue-light-has-a-dark-side-2016070710348',
+      },
+      {
+        citation: 'Chang AM, Aeschbach D, Duffy JF, Czeisler CA. "Evening use of light-emitting eReaders negatively affects sleep, circadian timing, and next-morning alertness." Proc Natl Acad Sci. 2015;112(4):1232–1237.',
+        url: pubmed('Evening use light-emitting eReaders negatively affects sleep circadian timing next-morning alertness Chang'),
+      },
+      {
+        citation: 'Centers for Disease Control and Prevention. "Sleep Hygiene." — Recommendations for creating a sleep-friendly environment including limiting evening light exposure.',
+        url: 'https://www.cdc.gov/sleep/about-sleep/sleep-hygiene.html',
+      },
+    ],
+  },
 };

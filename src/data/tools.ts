@@ -601,6 +601,17 @@ export const TOOLS: Tool[] = [
     keywords: ['sleep debt', 'sleep deficit', 'catch up on sleep'],
     live: true,
   },
+  {
+    slug: 'blue-light-exposure-estimator',
+    title: 'Blue Light Exposure Estimator',
+    blurb: 'Score your evening light hygiene — screen time before bed, night mode, room lighting. Get specific tips to reduce blue light for better sleep.',
+    category: 'sleep',
+    icon: 'moon-star',
+    gradient: 'indigo',
+    keywords: ['blue light', 'screen time sleep', 'evening light hygiene', 'night mode', 'blue light filter', 'melatonin screen'],
+    related: ['caffeine-curfew-calculator', 'sleep-chronotype-quiz', 'sleep-calculator'],
+    live: true,
+  },
 
   // ---- Health Risk (educational, non-diagnostic) ----
   {

@@ -34,6 +34,7 @@ const CODED: Record<string, Engine> = {
   'healthspan-score': 'healthspan',
   'food-symptom-diary': 'diary',
   'hrv-explainer-log': 'hrv',
+  'blue-light-exposure-estimator': 'numeric',
 };
 
 export function getEngine(tool: Tool): Engine {

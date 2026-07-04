@@ -2109,6 +2109,179 @@ export const DEFS: Record<string, CalcDef> = {
     },
   },
 
+  // ---- Blue Light Exposure Estimator ----
+  'blue-light-exposure-estimator': {
+    slug: 'blue-light-exposure-estimator',
+    heading: 'Score your evening light hygiene',
+    hasSex: false,
+    fields: [
+      {
+        key: 'bedtime', label: 'Usual bedtime', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: '23',
+        help: 'Contextual only — does not affect your score, but helps tailor tips.',
+        options: [
+          { value: '21', label: '9 PM' },
+          { value: '22', label: '10 PM' },
+          { value: '23', label: '11 PM' },
+          { value: '0', label: '12 AM' },
+          { value: '1', label: '1 AM' },
+          { value: '2', label: '2 AM or later' },
+        ],
+      },
+      {
+        key: 'preBed', label: 'Screen time in the hour before bed', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: '1-2',
+        help: 'The hour closest to bedtime has the biggest circadian impact.',
+        options: [
+          { value: '0', label: 'None' },
+          { value: '<30', label: 'Under 30 min' },
+          { value: '30-60', label: '30-60 min' },
+          { value: '1-2', label: '1-2 hours' },
+          { value: '2+', label: '2+ hours' },
+        ],
+      },
+      {
+        key: 'evening', label: 'Total screen time after dinner', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: '1-2',
+        help: 'Includes all screens: phone, tablet, laptop, TV.',
+        options: [
+          { value: '0', label: 'None' },
+          { value: '<1', label: 'Under 1 hour' },
+          { value: '1-2', label: '1-2 hours' },
+          { value: '2-3', label: '2-3 hours' },
+          { value: '3+', label: '3+ hours' },
+        ],
+      },
+      {
+        key: 'device', label: 'Primary device before bed', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: 'phone',
+        help: 'Closer and brighter screens have more impact. Phones are held nearest the eyes.',
+        options: [
+          { value: 'phone', label: 'Phone' },
+          { value: 'tablet', label: 'Tablet' },
+          { value: 'laptop', label: 'Laptop' },
+          { value: 'tv', label: 'TV (across the room)' },
+          { value: 'ereader', label: 'E-reader (e-ink)' },
+          { value: 'none', label: 'No screen before bed' },
+        ],
+      },
+      {
+        key: 'nightMode', label: 'Night mode / blue-light filter', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: 'sometimes',
+        help: 'Night Shift (Apple), f.lux, Twilight, or built-in warm modes.',
+        options: [
+          { value: 'always', label: 'Always on in the evening' },
+          { value: 'sometimes', label: 'Sometimes' },
+          { value: 'never', label: 'Never / not aware of it' },
+          { value: 'dont', label: "My device doesn't have one" },
+        ],
+      },
+      {
+        key: 'roomLight', label: 'Room lighting in the evening', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: 'normal',
+        help: 'Warm, dim light signals evening to your circadian system.',
+        options: [
+          { value: 'bright', label: 'Bright overhead lights' },
+          { value: 'normal', label: 'Normal room lighting' },
+          { value: 'dim', label: 'Dim / warm lamps' },
+          { value: 'dark', label: 'Mostly dark' },
+        ],
+      },
+      {
+        key: 'curfew', label: 'Screen-free time before bed', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: 'none',
+        help: 'How long before bedtime do you put all screens away?',
+        options: [
+          { value: '60+', label: '60+ minutes' },
+          { value: '30-60', label: '30-60 minutes' },
+          { value: '15-30', label: '15-30 minutes' },
+          { value: 'none', label: 'None — screens until bed' },
+        ],
+      },
+    ],
+    compute: ({ selects }) => {
+      const PREBED: Record<string, number> = { '0': 10, '<30': 8, '30-60': 5, '1-2': 2, '2+': 0 };
+      const EVENING: Record<string, number> = { '0': 8, '<1': 6, '1-2': 4, '2-3': 2, '3+': 0 };
+      const DEVICE: Record<string, number> = { phone: 0, tablet: 4, laptop: 3, tv: 6, ereader: 6, none: 6 };
+      const NIGHT: Record<string, number> = { always: 8, sometimes: 4, never: 0, dont: 2 };
+      const ROOM: Record<string, number> = { bright: 0, normal: 2, dim: 4, dark: 5 };
+      const CURFEW: Record<string, number> = { '60+': 3, '30-60': 2, '15-30': 1, none: 0 };
+
+      const BEDTIME_LABEL: Record<string, string> = { '21': '9 PM', '22': '10 PM', '23': '11 PM', '0': '12 AM', '1': '1 AM', '2': '2 AM or later' };
+      const DEVICE_LABEL: Record<string, string> = { phone: 'Phone', tablet: 'Tablet', laptop: 'Laptop', tv: 'TV', ereader: 'E-reader', none: 'No screen' };
+      const btLabel = BEDTIME_LABEL[selects.bedtime] ?? 'bedtime';
+
+      const factors = [
+        { name: 'Pre-bed screen', pts: PREBED[selects.preBed] ?? 2, max: 10 },
+        { name: 'Evening screen total', pts: EVENING[selects.evening] ?? 4, max: 8 },
+        { name: 'Device type', pts: DEVICE[selects.device] ?? 0, max: 6 },
+        { name: 'Night mode / filter', pts: NIGHT[selects.nightMode] ?? 4, max: 8 },
+        { name: 'Room lighting', pts: ROOM[selects.roomLight] ?? 2, max: 5 },
+        { name: 'Screen curfew', pts: CURFEW[selects.curfew] ?? 0, max: 3 },
+      ];
+
+      const total = factors.reduce((s, f) => s + f.pts, 0);
+      const maxPts = 40;
+      const score = Math.round((total / maxPts) * 100);
+
+      const segments: Segment[] = [
+        { upTo: 25, label: 'Poor', color: C.red },
+        { upTo: 50, label: 'Below average', color: C.amber },
+        { upTo: 70, label: 'Moderate', color: C.teal },
+        { upTo: 85, label: 'Good', color: C.green },
+        { upTo: 100, label: 'Excellent', color: C.blue },
+      ];
+      const band = bandFor(score, segments);
+
+      const areaColor = (pts: number, max: number): string => {
+        const r = pts / max;
+        if (r >= 0.75) return C.blue;
+        if (r >= 0.5) return C.green;
+        if (r >= 0.25) return C.amber;
+        return C.red;
+      };
+
+      const zones = factors.map((f) => ({
+        label: f.name,
+        detail: `${f.pts}/${f.max}`,
+        color: areaColor(f.pts, f.max),
+      }));
+
+      const tips: string[] = [];
+      if ((PREBED[selects.preBed] ?? 2) <= 5)
+        tips.push(`Try a 30-min screen curfew before ${btLabel} — even a short break helps your wind-down.`);
+      if ((DEVICE[selects.device] ?? 0) === 0)
+        tips.push('Phones are held closest to the eyes — switch to a larger screen further away, or use audio-only.');
+      if ((NIGHT[selects.nightMode] ?? 4) <= 2)
+        tips.push(`Enable night mode or a blue-light filter (Night Shift, f.lux, Twilight) starting 2h before ${btLabel}.`);
+      if ((ROOM[selects.roomLight] ?? 2) <= 2)
+        tips.push('Dim overhead lights after dinner — warm lamp light signals evening to your brain.');
+      if ((CURFEW[selects.curfew] ?? 0) <= 1)
+        tips.push(`Build a screen curfew: aim for 30-60 min screen-free before ${btLabel}.`);
+      if ((EVENING[selects.evening] ?? 4) <= 2)
+        tips.push('Reduce overall evening screen time — your circadian system reads light late at night.');
+      if (tips.length === 0)
+        tips.push('Your evening light hygiene is solid. Maintain your current habits.');
+
+      return {
+        ok: true,
+        primaryLabel: 'Evening light hygiene score',
+        primaryValue: `${score}/100`,
+        category: { label: band.label, color: band.color },
+        visual: { kind: 'zones', items: zones },
+        rows: [
+          { label: 'Total points', value: `${total}/${maxPts}` },
+          { label: 'Primary device', value: DEVICE_LABEL[selects.device] ?? 'Phone', strong: true },
+        ],
+        callout: {
+          tone: 'info',
+          text: 'This is a habit score based on general circadian and sleep guidance. It does not measure melatonin suppression or circadian phase shift. Individual sensitivity to evening light varies. Educational only — not medical advice.',
+        },
+        note: `${tips.join('  ')} Method: 6 factors scored on points (pre-bed screen max 10, evening total max 8, device type max 6, night mode max 8, room lighting max 5, curfew max 3; grand max 40 -> 0-100). Your bedtime (${btLabel}) is contextual and does not affect the score. Sources: Harvard Health (blue light and sleep), CDC (sleep hygiene), Chang et al. (evening iPad reading).`,
+      };
+    },
+  },
+
   // ---- Steps to Calories / Distance ----
   'steps-to-calories-calculator': {
     slug: 'steps-to-calories-calculator',
