@@ -700,4 +700,77 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
       },
     ],
   },
+
+  // ============================================================
+  'anti-inflammatory-score': {
+    seoTitle: 'Anti-Inflammatory Diet Score — Food Frequency',
+    metaDescription:
+      'Score your diet for anti-inflammatory foods (vegetables, fruit, fatty fish, olive oil, nuts) vs pro-inflammatory foods (processed meat, sugar, fried food). Free, educational.',
+    intro:
+      'Answer 11 quick questions about how often you eat key anti-inflammatory and pro-inflammatory foods. Get a 0–100 score with per-food bars and specific foods to add or reduce.',
+    notice:
+      'Educational dietary self-assessment only — not a medical diagnosis or treatment plan. If you have an inflammatory condition, talk to your doctor or a registered dietitian before making major dietary changes.',
+    sections: [
+      {
+        h2: 'What is an anti-inflammatory diet?',
+        paragraphs: [
+          'Chronic low-grade inflammation is linked to heart disease, type 2 diabetes, and other conditions. While no single food causes or cures inflammation, overall dietary patterns can nudge your body toward or away from an inflammatory state.',
+          'Anti-inflammatory patterns — like the Mediterranean diet — are rich in vegetables, fruit, whole grains, fatty fish, olive oil, nuts, and legumes, and low in red/processed meat, refined carbohydrates, sugary drinks, and fried foods. This tool scores how closely your eating pattern matches those principles.',
+        ],
+      },
+      {
+        h2: 'How the score works',
+        paragraphs: [
+          'Each of the 11 foods is scored 0–3 based on how often you eat it. Anti-inflammatory foods score higher when you eat them more often; pro-inflammatory foods score higher when you eat them less often (inverted scoring). The maximum is 33 points, scaled to a 0–100 score.',
+          'The bands range from "Pro-inflammatory" (0–33) through "Moderate" to "Strongly anti-inflammatory" (86–100). The per-food bars show exactly which foods are helping and which need work.',
+        ],
+      },
+      {
+        h2: 'Foods to add vs reduce',
+        paragraphs: [
+          'Your result highlights specific foods to add (anti-inflammatory foods you eat rarely) and to reduce (pro-inflammatory foods you eat often). Focus on one or two swaps at a time — small, consistent changes are more sustainable than a complete diet overhaul.',
+          'The highest-impact changes are usually: adding fatty fish (omega-3s), replacing refined carbs with whole grains, swapping sugary drinks for water or tea, and using extra virgin olive oil as your primary cooking fat.',
+        ],
+      },
+      {
+        h2: 'Overlap with Mediterranean and DASH',
+        paragraphs: [
+          'This anti-inflammatory pattern closely overlaps with the Mediterranean diet, which has the strongest evidence base of any dietary pattern for reducing inflammation and cardiovascular risk. The DASH diet (Dietary Approaches to Stop Hypertension) shares the same emphasis on vegetables, fruit, whole grains, and legumes, with an additional focus on low sodium for blood pressure.',
+          'You do not need to follow a named diet to eat anti-inflammatory foods — the principles are the same. Pick the pattern that fits your life and culture.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Is this the Dietary Inflammatory Index (DII)?',
+        a: 'No. The DII is a licensed, proprietary tool. This calculator uses a transparent adherence score inspired by the same research on anti-inflammatory and Mediterranean dietary patterns, but it is not the DII and should not be compared directly to DII scores.',
+      },
+      {
+        q: 'Which foods are most anti-inflammatory?',
+        a: 'The strongest evidence is for fatty fish (omega-3 EPA/DHA), extra virgin olive oil (oleic acid and polyphenols), vegetables and fruit (antioxidants and fiber), and nuts. These form the core of the Mediterranean diet, which has the best evidence for reducing inflammatory markers.',
+      },
+      {
+        q: 'Can diet reduce inflammation?',
+        a: 'Yes — research consistently shows that Mediterranean-style dietary patterns are associated with lower levels of inflammatory markers like CRP and IL-6. The effect is gradual and comes from the overall pattern, not any single "superfood."',
+      },
+      {
+        q: 'Do I need to cut out all pro-inflammatory foods?',
+        a: 'No. The goal is a pattern that is mostly anti-inflammatory, not perfection. Occasional red meat, dessert, or fried food within an otherwise healthy pattern is fine. It is what you eat most of the time that matters.',
+      },
+    ],
+    sources: [
+      {
+        citation: 'Estruch R, Ros E, Salas-Salvadó J, et al. "Primary prevention of cardiovascular disease with a Mediterranean diet supplemented with extra-virgin olive oil or nuts." N Engl J Med. 2018;378(25):e34.',
+        url: pubmed('Primary prevention cardiovascular disease Mediterranean diet extra virgin olive oil nuts Estruch'),
+      },
+      {
+        citation: 'Sofi F, Macchi G, Abbate R, Gensini GF, Casini A. "Mediterranean diet and health status: an updated meta-analysis and a proposal for a literature-based adherence score." Nutr Rev. 2014;72(6):392–399.',
+        url: pubmed('Mediterranean diet health status updated meta-analysis literature-based adherence score Sofi'),
+      },
+      {
+        citation: 'Galland L. "Diet and inflammation." Nutr Clin Pract. 2010;25(6):634–640.',
+        url: pubmed('Diet and inflammation Galland Nutr Clin Pract'),
+      },
+    ],
+  },
 };

@@ -149,6 +149,17 @@ export const TOOLS: Tool[] = [
     live: true,
   },
   {
+    slug: 'anti-inflammatory-score',
+    title: 'Anti-Inflammatory Diet Score',
+    blurb: 'Score your diet for anti-inflammatory vs pro-inflammatory foods — vegetables, fish, olive oil vs processed meat, sugar, fried food.',
+    category: 'nutrition',
+    icon: 'heart',
+    gradient: 'teal',
+    keywords: ['anti inflammatory diet', 'anti inflammatory score', 'mediterranean diet score', 'inflammation diet', 'dietary inflammation'],
+    related: ['mediterranean-diet-score', 'dash-score', 'recipe-nutrition', 'gut-health-score'],
+    live: true,
+  },
+  {
     slug: 'bmr-calculator',
     title: 'BMR Calculator',
     blurb: 'Calculate the calories your body burns completely at rest.',
