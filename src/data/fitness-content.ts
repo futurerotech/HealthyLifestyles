@@ -569,6 +569,92 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
     ],
   },
   // ============================================================
+  'flexibility-mobility-score': {
+    seoTitle: 'Flexibility & Mobility Score — At-Home Test Battery',
+    metaDescription:
+      'Test your flexibility and mobility at home with four simple tests. Get an overall score, per-area breakdown, and targeted stretch suggestions. Free, no equipment.',
+    intro:
+      'Four quick at-home tests — sit-and-reach, shoulder, ankle, and hip mobility — give you an overall mobility score and targeted suggestions for where to focus.',
+    notice:
+      'Never force a range of motion. Stretch to mild tension, not pain. Sharp pain means stop — it signals strain, not progress. This is a general self-assessment, not a clinical measurement.',
+    sections: [
+      {
+        h2: 'The four tests',
+        paragraphs: [
+          'Each test targets a different area that commonly tightens from sitting, training, or aging. You do not need any equipment — a wall, the floor, and your own body are enough.',
+        ],
+        list: {
+          intro: 'How to do each one:',
+          items: [
+            'Sit-and-reach (hamstrings): Sit on the floor, legs straight, feet flat against a wall or box. Reach forward along your legs. Where do your fingertips reach?',
+            'Shoulder mobility (zipper test): Reach one arm over your shoulder and down your back; reach the other up your back from below. Can your fingertips touch or overlap?',
+            'Ankle mobility (knee-to-wall): Stand facing a wall, one foot 10 cm back. Keeping the heel down, drive the knee toward the wall. Does it touch? Move to 12 cm and try again.',
+            'Hip mobility (deep squat): With feet shoulder-width, squat as low as possible. Can you reach a full deep squat with heels down and chest upright?',
+          ],
+        },
+      },
+      {
+        h2: 'How the score works',
+        paragraphs: [
+          'Each test earns points: the sit-and-reach is scored 0–3 (can\'t reach toes → palms flat), and the shoulder, ankle, and hip tests are each scored 0–2 (fail → pass). The maximum raw score is 9.',
+          'Because flexibility naturally declines with age, adults 40–49 get a +0.5 adjustment and those 50+ get +1 — this is a transparent age bonus, not a penalty. The adjusted score maps to five bands from "Below average" to "Excellent".',
+        ],
+      },
+      {
+        h2: 'Reading your per-area breakdown',
+        paragraphs: [
+          'The bars show each area individually, coloured by how you scored. Red or amber areas are where to focus your work; green and blue areas are strengths to maintain.',
+          'Most people who sit for long hours will find their hip flexors, hamstrings, and ankles are the tightest. Desk workers in particular benefit from daily hip and chest mobility work — the Sitting Disease Reversal Calculator can help you build movement into your day.',
+        ],
+      },
+      {
+        h2: 'How to improve',
+        list: {
+          intro: 'Targeted suggestions based on your weakest areas:',
+          items: [
+            'Hamstrings: seated forward fold and standing hamstring stretch. Hold 30 seconds × 3 reps, daily.',
+            'Shoulders: doorway chest stretch, thread-the-needle, and wall slides. 2 sets daily.',
+            'Ankles: wall calf stretch, ankle circles, and foam rolling. 2 sets daily.',
+            'Hips: 90/90 hip stretch, deep squat hold, and couch hip flexor stretch. 2 sets daily.',
+            'Consistency beats intensity: 10 minutes of daily mobility work outperforms one long stretching session per week.',
+          ],
+        },
+      },
+    ],
+    faq: [
+      {
+        q: 'How often should I test my mobility?',
+        a: 'Every 4–6 weeks, under the same conditions (same time of day, same warm-up). Mobility changes gradually — testing more often just measures daily variation, which is affected by sleep, temperature, and recent activity.',
+      },
+      {
+        q: 'Should I stretch before or after exercise?',
+        a: 'Do dynamic mobility (leg swings, arm circles, deep squat holds) before exercise to prepare joints. Save static stretching (holding a stretch 30+ seconds) for after exercise or as a standalone session, when muscles are warm.',
+      },
+      {
+        q: 'Why does flexibility decline with age?',
+        a: 'Connective tissue loses elasticity, and years of sitting and repetitive movement create adaptive shortening in certain muscles. The good news: regular stretching and mobility work can maintain and even restore range of motion at any age.',
+      },
+      {
+        q: 'Is it normal to feel tight on one side but not the other?',
+        a: 'Yes — asymmetry is common, especially if you have a dominant side or favor one leg in sport. Work the tighter side a little more to bring it toward symmetry, which helps prevent injury.',
+      },
+    ],
+    sources: [
+      {
+        citation: 'American College of Sports Medicine. "ACSM\'s Guidelines for Exercise Testing and Prescription." 11th ed. Wolters Kluwer; 2021. (Flexibility assessment and norms.)',
+        url: pubmed('ACSM Guidelines Exercise Testing Prescription flexibility assessment sit and reach'),
+      },
+      {
+        citation: 'American Alliance for Health, Physical Education, Recreation and Dance. "Health-Related Physical Fitness Test Manual." (Sit-and-reach norms.)',
+        url: pubmed('sit and reach test norms flexibility AAHPERD'),
+      },
+      {
+        citation: 'Page P, Frank CC, Lardner R. "Assessment and Treatment of Muscle Imbalance: The Janda Approach." Human Kinetics; 2010.',
+        url: pubmed('Assessment Treatment Muscle Imbalance Janda Approach Page'),
+      },
+    ],
+  },
+  // ============================================================
   'steps-to-calories-calculator': {
     seoTitle: 'Steps to Calories & Distance Calculator',
     metaDescription:

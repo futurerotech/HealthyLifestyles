@@ -1447,6 +1447,144 @@ export const DEFS: Record<string, CalcDef> = {
     },
   },
 
+  // ---- Flexibility & Mobility Score (at-home test battery) ----
+  'flexibility-mobility-score': {
+    slug: 'flexibility-mobility-score',
+    heading: 'Score your flexibility & mobility',
+    hasSex: true,
+    fields: [
+      F.age(30),
+      {
+        key: 'sitReach', label: 'Sit-and-reach test', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: 'fingertips',
+        help: 'Sit on the floor, legs straight, feet flat against a box/wall. Reach forward along your leg. Where do your fingertips reach?',
+        options: [
+          { value: 'short', label: "Can't reach toes" },
+          { value: 'fingertips', label: 'Fingertips touch toes' },
+          { value: 'past', label: 'Fingers 5+ cm past toes' },
+          { value: 'palms', label: 'Palms flat on floor' },
+        ],
+      },
+      {
+        key: 'shoulder', label: 'Shoulder mobility test', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: 'partial',
+        help: 'Reach one arm over the shoulder and the other up the back (zipper test). Can your fingertips touch?',
+        options: [
+          { value: 'fail', label: "Fail — can't reach" },
+          { value: 'partial', label: 'Partial — close but no touch' },
+          { value: 'pass', label: 'Pass — fingertips overlap' },
+        ],
+      },
+      {
+        key: 'ankle', label: 'Ankle mobility (knee-to-wall)', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: 'pass',
+        help: 'Stand 10 cm from a wall. Keep heel down. Can your knee touch the wall? Move to 12 cm and retry.',
+        options: [
+          { value: 'fail', label: "Fail — can't reach at 10 cm" },
+          { value: 'pass', label: 'Pass — reaches at 10 cm' },
+          { value: 'good', label: 'Good — reaches at 12+ cm' },
+        ],
+      },
+      {
+        key: 'hip', label: 'Hip mobility (deep squat)', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: 'pass',
+        help: 'Squat as low as possible with feet shoulder-width. Can you keep heels down and chest up?',
+        options: [
+          { value: 'fail', label: "Fail — can't reach parallel" },
+          { value: 'partial', label: 'Partial — parallel but heels lift' },
+          { value: 'pass', label: 'Pass — full deep squat, heels down' },
+        ],
+      },
+    ],
+    compute: ({ vals, sex, selects }) => {
+      const age = vals.age;
+
+      // Points per test.
+      const SIT_REACH: Record<string, number> = { short: 0, fingertips: 1, past: 2, palms: 3 };
+      const SHOULDER: Record<string, number> = { fail: 0, partial: 1, pass: 2 };
+      const ANKLE: Record<string, number> = { fail: 0, pass: 1, good: 2 };
+      const HIP: Record<string, number> = { fail: 0, partial: 1, pass: 2 };
+
+      const sitPts = SIT_REACH[selects.sitReach] ?? 1;
+      const shldrPts = SHOULDER[selects.shoulder] ?? 1;
+      const anklePts = ANKLE[selects.ankle] ?? 1;
+      const hipPts = HIP[selects.hip] ?? 1;
+      const raw = sitPts + shldrPts + anklePts + hipPts;
+
+      // Age bonus — flexibility naturally declines with age, so older adults
+      // get a small upward adjustment (transparent, not a penalty).
+      const ageBonus = age >= 50 ? 1 : age >= 40 ? 0.5 : 0;
+      const adjusted = Math.min(10, raw + ageBonus);
+      const maxScore = 9;
+
+      const segments: Segment[] = [
+        { upTo: 3, label: 'Below average', color: C.red },
+        { upTo: 5, label: 'Average', color: C.amber },
+        { upTo: 7, label: 'Above average', color: C.teal },
+        { upTo: 9, label: 'Good', color: C.green },
+        { upTo: 10, label: 'Excellent', color: C.blue },
+      ];
+      const band = bandFor(adjusted, segments);
+
+      // Per-area breakdown with targeted suggestions.
+      const areaColor = (pts: number, max: number): string => {
+        const pct = pts / max;
+        if (pct >= 0.85) return C.blue;
+        if (pct >= 0.6) return C.green;
+        if (pct >= 0.4) return C.teal;
+        if (pct > 0) return C.amber;
+        return C.red;
+      };
+
+      const SIT_LABELS: Record<string, string> = { short: "Can't reach toes", fingertips: 'Fingertips to toes', past: 'Past toes', palms: 'Palms flat' };
+      const SHOULDER_LABELS: Record<string, string> = { fail: "Can't reach", partial: 'Close, no touch', pass: 'Overlap' };
+      const ANKLE_LABELS: Record<string, string> = { fail: "Fail at 10 cm", pass: 'Pass at 10 cm', good: 'Good at 12+ cm' };
+      const HIP_LABELS: Record<string, string> = { fail: "Can't parallel", partial: 'Parallel, heels lift', pass: 'Full squat' };
+
+      const SUGGESTIONS: Record<string, string> = {
+        sitReach: 'Seated forward fold + standing hamstring stretch. Hold 30 s × 3, daily.',
+        shoulder: 'Doorway chest stretch, thread-the-needle, wall slides. 2 sets daily.',
+        ankle: 'Wall calf stretch, ankle circles, foam roll calves. 2 sets daily.',
+        hip: '90/90 hip stretch, deep squat hold, couch hip flexor stretch. 2 sets daily.',
+      };
+
+      const zones = [
+        { label: 'Sit & reach (hamstrings)', detail: `${SIT_LABELS[selects.sitReach] ?? ''} — ${sitPts}/3`, color: areaColor(sitPts, 3) },
+        { label: 'Shoulder mobility', detail: `${SHOULDER_LABELS[selects.shoulder] ?? ''} — ${shldrPts}/2`, color: areaColor(shldrPts, 2) },
+        { label: 'Ankle mobility', detail: `${ANKLE_LABELS[selects.ankle] ?? ''} — ${anklePts}/2`, color: areaColor(anklePts, 2) },
+        { label: 'Hip mobility', detail: `${HIP_LABELS[selects.hip] ?? ''} — ${hipPts}/2`, color: areaColor(hipPts, 2) },
+      ];
+
+      // Targeted suggestions for the weakest areas (below "good").
+      const weakAreas: string[] = [];
+      if (sitPts < 2) weakAreas.push(`Hamstrings: ${SUGGESTIONS.sitReach}`);
+      if (shldrPts < 2) weakAreas.push(`Shoulders: ${SUGGESTIONS.shoulder}`);
+      if (anklePts < 2) weakAreas.push(`Ankles: ${SUGGESTIONS.ankle}`);
+      if (hipPts < 2) weakAreas.push(`Hips: ${SUGGESTIONS.hip}`);
+
+      const suggestionText = weakAreas.length > 0
+        ? `Focus areas: ${weakAreas.join('  ')}`
+        : 'You scored well across all areas — maintain with 2–3 mobility sessions per week.';
+
+      return {
+        ok: true,
+        primaryLabel: 'Mobility score',
+        primaryValue: `${fmt(adjusted, 1)}/${maxScore}`,
+        category: { label: band.label, color: band.color },
+        visual: { kind: 'zones', items: zones },
+        rows: [
+          { label: 'Raw score', value: `${raw}/${maxScore}` },
+          { label: 'Age adjustment', value: ageBonus > 0 ? `+${fmt(ageBonus, 1)} (age ${fmt(age, 0)})` : 'None', strong: ageBonus > 0 },
+        ],
+        callout: {
+          tone: 'info',
+          text: 'Never force a range of motion. Stretch to mild tension, not pain. Sharp pain means stop immediately — it signals strain, not progress. Mobility improves with consistent, gentle work, not aggressive forcing.',
+        },
+        note: `${suggestionText} Method: each test scores points (sit-reach 0–3, shoulder/ankle/hip 0–2 each, max 9). An age bonus of +0.5 (40–49) or +1 (50+) adjusts for natural flexibility decline. This is a general self-assessment, not a clinical range-of-motion measurement.`,
+      };
+    },
+  },
+
   // ---- Steps to Calories / Distance ----
   'steps-to-calories-calculator': {
     slug: 'steps-to-calories-calculator',

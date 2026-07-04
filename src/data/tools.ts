@@ -305,6 +305,17 @@ export const TOOLS: Tool[] = [
     live: true,
   },
   {
+    slug: 'flexibility-mobility-score',
+    title: 'Flexibility & Mobility Score',
+    blurb: 'Test your flexibility at home with four quick tests — get an overall score, per-area breakdown, and targeted stretch suggestions.',
+    category: 'fitness',
+    icon: 'activity',
+    gradient: 'green',
+    keywords: ['flexibility test', 'mobility score', 'sit and reach', 'shoulder mobility test', 'flexibility self assessment'],
+    related: ['recovery-time-calculator', 'strength-program-builder', 'sitting-disease-reversal-calculator'],
+    live: true,
+  },
+  {
     slug: 'running-pace-calculator',
     title: 'Running Pace Calculator',
     blurb: 'Solve pace, finish time, or distance — and see your splits.',
