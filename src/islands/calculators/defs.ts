@@ -1185,6 +1185,45 @@ export const DEFS: Record<string, CalcDef> = {
     },
   },
 
+  // ---- FFMI (Fat-Free Mass Index) ----
+  'ffmi-calculator': {
+    slug: 'ffmi-calculator',
+    heading: 'Calculate your FFMI',
+    hasSex: false,
+    fields: [
+      F.weight(72),
+      F.height(175),
+      { key: 'bodyfat', label: 'Body fat', type: 'number', metricDefault: 15, min: 2, max: 60, suffix: '%', help: 'Not sure? Estimate it with the Body Fat Calculator.' },
+    ],
+    compute: ({ vals, units }) => {
+      const heightM = vals.height / 100;
+      const lbm = vals.weight * (1 - vals.bodyfat / 100);
+      const ffmi = lbm / (heightM * heightM);
+      const normalized = ffmi + 6.1 * (1.8 - heightM);
+      const segments: Segment[] = [
+        { upTo: 18, label: 'Below average', color: C.blue },
+        { upTo: 20, label: 'Average', color: C.green },
+        { upTo: 22, label: 'Above average', color: C.teal },
+        { upTo: 25, label: 'High', color: C.amber },
+        { upTo: 30, label: 'Very high', color: C.red },
+      ];
+      const band = bandFor(ffmi, segments);
+      return {
+        ok: true,
+        primaryLabel: 'Your FFMI',
+        primaryValue: fmt(ffmi, 1),
+        category: { label: band.label, color: band.color },
+        visual: { kind: 'gauge', value: ffmi, min: 14, max: 30, segments },
+        rows: [
+          { label: 'Normalized FFMI (height-adjusted)', value: fmt(normalized, 1), strong: true },
+          { label: 'Lean body mass (LBM)', value: fmtMass(lbm, units, 1) },
+          { label: 'Body fat mass', value: fmtMass(vals.weight - lbm, units, 1) },
+        ],
+        note: 'FFMI = lean body mass ÷ height². Normalized FFMI adds a height correction so shorter and taller lifters can be compared fairly. Values above ~25 are uncommon for natural athletes and often point to a body-fat measurement error — treat extreme numbers as a prompt to re-check your input, not as a judgment.',
+      };
+    },
+  },
+
   // ---- Steps to Calories / Distance ----
   'steps-to-calories-calculator': {
     slug: 'steps-to-calories-calculator',

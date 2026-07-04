@@ -341,6 +341,74 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
   },
 
   // ============================================================
+  'ffmi-calculator': {
+    seoTitle: 'FFMI Calculator — Fat-Free Mass Index for Athletes',
+    metaDescription:
+      'Calculate your Fat-Free Mass Index (FFMI) and height-normalized FFMI. A useful fitness metric for lifters and athletes — not a medical diagnosis.',
+    intro:
+      'FFMI measures how much lean mass you carry relative to your height. Enter your weight, height and body-fat percentage to see your FFMI, your height-normalized score, and where you sit on the athlete reference scale.',
+    notice:
+      'Educational fitness metric only — not a health diagnosis. If you are unsure of your body-fat percentage, estimate it first with the Body Fat Calculator.',
+    sections: [
+      {
+        h2: 'What is FFMI?',
+        paragraphs: [
+          'Fat-Free Mass Index (FFMI) is your lean body mass divided by your height in metres squared. It is similar in shape to BMI, but instead of comparing total body weight it compares only your fat-free mass — muscle, bone, organs and water. That makes it more meaningful for athletes and lifters, who can be heavy but metabolically healthy because of extra muscle.',
+          'Because taller people have more frame to fill, FFMI also includes a height correction (the “normalized” score) so a 165 cm lifter and a 195 cm lifter can be compared on the same scale.',
+        ],
+      },
+      {
+        h2: 'How the calculation works',
+        paragraphs: [
+          'First we subtract your fat mass from your total weight to get lean body mass (LBM). Then we divide LBM by height² to get FFMI. The normalized version adds 6.1 × (1.8 − height in metres) to correct for stature.',
+        ],
+        list: {
+          intro: 'The formulas are:',
+          items: [
+            'LBM = weight × (1 − body fat %)',
+            'FFMI = LBM ÷ height(m)²',
+            'Normalized FFMI = FFMI + 6.1 × (1.8 − height m)',
+          ],
+        },
+      },
+      {
+        h2: 'Reading your result',
+        paragraphs: [
+          'The reference bands are calibrated to common population and athlete data. Most untrained adults fall in the 17–19 range; trained natural lifters often sit around 20–23. Values above ~25 are very unusual for natural athletes and usually mean the body-fat estimate is too low, so re-check your input before drawing any conclusion.',
+          'FFMI is best used to track your own progress over time, not to compare yourself to outliers online.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'What is a good FFMI?',
+        a: 'For most men, 18–20 is average, 20–22 is athletic, and 22–25 is highly muscular. For women, subtract roughly 1.5–2 points because of higher essential body fat. The most useful comparison is your own trend over time.',
+      },
+      {
+        q: 'Why normalize FFMI for height?',
+        a: 'Taller people naturally have more bone and muscle mass. The normalized score adds a height correction so FFMI can be compared fairly across short and tall individuals.',
+      },
+      {
+        q: 'Can FFMI tell if someone is natural?',
+        a: 'No. Extremely high values are uncommon for natural athletes, but they can also come from an inaccurate body-fat estimate, unusual genetics, or measurement error. FFMI is not a diagnostic or judgment tool.',
+      },
+      {
+        q: 'How do I estimate body-fat percentage?',
+        a: 'You can use the Body Fat Calculator here, which estimates body fat from a few tape measurements, or a reliable smart scale, DEXA scan, or skinfold callipers for a more accurate number.',
+      },
+    ],
+    sources: [
+      {
+        citation: 'Schutz Y, Kyle UU, Pichard C. "Fat-free mass index and fat mass index percentiles in Caucasians aged 18–98 y." Int J Obes Relat Metab Disord. 2002.',
+        url: pubmed('Fat-free mass index percentiles Caucasians Schutz'),
+      },
+      {
+        citation: 'Kouri EM, Pope HG Jr, Katz DL, Oliva P. "Fat-free mass index in users and nonusers of anabolic-androgenic steroids." Clin J Sport Med. 1995.',
+        url: pubmed('Fat-free mass index anabolic androgenic steroids Kouri'),
+      },
+    ],
+  },
+  // ============================================================
   'steps-to-calories-calculator': {
     seoTitle: 'Steps to Calories & Distance Calculator',
     metaDescription:

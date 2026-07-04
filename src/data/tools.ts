@@ -272,6 +272,17 @@ export const TOOLS: Tool[] = [
     live: true,
   },
   {
+    slug: 'ffmi-calculator',
+    title: 'FFMI Calculator',
+    blurb: 'Calculate your Fat-Free Mass Index and height-normalized FFMI for athletes and lifters.',
+    category: 'fitness',
+    icon: 'dumbbell',
+    gradient: 'green',
+    keywords: ['ffmi calculator', 'fat free mass index', 'ffmi natural limit', 'muscle index', 'lean mass index'],
+    related: ['body-fat-calculator', 'lean-body-mass-calculator', 'one-rep-max-calculator', 'strength-program-builder'],
+    live: true,
+  },
+  {
     slug: 'running-pace-calculator',
     title: 'Running Pace Calculator',
     blurb: 'Solve pace, finish time, or distance — and see your splits.',
