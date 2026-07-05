@@ -103,6 +103,7 @@ export const FOOTER_COMPANY = [
   { label: 'Contact', href: '/contact' },
   { label: 'All Tools', href: '/tools' },
   { label: 'Wellness Hub', href: '/wellness-hub' },
+  { label: 'Sitemap', href: '/sitemap' },
 ] as const;
 
 export const SOCIAL_NETWORKS = {

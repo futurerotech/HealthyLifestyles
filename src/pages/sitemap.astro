@@ -1,0 +1,132 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import { getCategories, getTools, getArticles, getSiteConsts } from '../lib/cms';
+
+const [categories, tools, articles, siteConsts] = await Promise.all([
+  getCategories(),
+  getTools(),
+  getArticles(),
+  getSiteConsts(),
+]);
+
+const liveTools = tools.filter((t) => t.live);
+const publishedArticles = articles.filter((a) => a._status === 'published');
+
+// Group tools by category
+const toolsByCategory = categories.map((cat) => ({
+  category: cat,
+  tools: liveTools.filter((t) => t.category === cat.id),
+})).filter((g) => g.tools.length > 0);
+
+// Group articles by category
+const articlesByCategory = categories.map((cat) => ({
+  category: cat,
+  articles: publishedArticles.filter((a) => a.category === cat.id),
+})).filter((g) => g.articles.length > 0);
+
+const SITE = siteConsts.SITE;
+const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
+const items = [{ label: 'Home', href: '/' }, { label: 'Sitemap' }];
+
+const breadcrumbLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: items.map((c, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: c.label,
+    ...(c.href ? { item: new URL(c.href, origin).href.replace(/\/$/, '') } : {}),
+  })),
+};
+---
+
+<BaseLayout
+  title={`Sitemap | ${SITE.name}`}
+  description="Complete index of all health calculators, tools, and wellness articles on HealthyLifeStyles."
+  jsonLd={[breadcrumbLd]}
+>
+  <div class="container" style="max-width: 900px;">
+    <Breadcrumb items={items} />
+
+    <h1 style="font-family: var(--font-display); font-size: 2rem; margin: 1.5rem 0 0.5rem;">
+      Sitemap
+    </h1>
+    <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem;">
+      {liveTools.length} health calculators & tools · {publishedArticles.length} wellness articles · all free
+    </p>
+
+    <!-- Site pages -->
+    <section style="margin-bottom: 2.5rem;">
+      <h2 style="font-size: 1.2rem; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--green-primary);">
+        Site Pages
+      </h2>
+      <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.5rem;">
+        <li><a href="/" style="color: var(--green-700); font-weight: 600;">Home</a></li>
+        <li><a href="/tools" style="color: var(--green-700); font-weight: 600;">All Tools</a></li>
+        <li><a href="/wellness-hub" style="color: var(--green-700); font-weight: 600;">Wellness Hub</a></li>
+        <li><a href="/health-score" style="color: var(--green-700);">Health Score</a></li>
+        <li><a href="/about" style="color: var(--green-700);">About Us</a></li>
+        <li><a href="/editorial-policy" style="color: var(--green-700);">Editorial Policy</a></li>
+        <li><a href="/methodology" style="color: var(--green-700);">Methodology</a></li>
+        <li><a href="/medical-disclaimer" style="color: var(--green-700);">Medical Disclaimer</a></li>
+        <li><a href="/contact" style="color: var(--green-700);">Contact</a></li>
+        <li><a href="/privacy" style="color: var(--green-700);">Privacy Policy</a></li>
+        <li><a href="/terms" style="color: var(--green-700);">Terms of Service</a></li>
+        <li><a href="/accessibility" style="color: var(--green-700);">Accessibility</a></li>
+      </ul>
+    </section>
+
+    <!-- Tools by category -->
+    {toolsByCategory.map(({ category, tools }) => (
+      <section style="margin-bottom: 2.5rem;">
+        <h2 style="font-size: 1.2rem; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border);">
+          <a href={`/${category.slug}`} style="color: var(--ink); text-decoration: none;">
+            {category.name}
+          </a>
+          <span style="color: var(--muted); font-size: 0.85rem; font-weight: 400;"> — {tools.length} tools</span>
+        </h2>
+        <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 0.4rem;">
+          {tools.map((tool) => (
+            <li>
+              <a href={`/tools/${tool.slug}`} style="color: var(--green-700); font-size: 0.88rem; text-decoration: none;">
+                {tool.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+
+    <!-- Articles by category -->
+    {articlesByCategory.length > 0 && (
+      <section style="margin-bottom: 2.5rem;">
+        <h2 style="font-size: 1.2rem; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border);">
+          Wellness Hub Articles
+        </h2>
+        {articlesByCategory.map(({ category, articles }) => (
+          <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 0.95rem; color: var(--muted); margin-bottom: 0.4rem;">
+              <a href={`/wellness-hub/${category.slug}`} style="color: var(--ink); text-decoration: none;">
+                {category.name}
+              </a>
+            </h3>
+            <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 0.4rem;">
+              {articles.map((article) => (
+                <li>
+                  <a href={`/wellness-hub/${article.category}/${article.slug}`} style="color: var(--green-700); font-size: 0.88rem; text-decoration: none;">
+                    {article.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </section>
+    )}
+
+    <p style="color: var(--muted); font-size: 0.8rem; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+      For search engines, see our <a href="/sitemap-index.xml" style="color: var(--green-700);">XML sitemap</a>.
+    </p>
+  </div>
+</BaseLayout>
