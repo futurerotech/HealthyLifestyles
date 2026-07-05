@@ -23,6 +23,11 @@ const IOM_WEIGHT: Source = {
 export const WOMENS_CONTENT: Record<string, ToolContent> = {
   // ============================================================
   'due-date-calculator': {
+    directAnswer: {
+      question: 'How is a due date calculated?',
+      answer:
+        'The standard estimate (Naegele’s rule) adds 280 days — 40 weeks — to the first day of your last menstrual period. From a known conception date it’s 266 days, and IVF pregnancies count from the transfer day. It’s an estimate, not a promise: delivery anywhere from 37 to 42 weeks is considered normal (ACOG).',
+    },
     seoTitle: 'Pregnancy Due Date Calculator (Naegele)',
     metaDescription:
       'Estimate your due date from your last period, conception date, or IVF transfer. See your current week and trimester. Free, no signup.',
@@ -66,7 +71,13 @@ export const WOMENS_CONTENT: Record<string, ToolContent> = {
         a: 'IVF dating uses the known transfer date and embryo age, so it is often more precise than LMP. A day-5 transfer already counts as 19 days of gestation.',
       },
     ],
-    sources: [ACOG_DUE],
+    sources: [
+      ACOG_DUE,
+      {
+        citation: 'American College of Obstetricians and Gynecologists. "How Your Fetus Grows During Pregnancy" — gestational age and trimester basics.',
+        url: 'https://www.acog.org/womens-health/faqs/how-your-fetus-grows-during-pregnancy',
+      },
+    ],
   },
 
   // ============================================================

@@ -58,6 +58,11 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
   },
   // ============================================================
   'bmi-calculator': {
+    directAnswer: {
+      question: 'What is a healthy BMI?',
+      answer:
+        'For most adults, a healthy BMI is 18.5–24.9. Below 18.5 is classed as underweight, 25–29.9 as overweight, and 30 or above as obesity (WHO/CDC categories). BMI is a screening measure, not a diagnosis — it can’t tell muscle from fat, so athletes and older adults should read it in context.',
+    },
     seoTitle: 'Free BMI Calculator (Metric & Imperial)',
     metaDescription:
       'Calculate your BMI instantly and see your WHO weight category and healthy weight range. Free, accurate, metric or imperial — no signup.',
@@ -110,7 +115,13 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
         a: 'Children and teens use age- and sex-specific BMI percentiles instead of the fixed adult categories. This adult calculator is intended for people aged 18 and over.',
       },
     ],
-    sources: [WHO_OBESITY],
+    sources: [
+      WHO_OBESITY,
+      {
+        citation: 'Centers for Disease Control and Prevention (CDC). "About BMI" — adult categories, uses, and limitations.',
+        url: 'https://www.cdc.gov/bmi/about/index.html',
+      },
+    ],
   },
 
   // ============================================================
@@ -220,6 +231,11 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
 
   // ============================================================
   'body-fat-calculator': {
+    directAnswer: {
+      question: 'How can I estimate body fat without calipers?',
+      answer:
+        'The U.S. Navy circumference method estimates body fat percentage from your height, neck, and waist measurements (plus hips for women) using a validated logarithmic formula — all you need is a tape measure. Taken carefully, it generally lands within a few percentage points of laboratory methods, making it a practical home estimate.',
+    },
     seoTitle: 'Body Fat Calculator – U.S. Navy Method',
     metaDescription:
       'Estimate your body fat percentage with the U.S. Navy tape method using a few measurements. Free, metric or imperial, with category and gauge.',

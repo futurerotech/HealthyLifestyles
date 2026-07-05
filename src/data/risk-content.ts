@@ -28,6 +28,11 @@ const ADA: Source = {
 export const RISK_CONTENT: Record<string, ToolContent> = {
   // ============================================================
   'healthspan-score': {
+    directAnswer: {
+      question: 'What is a healthspan score?',
+      answer:
+        'It’s a 0–100 summary of the everyday habits — physical activity, diet, sleep, smoking, alcohol, stress, and social connection — that public-health guidance links with more healthy, disease-free years. On this tool, 80+ is excellent, 50–79 good, and under 50 needs attention. It reflects habits only, never a medical prediction.',
+    },
     seoTitle: 'Healthspan Score – Free Healthy-Habits Calculator',
     metaDescription:
       'Score your everyday habits (0–100) against WHO and CDC lifestyle guidance and see your 2–3 highest-impact next steps. Educational — not a lifespan prediction.',

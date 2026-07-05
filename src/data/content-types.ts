@@ -19,6 +19,13 @@ export interface ToolContent {
   metaDescription: string;
   /** One–two sentences under the H1. */
   intro: string;
+  /**
+   * AI-citation readiness: the page's core question answered directly in
+   * 40–60 plain-language words (sourced facts only — no invented numbers).
+   * Rendered as a prominent "Quick answer" box above the calculator and
+   * prepended to the FAQPage JSON-LD so assistants/snippets can lift it.
+   */
+  directAnswer?: { question: string; answer: string };
   /** Optional prominent safety banner shown above the calculator (e.g. heart tools). */
   notice?: string;
   sections: ContentSection[];

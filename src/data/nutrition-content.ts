@@ -22,6 +22,11 @@ const MORTON_PROTEIN: Source = {
 export const NUTRITION_CONTENT: Record<string, ToolContent> = {
   // ============================================================
   'intermittent-fasting-calculator': {
+    directAnswer: {
+      question: 'How does 16:8 intermittent fasting work?',
+      answer:
+        'You fast for 16 hours and eat within an 8-hour window — for example, eating between 12 pm and 8 pm, then fasting overnight until noon. Water, black coffee, and plain tea are generally considered fine during the fast. This tool maps your exact eating and fasting windows from your chosen start time, with a live countdown.',
+    },
     seoTitle: 'Intermittent Fasting Calculator & Timer (16:8)',
     metaDescription:
       'Free intermittent fasting calculator: pick 16:8, 18:6, OMAD or 5:2, set your eating window, and run a live fasting timer. Educational, not medical advice.',
@@ -30,6 +35,13 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
     notice:
       'Educational only, not medical advice — and intermittent fasting isn’t for everyone. It’s not recommended during pregnancy or breastfeeding, under 18, with a history of disordered eating, or with diabetes or other conditions affected by meal timing. Check with a professional first.',
     sections: [
+      {
+        h2: 'How your fasting window is calculated',
+        paragraphs: [
+          'Pick a protocol (16:8, 18:6, 20:4, OMAD, or 5:2) and the time you want your eating window to open. The tool adds the protocol’s eating-window length to that start time to get your closing time; everything outside it is your fasting window, and the countdown simply tracks where “now” falls in that cycle.',
+          'The math is deliberately simple clock arithmetic — nothing is personalized to your metabolism. Evidence suggests the protocol you can actually stick to matters far more than the exact hours, so choose the window that fits your life (see the FAQ for what does and doesn’t break a fast).',
+        ],
+      },
       {
         h2: 'What is intermittent fasting?',
         paragraphs: [
@@ -208,6 +220,11 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
   },
   // ============================================================
   'calorie-calculator': {
+    directAnswer: {
+      question: 'How many calories should I eat a day?',
+      answer:
+        'General guidance puts daily needs around 1,600–2,400 calories for adult women and 2,000–3,000 for adult men, depending on age, size, and activity (Dietary Guidelines for Americans). To lose about 1 lb a week, aim roughly 500 calories below maintenance — this calculator estimates your personal numbers with the Mifflin–St Jeor equation.',
+    },
     seoTitle: 'Calorie Calculator – Daily TDEE & Goals',
     metaDescription:
       'Calculate your daily calories (TDEE) with the Mifflin-St Jeor formula, plus targets to lose, maintain, or gain weight. Free, metric or imperial.',
@@ -263,11 +280,22 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
         a: 'It uses the Mifflin-St Jeor equation, the most accurate common formula, but results are estimates. Track your weight for a few weeks and adjust your intake based on real-world results.',
       },
     ],
-    sources: [MIFFLIN],
+    sources: [
+      MIFFLIN,
+      {
+        citation: 'U.S. Dietary Guidelines for Americans — estimated daily calorie needs by age, sex, and activity level.',
+        url: 'https://odphp.health.gov/our-work/nutrition-physical-activity/dietary-guidelines',
+      },
+    ],
   },
 
   // ============================================================
   'macro-calculator': {
+    directAnswer: {
+      question: 'What is a good macro split?',
+      answer:
+        'The Dietary Guidelines’ acceptable ranges are 10–35% of calories from protein, 45–65% from carbohydrate, and 20–35% from fat. A common starting point for body-composition goals is 30% protein / 40% carbs / 30% fat — this calculator turns whichever split you choose into daily grams from your calorie target.',
+    },
     seoTitle: 'Macro Calculator – Protein, Carbs & Fat',
     metaDescription:
       'Split your daily calories into protein, carbs, and fat for cutting, maintaining, or bulking. Free macro calculator with grams and a visual breakdown.',
@@ -319,6 +347,11 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
 
   // ============================================================
   'protein-intake-calculator': {
+    directAnswer: {
+      question: 'How much protein do I need a day?',
+      answer:
+        'The RDA is 0.8 g of protein per kg of body weight (about 0.36 g per lb) — a minimum for sedentary adults. Active people generally do better at 1.2–2.0 g/kg, with about 1.6 g/kg or more supporting muscle growth in training. For a 70 kg (154 lb) adult, that means roughly 56–140 g per day.',
+    },
     seoTitle: 'Protein Intake Calculator (g per day)',
     metaDescription:
       'Find your daily protein target from body weight and activity — from 0.8 g/kg for general health up to 2.2 g/kg for athletes. Free, metric or imperial.',
@@ -852,6 +885,11 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
 
   // ============================================================
   'recipe-nutrition-analyzer': {
+    directAnswer: {
+      question: 'How do I find the nutrition of a recipe?',
+      answer:
+        'Paste the ingredient list and set your servings: AI splits the text into ingredients and converts each to grams, then every calorie and nutrient value is looked up in the USDA FoodData Central database and summed per serving. For recipes made from common, generic ingredients, estimates typically land within 10–20% of lab-analyzed values.',
+    },
     seoTitle: 'Recipe Nutrition Analyzer — USDA-Powered Estimates',
     metaDescription:
       'Paste any recipe or ingredient list and get estimated nutrition per serving. AI parses ingredients, USDA FoodData Central provides the numbers. Free, no signup.',

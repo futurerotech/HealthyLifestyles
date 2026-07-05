@@ -117,11 +117,22 @@ const appLd = {
 const faqLd = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
-  mainEntity: content.faq.map((f) => ({
-    '@type': 'Question',
-    name: f.q,
-    acceptedAnswer: { '@type': 'Answer', text: f.a },
-  })),
+  // The Quick-answer box leads the FAQPage schema so assistants can lift the
+  // page's core answer directly (AI-citation readiness).
+  mainEntity: [
+    ...(content.directAnswer
+      ? [{
+          '@type': 'Question',
+          name: content.directAnswer.question,
+          acceptedAnswer: { '@type': 'Answer', text: content.directAnswer.answer },
+        }]
+      : []),
+    ...content.faq.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  ],
 };
 
 // Health content → MedicalWebPage with review info for E-E-A-T.
@@ -183,6 +194,17 @@ const medicalLd = {
         }
       </div>
     </header>
+
+    <!-- Quick answer — the page's core question answered directly (AI-citation
+         readiness: liftable by assistants/snippets; also leads the FAQPage LD). -->
+    {content.directAnswer && (
+      <section class="container" aria-labelledby="quick-answer-title">
+        <div class="tool__answer">
+          <h2 id="quick-answer-title" class="tool__answer-q">{content.directAnswer.question}</h2>
+          <p class="tool__answer-a">{content.directAnswer.answer}</p>
+        </div>
+      </section>
+    )}
 
     <!-- Calculator -->
     <section class="container tool__calc" data-tool={tool.slug} aria-label={`${tool.title} tool`}>
@@ -486,6 +508,26 @@ const medicalLd = {
     z-index: 1;
     margin-bottom: 1.25rem;
   }
+  .tool__answer {
+    max-width: 72ch;
+    margin: 0 0 clamp(1.25rem, 3vw, 2rem);
+    padding: 1rem 1.25rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--green-primary);
+    border-radius: var(--radius-sm);
+  }
+  .tool__answer-q {
+    margin: 0 0 0.4rem;
+    font-size: 1.02rem;
+  }
+  .tool__answer-a {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+
   .tool__result-note {
     display: flex;
     align-items: flex-start;

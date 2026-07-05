@@ -146,6 +146,11 @@ export const SLEEP_CONTENT: Record<string, ToolContent> = {
   },
   // ============================================================
   'sleep-calculator': {
+    directAnswer: {
+      question: 'What time should I go to bed?',
+      answer:
+        'Count back five or six 90-minute sleep cycles (7.5–9 hours) from your wake-up time, then add about 15 minutes to fall asleep. To wake at 6:30 am, that puts lights-out around 9:00–10:45 pm. Waking at the end of a cycle — rather than mid-cycle — is what makes mornings feel noticeably easier.',
+    },
     seoTitle: 'Sleep Calculator – Best Bedtime by Cycles',
     metaDescription:
       'Find the best time to sleep or wake using 90-minute sleep cycles. Enter your wake-up time or bedtime for cycle-based suggestions. Free, no signup.',
