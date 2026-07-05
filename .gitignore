@@ -3,3 +3,6 @@ dist/
 .env
 cms/
 .vercel
+
+# Local build/debug artifacts — never commit
+build*.log
