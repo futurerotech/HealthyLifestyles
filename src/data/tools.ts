@@ -23,6 +23,8 @@ export interface Tool {
   live?: boolean;
   /** YMYL risk tier from the CMS — sizes the medical disclaimer (high = prominent). */
   riskLevel?: 'low' | 'medium' | 'high';
+  /** CMS semantic entities — emitted as DefinedTerm `about` in the tool JSON-LD. */
+  semanticEntities?: { term: string; url?: string }[];
 }
 
 export const TOOLS: Tool[] = [

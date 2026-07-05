@@ -213,6 +213,7 @@ interface CmsTool {
   sortOrder?: number;
   related?: unknown[];
   riskLevel?: string;
+  semanticEntities?: { term?: string; url?: string }[];
   seo?: { metaDescription?: string; keywords?: string[] };
 }
 
@@ -229,6 +230,9 @@ function mapTool(t: CmsTool): Tool {
     related: Array.isArray(t.related) ? t.related.map(pickSlug).filter(Boolean) : undefined,
     live: t.enabled !== false,
     riskLevel: t.riskLevel === 'high' || t.riskLevel === 'medium' ? t.riskLevel : 'low',
+    semanticEntities: (t.semanticEntities || [])
+      .map((e) => ({ term: str(e.term), url: str(e.url) || undefined }))
+      .filter((e) => e.term),
   };
 }
 

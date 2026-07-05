@@ -147,6 +147,17 @@ const medicalLd = {
   reviewedBy: { '@type': 'Organization', name: EDITORIAL.reviewerName },
   audience: { '@type': 'MedicalAudience', audienceType: 'https://schema.org/Patient' },
   isPartOf: { '@type': 'WebSite', name: SITE.name, url: origin.href },
+  // CMS semantic entities → DefinedTerm `about` (same pattern as articles):
+  // turns stored entities into a real topical-authority signal for search/AI.
+  ...((tool.semanticEntities?.length ?? 0) > 0
+    ? {
+        about: tool.semanticEntities!.map((e) => ({
+          '@type': 'DefinedTerm',
+          name: e.term,
+          ...(e.url ? { url: e.url } : {}),
+        })),
+      }
+    : {}),
 };
 ---
 
