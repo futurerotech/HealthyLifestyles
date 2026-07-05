@@ -171,6 +171,17 @@ export const TOOLS: Tool[] = [
     live: true,
   },
   {
+    slug: 'recipe-nutrition-analyzer',
+    title: 'Recipe Nutrition Analyzer',
+    blurb: 'Paste any recipe and get estimated nutrition per serving. AI parses ingredients, USDA FoodData Central provides the numbers. Free, no signup.',
+    category: 'nutrition',
+    icon: 'utensils',
+    gradient: 'green',
+    keywords: ['recipe nutrition', 'recipe calorie calculator', 'nutrition analyzer', 'recipe macros', 'ingredient nutrition calculator'],
+    related: ['macro-calculator', 'calorie-calculator', 'meal-plan-generator', 'anti-inflammatory-score'],
+    live: true,
+  },
+  {
     slug: 'bmr-calculator',
     title: 'BMR Calculator',
     blurb: 'Calculate the calories your body burns completely at rest.',

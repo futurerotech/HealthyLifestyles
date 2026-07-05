@@ -1,0 +1,11 @@
+---
+import ToolPageLayout from '../../components/ToolPageLayout.astro';
+import { getTool } from '../../lib/cms';
+import { getToolContent } from '../../data/tool-content';
+import '../../styles/recipe-analyzer.css';
+
+const tool = await getTool('recipe-nutrition-analyzer')!;
+const content = getToolContent('recipe-nutrition-analyzer')!;
+---
+
+<ToolPageLayout tool={tool} content={content} />

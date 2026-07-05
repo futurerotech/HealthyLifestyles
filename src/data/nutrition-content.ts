@@ -849,4 +849,70 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
       },
     ],
   },
+
+  // ============================================================
+  'recipe-nutrition-analyzer': {
+    seoTitle: 'Recipe Nutrition Analyzer — USDA-Powered Estimates',
+    metaDescription:
+      'Paste any recipe or ingredient list and get estimated nutrition per serving. AI parses ingredients, USDA FoodData Central provides the numbers. Free, no signup.',
+    intro:
+      'Paste a recipe or ingredient list, choose your servings, and get estimated nutrition per serving. The AI splits and converts your ingredients; all nutrient values come from the USDA FoodData Central database.',
+    notice:
+      'Nutrition values are estimates for general education, not medical or dietary advice. For medical nutrition therapy, consult a registered dietitian or your clinician.',
+    sections: [
+      {
+        h2: 'How this works',
+        paragraphs: [
+          'This tool uses a hybrid data approach. First, an AI model reads your recipe text and splits it into individual ingredients, converting household measurements (cups, tablespoons, counts) to grams. Then each ingredient is matched to the USDA FoodData Central database, which provides the actual nutrient values. Finally, our code calculates the totals.',
+          'The AI never estimates calorie or nutrient values. Its only job is parsing and unit conversion. All nutrition numbers come directly from USDA data. This means the estimates are only as good as the USDA match — generic ingredients like "chicken breast" match well, while branded or unusual items may not.',
+        ],
+      },
+      {
+        h2: 'Limitations and accuracy',
+        paragraphs: [
+          'These are estimates, not lab analyses. Several factors affect accuracy: the USDA database uses generic items (not specific brands), cooking and preparation methods change nutrient values, oils and marinades may not fully transfer to the finished dish, and volume-to-weight conversions are always approximate.',
+          'When an ingredient cannot be matched to a USDA item, it is excluded from the totals and listed as "could not identify." When a nutrient (especially fiber or sugar) is not reported by the USDA for a given item, it shows as a dash, not zero. A dash means "not available," not "none."',
+        ],
+      },
+      {
+        h2: 'Why estimates differ from packaging',
+        paragraphs: [
+          'Food packaging labels come from the manufacturer and may use different serving sizes, preparation assumptions, or ingredient formulations than the USDA generic items. Both can be correct and still differ. This tool uses USDA SR Legacy and Foundation data types, which are the most reliable generic-ingredient sources available.',
+          'If you need exact nutrition for a branded product, check the nutrition label on the package. This tool is best for recipes made from whole, generic ingredients.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Does the AI make up the nutrition numbers?',
+        a: 'No. The AI only splits your recipe into ingredients and converts units to grams. All calorie, protein, carb, fat, fiber, sugar, and sodium values come from the USDA FoodData Central database. The AI never outputs nutrient values.',
+      },
+      {
+        q: 'Why does a nutrient show as a dash?',
+        a: 'A dash means the USDA did not report that nutrient for one or more ingredients in your recipe. This is most common for fiber and sugar in certain SR Legacy items. A dash does not mean zero — it means "not available." The total for that nutrient may be understated.',
+      },
+      {
+        q: 'How accurate are the estimates?',
+        a: 'For recipes using common, generic ingredients with clear quantities, the estimates are typically within 10-20% of lab-analyzed values. Accuracy decreases with unusual ingredients, imprecise quantities ("a handful"), or complex preparation methods. The "converted" badge on an ingredient means a volume measurement was approximated to grams.',
+      },
+      {
+        q: 'Does cooking change the nutrition values?',
+        a: 'Yes. Cooking can add or remove water (changing weight), break down fiber, render fat, and concentrate or dilute nutrients. The USDA database includes both raw and cooked items — for the most accurate estimate, specify whether ingredients are raw or cooked (e.g. "1 cup cooked rice" rather than just "1 cup rice").',
+      },
+      {
+        q: 'Can I use this for medical nutrition therapy?',
+        a: 'No. This tool provides general educational estimates only. If you need precise nutrition data for a medical condition (diabetes, kidney disease, food allergies, etc.), consult a registered dietitian who can provide individualized guidance based on your specific needs.',
+      },
+    ],
+    sources: [
+      {
+        citation: 'U.S. Department of Agriculture, Agricultural Research Service. "FoodData Central." (SR Legacy and Foundation data types used for generic ingredient nutrition values.)',
+        url: 'https://fdc.nal.usda.gov/',
+      },
+      {
+        citation: 'U.S. Department of Agriculture. "FoodData Central: Data Types." (Documentation on SR Legacy, Foundation, and Branded data types and their methodology.)',
+        url: 'https://fdc.nal.usda.gov/docs.html',
+      },
+    ],
+  },
 };
