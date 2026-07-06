@@ -35,6 +35,20 @@ const minutes = readingTimeMinutes(articlePlainText(article));
 const sidebarTools = tools;
 const catLookup = Object.fromEntries(allCats.map((c) => [c.slug, c]));
 
+// In-content ads (approved placement audit): ONE unit before the second H2 —
+// i.e. after the intro + the whole first section — and, on long articles
+// (5+ H2 sections), a second unit two sections later. Insertions land only on
+// H2 boundaries and are skipped when they would sit against a callout, so an
+// ad can never split or crowd a disclaimer/health warning.
+const isCallout = (i: number) => article.body[i]?.type === 'callout';
+const h2Positions = article.body.map((b, i) => (b.type === 'h2' ? i : -1)).filter((i) => i >= 0);
+const inContentAdAt = new Set<number>();
+const tryAd = (pos?: number) => {
+  if (pos !== undefined && !isCallout(pos - 1) && !isCallout(pos + 1)) inContentAdAt.add(pos);
+};
+tryAd(h2Positions[1]);
+if (h2Positions.length >= 5) tryAd(h2Positions[3]);
+
 const breadcrumbItems = [
   { label: 'Home', href: '/' },
   { label: 'Wellness Hub', href: '/wellness-hub' },
@@ -102,8 +116,14 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
       )}
 
       <div class="wh-prose">
-        {article.body.map((block) => {
-          if (block.type === 'h2') return <h2 id={slugify(block.text)}>{block.text}</h2>;
+        {article.body.map((block, i) => {
+          if (block.type === 'h2')
+            return (
+              <>
+                {inContentAdAt.has(i) && <AdSlot placement="inContent" />}
+                <h2 id={slugify(block.text)}>{block.text}</h2>
+              </>
+            );
           if (block.type === 'h3') return <h3 id={slugify(block.text)}>{block.text}</h3>;
           if (block.type === 'p') return <p set:html={renderInline(block.text)} />;
           if (block.type === 'ul')
