@@ -69,6 +69,7 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
         h2: 'When to see a doctor',
         paragraphs: [
           'A single reading outside the range is rarely a concern on its own. But see a doctor if your resting heart rate is persistently above 100 bpm (tachycardia) or below 60 bpm without being athletic (bradycardia), or if you have symptoms such as dizziness, fainting, palpitations, chest discomfort or shortness of breath. These can have many causes, and only a clinician can assess them.',
+          'For more, explore all our [heart health tools and guides](/wellness-hub/tag/heart-health) — from blood pressure categories to HRV tracking.',
         ],
       },
     ],
@@ -115,6 +116,7 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
         paragraphs: [
           'For general health, most of your training should sit in Zones 2 and 3, with shorter efforts in Zones 4 and 5 once you have a fitness base. The popular "fat-burning zone" (Zone 2) burns the highest share of calories from fat, but higher-intensity work burns more total calories — both have a place.',
           'Wear a heart-rate monitor or chest strap for accuracy; wrist readings can lag during quick changes in effort. Remember these zones are estimates: your true maximum heart rate can differ from the formula by 10–12 beats per minute, so use how you feel (the ability to talk, for example) as a cross-check.',
+          'For more, explore all our [heart health tools and guides](/wellness-hub/tag/heart-health) — from resting heart rate to blood pressure and HRV.',
         ],
       },
     ],
@@ -219,6 +221,7 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
         paragraphs: [
           'A single reading does not diagnose high blood pressure. Levels rise and fall through the day with activity, stress, caffeine and even a full bladder. Take several measurements while seated and rested, on different days, and share the pattern with your doctor.',
           'If your reading is in the elevated or Stage 1 range, lifestyle changes — less salt, more activity, a healthy weight, less alcohol and not smoking — often help. Stage 2 usually needs medication alongside these changes. A hypertensive crisis (over 180/120) is a medical emergency, especially with symptoms such as chest pain, shortness of breath or trouble speaking.',
+          'For more, explore all our [heart health tools and guides](/wellness-hub/tag/heart-health) — from training zones to HRV and resting heart rate.',
         ],
       },
     ],

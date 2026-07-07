@@ -40,7 +40,7 @@ import { getArticlesForTool } from '../lib/cms';
 import type { Tool } from '../data/tools';
 import { getAffiliates } from '../data/affiliates';
 import { articlePlainText } from '../data/articles';
-import { readingTimeMinutes } from '../lib/text';
+import { readingTimeMinutes, renderInline } from '../lib/text';
 import type { ToolContent } from '../data/content-types';
 
 interface Props {
@@ -319,7 +319,7 @@ const medicalLd = {
           content.sections.map((s) => (
             <section class="prose">
               <h2>{s.h2}</h2>
-              {s.paragraphs?.map((p) => <p>{p}</p>)}
+              {s.paragraphs?.map((p) => <p set:html={renderInline(p)} />)}
               {s.list && (
                 <>
                   {s.list.intro && <p>{s.list.intro}</p>}

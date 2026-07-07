@@ -271,6 +271,7 @@ export const MENTAL_CONTENT: Record<string, ToolContent> = {
         paragraphs: [
           'If your score is 10 or higher, the PHQ-9 guideline suggests you should be assessed for depression by a healthcare professional. A score of 15 or higher suggests you should seek treatment.',
           'Bring your results to your doctor or a mental health professional. They will interpret them in the context of your full health history, not as a standalone diagnosis.',
+          'Browse our full range of [mental wellness tools](/wellness-hub/tag/mental-wellness) — including the GAD-7 anxiety screener, WHO-5 well-being index, and breathing exercises.',
         ],
       },
     ],
@@ -323,6 +324,7 @@ export const MENTAL_CONTENT: Record<string, ToolContent> = {
         paragraphs: [
           'Everyone worries sometimes. The GAD-7 asks whether worry and anxiety have been frequent and interfering over the past two weeks. A low score does not mean you never worry — it means anxiety is not currently a significant problem.',
           'If anxiety is affecting your sleep, work, relationships, or daily life, please reach out for support — regardless of your score.',
+          'Browse our full range of [mental wellness tools](/wellness-hub/tag/mental-wellness) — including the PHQ-9 depression screener, WHO-5 well-being index, and breathing exercises.',
         ],
       },
     ],
@@ -368,6 +370,7 @@ export const MENTAL_CONTENT: Record<string, ToolContent> = {
         paragraphs: [
           'Well-being is more than the absence of illness. The WHO-5 captures whether you are thriving, not just whether you are symptom-free. Low scores can be an early signal — sometimes before specific symptoms are noticed.',
           'If your score is 13 or below, please consider talking to your doctor. The WHO-5 is specifically recommended as a first-step screen for depression — a low score does not mean you are depressed, but it means further assessment is a good idea.',
+          'Browse our full range of [mental wellness tools](/wellness-hub/tag/mental-wellness) — including the PHQ-9 depression screener, GAD-7 anxiety screener, and breathing exercises.',
         ],
       },
     ],
