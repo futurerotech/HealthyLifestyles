@@ -644,7 +644,7 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
       },
       {
         citation: 'World Health Organization. "UV Radiation and Health." Intersun Programme.',
-        url: 'https://www.who.int/teams/environment-climate-change-and-health/health-protection/ultraviolet-radiation-and-health',
+        url: 'https://www.who.int/news-room/fact-sheets/detail/ultraviolet-radiation',
       },
       {
         citation: 'U.S. Environmental Protection Agency. "UV Index." SunWise Program.',
@@ -870,7 +870,7 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
     sources: [
       {
         citation: 'American Academy of Allergy, Asthma & Immunology. "Food Allergies." Patient resources on food allergy symptoms, diagnosis, and management.',
-        url: 'https://www.aaaai.org/conditions-treatments/allergies/food-allergies',
+        url: 'https://www.aaaai.org/conditions-treatments/allergies/food-allergy',
       },
       {
         citation: 'Tuck CJ, Biesiekierski JR, Scholten G, et al. "Food intolerances." Nutrients. 2019;11(7):1684.',

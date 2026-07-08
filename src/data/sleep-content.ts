@@ -371,7 +371,7 @@ export const SLEEP_CONTENT: Record<string, ToolContent> = {
     sources: [
       {
         citation: 'Harvard Health. "Blue light has a dark side." — Blue light at night suppresses melatonin and can disrupt circadian rhythms.',
-        url: 'https://www.health.harvard.edu/healthblog/blue-light-has-a-dark-side-2016070710348',
+        url: 'https://www.health.harvard.edu/healthy-aging-and-longevity/blue-light-has-a-dark-side',
       },
       {
         citation: 'Chang AM, Aeschbach D, Duffy JF, Czeisler CA. "Evening use of light-emitting eReaders negatively affects sleep, circadian timing, and next-morning alertness." Proc Natl Acad Sci. 2015;112(4):1232–1237.',
