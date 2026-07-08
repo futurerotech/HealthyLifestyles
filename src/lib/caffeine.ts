@@ -105,14 +105,14 @@ export function computeCaffeinePlan(input: CaffeineInputs): CaffeinePlan {
   const backupEarlyMin = bedMin - 600; // 10h
   const backupLateMin = bedMin - 480; // 8h
 
-  const events: TimelineEvent[] = [
+  const events: TimelineEvent[] = ([
     { key: 'wake', label: 'Wake up', min: wakeMin },
     { key: 'light', label: 'Morning light', detail: '10–30 min outdoors, within 1 hour of waking', min: wakeMin + 30 },
     { key: 'curfew', label: 'Last caffeine', detail: `about ${round(hoursBeforeBed, 1)} h before bed`, min: curfewMin },
     { key: 'screen', label: 'Screens off', detail: 'dim screens & bright lights', min: screenCutoffMin },
     { key: 'winddown', label: 'Wind down', detail: 'relax, dim the lights', min: windDownMin },
     { key: 'bed', label: 'Bedtime', min: bedMin },
-  ].sort((a, b) => a.min - b.min);
+  ] as TimelineEvent[]).sort((a, b) => a.min - b.min);
 
   // Decay curve from the curfew time through bedtime + 2h.
   const decay: DecayPoint[] = [];

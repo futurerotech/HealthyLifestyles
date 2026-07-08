@@ -66,7 +66,7 @@ export interface Article {
   relatedArticles?: string[];
   sources: ArticleSource[];
   body: ArticleBlock[];
-  tags: { name: string; slug: string }[];
+  tags?: { name: string; slug: string }[];
   /** Machine-readable medical/physiological entities → JSON-LD `about` + AI citation. */
   semanticEntities?: { term: string; url?: string }[];
 }

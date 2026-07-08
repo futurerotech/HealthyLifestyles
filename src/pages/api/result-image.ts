@@ -112,7 +112,8 @@ export const GET: APIRoute = async ({ url }) => {
   const svg = buildSvg(tool, value, label, category, catColor);
   const png = await sharp(Buffer.from(svg)).png().toBuffer();
 
-  return new Response(png, {
+  const bytes = new Uint8Array(png);
+  return new Response(new Blob([bytes], { type: 'image/png' }), {
     headers: {
       'Content-Type': 'image/png',
       'Cache-Control': 'public, max-age=86400',  // 24h — result images aren't fully immutable but safe to cache
