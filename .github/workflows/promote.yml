@@ -1,0 +1,58 @@
+name: Promote dev to main
+
+on:
+  push:
+    branches: [dev]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build Astro site
+        run: npm run build
+
+  promote:
+    name: Promote to main
+    needs: verify
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout dev
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Fast-forward main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          if ! git merge-base --is-ancestor origin/main HEAD; then
+            echo "ERROR: origin/main is not an ancestor of dev — fast-forward impossible."
+            echo "       main has diverged. Resolve manually; never force-push."
+            exit 1
+          fi
+          git push origin HEAD:main
