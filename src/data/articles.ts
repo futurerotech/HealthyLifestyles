@@ -213,13 +213,13 @@ export const ARTICLES: Article[] = [
     relatedArticles: ['how-many-calories-to-lose-weight'],
     sources: [
       { citation: 'World Health Organization. Body mass index (BMI) classification.', url: 'https://www.who.int/health-topics/obesity' },
-      { citation: 'CDC. About Adult BMI.', url: 'https://www.cdc.gov/healthyweight/assessing/bmi/adult_bmi/index.html' },
+      { citation: 'CDC. About Adult BMI.', url: 'https://www.cdc.gov/bmi/index.html' },
       { citation: 'Winter JE, et al. BMI and all-cause mortality in older adults: a meta-analysis. Am J Clin Nutr. 2014.', url: 'https://pubmed.ncbi.nlm.nih.gov/24452240/' },
     ],
     body: [
       { type: 'p', text: '**BMI (Body Mass Index)** is your weight divided by your height squared. It is a quick screening tool that sorts adults into ranges — but the standard cut-offs were set for the general adult population, and they do not capture the whole picture at every age.' },
       { type: 'h2', text: 'The standard adult BMI ranges' },
-      { type: 'p', text: 'For adults aged roughly 20–65, the [WHO](https://www.who.int/health-topics/obesity) and [CDC](https://www.cdc.gov/healthyweight/assessing/bmi/adult_bmi/index.html) use the same categories regardless of age or sex:' },
+      { type: 'p', text: 'For adults aged roughly 20–65, the [WHO](https://www.who.int/health-topics/obesity) and [CDC](https://www.cdc.gov/bmi/index.html) use the same categories regardless of age or sex:' },
       { type: 'ul', items: [
         'Under 18.5 — underweight',
         '18.5 to 24.9 — healthy weight',
