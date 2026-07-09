@@ -1,0 +1,12 @@
+{
+  "_comment": "SHA-256 pinned vendored shapes (Phase 12). validate-shacl.ts refuses to run on mismatch (fail-closed tamper detection). Refresh ONLY via 'node scripts/seo/validate-shacl.ts --update-shapes' (network; never in CI). NOTE: Google-specific Rich Results SHACL profiles do not exist upstream (Google profiles are ShEx-only); this is schemarama's schema.org SHACL suite (Apache-2.0).",
+  "source": "https://github.com/google/schemarama",
+  "sourceCommit": "1201e54148d4f9886ce4cb773e850f6adb208b05",
+  "license": "Apache-2.0",
+  "files": {
+    "schemarama-full.shacl": {
+      "sha256": "0a235ca24bbfe0d4ed85da0028010b8a78fbb3ce6300298c861fd414edb5e548",
+      "url": "https://raw.githubusercontent.com/google/schemarama/1201e54148d4f9886ce4cb773e850f6adb208b05/demo/validation/shacl/full.shacl"
+    }
+  }
+}

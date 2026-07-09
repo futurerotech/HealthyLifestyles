@@ -1,0 +1,8 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "@id": "https://www.healthylifesstyles.com/wellness-hub/fixture-invalid#article",
+  "headline": "Broken structured data on purpose",
+  "articleBody": { "@type": "Person", "name": "a nested object where text belongs" },
+  "wordCount": "lots and lots"
+}

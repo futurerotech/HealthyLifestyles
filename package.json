@@ -14,6 +14,8 @@
     "seo:cwv": "node scripts/seo/cwv-crawl.ts",
     "seo:jsonld": "node scripts/seo/validate-jsonld.ts",
     "seo:richresults": "node scripts/seo/rich-results-check.ts",
+    "seo:shacl": "node scripts/seo/validate-shacl.ts",
+    "test:degradation": "node --test scripts/seo/__tests__/degradation.test.ts",
     "astro": "astro"
   },
   "dependencies": {
@@ -34,7 +36,12 @@
     "@img/sharp-win32-x64": "^0.33.0"
   },
   "devDependencies": {
+    "@types/jsonld": "1.5.15",
+    "@types/n3": "1.26.1",
     "chrome-launcher": "^1.2.1",
-    "lighthouse": "^13.4.0"
+    "jsonld": "9.0.0",
+    "lighthouse": "^13.4.0",
+    "n3": "2.1.1",
+    "rdf-validate-shacl": "0.6.5"
   }
 }
