@@ -37,6 +37,13 @@ jobs:
       - name: JSON-LD validation
         run: node scripts/seo/validate-jsonld.ts
 
+      # Phase 9 P3 — external Rich Results validation. Best-effort and NON-BLOCKING:
+      # the script always exits 0, and continue-on-error guarantees an external API
+      # limit/timeout can never fail verify or strand the auto-promotion.
+      - name: Rich Results check (non-blocking)
+        run: node scripts/seo/rich-results-check.ts
+        continue-on-error: true
+
   promote:
     name: Promote to main
     needs: verify

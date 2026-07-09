@@ -65,11 +65,9 @@ const breadcrumb = (crumbs: { label: string; href?: string }[]) => ({
   })),
 });
 
-// --- Advanced schema helpers ---
-function isHowToArticle(a: Article): boolean {
-  return /^how\s+to\b/i.test(a.title) || a.body.some((b) => b.type === 'h2' && /^step\s+\d/i.test(b.text));
-}
-
+// --- Advanced schema builders (emitted when the CMS flag is set — Phase 9;
+//     the title/step heuristics were removed in favour of the isHowTo /
+//     isHealthTopic booleans, which are the single source of truth). ---
 function buildHowTo(a: Article, pageUrl: string, ogImage: string): Record<string, unknown> | null {
   const steps: { name: string; text: string }[] = [];
   let current: { name: string; texts: string[] } | null = null;
@@ -103,17 +101,6 @@ function buildHowTo(a: Article, pageUrl: string, ogImage: string): Record<string
       text: s.text,
     })),
   };
-}
-
-function isHealthTopicArticle(a: Article): boolean {
-  const t = a.title.toLowerCase();
-  return (
-    /^what is\b/i.test(a.title) ||
-    /^how do you know\b/i.test(a.title) ||
-    /\b(signs|symptoms|explained|guide)\b/i.test(a.title) ||
-    a.semanticEntities?.some((e) => /syndrome|condition|disease|disorder|deficiency/i.test(e.term)) ||
-    false
-  );
 }
 
 function buildHealthTopicContent(
@@ -231,12 +218,12 @@ if (props.kind === 'article' && article) {
     articleLd,
   ];
 
-  if (article.isHowTo || isHowToArticle(article)) {
+  if (article.isHowTo) {
     const howTo = buildHowTo(article, pageUrl, ogImage);
     if (howTo) jsonLd.push(howTo);
   }
 
-  if (article.isHealthTopic || isHealthTopicArticle(article)) {
+  if (article.isHealthTopic) {
     const topic = buildHealthTopicContent(article, pageUrl, authorLd(authorEntity), authorLd(reviewerEntity));
     if (topic) jsonLd.push(topic);
   }

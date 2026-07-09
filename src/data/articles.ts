@@ -97,6 +97,7 @@ export const ARTICLES: Article[] = [
   // 1 ----------------------------------------------------------------------
   {
     slug: 'how-many-calories-to-lose-weight',
+    isHowTo: true,
     title: 'How Many Calories Should I Eat to Lose Weight?',
     seoTitle: 'How Many Calories to Lose Weight? | Simple Guide',
     metaDescription:
@@ -313,6 +314,7 @@ export const ARTICLES: Article[] = [
   // 5 ----------------------------------------------------------------------
   {
     slug: 'how-to-keep-muscle-while-losing-weight',
+    isHowTo: true,
     title: 'How to Keep Muscle While Losing Weight',
     seoTitle: 'How to Keep Muscle While Losing Weight',
     metaDescription:
@@ -536,6 +538,7 @@ export const ARTICLES: Article[] = [
   // 9 ----- Meal Plan -----
   {
     slug: 'how-to-build-a-meal-plan',
+    isHowTo: true,
     title: 'How to Build a High-Protein Meal Plan You’ll Actually Follow',
     seoTitle: 'How to Build a High-Protein Meal Plan (Free)',
     metaDescription:
@@ -657,6 +660,7 @@ export const ARTICLES: Article[] = [
   // Macros ------------------------------------------------------------------
   {
     slug: 'how-to-calculate-your-macros',
+    isHowTo: true,
     title: 'How to Calculate Your Macros for Your Goal',
     seoTitle: 'How to Calculate Your Macros for Your Goal',
     metaDescription:
