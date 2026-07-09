@@ -62,6 +62,10 @@ export interface Article {
   publishDate: string; // ISO yyyy-mm-dd
   updatedDate: string; // ISO yyyy-mm-dd
   featured?: boolean;
+  /** Force HowTo structured data (CMS `isHowTo`); falls back to title/step heuristics when unset. */
+  isHowTo?: boolean;
+  /** Force HealthTopicContent structured data (CMS `isHealthTopic`); heuristic fallback when unset. */
+  isHealthTopic?: boolean;
   /** Tool slug shown as the inline "Try it" embed. */
   primaryTool: string;
   /** Tool slugs to cross-link (sidebar + drives tool→article links). */

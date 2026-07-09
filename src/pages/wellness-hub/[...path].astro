@@ -231,12 +231,12 @@ if (props.kind === 'article' && article) {
     articleLd,
   ];
 
-  if (isHowToArticle(article)) {
+  if (article.isHowTo || isHowToArticle(article)) {
     const howTo = buildHowTo(article, pageUrl, ogImage);
     if (howTo) jsonLd.push(howTo);
   }
 
-  if (isHealthTopicArticle(article)) {
+  if (article.isHealthTopic || isHealthTopicArticle(article)) {
     const topic = buildHealthTopicContent(article, pageUrl, authorLd(authorEntity), authorLd(reviewerEntity));
     if (topic) jsonLd.push(topic);
   }

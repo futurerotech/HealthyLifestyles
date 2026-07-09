@@ -406,6 +406,8 @@ interface CmsArticle {
   publishDate?: string;
   updatedDate?: string;
   featured?: boolean;
+  isHowTo?: boolean;
+  isHealthTopic?: boolean;
   primaryTool?: unknown;
   relatedTools?: unknown[];
   relatedArticles?: unknown[];
@@ -443,6 +445,8 @@ function mapArticle(a: CmsArticle): Article {
     publishDate: str(a.publishDate).split('T')[0],
     updatedDate: str(a.updatedDate).split('T')[0] || str(a.publishDate).split('T')[0],
     featured: Boolean(a.featured),
+    isHowTo: Boolean(a.isHowTo),
+    isHealthTopic: Boolean(a.isHealthTopic),
     primaryTool: pickSlug(a.primaryTool),
     relatedTools: (a.relatedTools || []).map(pickSlug).filter(Boolean),
     relatedArticles: (a.relatedArticles || []).map(pickSlug).filter(Boolean),
