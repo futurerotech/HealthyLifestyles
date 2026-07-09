@@ -39,6 +39,7 @@ const baseJsonLd: Record<string, unknown>[] = [
   {
     '@context': 'https://schema.org',
     '@type': 'Organization',
+    '@id': `${siteOrigin.href}#org`,
     name: SITE.name,
     url: siteOrigin.href,
     logo: new URL('/icon-512.png', siteOrigin).href,

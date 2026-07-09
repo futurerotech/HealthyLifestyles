@@ -36,7 +36,7 @@ import RelatedTools from './RelatedTools.astro';
 import '../styles/calculator.css';
 import { getSiteConsts, getRelatedTools } from '../lib/cms';
 import { getCategory } from '../lib/cms';
-import { getArticlesForTool } from '../lib/cms';
+import { getArticlesForTool, resolveAuthor, REVIEWER_SLUG } from '../lib/cms';
 import type { Tool } from '../data/tools';
 import { getAffiliates } from '../data/affiliates';
 import type { ToolContent } from '../data/content-types';
@@ -47,11 +47,16 @@ interface Props {
 }
 
 const { tool, content } = Astro.props;
-const [siteConsts, category, related, guides] = await Promise.all([
+const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
+const orgId = `${origin.href}#org`;
+
+const [siteConsts, category, related, guides, authorEntity, reviewerEntity] = await Promise.all([
   getSiteConsts(),
   getCategory(tool.category).then((c) => c!),
   getRelatedTools(tool.slug, 4),
   getArticlesForTool(tool.slug, 3),
+  resolveAuthor('editorial-team'),
+  resolveAuthor(REVIEWER_SLUG),
 ]);
 const SITE = siteConsts.SITE;
 const EDITORIAL = siteConsts.EDITORIAL;
@@ -71,7 +76,6 @@ const resultAuthority = RESULT_AUTHORITY[tool.category] ?? '';
 // the numeric engine here).
 const engine = getEngine(tool);
 
-const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
 const pageUrl = new URL(Astro.url.pathname, origin).href.replace(/\/$/, '');
 
 // Clean report name for the print/PDF title + filename (drops the tool-type suffix).
@@ -99,9 +103,21 @@ const breadcrumbLd = {
   })),
 };
 
+function authorLd(a: typeof authorEntity) {
+  return {
+    '@type': a.schemaType,
+    '@id': new URL(`/author/${a.slug}`, origin).href,
+    name: a.name,
+    url: new URL(`/author/${a.slug}`, origin).href,
+    ...(a.credential ? { credential: a.credential } : {}),
+    ...(a.schemaType === 'Person' ? { jobTitle: a.role, worksFor: { '@id': orgId } } : {}),
+  };
+}
+
 const appLd = {
   '@context': 'https://schema.org',
   '@type': 'WebApplication',
+  '@id': `${pageUrl}#app`,
   name: tool.title,
   url: pageUrl,
   applicationCategory: 'HealthApplication',
@@ -109,7 +125,8 @@ const appLd = {
   description: content.metaDescription,
   isAccessibleForFree: true,
   offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-  publisher: { '@type': 'Organization', name: SITE.name },
+  author: authorLd(authorEntity),
+  publisher: { '@id': orgId },
 };
 
 const faqLd = {
@@ -137,14 +154,16 @@ const faqLd = {
 const medicalLd = {
   '@context': 'https://schema.org',
   '@type': 'MedicalWebPage',
+  '@id': `${pageUrl}#medical`,
   name: tool.title,
   url: pageUrl,
   description: content.metaDescription,
   inLanguage: 'en',
   lastReviewed: EDITORIAL.lastReviewed,
-  reviewedBy: { '@type': 'Organization', name: EDITORIAL.reviewerName },
+  author: authorLd(authorEntity),
+  reviewedBy: authorLd(reviewerEntity),
   audience: { '@type': 'MedicalAudience', audienceType: 'https://schema.org/Patient' },
-  isPartOf: { '@type': 'WebSite', name: SITE.name, url: origin.href },
+  isPartOf: { '@type': 'WebSite', '@id': origin.href },
   // CMS semantic entities → DefinedTerm `about` (same pattern as articles):
   // turns stored entities into a real topical-authority signal for search/AI.
   ...((tool.semanticEntities?.length ?? 0) > 0

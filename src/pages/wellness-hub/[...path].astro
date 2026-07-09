@@ -11,6 +11,8 @@ import {
   getArticleCategory,
   getArticlesByCategory,
   ARTICLES_PER_PAGE,
+  resolveAuthor,
+  REVIEWER_SLUG,
 } from '../../lib/cms';
 import { articleFaq } from '../../data/articles';
 
@@ -89,28 +91,53 @@ if (props.kind === 'article' && article) {
   const categorySafe = category!;
 
   const entities = article.semanticEntities || [];
+  const authorEntity = await resolveAuthor(article.author);
+  // Health articles must be reviewed by the medical review board. If the CMS
+  // reviewer relation is missing or incorrectly points back to the author,
+  // fall back to the canonical medical reviewer.
+  const rawReviewer = article.reviewer || REVIEWER_SLUG;
+  const reviewerEntity =
+    rawReviewer === article.author || rawReviewer === 'editorial-team'
+      ? await resolveAuthor(REVIEWER_SLUG)
+      : await resolveAuthor(rawReviewer);
+  const orgId = `${origin.href}#org`;
+
+  function authorLd(a: typeof authorEntity) {
+    return {
+      '@type': a.schemaType,
+      '@id': new URL(`/author/${a.slug}`, origin).href,
+      name: a.name,
+      url: new URL(`/author/${a.slug}`, origin).href,
+      ...(a.credential ? { credential: a.credential } : {}),
+      ...(a.schemaType === 'Person'
+        ? { jobTitle: a.role, worksFor: { '@id': orgId } }
+        : {}),
+    };
+  }
+
   const articleLd = {
     '@context': 'https://schema.org',
-    '@type': 'Article',
+    '@type': ['MedicalWebPage', 'Article'],
+    '@id': pageUrl,
     headline: article.title,
     description: article.metaDescription,
     datePublished: article.publishDate,
     dateModified: article.updatedDate,
-    author: { '@type': 'Organization', name: article.author, url: new URL('/about', origin).href },
-    reviewedBy: {
-      '@type': 'Organization',
-      name: 'HealthyLifeStyles Medical Review Team',
-      url: new URL('/about', origin).href,
-    },
-    publisher: {
-      '@type': 'Organization',
-      name: SITE.name,
-      logo: { '@type': 'ImageObject', url: new URL('/icon-512.png', origin).href },
-    },
-    mainEntityOfPage: pageUrl,
+    lastReviewed: article.updatedDate,
+    author: authorLd(authorEntity),
+    reviewedBy: authorLd(reviewerEntity),
+    publisher: { '@id': orgId },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
     image: ogImage,
     articleSection: categorySafe.name,
     inLanguage: 'en',
+    audience: {
+      '@type': 'MedicalAudience',
+      audienceType: 'Patient',
+      healthCondition: entities.length
+        ? entities.map((e) => ({ '@type': 'MedicalCondition', name: e.term }))
+        : undefined,
+    },
     ...(entities.length
       ? {
           about: entities.map((e) => ({ '@type': 'DefinedTerm', name: e.term, ...(e.url ? { url: e.url } : {}) })),

@@ -55,6 +55,10 @@ export interface Article {
   author: string;
   /** One-line author bio shown under the byline (E-E-A-T). */
   authorBio?: string;
+  /** Medical/health reviewer slug (maps to authors collection). */
+  reviewer?: string;
+  /** One-line reviewer credential shown under the byline (E-E-A-T). */
+  reviewerBio?: string;
   publishDate: string; // ISO yyyy-mm-dd
   updatedDate: string; // ISO yyyy-mm-dd
   featured?: boolean;

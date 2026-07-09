@@ -417,6 +417,7 @@ interface CmsArticle {
 function mapArticle(a: CmsArticle): Article {
   const catSlug = pickSlug(a.category);
   const authorObj = a.author as Record<string, unknown> | undefined;
+  const reviewerObj = a.reviewer as Record<string, unknown> | undefined;
 
   return {
     slug: str(a.slug),
@@ -437,6 +438,8 @@ function mapArticle(a: CmsArticle): Article {
       : undefined,
     author: str(authorObj?.name || pickSlug(a.author)),
     authorBio: str(authorObj?.bio) || undefined,
+    reviewer: str(reviewerObj?.name || pickSlug(a.reviewer)) || undefined,
+    reviewerBio: str(reviewerObj?.bio) || undefined,
     publishDate: str(a.publishDate).split('T')[0],
     updatedDate: str(a.updatedDate).split('T')[0] || str(a.publishDate).split('T')[0],
     featured: Boolean(a.featured),
@@ -668,6 +671,11 @@ export async function resolveAuthor(nameOrSlug: string): Promise<Author> {
   if (bySlug) return bySlug;
   const byName = all.find((a) => a.name === nameOrSlug);
   if (byName) return byName;
+  // Fallback to local hard-coded authors if CMS fetch succeeded but didn't include this slug.
+  const localBySlug = LOCAL_AUTHORS.find((a) => a.slug === nameOrSlug);
+  if (localBySlug) return localBySlug;
+  const localByName = LOCAL_AUTHORS.find((a) => a.name === nameOrSlug);
+  if (localByName) return localByName;
   return all[0] || LOCAL_AUTHORS[0]!;
 }
 

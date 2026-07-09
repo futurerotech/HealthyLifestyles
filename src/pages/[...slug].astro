@@ -23,9 +23,21 @@ if (!page) {
 const title = page.title ?? '';
 const blocks = (page.layout as any[]) ?? [];
 const heroImage = page.heroImage as { url?: string; alt?: string; width?: number; height?: number } | undefined;
+
+const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
+const pageUrl = new URL(Astro.url.pathname, origin).href.replace(/\/$/, '');
+const pageLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  '@id': pageUrl,
+  name: title,
+  url: pageUrl,
+  description: title,
+  inLanguage: 'en',
+};
 ---
 
-<BaseLayout title={title} description={title}>
+<BaseLayout title={title} description={title} jsonLd={[pageLd]}>
   <Fragment slot="head">
     {heroImage?.url && (
       <link rel="preload" as="image" href={heroImage.url} fetchpriority="high" />
