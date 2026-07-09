@@ -15,6 +15,7 @@ import {
   REVIEWER_SLUG,
 } from '../../lib/cms';
 import { articleFaq } from '../../data/articles';
+import type { Article, ArticleBlock } from '../../data/articles';
 
 export async function getStaticPaths() {
   const [articles, ARTICLE_CATEGORIES] = await Promise.all([getArticles(), getArticleCategories()]);
@@ -63,6 +64,80 @@ const breadcrumb = (crumbs: { label: string; href?: string }[]) => ({
     ...(c.href ? { item: new URL(c.href, origin).href.replace(/\/$/, '') } : {}),
   })),
 });
+
+// --- Advanced schema helpers ---
+function isHowToArticle(a: Article): boolean {
+  return /^how\s+to\b/i.test(a.title) || a.body.some((b) => b.type === 'h2' && /^step\s+\d/i.test(b.text));
+}
+
+function buildHowTo(a: Article, pageUrl: string, ogImage: string): Record<string, unknown> | null {
+  const steps: { name: string; text: string }[] = [];
+  let current: { name: string; texts: string[] } | null = null;
+
+  for (const block of a.body) {
+    if (block.type === 'h2' || block.type === 'h3') {
+      if (current) steps.push({ name: current.name, text: current.texts.join(' ') });
+      current = { name: block.text, texts: [] };
+    } else if (current) {
+      if (block.type === 'p') current.texts.push(block.text);
+      else if (block.type === 'ul') current.texts.push(...block.items);
+      else if (block.type === 'ol') current.texts.push(...block.items);
+    }
+  }
+  if (current) steps.push({ name: current.name, text: current.texts.join(' ') });
+
+  if (steps.length === 0) return null;
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    '@id': `${pageUrl}#howto`,
+    name: a.title,
+    description: a.metaDescription,
+    image: ogImage,
+    totalTime: undefined,
+    step: steps.map((s, i) => ({
+      '@type': 'HowToStep',
+      position: i + 1,
+      name: s.name,
+      text: s.text,
+    })),
+  };
+}
+
+function isHealthTopicArticle(a: Article): boolean {
+  const t = a.title.toLowerCase();
+  return (
+    /^what is\b/i.test(a.title) ||
+    /^how do you know\b/i.test(a.title) ||
+    /\b(signs|symptoms|explained|guide)\b/i.test(a.title) ||
+    a.semanticEntities?.some((e) => /syndrome|condition|disease|disorder|deficiency/i.test(e.term)) ||
+    false
+  );
+}
+
+function buildHealthTopicContent(
+  a: Article,
+  pageUrl: string,
+  author: ReturnType<typeof authorLd>,
+  reviewer: ReturnType<typeof authorLd>,
+): Record<string, unknown> | null {
+  const topic = a.semanticEntities?.[0]?.term || a.title.replace(/^what is (an? )?/i, '').replace(/\?$/, '');
+  if (!topic) return null;
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'HealthTopicContent',
+    '@id': `${pageUrl}#topic`,
+    about: { '@type': 'MedicalCondition', name: topic },
+    mainEntity: { '@type': 'MedicalCondition', name: topic },
+    text: a.excerpt,
+    url: pageUrl,
+    author,
+    reviewedBy: reviewer,
+    lastReviewed: a.updatedDate,
+  };
+}
 
 // --- Article branch ---
 let article = props.kind === 'article' ? await getArticle(props.slug) : null;
@@ -155,6 +230,16 @@ if (props.kind === 'article' && article) {
     ]),
     articleLd,
   ];
+
+  if (isHowToArticle(article)) {
+    const howTo = buildHowTo(article, pageUrl, ogImage);
+    if (howTo) jsonLd.push(howTo);
+  }
+
+  if (isHealthTopicArticle(article)) {
+    const topic = buildHealthTopicContent(article, pageUrl, authorLd(authorEntity), authorLd(reviewerEntity));
+    if (topic) jsonLd.push(topic);
+  }
 
   const faq = articleFaq(article);
   if (faq.length) {

@@ -34,6 +34,9 @@ jobs:
       - name: Internal-link audit
         run: node scripts/seo/orphan-check.ts
 
+      - name: JSON-LD validation
+        run: node scripts/seo/validate-jsonld.ts
+
   promote:
     name: Promote to main
     needs: verify

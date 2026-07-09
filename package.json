@@ -12,6 +12,7 @@
     "preview": "astro preview",
     "gen:assets": "node scripts/gen-assets.mjs",
     "seo:cwv": "node scripts/seo/cwv-crawl.ts",
+    "seo:jsonld": "node scripts/seo/validate-jsonld.ts",
     "astro": "astro"
   },
   "dependencies": {

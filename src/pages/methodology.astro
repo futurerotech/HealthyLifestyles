@@ -2,10 +2,29 @@
 import LegalLayout from '../layouts/LegalLayout.astro';
 import { SITE, EDITORIAL } from '../consts';
 import { formatDate } from '../lib/text';
+import { resolveAuthor, REVIEWER_SLUG } from '../lib/cms';
 
 const title = `Methodology & Formulas | ${SITE.name}`;
 const description = `The exact, published formulas behind every ${SITE.name} calculator — BMI, BMR, body fat, heart rate, due dates and more — with primary sources.`;
 const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
+const orgId = `${origin.href}#org`;
+const pageUrl = new URL('/methodology', origin).href;
+
+const [authorEntity, reviewerEntity] = await Promise.all([
+  resolveAuthor('editorial-team'),
+  resolveAuthor(REVIEWER_SLUG),
+]);
+
+function authorLd(a: typeof authorEntity) {
+  return {
+    '@type': a.schemaType,
+    '@id': new URL(`/author/${a.slug}`, origin).href,
+    name: a.name,
+    url: new URL(`/author/${a.slug}`, origin).href,
+    ...(a.credential ? { credential: a.credential } : {}),
+    ...(a.schemaType === 'Person' ? { jobTitle: a.role, worksFor: { '@id': orgId } } : {}),
+  };
+}
 
 // Each calculator uses an established, published equation. Grouped by area.
 const GROUPS: { heading: string; items: { name: string; formula: string; source: string; url: string }[] }[] = [
@@ -71,12 +90,15 @@ const jsonLd = [
   {
     '@context': 'https://schema.org',
     '@type': 'MedicalWebPage',
+    '@id': pageUrl,
     name: title,
     description,
-    url: new URL('/methodology', origin).href,
+    url: pageUrl,
+    inLanguage: 'en',
     lastReviewed: EDITORIAL.lastReviewed,
-    reviewedBy: { '@type': 'Organization', name: SITE.name },
-    publisher: { '@type': 'Organization', name: SITE.name, url: origin.href },
+    author: authorLd(authorEntity),
+    reviewedBy: authorLd(reviewerEntity),
+    publisher: { '@id': orgId },
   },
 ];
 ---
