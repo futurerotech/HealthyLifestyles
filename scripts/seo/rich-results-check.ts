@@ -1,34 +1,38 @@
 /**
- * rich-results-check.ts  (Phase 9, Priority 3)
+ * rich-results-check.ts  (Phase 12 — delegates to the sandboxed SHACL validator)
  *
  *   node scripts/seo/rich-results-check.ts        # after `npm run build`
  *
- * Best-effort external structured-data validation for a SAMPLE of built pages.
- * Complements the structural `validate-jsonld.ts` (which is the hard gate) by
- * asking an external validator whether the JSON-LD is Rich-Results-eligible.
+ * Samples built pages, extracts their JSON-LD, and validates each page by
+ * SPAWNING scripts/seo/validate-shacl.ts as an isolated child process
+ * (never an in-process import): hard timeout, capped heap
+ * (--max-old-space-size=256), vendored SHA-256-pinned shapes — zero network.
  *
  * NON-BLOCKING BY DESIGN — this MUST NOT strand the deploy pipeline:
- *   - Always exits 0. External problems are reported as warnings, never failures.
- *   - Per-request timeout + bounded retries with backoff.
- *   - If no validator is reachable / configured, it degrades to a clear
- *     "skipped" notice (never a false "pass").
+ *   - Always exits 0. The hard structured-data gate remains validate-jsonld.ts.
+ *   - Graceful degradation is law: on crash, timeout, OOM, tampered shapes,
+ *     malformed output, or a missing validator file, each affected page logs a
+ *     structured { degraded: true, reason } warning, contributes an empty
+ *     { errors: [], warnings: [] } result, and the run still exits 0.
  *
- * Config (all optional):
- *   RICH_RESULTS_VALIDATOR_URL  validator endpoint (default: schema.org validator)
- *   RICH_RESULTS_SAMPLE         comma-separated URL paths to check (default sample)
- *   RICH_RESULTS_TIMEOUT_MS     per-request timeout (default 15000)
- *   RICH_RESULTS_RETRIES        retries per URL (default 2)
+ * Config (env, all optional):
+ *   RICH_RESULTS_SAMPLE      comma-separated URL paths (default sample below)
+ *   RICH_RESULTS_TIMEOUT_MS  per-page validator timeout (default 30000)
+ *   VALIDATOR_PATH           validator script override (degradation testing)
  */
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { spawn } from 'node:child_process';
 
 const DIST = path.resolve(process.cwd(), 'dist', 'client');
-const VALIDATOR = process.env.RICH_RESULTS_VALIDATOR_URL || 'https://validator.schema.org/validate';
-const TIMEOUT_MS = Number(process.env.RICH_RESULTS_TIMEOUT_MS || 15_000);
-const RETRIES = Number(process.env.RICH_RESULTS_RETRIES || 2);
+const VALIDATOR = path.resolve(process.env.VALIDATOR_PATH || path.join(process.cwd(), 'scripts', 'seo', 'validate-shacl.ts'));
+const TIMEOUT_MS = Number(process.env.RICH_RESULTS_TIMEOUT_MS || 30_000);
 const SAMPLE = (process.env.RICH_RESULTS_SAMPLE ||
   '/,/tools/calorie-calculator,/wellness-hub/how-to-calculate-your-macros,/wellness-hub/what-is-an-anti-inflammatory-diet,/wellness-hub/how-many-calories-to-lose-weight'
 ).split(',').map((s) => s.trim()).filter(Boolean);
+
+interface Contract { errors: unknown[]; warnings: unknown[] }
+type PageResult = { ok: true; result: Contract } | { ok: false; reason: string };
 
 function warn(msg: string) { console.log(`  ⚠ ${msg}`); }
 
@@ -46,98 +50,108 @@ function extractJsonLd(html: string): string[] {
   return out;
 }
 
-async function postWithRetry(body: string): Promise<{ ok: boolean; errors: number; warnings: number; detail?: string }> {
-  for (let attempt = 0; attempt <= RETRIES; attempt++) {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+/** Spawn the sandboxed validator for one page's blocks. Never throws. */
+function runValidator(blocks: string[]): Promise<PageResult> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const done = (r: PageResult) => { if (!settled) { settled = true; resolve(r); } };
+    let child: ReturnType<typeof spawn>;
     try {
-      const res = await fetch(VALIDATOR, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body,
-        signal: ctrl.signal,
+      child = spawn(process.execPath, ['--max-old-space-size=256', VALIDATOR, '-'], {
+        stdio: ['pipe', 'pipe', 'pipe'],
+        env: process.env,
       });
-      clearTimeout(timer);
-      if (!res.ok) {
-        if (res.status === 429 && attempt < RETRIES) { await sleep(1000 * (attempt + 1)); continue; }
-        return { ok: false, errors: 0, warnings: 0, detail: `HTTP ${res.status}` };
-      }
-      const text = await res.text();
-      // Defensive parse — validator response shapes vary; look for common keys.
-      let errors = 0, warnings = 0;
-      try {
-        const j = JSON.parse(text) as Record<string, unknown>;
-        errors = countIssues(j, /error/i);
-        warnings = countIssues(j, /warning/i);
-      } catch {
-        // Unparseable response — the endpoint isn't a validator we understand.
-        // Report as unavailable (not a false "0 errors") — still non-blocking.
-        return { ok: false, errors: 0, warnings: 0, detail: 'unrecognised validator response' };
-      }
-      return { ok: true, errors, warnings };
     } catch (err) {
+      done({ ok: false, reason: `spawn failed: ${(err as Error).message.slice(0, 80)}` });
+      return;
+    }
+
+    let stdout = '';
+    let stderr = '';
+    child.stdout?.on('data', (d: Buffer) => { stdout += d.toString(); });
+    child.stderr?.on('data', (d: Buffer) => { stderr += d.toString(); });
+
+    const timer = setTimeout(() => {
+      child.kill('SIGKILL');
+      done({ ok: false, reason: `timeout after ${TIMEOUT_MS}ms (validator killed)` });
+    }, TIMEOUT_MS);
+
+    child.on('error', (err) => {
       clearTimeout(timer);
-      if (attempt < RETRIES) { await sleep(1000 * (attempt + 1)); continue; }
-      return { ok: false, errors: 0, warnings: 0, detail: (err as Error).name === 'AbortError' ? 'timeout' : (err as Error).message.slice(0, 60) };
-    }
-  }
-  return { ok: false, errors: 0, warnings: 0, detail: 'exhausted retries' };
-}
-
-function countIssues(obj: unknown, rx: RegExp): number {
-  // Walk the response and count numeric fields / array lengths under error/warning-ish keys.
-  let n = 0;
-  const walk = (v: unknown, keyMatched: boolean) => {
-    if (Array.isArray(v)) { if (keyMatched) n += v.length; v.forEach((x) => walk(x, keyMatched)); return; }
-    if (v && typeof v === 'object') {
-      for (const [k, val] of Object.entries(v as Record<string, unknown>)) {
-        const km = rx.test(k);
-        if (km && typeof val === 'number') n += val;
-        walk(val, km);
+      done({ ok: false, reason: `spawn error: ${err.message.slice(0, 80)}` });
+    });
+    child.on('close', (code) => {
+      clearTimeout(timer);
+      if (code !== 0) {
+        const hint = (stderr.trim().split('\n').pop() || '').slice(0, 100);
+        done({ ok: false, reason: `validator exited ${code}${hint ? ` — ${hint}` : ''}` });
+        return;
       }
-    }
-  };
-  walk(obj, false);
-  return n;
-}
+      try {
+        const parsed = JSON.parse(stdout) as { errors?: unknown[]; warnings?: unknown[] };
+        if (!Array.isArray(parsed.errors) || !Array.isArray(parsed.warnings)) {
+          done({ ok: false, reason: 'malformed validator output (missing errors/warnings arrays)' });
+          return;
+        }
+        done({ ok: true, result: { errors: parsed.errors, warnings: parsed.warnings } });
+      } catch {
+        done({ ok: false, reason: 'malformed validator output (not JSON)' });
+      }
+    });
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    try {
+      child.stdin?.write(JSON.stringify({ jsonld: blocks }));
+      child.stdin?.end();
+    } catch {
+      /* close handler will settle the promise */
+    }
+  });
+}
 
 async function main() {
-  console.log('Rich Results Check (non-blocking)');
-  console.log('=================================');
+  console.log('Rich Results Check (sandboxed SHACL — non-blocking)');
+  console.log('===================================================');
   if (!fs.existsSync(DIST)) {
-    warn(`dist/client not found — run "npm run build" first. Skipping (non-blocking).`);
+    warn('dist/client not found — run "npm run build" first. Skipping (non-blocking).');
     process.exit(0);
   }
-  console.log(`Validator: ${VALIDATOR}`);
-  let checked = 0, totalErrors = 0, totalWarnings = 0, unreachable = 0;
+  console.log(`Validator: ${VALIDATOR} (child process, ${TIMEOUT_MS}ms timeout, 256MB heap, vendored shapes)`);
+
+  let checked = 0;
+  let degradedCount = 0;
+  let totalErrors = 0;
+  let totalWarnings = 0;
 
   for (const urlPath of SAMPLE) {
     const html = htmlFor(urlPath);
     if (!html) { warn(`${urlPath}: no built HTML — skipped`); continue; }
     const blocks = extractJsonLd(html);
     if (blocks.length === 0) { warn(`${urlPath}: no JSON-LD — skipped`); continue; }
-    const body = JSON.stringify({ url: urlPath, jsonld: blocks });
-    const r = await postWithRetry(body);
+
+    const res = await runValidator(blocks);
     checked++;
-    if (!r.ok) { unreachable++; warn(`${urlPath}: validator unavailable (${r.detail}) — non-blocking`); continue; }
-    totalErrors += r.errors; totalWarnings += r.warnings;
-    const suffix = r.detail ? ` [${r.detail}]` : '';
-    console.log(`  ${r.errors === 0 ? '✓' : '✗'} ${urlPath}: ${r.errors} error(s), ${r.warnings} warning(s)${suffix}`);
+    if (!res.ok) {
+      degradedCount++;
+      console.log(`  ⚠ ${urlPath}: ${JSON.stringify({ degraded: true, reason: res.reason })}`);
+      // Degraded pages contribute the empty contract — never block CI.
+      continue;
+    }
+    totalErrors += res.result.errors.length;
+    totalWarnings += res.result.warnings.length;
+    console.log(`  ${res.result.errors.length === 0 ? '✓' : '✗'} ${urlPath}: ${res.result.errors.length} error(s), ${res.result.warnings.length} warning(s)`);
   }
 
   console.log('\n---');
-  if (unreachable === checked && checked > 0) {
-    console.log(`SKIPPED: external validator unreachable for all ${checked} sampled page(s). Non-blocking — deploy proceeds.`);
+  if (checked > 0 && degradedCount === checked) {
+    console.log(`DEGRADED: validator unavailable for all ${checked} sampled page(s). Non-blocking — deploy proceeds.`);
   } else {
-    console.log(`Sampled ${checked} page(s): ${totalErrors} error(s), ${totalWarnings} warning(s). Non-blocking — informational only.`);
+    console.log(`Sampled ${checked} page(s): ${totalErrors} error(s), ${totalWarnings} warning(s)${degradedCount ? `, ${degradedCount} degraded` : ''}. Non-blocking — informational only.`);
     if (totalErrors > 0) console.log('NOTE: review the errors above; they do NOT block the deploy (structural gate is validate-jsonld.ts).');
   }
   process.exit(0); // ALWAYS non-blocking
 }
 
 main().catch((err) => {
-  console.log(`  ⚠ rich-results-check crashed (${(err as Error).message.slice(0, 80)}) — non-blocking, deploy proceeds.`);
+  console.log(`  ⚠ ${JSON.stringify({ degraded: true, reason: `rich-results-check crashed: ${(err as Error).message.slice(0, 80)}` })} — non-blocking, deploy proceeds.`);
   process.exit(0);
 });
