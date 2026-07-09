@@ -25,6 +25,7 @@ const enabled = masterOn && !!clientId && /^ca-pub-\d+$/.test(clientId);
       async
       src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${clientId}`}
       crossorigin="anonymous"
+      fetchpriority="low"
       is:inline
     />
   )

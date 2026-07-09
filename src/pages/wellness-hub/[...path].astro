@@ -185,6 +185,16 @@ if (props.kind === 'article' && article) {
 ---
 
 <BaseLayout title={title} description={description} image={image} type={article ? 'article' : 'website'} jsonLd={jsonLd}>
+  <Fragment slot="head">
+    {article?.heroImage?.url && (
+      <link
+        rel="preload"
+        as="image"
+        href={article.heroImage.url}
+        fetchpriority="high"
+      />
+    )}
+  </Fragment>
   {article && <ArticleBody article={article} pageUrl={pageUrl} />}
   {archive && (
     <ArticleArchiveBody

@@ -6,3 +6,6 @@ cms/
 
 # Local build/debug artifacts — never commit
 build*.log
+preview-*.log
+serve-*.log
+lighthouse-*.json

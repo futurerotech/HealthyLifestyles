@@ -96,6 +96,8 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
         height={article.heroImage.height || undefined}
         class="wh-article__hero"
         loading="eager"
+        fetchpriority="high"
+        decoding="async"
       />
     </div>
   )}
