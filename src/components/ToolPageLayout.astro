@@ -2,7 +2,6 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Breadcrumb from './Breadcrumb.astro';
 import Icon from './Icon.astro';
-import ToolCard from './ToolCard.astro';
 import ToolIcon from './ToolIcon.astro';
 import ShareBar from './ShareBar.astro';
 import PrintButton from './PrintButton.astro';
@@ -33,14 +32,13 @@ import FoodSymptomDiary from '../islands/FoodSymptomDiary.tsx';
 import HRVLog from '../islands/HRVLog.tsx';
 import RecipeAnalyzer from '../islands/RecipeAnalyzer.tsx';
 import LeadCTA from './LeadCTA.astro';
+import RelatedTools from './RelatedTools.astro';
 import '../styles/calculator.css';
 import { getSiteConsts, getRelatedTools } from '../lib/cms';
 import { getCategory } from '../lib/cms';
 import { getArticlesForTool } from '../lib/cms';
 import type { Tool } from '../data/tools';
 import { getAffiliates } from '../data/affiliates';
-import { articlePlainText } from '../data/articles';
-import { readingTimeMinutes } from '../lib/text';
 import type { ToolContent } from '../data/content-types';
 
 interface Props {
@@ -412,43 +410,10 @@ const medicalLd = {
       </div>
 
       <!-- Related tools + Wellness Hub guides -->
-      {
-        (related.length > 0 || guides.length > 0) && (
-          <aside class="tool__related" aria-labelledby="related-title">
-            {related.length > 0 && (
-              <>
-                <h2 id="related-title">Related tools</h2>
-                <ul>
-                  {related.map((t) => (
-                    <li>
-                      <ToolCard tool={t} />
-                    </li>
-                  ))}
-                </ul>
-                <a href={`/${category.slug}`} class="tool__cat-link">
-                  All {category.name} tools <Icon name="arrow-right" size={16} />
-                </a>
-              </>
-            )}
-            {guides.length > 0 && (
-              <div class="tool__guides">
-                <h2>From the Wellness Hub</h2>
-                <ul>
-                  {guides.map((g) => (
-                    <li>
-                      <a href={`/wellness-hub/${g.slug}`} class="tool__guide-link">
-                        <strong>{g.title}</strong>
-                        <span>{readingTimeMinutes(articlePlainText(g))} min read</span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            <AdSlot placement="sidebar" format="sidebar" />
-          </aside>
-        )
-      }
+      <aside class="tool__related" aria-labelledby="related-title">
+        <RelatedTools tool={tool} tools={related} articles={guides} />
+        <AdSlot placement="sidebar" format="sidebar" />
+      </aside>
     </div>
 
     <!-- Branded footer shown only when printing / saving to PDF -->

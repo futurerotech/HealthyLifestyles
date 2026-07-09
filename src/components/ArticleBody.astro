@@ -5,7 +5,7 @@ import ToolEmbed from './ToolEmbed.astro';
 import ShareBar from './ShareBar.astro';
 import Byline from './Byline.astro';
 import Newsletter from './Newsletter.astro';
-import ArticleCard from './ArticleCard.astro';
+import RelatedTools from './RelatedTools.astro';
 import AdSlot from './AdSlot.astro';
 import {
   getArticleCategory,
@@ -245,18 +245,11 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
     </aside>
   </div>
 
-  {related.length > 0 && (
-    <section class="section">
-      <div class="container wh-related">
-        <h2>Related guides</h2>
-        <ul class="wh-grid">
-          {related.map((a) => (
-            <li><ArticleCard article={a} /></li>
-          ))}
-        </ul>
-      </div>
-    </section>
-  )}
+  <section class="section">
+    <div class="container wh-related">
+      <RelatedTools article={article} tools={tools} articles={related} />
+    </div>
+  </section>
 </article>
 
 <style>

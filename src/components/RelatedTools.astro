@@ -1,0 +1,149 @@
+---
+/**
+ * RelatedTools.astro
+ *
+ * Shared internal-linking component for article and tool pages.
+ * Renders 2–3 related tools + 2–3 related guides + a category hub link.
+ *
+ * Props:
+ *   article  — when rendering on an article page
+ *   tool     — when rendering on a tool page
+ *   tools    — optional pre-fetched related tools (avoids double fetch)
+ *   articles — optional pre-fetched related articles/guides
+ *
+ * Data-driven from CMS relations. Falls back to category-based matches when
+ * explicit relations are empty.
+ */
+import ToolCard from './ToolCard.astro';
+import ArticleCard from './ArticleCard.astro';
+import Icon from './Icon.astro';
+import {
+  getTool,
+  getRelatedArticles,
+  getRelatedTools,
+  getArticlesForTool,
+  getCategory,
+  getArticleCategory,
+} from '../lib/cms';
+import type { Article } from '../data/articles';
+import type { Tool } from '../data/tools';
+
+interface Props {
+  article?: Article;
+  tool?: Tool;
+  tools?: Tool[];
+  articles?: Article[];
+}
+
+const { article, tool, tools: propTools, articles: propArticles } = Astro.props;
+
+if (!article && !tool) {
+  throw new Error('RelatedTools requires either an article or a tool prop.');
+}
+
+let relatedTools: Tool[] = propTools || [];
+let relatedArticles: Article[] = propArticles || [];
+let hubName = '';
+let hubHref = '';
+
+if (article) {
+  hubHref = `/wellness-hub/${article.category}`;
+  if (relatedTools.length === 0) {
+    const fetched = await Promise.all(article.relatedTools.map((slug) => getTool(slug)));
+    relatedTools = fetched.filter((t): t is NonNullable<typeof t> => !!t && !!t.live);
+  }
+  if (relatedArticles.length === 0) {
+    relatedArticles = await getRelatedArticles(article.slug, 3);
+  }
+  const cat = await getArticleCategory(article.category);
+  hubName = cat?.name || '';
+} else if (tool) {
+  hubHref = `/${tool.category}`;
+  if (relatedTools.length === 0) {
+    relatedTools = await getRelatedTools(tool.slug, 3);
+  }
+  if (relatedArticles.length === 0) {
+    relatedArticles = await getArticlesForTool(tool.slug, 3);
+  }
+  const cat = await getCategory(tool.category);
+  hubName = cat?.name || '';
+}
+
+const toolsToShow = relatedTools.slice(0, 3);
+const articlesToShow = relatedArticles.slice(0, 3);
+const hasContent = toolsToShow.length > 0 || articlesToShow.length > 0;
+---
+
+{
+  hasContent && (
+    <aside class="related-tools" aria-labelledby="related-tools-title">
+      {toolsToShow.length > 0 && (
+        <>
+          <h2 id="related-tools-title">{article ? 'Try these tools' : 'Related tools'}</h2>
+          <ul class="related-tools__tools">
+            {toolsToShow.map((t) => (
+              <li>
+                <ToolCard tool={t} />
+              </li>
+            ))}
+          </ul>
+          {hubName && (
+            <a href={hubHref} class="related-tools__hub">
+              All {hubName.toLowerCase()} tools <Icon name="arrow-right" size={16} />
+            </a>
+          )}
+        </>
+      )}
+
+      {articlesToShow.length > 0 && (
+        <div class="related-tools__guides">
+          <h2>{article ? 'Related guides' : 'From the Wellness Hub'}</h2>
+          <ul class="related-tools__articles">
+            {articlesToShow.map((a) => (
+              <li>
+                <ArticleCard article={a} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </aside>
+  )
+}
+
+<style>
+  .related-tools {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .related-tools h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0 0 0.75rem;
+    color: var(--ink);
+  }
+  .related-tools__tools,
+  .related-tools__articles {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.75rem;
+  }
+  .related-tools__articles {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+  .related-tools__hub {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .related-tools__hub:hover {
+    text-decoration: underline;
+  }
+</style>

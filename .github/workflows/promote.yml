@@ -31,6 +31,9 @@ jobs:
       - name: Build Astro site
         run: npm run build
 
+      - name: Internal-link audit
+        run: node scripts/seo/orphan-check.ts
+
   promote:
     name: Promote to main
     needs: verify
