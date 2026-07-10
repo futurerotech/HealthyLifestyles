@@ -36,7 +36,7 @@ const breadcrumbLd = {
     '@type': 'ListItem',
     position: i + 1,
     name: c.label,
-    ...(c.href ? { item: new URL(c.href, origin).href.replace(/\/$/, '') } : {}),
+    ...(c.href ? { item: { '@id': new URL(c.href, origin).href.replace(/\/$/, ''), name: c.label } } : {}),
   })),
 };
 ---
