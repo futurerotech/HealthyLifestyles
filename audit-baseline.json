@@ -1,0 +1,68 @@
+{
+  "createdAt": "2026-07-10",
+  "reviewBy": "2026-10-08",
+  "npmTotals": {
+    "info": 0,
+    "low": 1,
+    "moderate": 17,
+    "high": 4,
+    "critical": 0,
+    "total": 22
+  },
+  "advisories": [
+    {
+      "id": 1101846,
+      "severity": "high",
+      "package": "path-to-regexp",
+      "title": "path-to-regexp outputs backtracking regular expressions"
+    },
+    {
+      "id": 1115428,
+      "severity": "moderate",
+      "package": "@astrojs/vercel",
+      "title": "Astro: Unauthenticated Path Override via `x-astro-path` / `x_astro_path`"
+    },
+    {
+      "id": 1117141,
+      "severity": "moderate",
+      "package": "astro",
+      "title": "Astro: XSS in define:vars via incomplete </script> tag sanitization"
+    },
+    {
+      "id": 1118920,
+      "severity": "low",
+      "package": "astro",
+      "title": "Astro: Server island encrypted parameters vulnerable to cross-component replay"
+    },
+    {
+      "id": 1120680,
+      "severity": "low",
+      "package": "esbuild",
+      "title": "esbuild allows arbitrary file read when running the development server on Windows"
+    },
+    {
+      "id": 1120821,
+      "severity": "moderate",
+      "package": "@opentelemetry/core",
+      "title": "OpenTelemetry Core: Unbounded memory allocation in W3C Baggage propagation"
+    },
+    {
+      "id": 1120912,
+      "severity": "high",
+      "package": "astro",
+      "title": "Astro: Reflected XSS via unescaped slot name"
+    },
+    {
+      "id": 1120914,
+      "severity": "moderate",
+      "package": "astro",
+      "title": "Astro: XSS via Unescaped Attribute Names in Spread Props"
+    },
+    {
+      "id": 1120917,
+      "severity": "high",
+      "package": "astro",
+      "title": "Astro: Host header SSRF in prerendered error page fetch"
+    }
+  ]
+}

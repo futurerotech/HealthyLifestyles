@@ -25,6 +25,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Phase 13 P2 — baseline-aware audit gate. BLOCKS only on NEW high/critical
+      # advisories vs audit-baseline.json (the 22 pre-existing legacy vulns are an
+      # accepted-risk ledger, out of scope by decree). Warn-only on new moderate/
+      # low; hard-fails if the baseline passes its reviewBy date (rot prevention).
+      - name: Audit delta (new high/critical only)
+        run: node scripts/ci/audit-delta.ts
+
       - name: Type check
         run: npx tsc --noEmit
 
