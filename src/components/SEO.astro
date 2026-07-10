@@ -70,7 +70,9 @@ const allJsonLd = [...baseJsonLd, ...jsonLd];
 <title>{fullTitle}</title>
 <meta name="description" content={description} />
 <link rel="canonical" href={canonical} />
-{noindex && <meta name="robots" content="noindex, nofollow" />}
+{/* P15-P4a: max-image-preview:large is a Google Discover eligibility signal.
+    One robots meta per page — noindex pages don't advertise image previews. */}
+<meta name="robots" content={noindex ? 'noindex, nofollow' : 'max-image-preview:large'} />
 {ANALYTICS.searchConsoleVerification && (
   <meta name="google-site-verification" content={ANALYTICS.searchConsoleVerification} />
 )}

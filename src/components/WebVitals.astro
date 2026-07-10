@@ -1,0 +1,59 @@
+---
+/**
+ * P15-P5c — native Core Web Vitals collector (NO web-vitals SDK; ~1 KB inline).
+ *
+ * PerformanceObserver only: LCP (last candidate), CLS (session-window model),
+ * INP (longest interaction ≥40ms — converges on true INP at typical per-page
+ * interaction counts). One sendBeacon per pageview on first hide/pagehide.
+ * data-pt-skip keeps it on the main thread (it must observe real paint/input).
+ */
+---
+
+<script is:inline data-pt-skip>
+  (function () {
+    if (!('PerformanceObserver' in window)) return;
+    var lcp = null, cls = 0, inp = null, sent = false;
+    var sw = 0, swStart = 0, swLast = 0; // CLS session window
+
+    try {
+      new PerformanceObserver(function (l) {
+        var e = l.getEntries(); if (e.length) lcp = e[e.length - 1].startTime;
+      }).observe({ type: 'largest-contentful-paint', buffered: true });
+    } catch (e) {}
+
+    try {
+      new PerformanceObserver(function (l) {
+        l.getEntries().forEach(function (en) {
+          if (en.hadRecentInput) return;
+          var t = en.startTime;
+          if (sw && t - swLast < 1000 && t - swStart < 5000) { sw += en.value; swLast = t; }
+          else { sw = en.value; swStart = t; swLast = t; }
+          if (sw > cls) cls = sw;
+        });
+      }).observe({ type: 'layout-shift', buffered: true });
+    } catch (e) {}
+
+    try {
+      new PerformanceObserver(function (l) {
+        l.getEntries().forEach(function (en) {
+          if (en.interactionId && (inp === null || en.duration > inp)) inp = en.duration;
+        });
+      }).observe({ type: 'event', durationThreshold: 40, buffered: true });
+    } catch (e) {}
+
+    function send() {
+      if (sent || lcp === null) return; // no LCP yet → nothing meaningful to report
+      sent = true;
+      var nav = performance.getEntriesByType('navigation')[0];
+      try {
+        navigator.sendBeacon('/api/vitals', JSON.stringify({
+          path: location.pathname,
+          lcp: lcp, cls: cls, inp: inp,
+          nav: nav ? nav.type : 'navigate',
+        }));
+      } catch (e) {}
+    }
+    addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') send(); });
+    addEventListener('pagehide', send);
+  })();
+</script>
