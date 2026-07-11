@@ -20,6 +20,12 @@ interface Props {
   mainClass?: string;
   /** Disable header ad slot on this page. */
   noHeaderAd?: boolean;
+  /** P15-P6: BCP-47 language for <html lang>. Defaults to 'en'. */
+  lang?: string;
+  /** P15-P6: reciprocal hreflang alternates (self + x-default). Empty = no hreflang. */
+  alternates?: { hreflang: string; href: string }[];
+  /** P15-P6: og:locale override for localized pages. */
+  ogLocale?: string;
 }
 
 const {
@@ -31,11 +37,17 @@ const {
   jsonLd,
   mainClass,
   noHeaderAd,
+  lang = 'en',
+  alternates = [],
+  ogLocale,
 } = Astro.props;
+
+// P15-P6: RTL for Arabic (and any future RTL locale) — drives layout mirroring.
+const dir = lang === 'ar' || lang.startsWith('ar-') ? 'rtl' : 'ltr';
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={lang} dir={dir}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -90,6 +102,8 @@ const {
       type={type}
       noindex={noindex}
       jsonLd={jsonLd}
+      alternates={alternates}
+      ogLocale={ogLocale}
     />
   </head>
   <body>

@@ -35,10 +35,10 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
-      # P15-P4c / D5 — the fixture proof: a missing publishDate must OMIT
-      # pubDate (fabricated build-time dates are build-impossible).
-      - name: Feed unit tests (D5 date integrity)
-        run: npm run test:feed
+      # P15 unit proofs (pre-build): D5 date integrity (feed) + P6 i18n rails +
+      # empty-shell detector logic. Node 22 runs .ts under --test natively.
+      - name: SEO unit tests (D5 feed + P6 i18n + empty-shell)
+        run: npm run test:seo
 
       - name: Build Astro site
         run: npm run build
@@ -49,11 +49,15 @@ jobs:
       - name: JSON-LD validation
         run: node scripts/seo/validate-jsonld.ts
 
-      # P15 / D5+SD3 — BLOCKING: scans the built rss.xml + all JSON-LD for the
-      # fabrication fingerprint (≥2 editorial dates at build execution time)
-      # and validates the canonical feed's RSS structure.
-      - name: Date-integrity guard (D5)
+      # P15 / D5+D8+SD3 — BLOCKING: scans built rss.xml + sitemap <lastmod> +
+      # all JSON-LD for the fabrication fingerprint (≥2 editorial dates at
+      # build execution time) and validates the canonical feed's RSS structure.
+      - name: Date-integrity guard (D5/D8)
         run: npm run seo:dates
+
+      # P15-P6 — BLOCKING: no untranslated/placeholder localized pages may ship.
+      - name: Empty-shell detector (P6)
+        run: npm run seo:shells
 
       # P15-P4b — non-blocking by design (script always exits 0): flags
       # article images provably below the 1200px Discover threshold and
@@ -62,12 +66,10 @@ jobs:
         run: npm run seo:discover
 
       # P15-P5a — CWV lab budget (LCP≤2.0s, CLS≤0.05, TBT≤200ms as INP lab
-      # proxy). WARN-ONLY first run per decree: continue-on-error stays until
-      # the HUMAN approves the baseline, then this line is removed to make the
-      # budget blocking. @lhci/cli is npx-fetched in CI only — not a repo dep.
-      - name: Lighthouse CWV budget (warn-only until baseline approved)
+      # proxy). BLOCKING since the human-approved baseline (Phase-15 closure
+      # Gate-0). @lhci/cli is npx-fetched in CI only — not a repo dep.
+      - name: Lighthouse CWV budget (blocking)
         run: npx --yes @lhci/cli@0.14.x autorun
-        continue-on-error: true
 
       # Phase 9 P3 — external Rich Results validation. Best-effort and NON-BLOCKING:
       # the script always exits 0, and continue-on-error guarantees an external API

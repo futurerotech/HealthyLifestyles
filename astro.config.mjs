@@ -10,8 +10,6 @@ import * as path from 'path';
 // ✅ correct domain
 export const SITE_URL = 'https://www.healthylifesstyles.com';
 
-const BUILD_DATE = new Date().toISOString();
-
 await copyLibFiles(path.resolve('public', '~partytown'));
 
 export default defineConfig({
@@ -41,7 +39,11 @@ export default defineConfig({
         } else if (/\/(about|privacy|contact|terms|accessibility|editorial-policy|methodology|medical-disclaimer|cookie-policy|health-score|ai-assistant)$/.test(url)) {
           priority = 0.5;
         }
-        return { ...item, url, lastmod: BUILD_DATE, priority };
+        // D8 / SD3 — NO lastmod: the integration only knows URLs, not real
+        // per-page modification dates, and stamping the build timestamp on
+        // every URL is fabricated freshness (the exact YMYL fingerprint the
+        // date-integrity guard hunts). Omitted > invented.
+        return { ...item, url, priority };
       },
     }),
   ],

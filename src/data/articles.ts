@@ -77,6 +77,10 @@ export interface Article {
   tags?: { name: string; slug: string }[];
   /** Machine-readable medical/physiological entities → JSON-LD `about` + AI citation. */
   semanticEntities?: { term: string; url?: string }[];
+  /** P15-P7a — CMS editorial flag: emit FAQPage schema. NEVER inferred (SD4). */
+  hasFAQ?: boolean;
+  /** P15-P7c — exactly 3 editorial takeaways; box renders only when all 3 exist. */
+  takeaways?: string[];
 }
 
 export const ARTICLE_CATEGORIES: ArticleCategory[] = [

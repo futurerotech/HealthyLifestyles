@@ -16,6 +16,10 @@ interface Props {
   noindex?: boolean;
   /** Extra JSON-LD objects to inline (already plain objects). */
   jsonLd?: Record<string, unknown>[];
+  /** P15-P6: reciprocal hreflang set (incl. self + x-default). Empty = single-language page, no hreflang. */
+  alternates?: { hreflang: string; href: string }[];
+  /** P15-P6: og:locale override for localized pages (e.g. es_ES, ar_AR). */
+  ogLocale?: string;
 }
 
 const {
@@ -25,6 +29,8 @@ const {
   type = 'website',
   noindex = false,
   jsonLd = [],
+  alternates = [],
+  ogLocale,
 } = Astro.props;
 
 const siteOrigin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
@@ -70,6 +76,9 @@ const allJsonLd = [...baseJsonLd, ...jsonLd];
 <title>{fullTitle}</title>
 <meta name="description" content={description} />
 <link rel="canonical" href={canonical} />
+{/* P15-P6: hreflang — emitted ONLY when real translations exist (≥2 locales).
+    The set always includes self + x-default→en, keeping return-tags reciprocal. */}
+{alternates.length >= 2 && alternates.map((a) => <link rel="alternate" hreflang={a.hreflang} href={a.href} />)}
 {/* P15-P4a: max-image-preview:large is a Google Discover eligibility signal.
     One robots meta per page — noindex pages don't advertise image previews. */}
 <meta name="robots" content={noindex ? 'noindex, nofollow' : 'max-image-preview:large'} />
@@ -88,7 +97,7 @@ const allJsonLd = [...baseJsonLd, ...jsonLd];
 <meta property="og:description" content={description} />
 <meta property="og:url" content={canonical} />
 <meta property="og:image" content={ogImage} />
-<meta property="og:locale" content={SITE.locale} />
+<meta property="og:locale" content={ogLocale || SITE.locale} />
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image" />

@@ -58,6 +58,19 @@ if (!fs.existsSync(rssPath)) {
   }
 }
 
+// ── 1b. Sitemap <lastmod> (D8): a modification-date claim like any other ────
+// The old astro.config stamped BUILD_DATE on every URL — fabricated freshness.
+// lastmod is now omitted entirely; if it ever returns, it must be a real
+// per-page date, so build-time values here re-trip the fingerprint below.
+for (const f of fs.existsSync(DIST) ? fs.readdirSync(DIST) : []) {
+  if (!/^sitemap.*\.xml$/.test(f)) continue;
+  const xml = fs.readFileSync(path.join(DIST, f), 'utf-8');
+  for (const m of xml.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)) {
+    const ms = Date.parse(m[1]);
+    if (Number.isFinite(ms)) found.push({ source: `${f} <lastmod>`, iso: m[1], ms });
+  }
+}
+
 // ── 2. JSON-LD datePublished/dateModified in every built page ───────────────
 function walkHtml(dir: string, cb: (p: string) => void): void {
   if (!fs.existsSync(dir)) return;
