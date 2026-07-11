@@ -14,7 +14,9 @@ import {
   resolveAuthor,
   REVIEWER_SLUG,
 } from '../../lib/cms';
-import { articleFaq } from '../../data/articles';
+import { getTranslatedLocales } from '../../lib/cms';
+import { hreflangSet, NON_DEFAULT_LOCALES } from '../../lib/i18n';
+import { speakableSelectors, buildFaqPage } from '../../lib/article-schema';
 import type { Article, ArticleBlock } from '../../data/articles';
 
 export async function getStaticPaths() {
@@ -53,6 +55,9 @@ let title = '';
 let description = '';
 let image: string | undefined;
 let jsonLd: Record<string, unknown>[] = [];
+// P15-P6: reciprocal hreflang — populated only for articles that have real
+// non-default translations (empty ⇒ SEO.astro emits no hreflang at all).
+let alternates: { hreflang: string; href: string }[] = [];
 
 const breadcrumb = (crumbs: { label: string; href?: string }[]) => ({
   '@context': 'https://schema.org',
@@ -193,6 +198,12 @@ if (props.kind === 'article' && article) {
     image: ogImage,
     articleSection: categorySafe.name,
     inLanguage: 'en',
+    // P15-P7b — speakable references ONLY stable selectors that exist in the
+    // rendered HTML: the lead (always) + the key-takeaways box (when present).
+    speakable: {
+      '@type': 'SpeakableSpecification',
+      cssSelector: speakableSelectors(article),
+    },
     audience: {
       '@type': 'MedicalAudience',
       audienceType: 'Patient',
@@ -228,18 +239,15 @@ if (props.kind === 'article' && article) {
     if (topic) jsonLd.push(topic);
   }
 
-  const faq = articleFaq(article);
-  if (faq.length) {
-    jsonLd.push({
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      mainEntity: faq.map((f) => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
-      })),
-    });
-  }
+  // P15-P6 — hreflang for this article: query which non-default locales have a
+  // real translation. None ⇒ alternates stays [] ⇒ no hreflang emitted.
+  const translated = await getTranslatedLocales(article.slug, NON_DEFAULT_LOCALES);
+  alternates = hreflangSet(origin.href.replace(/\/$/, ''), `/wellness-hub/${article.slug}`, translated);
+
+  // P15-P7a — FAQPage ONLY when the editor set hasFAQ AND visible PAA content
+  // exists (schema is built from that exact visible content — no heuristics).
+  const faqPage = buildFaqPage(article);
+  if (faqPage) jsonLd.push(faqPage);
 } else if (props.kind === 'archive') {
   const [category, siteConsts, all] = await Promise.all([
     getArticleCategory(props.categoryId),
@@ -283,7 +291,7 @@ if (props.kind === 'article' && article) {
 }
 ---
 
-<BaseLayout title={title} description={description} image={image} type={article ? 'article' : 'website'} jsonLd={jsonLd}>
+<BaseLayout title={title} description={description} image={image} type={article ? 'article' : 'website'} jsonLd={jsonLd} alternates={alternates}>
   <Fragment slot="head">
     {article?.heroImage?.url && (
       <link

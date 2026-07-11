@@ -1,0 +1,101 @@
+---
+/**
+ * P15-P6 — locale-prefixed article route (/es/wellness-hub/…, /ar/wellness-hub/…).
+ *
+ * Rails only: getStaticPaths emits a path ONLY for a (locale, slug) pair that
+ * has a REAL translation in the CMS (getArticlesForLocale queries with
+ * fallback-locale=none and drops untranslated docs). With no translations yet,
+ * this generates ZERO pages — deterministic, no empty shells (SD3). When
+ * translations land, each page ships correct <html lang/dir>, localized
+ * canonical, reciprocal hreflang, og:locale, and localized schema URLs.
+ */
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ArticleBody from '../../../components/ArticleBody.astro';
+import '../../../styles/wellness-hub.css';
+import { getArticlesForLocale, getTranslatedLocales, getArticleCategory } from '../../../lib/cms';
+import { NON_DEFAULT_LOCALES, hreflangSet, localePath, ogLocaleFor } from '../../../lib/i18n';
+import { speakableSelectors, buildFaqPage } from '../../../lib/article-schema';
+
+export async function getStaticPaths() {
+  const paths: { params: { locale: string; path: string }; props: { locale: string; slug: string } }[] = [];
+  for (const locale of NON_DEFAULT_LOCALES) {
+    const arts = await getArticlesForLocale(locale);
+    for (const a of arts) {
+      paths.push({ params: { locale, path: a.slug }, props: { locale, slug: a.slug } });
+    }
+  }
+  return paths;
+}
+
+const { locale, slug } = Astro.props as { locale: string; slug: string };
+
+const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
+const originStr = origin.href.replace(/\/$/, '');
+
+const arts = await getArticlesForLocale(locale);
+const article = arts.find((a) => a.slug === slug)!;
+const category = (await getArticleCategory(article.category))!;
+
+const path = `/wellness-hub/${slug}`;
+const pageUrl = `${originStr}${localePath(locale, path)}`;
+const ogImage = new URL(`/og/articles/${slug}.png`, origin).href;
+
+// Reciprocal hreflang across every locale that really has this translation.
+const translated = await getTranslatedLocales(slug, NON_DEFAULT_LOCALES);
+const alternates = hreflangSet(originStr, path, translated);
+
+const localeUrl = (p: string) => `${originStr}${localePath(locale, p)}`;
+
+const jsonLd: Record<string, unknown>[] = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { label: 'Home', href: '/' },
+      { label: 'Wellness Hub', href: '/wellness-hub' },
+      { label: category.name, href: `/wellness-hub/${category.slug}` },
+      { label: article.title },
+    ].map((c, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: c.label,
+      ...(c.href ? { item: { '@id': localeUrl(c.href), name: c.label } } : {}),
+    })),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': ['MedicalWebPage', 'Article'],
+    '@id': pageUrl,
+    headline: article.title,
+    description: article.metaDescription,
+    datePublished: article.publishDate,
+    dateModified: article.updatedDate,
+    image: ogImage,
+    articleSection: category.name,
+    inLanguage: locale,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
+    publisher: { '@id': `${originStr}/#org` },
+    speakable: {
+      '@type': 'SpeakableSpecification',
+      cssSelector: speakableSelectors(article),
+    },
+  },
+];
+
+// FAQPage — same shared emitter (editorial gate + visible-source rule).
+const faqPage = buildFaqPage(article);
+if (faqPage) jsonLd.push(faqPage);
+---
+
+<BaseLayout
+  title={article.seoTitle}
+  description={article.metaDescription}
+  image={ogImage}
+  type="article"
+  lang={locale}
+  alternates={alternates}
+  ogLocale={ogLocaleFor(locale)}
+  jsonLd={jsonLd}
+>
+  <ArticleBody article={article} pageUrl={pageUrl} />
+</BaseLayout>

@@ -18,6 +18,10 @@ import { TOOLS as LOCAL_TOOLS, getPopularTools as localPopularTools, getToolsByC
 import { CATEGORIES as LOCAL_CATEGORIES, type Category } from '../data/categories';
 import { ARTICLES as LOCAL_ARTICLES, ARTICLE_CATEGORIES as LOCAL_ARTICLE_CATEGORIES, ARTICLES_PER_PAGE, type Article, type ArticleCategory, type ArticleBlock } from '../data/articles';
 import { AUTHORS as LOCAL_AUTHORS, resolveAuthor as localResolveAuthor, type Author } from '../data/authors';
+import { P7_FIXTURE_ARTICLE } from '../data/p7-fixture';
+
+// P15-P7 — off by default; set P7_FIXTURE=1 ONLY for the render-proof build.
+const P7_FIXTURE_ON = process.env.P7_FIXTURE === '1';
 import { SITE as LOCAL_SITE, NAV_LINKS as LOCAL_NAV_LINKS, FOOTER_LEGAL as LOCAL_FOOTER_LEGAL, FOOTER_COMPANY as LOCAL_FOOTER_COMPANY, SOCIAL_FOLLOW as LOCAL_SOCIAL_FOLLOW, SOCIAL_NETWORKS as LOCAL_SOCIAL_NETWORKS, ANALYTICS as LOCAL_ANALYTICS, EDITORIAL as LOCAL_EDITORIAL, CONTACT as LOCAL_CONTACT } from '../consts';
 
 const CMS_URL = (import.meta.env.CMS_URL as string) || 'http://localhost:3000';
@@ -413,6 +417,8 @@ interface CmsArticle {
   relatedArticles?: unknown[];
   seo?: { metaTitle?: string; metaDescription?: string };
   semanticEntities?: { term?: string; url?: string }[];
+  hasFAQ?: boolean;
+  takeaways?: { text?: string }[];
   _status?: string;
 }
 
@@ -447,6 +453,9 @@ function mapArticle(a: CmsArticle): Article {
     featured: Boolean(a.featured),
     isHowTo: Boolean(a.isHowTo),
     isHealthTopic: Boolean(a.isHealthTopic),
+    // P15-P7 — editorial AEO controls (SD4: flags, never heuristics).
+    hasFAQ: Boolean(a.hasFAQ),
+    takeaways: (a.takeaways || []).map((t) => str(t.text)).filter(Boolean),
     primaryTool: pickSlug(a.primaryTool),
     relatedTools: (a.relatedTools || []).map(pickSlug).filter(Boolean),
     relatedArticles: (a.relatedArticles || []).map(pickSlug).filter(Boolean),
@@ -521,6 +530,7 @@ export async function getArticle(slug: string): Promise<Article | null> {
   const data = await cmsFetch<PayloadList<CmsArticle>>(
     `/api/articles?where[slug][equals]=${slug}&depth=2&draft=false`,
   );
+  if (P7_FIXTURE_ON && slug === P7_FIXTURE_ARTICLE.slug) return P7_FIXTURE_ARTICLE;
   if (data && Array.isArray(data.docs) && data.docs.length > 0) {
     return mapArticle(data.docs[0]);
   }
@@ -543,14 +553,55 @@ export function getArticles(): Promise<Article[]> {
           '/api/articles?limit=1000&depth=2&sort=-publishDate&draft=false',
         );
         if (data && Array.isArray(data.docs) && data.docs.length > 0) {
-          return data.docs.map(mapArticle).filter((a) => a.slug && a.title);
+          const mapped = data.docs.map(mapArticle).filter((a) => a.slug && a.title);
+          return P7_FIXTURE_ON ? [P7_FIXTURE_ARTICLE, ...mapped] : mapped;
         }
       }
       console.error('[CMS] getArticles failed 3× — building from LOCAL article data (no hero images).');
-      return LOCAL_ARTICLES;
+      return P7_FIXTURE_ON ? [P7_FIXTURE_ARTICLE, ...LOCAL_ARTICLES] : LOCAL_ARTICLES;
     })();
   }
   return _articlesPromise;
+}
+
+// ── P15-P6: locale-aware article fetch ───────────────────────────────────────
+// Non-default locales query the CMS with fallback-locale=none so untranslated
+// localized fields come back null — those docs are SKIPPED (deterministic
+// missing-translation behavior: no route, no hreflang, no empty shells, SD3).
+// There is deliberately NO local fallback here: LOCAL_ARTICLES is English-only,
+// and serving it under /es/ or /ar/ would fabricate translations. On CMS
+// failure a locale simply emits zero routes — never a failed build (SD5).
+const _localeArticles = new Map<string, Promise<Article[]>>();
+
+export function getArticlesForLocale(locale: string): Promise<Article[]> {
+  if (locale === 'en') return getArticles();
+  let p = _localeArticles.get(locale);
+  if (!p) {
+    p = (async () => {
+      const data = await cmsFetch<PayloadList<CmsArticle>>(
+        `/api/articles?limit=1000&depth=2&sort=-publishDate&draft=false&locale=${locale}&fallback-locale=none`,
+      );
+      if (!data || !Array.isArray(data.docs)) return [];
+      return data.docs
+        // Translated = the localized essentials genuinely exist in this locale.
+        .filter((d) => d.title && Array.isArray(d.layout) && d.layout.length > 0)
+        .map(mapArticle)
+        .filter((a) => a.slug && a.title && a.body.length > 0);
+    })();
+    _localeArticles.set(locale, p);
+  }
+  return p;
+}
+
+/** Non-default locales in which this slug has a real translation. */
+export async function getTranslatedLocales(slug: string, locales: readonly string[]): Promise<string[]> {
+  const out: string[] = [];
+  for (const l of locales) {
+    if (l === 'en') continue;
+    const arts = await getArticlesForLocale(l);
+    if (arts.some((a) => a.slug === slug)) out.push(l);
+  }
+  return out;
 }
 
 const byNewest = (a: Article, b: Article) =>

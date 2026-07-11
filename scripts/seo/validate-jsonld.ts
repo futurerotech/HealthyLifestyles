@@ -16,7 +16,7 @@ const ORG_ID = 'https://www.healthylifesstyles.com/#org'
 
 interface Finding {
   page: string
-  type: 'invalid-json' | 'missing-context' | 'missing-type' | 'ymyl-missing-author' | 'ymyl-missing-reviewer' | 'ymyl-missing-last-reviewed' | 'orphan-publisher-ref' | 'orphan-worksfor-ref'
+  type: 'invalid-json' | 'missing-context' | 'missing-type' | 'ymyl-missing-author' | 'ymyl-missing-reviewer' | 'ymyl-missing-last-reviewed' | 'orphan-publisher-ref' | 'orphan-worksfor-ref' | 'faqpage-empty' | 'faqpage-bad-qa' | 'speakable-empty'
   message: string
 }
 
@@ -102,6 +102,31 @@ function main() {
 
       if (obj.author && obj.author.worksFor && obj.author.worksFor['@id'] && obj.author.worksFor['@id'] !== ORG_ID) {
         findings.push({ page, type: 'orphan-worksfor-ref', message: `author.worksFor @id does not match ${ORG_ID}` })
+      }
+
+      // P15-P7a — FAQPage must carry real Q&A (it is emitted only when hasFAQ +
+      // visible content exist; an empty/malformed FAQPage would be deceptive).
+      if (types.includes('FAQPage')) {
+        const qa = Array.isArray(obj.mainEntity) ? obj.mainEntity : []
+        if (qa.length === 0) {
+          findings.push({ page, type: 'faqpage-empty', message: 'FAQPage has no mainEntity questions' })
+        }
+        for (const q of qa) {
+          const name = q?.name
+          const ans = q?.acceptedAnswer?.text
+          if (!name || !String(name).trim() || !ans || !String(ans).trim()) {
+            findings.push({ page, type: 'faqpage-bad-qa', message: 'FAQPage question/answer is empty' })
+            break
+          }
+        }
+      }
+
+      // P15-P7b — speakable must reference at least one stable selector.
+      if (obj.speakable) {
+        const sel = obj.speakable.cssSelector
+        if (!Array.isArray(sel) || sel.length === 0 || sel.some((s: unknown) => !s || !String(s).trim())) {
+          findings.push({ page, type: 'speakable-empty', message: 'speakable.cssSelector is empty/blank' })
+        }
       }
     }
   })

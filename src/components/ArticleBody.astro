@@ -84,6 +84,20 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
         <span>Published {formatDate(article.publishDate)}</span>
       </div>
       <Byline author={article.author} updated={article.updatedDate} class="wh-article__byline" />
+
+      {/* P15-P7c — Key takeaways: server-rendered, exactly 3 editorial bullets,
+          present in the initial static HTML. #key-takeaways is the STABLE
+          selector referenced by the article's speakable schema. Renders only
+          when the editor supplied all 3 (validated in the CMS) — never
+          placeholder/generated claims (SD3). */}
+      {article.takeaways && article.takeaways.length === 3 && (
+        <aside id="key-takeaways" class="wh-takeaways" aria-labelledby="key-takeaways-title">
+          <h2 id="key-takeaways-title" class="wh-takeaways__title">Key takeaways</h2>
+          <ul class="wh-takeaways__list">
+            {article.takeaways.map((t) => <li>{t}</li>)}
+          </ul>
+        </aside>
+      )}
     </div>
   </header>
 
@@ -255,6 +269,31 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
 </article>
 
 <style>
+  /* P15-P7c — Key takeaways box. Fixed structure = no CLS; logical props so it
+     mirrors correctly under RTL (Arabic). */
+  .wh-takeaways {
+    margin-top: 1.5rem;
+    padding: 1.1rem 1.35rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-inline-start: 4px solid var(--brand, #16a34a);
+    border-radius: var(--radius);
+  }
+  .wh-takeaways__title {
+    margin: 0 0 0.5rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--muted);
+  }
+  .wh-takeaways__list {
+    margin: 0;
+    padding-inline-start: 1.15rem;
+    display: grid;
+    gap: 0.35rem;
+    font-weight: 500;
+  }
   .wh-tags {
     display: flex;
     align-items: center;
