@@ -76,4 +76,11 @@ if (failures.length) {
   for (const f of failures) console.error(`  ✗ [${f.locale}] ${f.route} — ${f.reason}`);
   process.exit(1);
 }
-console.log('empty-shell-detector: PASS — no untranslated or placeholder localized pages.');
+// A PASS is only meaningful over real pages. With zero localized production
+// pages the detector has verified nothing — report NOT APPLICABLE (still
+// exit 0, non-blocking) so a green build never masks "the check ran on air".
+if (localizedPages === 0) {
+  console.log('empty-shell-detector: NOT APPLICABLE — 0 localized production pages exist (no translations yet).');
+} else {
+  console.log(`empty-shell-detector: PASS — ${localizedPages} localized page(s), no untranslated or placeholder content.`);
+}

@@ -18,6 +18,10 @@ import { TOOLS as LOCAL_TOOLS, getPopularTools as localPopularTools, getToolsByC
 import { CATEGORIES as LOCAL_CATEGORIES, type Category } from '../data/categories';
 import { ARTICLES as LOCAL_ARTICLES, ARTICLE_CATEGORIES as LOCAL_ARTICLE_CATEGORIES, ARTICLES_PER_PAGE, type Article, type ArticleCategory, type ArticleBlock } from '../data/articles';
 import { AUTHORS as LOCAL_AUTHORS, resolveAuthor as localResolveAuthor, type Author } from '../data/authors';
+import { P7_FIXTURE_ARTICLE } from '../data/p7-fixture';
+
+// P15-P7 — off by default; set P7_FIXTURE=1 ONLY for the render-proof build.
+const P7_FIXTURE_ON = process.env.P7_FIXTURE === '1';
 import { SITE as LOCAL_SITE, NAV_LINKS as LOCAL_NAV_LINKS, FOOTER_LEGAL as LOCAL_FOOTER_LEGAL, FOOTER_COMPANY as LOCAL_FOOTER_COMPANY, SOCIAL_FOLLOW as LOCAL_SOCIAL_FOLLOW, SOCIAL_NETWORKS as LOCAL_SOCIAL_NETWORKS, ANALYTICS as LOCAL_ANALYTICS, EDITORIAL as LOCAL_EDITORIAL, CONTACT as LOCAL_CONTACT } from '../consts';
 
 const CMS_URL = (import.meta.env.CMS_URL as string) || 'http://localhost:3000';
@@ -526,6 +530,7 @@ export async function getArticle(slug: string): Promise<Article | null> {
   const data = await cmsFetch<PayloadList<CmsArticle>>(
     `/api/articles?where[slug][equals]=${slug}&depth=2&draft=false`,
   );
+  if (P7_FIXTURE_ON && slug === P7_FIXTURE_ARTICLE.slug) return P7_FIXTURE_ARTICLE;
   if (data && Array.isArray(data.docs) && data.docs.length > 0) {
     return mapArticle(data.docs[0]);
   }
@@ -548,11 +553,12 @@ export function getArticles(): Promise<Article[]> {
           '/api/articles?limit=1000&depth=2&sort=-publishDate&draft=false',
         );
         if (data && Array.isArray(data.docs) && data.docs.length > 0) {
-          return data.docs.map(mapArticle).filter((a) => a.slug && a.title);
+          const mapped = data.docs.map(mapArticle).filter((a) => a.slug && a.title);
+          return P7_FIXTURE_ON ? [P7_FIXTURE_ARTICLE, ...mapped] : mapped;
         }
       }
       console.error('[CMS] getArticles failed 3× — building from LOCAL article data (no hero images).');
-      return LOCAL_ARTICLES;
+      return P7_FIXTURE_ON ? [P7_FIXTURE_ARTICLE, ...LOCAL_ARTICLES] : LOCAL_ARTICLES;
     })();
   }
   return _articlesPromise;

@@ -16,7 +16,7 @@ import {
 } from '../../lib/cms';
 import { getTranslatedLocales } from '../../lib/cms';
 import { hreflangSet, NON_DEFAULT_LOCALES } from '../../lib/i18n';
-import { articleFaq } from '../../data/articles';
+import { speakableSelectors, buildFaqPage } from '../../lib/article-schema';
 import type { Article, ArticleBlock } from '../../data/articles';
 
 export async function getStaticPaths() {
@@ -202,7 +202,7 @@ if (props.kind === 'article' && article) {
     // rendered HTML: the lead (always) + the key-takeaways box (when present).
     speakable: {
       '@type': 'SpeakableSpecification',
-      cssSelector: ['.wh-article__lead', ...(article.takeaways?.length === 3 ? ['#key-takeaways'] : [])],
+      cssSelector: speakableSelectors(article),
     },
     audience: {
       '@type': 'MedicalAudience',
@@ -246,18 +246,8 @@ if (props.kind === 'article' && article) {
 
   // P15-P7a — FAQPage ONLY when the editor set hasFAQ AND visible PAA content
   // exists (schema is built from that exact visible content — no heuristics).
-  const faq = articleFaq(article);
-  if (article.hasFAQ && faq.length) {
-    jsonLd.push({
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      mainEntity: faq.map((f) => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
-      })),
-    });
-  }
+  const faqPage = buildFaqPage(article);
+  if (faqPage) jsonLd.push(faqPage);
 } else if (props.kind === 'archive') {
   const [category, siteConsts, all] = await Promise.all([
     getArticleCategory(props.categoryId),

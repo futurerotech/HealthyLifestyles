@@ -3,6 +3,10 @@ name: Promote dev to main
 on:
   push:
     branches: [dev]
+  # P15 close — run the full verify gate on PRs to dev too (Lighthouse blocking,
+  # empty-shell, date-integrity, etc.). The promote job stays push-only.
+  pull_request:
+    branches: [dev]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -81,7 +85,8 @@ jobs:
   promote:
     name: Promote to main
     needs: verify
-    if: github.ref == 'refs/heads/dev'
+    # Push-to-dev only: PRs run verify but never auto-promote.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
     runs-on: ubuntu-latest
     permissions:
       contents: write
