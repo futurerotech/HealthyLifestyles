@@ -552,12 +552,20 @@ export function getArticles(): Promise<Article[]> {
         const data = await cmsFetch<PayloadList<CmsArticle>>(
           '/api/articles?limit=1000&depth=2&sort=-publishDate&draft=false',
         );
-        if (data && Array.isArray(data.docs) && data.docs.length > 0) {
-          const mapped = data.docs.map(mapArticle).filter((a) => a.slug && a.title);
-          return P7_FIXTURE_ON ? [P7_FIXTURE_ARTICLE, ...mapped] : mapped;
+        // Transport failure (cmsFetch returned null / no list) → retry.
+        if (!data || !Array.isArray(data.docs)) continue;
+        // CMS is REACHABLE — its answer is authoritative even when empty. Do NOT
+        // paper a reachable-but-empty CMS (e.g. a data-loss incident) over with
+        // stale LOCAL content: that would hide the outage from every build gate.
+        const mapped = data.docs.map(mapArticle).filter((a) => a.slug && a.title);
+        if (mapped.length === 0) {
+          console.error(`[CMS] articles endpoint reachable but yielded 0 usable articles (docs=${data.docs.length}) — surfacing the empty result, NOT masking with LOCAL fallback.`);
         }
+        return P7_FIXTURE_ON ? [P7_FIXTURE_ARTICLE, ...mapped] : mapped;
       }
-      console.error('[CMS] getArticles failed 3× — building from LOCAL article data (no hero images).');
+      // Only reached on repeated TRANSPORT failure → CMS unreachable. LOCAL
+      // fallback keeps the site building and is distinct from reachable-empty.
+      console.error('[CMS] getArticles: CMS unreachable after 3 attempts — building from LOCAL article data (no hero images).');
       return P7_FIXTURE_ON ? [P7_FIXTURE_ARTICLE, ...LOCAL_ARTICLES] : LOCAL_ARTICLES;
     })();
   }
