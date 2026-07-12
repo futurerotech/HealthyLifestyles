@@ -63,6 +63,17 @@ jobs:
       - name: Empty-shell detector (P6)
         run: npm run seo:shells
 
+      # P16 B/C/K — BLOCKING on high-confidence metadata defects (missing/dup
+      # title/canonical/description, canonical collisions, broken hreflang
+      # reciprocity); length ranges are ADVISORY warnings only.
+      - name: Metadata audit (P16)
+        run: npm run seo:meta
+
+      # P16-G — evidence-based HTML/DOM/hydration regression budgets
+      # (baseline: /tools = 27.1KB gzip, 1722 tags, 0 islands).
+      - name: Size budgets (P16)
+        run: npm run seo:budgets
+
       # P15-P4b — non-blocking by design (script always exits 0): flags
       # article images provably below the 1200px Discover threshold and
       # refreshes docs/seo/discover-audit.md.

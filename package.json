@@ -15,6 +15,8 @@
  "seo:discover": "node scripts/seo/discover-audit.ts",
  "seo:dates": "node scripts/seo/date-integrity.ts",
  "seo:shells": "node scripts/seo/empty-shell-detector.ts",
+ "seo:meta": "node scripts/seo/metadata-audit.ts",
+ "seo:budgets": "node scripts/seo/size-budget.ts",
  "test:feed": "node --test scripts/seo/__tests__/feed-date-integrity.test.ts",
  "test:seo": "node --test scripts/seo/__tests__/feed-date-integrity.test.ts scripts/seo/__tests__/i18n.test.ts scripts/seo/__tests__/empty-shell.test.ts scripts/seo/__tests__/article-schema.test.ts",
     "seo:jsonld": "node scripts/seo/validate-jsonld.ts",
