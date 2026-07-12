@@ -240,15 +240,49 @@ function mapTool(t: CmsTool): Tool {
   };
 }
 
-/** All tools the public site should show. CMS-first, local fallback. */
-export async function getTools(): Promise<Tool[]> {
-  const data = await cmsFetch<PayloadList<CmsTool>>(
-    '/api/tools?where[enabled][equals]=true&limit=300&depth=1&sort=sortOrder',
-  );
-  if (data && Array.isArray(data.docs) && data.docs.length > 0) {
-    return data.docs.map(mapTool).filter((t) => t.slug && t.title);
+/**
+ * P16-J — production fallback prohibition. LOCAL_* content is a development/CI
+ * convenience ONLY. A production deploy that silently ships stale hardcoded
+ * content instead of the CMS would hide a data-loss outage from every gate —
+ * so on Vercel production builds a CMS transport failure FAILS THE BUILD
+ * loudly instead. Escape hatch (deliberate, logged decision only):
+ * ALLOW_LOCAL_CONTENT_FALLBACK=true.
+ */
+function assertLocalFallbackAllowed(what: string): void {
+  const isProdDeploy = process.env.VERCEL_ENV === 'production';
+  const explicitlyAllowed = process.env.ALLOW_LOCAL_CONTENT_FALLBACK === 'true';
+  if (isProdDeploy && !explicitlyAllowed) {
+    throw new Error(
+      `[CMS] ${what}: CMS unreachable during a PRODUCTION build. Refusing to ` +
+        `silently ship LOCAL fallback content (P16-J). Fix the CMS/CMS_URL, or set ` +
+        `ALLOW_LOCAL_CONTENT_FALLBACK=true to consciously override.`,
+    );
   }
-  return LOCAL_TOOLS;
+  console.error(`[CMS] ${what}: using LOCAL fallback content (allowed outside production deploys).`);
+}
+
+/**
+ * All tools the public site should show. CMS-first, local fallback.
+ * P16-A/G — ONE shared fetch per build (same pattern as _articlesPromise):
+ * without the cache every prerendered page re-ran this query (~100+ duplicate
+ * CMS requests per build, and nondeterministic per-page fallbacks on timeout).
+ */
+let _toolsPromise: Promise<Tool[]> | null = null;
+
+export function getTools(): Promise<Tool[]> {
+  if (!_toolsPromise) {
+    _toolsPromise = (async () => {
+      const data = await cmsFetch<PayloadList<CmsTool>>(
+        '/api/tools?where[enabled][equals]=true&limit=300&depth=1&sort=sortOrder',
+      );
+      if (data && Array.isArray(data.docs) && data.docs.length > 0) {
+        return data.docs.map(mapTool).filter((t) => t.slug && t.title);
+      }
+      assertLocalFallbackAllowed('getTools');
+      return LOCAL_TOOLS;
+    })();
+  }
+  return _toolsPromise;
 }
 
 export async function getPopularTools(limit = 6): Promise<Tool[]> {
@@ -564,8 +598,9 @@ export function getArticles(): Promise<Article[]> {
         return P7_FIXTURE_ON ? [P7_FIXTURE_ARTICLE, ...mapped] : mapped;
       }
       // Only reached on repeated TRANSPORT failure → CMS unreachable. LOCAL
-      // fallback keeps the site building and is distinct from reachable-empty.
-      console.error('[CMS] getArticles: CMS unreachable after 3 attempts — building from LOCAL article data (no hero images).');
+      // fallback keeps dev/CI builds working; production deploys fail loudly
+      // instead (P16-J — never silently ship stale content in production).
+      assertLocalFallbackAllowed('getArticles (3 attempts)');
       return P7_FIXTURE_ON ? [P7_FIXTURE_ARTICLE, ...LOCAL_ARTICLES] : LOCAL_ARTICLES;
     })();
   }

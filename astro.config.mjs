@@ -25,6 +25,15 @@ export default defineConfig({
         !page.includes('/og/') &&
         !page.includes('/embed/'),
       changefreq: 'weekly',
+      // P16 — hreflang in the sitemap too (head already emits it via SEO.astro).
+      // The integration annotates xhtml:link alternates only for URLs whose
+      // locale-prefixed counterparts actually exist in the build — so with zero
+      // translations today this is a no-op, and it activates automatically when
+      // real /es/ or /ar/ pages ship (no empty-shell URLs are ever invented).
+      i18n: {
+        defaultLocale: 'en',
+        locales: { en: 'en', es: 'es', ar: 'ar' },
+      },
       serialize: (item) => {
         const url = item.url.replace(/(.+?)\/$/, '$1');
         let priority = 0.7;
