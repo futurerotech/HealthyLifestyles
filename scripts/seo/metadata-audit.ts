@@ -21,6 +21,7 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
+import { walkHtmlFiles } from './lib/html-scan.ts';
 
 const DIST = path.resolve(process.cwd(), 'dist', 'client');
 const ORIGIN = 'https://www.healthylifesstyles.com';
@@ -41,13 +42,9 @@ interface Page {
 
 const pages: Page[] = [];
 
-function walk(dir: string): void {
-  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, e.name);
-    if (e.isDirectory()) walk(full);
-    else if (e.name === 'index.html' || e.name === '404.html') parse(full);
-  }
-}
+// Walking via the shared lib; this audit only reads page-level files.
+const walk = (dir: string): void =>
+  walkHtmlFiles(dir, parse, (n) => n === 'index.html' || n === '404.html');
 
 function attrs(html: string, re: RegExp, group = 1): string[] {
   return [...html.matchAll(re)].map((m) => m[group].trim());

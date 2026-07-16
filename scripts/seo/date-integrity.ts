@@ -18,6 +18,7 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
+import { walkHtmlFiles, extractJsonLdBlocks } from './lib/html-scan.ts';
 
 const DIST = path.resolve(process.cwd(), 'dist', 'client');
 const WINDOW_MS = 5 * 60 * 1000; // ±5min — the fabrication fingerprint window
@@ -72,14 +73,7 @@ for (const f of fs.existsSync(DIST) ? fs.readdirSync(DIST) : []) {
 }
 
 // ── 2. JSON-LD datePublished/dateModified in every built page ───────────────
-function walkHtml(dir: string, cb: (p: string) => void): void {
-  if (!fs.existsSync(dir)) return;
-  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, e.name);
-    if (e.isDirectory()) walkHtml(full, cb);
-    else if (e.isFile() && e.name.endsWith('.html')) cb(full);
-  }
-}
+// (walking + block extraction via the shared, regression-tested lib)
 
 function collectDates(node: unknown, file: string): void {
   if (Array.isArray(node)) return node.forEach((n) => collectDates(n, file));
@@ -95,16 +89,12 @@ function collectDates(node: unknown, file: string): void {
   }
 }
 
-walkHtml(DIST, (filePath) => {
+walkHtmlFiles(DIST, (filePath) => {
   const rel = path.relative(DIST, filePath).replace(/\\/g, '/');
   const html = fs.readFileSync(filePath, 'utf-8');
-  for (const m of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
-    try {
-      collectDates(JSON.parse(m[1]), rel);
-    } catch {
-      problems.push(`${rel}: unparseable JSON-LD block.`);
-    }
-  }
+  const { blocks, invalid } = extractJsonLdBlocks(html);
+  if (invalid > 0) problems.push(`${rel}: ${invalid} unparseable JSON-LD block(s).`);
+  for (const b of blocks) collectDates(b, rel);
 });
 
 // ── 3. The fabrication fingerprint ───────────────────────────────────────────

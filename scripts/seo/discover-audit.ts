@@ -16,6 +16,7 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
+import { walkHtmlFiles, extractJsonLdBlocks, firstTopLevelOfType } from './lib/html-scan.ts';
 
 const DIST = path.resolve(process.cwd(), 'dist', 'client');
 const REPORT = path.resolve(process.cwd(), 'docs', 'seo', 'discover-audit.md');
@@ -28,43 +29,21 @@ interface Row {
   schemaImage: { url: string; status: Status; note: string };
 }
 
-function walkHtml(dir: string, cb: (p: string) => void): void {
-  if (!fs.existsSync(dir)) return;
-  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, e.name);
-    if (e.isDirectory()) walkHtml(full, cb);
-    else if (e.isFile() && e.name.endsWith('.html')) cb(full);
-  }
-}
-
 /**
- * TOP-LEVEL Article nodes only: archives (CollectionPage) nest `hasPart`
- * Article stubs — those are NOT article pages and must not be audited
- * (they'd all warn "no image emitted" as false positives).
+ * TOP-LEVEL Article detection + image extraction via the SHARED, regression-
+ * tested primitives (scripts/seo/lib/html-scan.ts). Both historical bug
+ * classes live there as fixtures: string-only @type matching (misses the
+ * ["MedicalWebPage","Article"] array form) and nested hasPart stubs
+ * qualifying archives as articles.
  */
-function topLevelArticles(html: string): { found: boolean; image: string | null } {
-  let found = false;
-  let image: string | null = null;
-  for (const m of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
-    try {
-      const data = JSON.parse(m[1]);
-      const nodes = Array.isArray(data) ? data : [data];
-      for (const n of nodes) {
-        // @type may be a string OR an array (YMYL pages: ["MedicalWebPage","Article"]).
-        const t = n && typeof n === 'object' ? (n as { '@type'?: string | string[] })['@type'] : undefined;
-        const isArticle = t === 'Article' || (Array.isArray(t) && t.includes('Article'));
-        if (isArticle) {
-          found = true;
-          const img = (n as { image?: unknown }).image;
-          if (typeof img === 'string') image = img;
-          else if (img && typeof img === 'object' && 'url' in (img as object)) image = String((img as { url: unknown }).url);
-        }
-      }
-    } catch {
-      /* unparseable JSON-LD is validate-jsonld's job, not ours */
-    }
-  }
-  return { found, image };
+function topLevelArticle(html: string): { found: boolean; image: string | null } {
+  const { blocks } = extractJsonLdBlocks(html);
+  const node = firstTopLevelOfType(blocks, 'Article');
+  if (!node) return { found: false, image: null };
+  const img = node.image;
+  if (typeof img === 'string') return { found: true, image: img };
+  if (img && typeof img === 'object' && 'url' in (img as object)) return { found: true, image: String((img as { url: unknown }).url) };
+  return { found: true, image: null };
 }
 
 async function classify(url: string): Promise<{ status: Status; note: string }> {
@@ -91,9 +70,9 @@ async function main(): Promise<void> {
   const rows: Row[] = [];
   const pages: { page: string; html: string; image: string | null }[] = [];
 
-  walkHtml(DIST, (filePath) => {
+  walkHtmlFiles(DIST, (filePath) => {
     const html = fs.readFileSync(filePath, 'utf-8');
-    const { found, image } = topLevelArticles(html); // true article pages only
+    const { found, image } = topLevelArticle(html); // true article pages only
     if (!found) return;
     const page = '/' + path.relative(DIST, filePath).replace(/\\/g, '/').replace(/\/?index\.html$/, '');
     pages.push({ page, html, image });
