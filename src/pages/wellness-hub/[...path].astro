@@ -266,6 +266,9 @@ if (props.kind === 'article' && article) {
       ? `${categorySafe.name} Guides — Page ${page} | Wellness Hub`
       : `${categorySafe.name} Guides | Wellness Hub`;
   description = `${categorySafe.blurb} Evidence-based ${categorySafe.name.toLowerCase()} guides from the ${SITE.name} Wellness Hub.`;
+  // Quality Gate P3 (deterministic transform): paginated pages must not share
+  // page 1's description verbatim — append the real page marker.
+  if (page > 1) description = `${description} Page ${page} of ${totalPages}.`;
 
   jsonLd = [
     breadcrumb([
