@@ -12,6 +12,8 @@ import {
   getLatestArticles,
   getArticleCategory,
   countArticlesByCategory,
+  getTags,
+  getArticlesByTag,
 } from '../../lib/cms';
 import { articlePlainText } from '../../data/articles';
 import { readingTimeMinutes, formatDate } from '../../lib/text';
@@ -26,6 +28,15 @@ const featuredCat = (await getArticleCategory(featured.category))!;
 const featuredMinutes = readingTimeMinutes(articlePlainText(featured));
 // Everything else, newest first (featured already gets the hero spot).
 const latest = await getLatestArticles(articles.length, featured.slug);
+
+// Subject tags with at least one article — the IA layer that guarantees every
+// live tag page has a hub-level inbound link.
+const allTags = await getTags();
+const tagsWithCounts = (
+  await Promise.all(
+    allTags.map(async (t) => ({ ...t, count: (await getArticlesByTag(t.slug)).length })),
+  )
+).filter((t) => t.count > 0);
 
 const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
 const pageUrl = new URL('/wellness-hub', origin).href.replace(/\/$/, '');
@@ -161,6 +172,25 @@ const collectionLd = {
     </div>
   </section>
 
+  <!-- Subject tags: hub-level inbound links for every live tag page -->
+  {tagsWithCounts.length > 0 && (
+    <section class="wh-section wh-section--tight">
+      <div class="container">
+        <div class="wh-section__head">
+          <h2>Browse by subject</h2>
+        </div>
+        <nav class="wh-tags" aria-label="Browse articles by subject">
+          {tagsWithCounts.map((t) => (
+            <a href={`/wellness-hub/tag/${t.slug}`} class="wh-tags__tag">
+              {t.name}
+              <span class="wh-tags__count">{t.count}</span>
+            </a>
+          ))}
+        </nav>
+      </div>
+    </section>
+  )}
+
   <!-- Latest (searchable) -->
   <section class="wh-section">
     <div class="container">
@@ -192,6 +222,39 @@ const collectionLd = {
 </BaseLayout>
 
 <style>
+  .wh-section--tight {
+    padding-top: 0;
+  }
+  .wh-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .wh-tags__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    border-radius: var(--radius-pill);
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .wh-tags__tag:hover {
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
+    text-decoration: none;
+  }
+  .wh-tags__count {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--muted);
+    background: #fff;
+    border-radius: var(--radius-pill);
+    padding: 0.05rem 0.45rem;
+  }
   .sr-only {
     position: absolute;
     width: 1px;

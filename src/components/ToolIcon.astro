@@ -21,15 +21,20 @@ interface Props {
 
 const { icon, gradient = 'blue', size = 52, class: className, label } = Astro.props;
 
-const [from, to] = GRADIENTS[gradient] ?? DEFAULT_GRADIENT;
+const knownGradient = gradient in GRADIENTS;
+const [from, to] = knownGradient ? GRADIENTS[gradient] : DEFAULT_GRADIENT;
 const iconSize = Math.round(size * 0.5);
 const radius = size >= 56 ? 16 : 14;
 const decorative = !label;
+// Default-size tiles with a known gradient get all styling from CSS classes
+// (zero inline style). Custom sizes or unknown gradients fall back to inline
+// custom properties so nothing breaks.
+const needsInlineStyle = size !== 52 || !knownGradient;
 ---
 
 <span
-  class:list={['icon-tile', 'icon-tile--grad', className]}
-  style={`--from:${from};--to:${to};--ti-size:${size}px;--ti-radius:${radius}px`}
+  class:list={['icon-tile', 'icon-tile--grad', knownGradient && `icon-tile--${gradient}`, className]}
+  style={needsInlineStyle ? `--from:${from};--to:${to};--ti-size:${size}px;--ti-radius:${radius}px` : undefined}
   aria-hidden={decorative ? 'true' : undefined}
   role={decorative ? undefined : 'img'}
   aria-label={label}

@@ -26,9 +26,12 @@ const SPAM_PATTERNS = [/^\/game\//i]
 const EXCLUDED_PATHS = [/^\/og\//i, /^\/embed\//i, /^\/api\//i, /^\/404/i, /^\/$/]
 const ASSET_EXTENSIONS = /\.(woff2?|css|js|mjs|svg|png|jpg|jpeg|webp|ico|webmanifest|txt|xml|json|pdf)$/i
 const TRACKED_ARTICLE_OR_TOOL = /^\/(tools|wellness-hub)\/[^/]+$/
+const TRACKED_TAG_PAGE = /^\/wellness-hub\/tag\/[^/]+$/
 
 function isTrackedPage(urlPath: string): boolean {
-  return TRACKED_ARTICLE_OR_TOOL.test(urlPath)
+  // Track tools, articles, and tag pages. Tag pages were previously invisible
+  // to this audit — which is exactly how two of them shipped as orphans.
+  return TRACKED_ARTICLE_OR_TOOL.test(urlPath) || TRACKED_TAG_PAGE.test(urlPath)
 }
 
 interface PageInfo {

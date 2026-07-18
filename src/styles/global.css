@@ -486,6 +486,16 @@ p {
 }
 
 /* ---------- Icon tile ---------- */
+/* Shared lucide icon presentation — one rule instead of ~150 bytes of repeated
+   attributes on every inline icon across the site. */
+.icn {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
 .icon-tile {
   display: inline-flex;
   align-items: center;
@@ -507,6 +517,20 @@ p {
     0 6px 16px -5px color-mix(in srgb, var(--to, #2563eb) 60%, transparent),
     0 2px 5px rgba(2, 6, 23, 0.08);
 }
+/* Gradient palette as classes (mirrors src/lib/gradients.ts) so tool tiles don't
+   need per-instance inline styles. Custom sizes still set --ti-* inline. */
+.icon-tile--orange { --from: #fb923c; --to: #ea580c; }
+.icon-tile--amber { --from: #fbbf24; --to: #d97706; }
+.icon-tile--cyan { --from: #22d3ee; --to: #0891b2; }
+.icon-tile--blue { --from: #60a5fa; --to: #2563eb; }
+.icon-tile--purple { --from: #a78bfa; --to: #7c3aed; }
+.icon-tile--indigo { --from: #818cf8; --to: #4f46e5; }
+.icon-tile--red { --from: #f87171; --to: #dc2626; }
+.icon-tile--pink { --from: #f472b6; --to: #db2777; }
+.icon-tile--green { --from: #34d399; --to: #16a34a; }
+.icon-tile--teal { --from: #2dd4bf; --to: #0d9488; }
+.icon-tile--brown { --from: #c08457; --to: #7b4f2e; }
+.icon-tile--sky { --from: #38bdf8; --to: #0284c7; }
 
 /* ---------- Result actions: "Save & share your result" ---------- */
 .result-actions {

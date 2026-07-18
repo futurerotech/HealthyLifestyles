@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "astro dev",
+    "prebuild": "node scripts/gen-icon-sprite.ts",
     "build": "astro build",
     "preview": "astro preview",
     "gen:assets": "node scripts/gen-assets.mjs",

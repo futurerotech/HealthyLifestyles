@@ -4,9 +4,16 @@ import ArticleCard from '../../../components/ArticleCard.astro';
 import { getArticlesByTag, getTag } from '../../../lib/cms';
 
 export async function getStaticPaths() {
-  const { getTags } = await import('../../../lib/cms');
+  const { getTags, getArticlesByTag } = await import('../../../lib/cms');
   const tags = await getTags();
-  return tags.map((t) => ({ params: { slug: t.slug }, props: { slug: t.slug } }));
+  // Only generate tag pages that have at least one article. Zero-article tag
+  // pages are empty, unlinked orphans (and were indexed as thin content).
+  const withArticles = await Promise.all(
+    tags.map(async (t) => ({ slug: t.slug, count: (await getArticlesByTag(t.slug)).length })),
+  );
+  return withArticles
+    .filter((t) => t.count > 0)
+    .map((t) => ({ params: { slug: t.slug }, props: { slug: t.slug } }));
 }
 
 const { slug } = Astro.props;

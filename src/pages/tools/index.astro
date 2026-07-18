@@ -111,7 +111,6 @@ const collectionLd = {
                 data-tool
                 data-name={tool.title.toLowerCase()}
                 data-keywords={tool.keywords.join(' ').toLowerCase()}
-                data-desc={tool.blurb.toLowerCase()}
               >
                 <ToolCard tool={tool} />
               </li>
@@ -337,7 +336,10 @@ const collectionLd = {
       const q = input.value.trim().toLowerCase();
       let visible = 0;
       for (const li of tools) {
-        const hay = `${li.dataset.name ?? ''} ${li.dataset.keywords ?? ''} ${li.dataset.desc ?? ''}`;
+        // Blurb is read from the rendered card instead of a duplicated data-desc
+        // attribute — same searchable text without shipping every blurb twice.
+        const blurb = li.querySelector('.tool-card__blurb')?.textContent?.toLowerCase() ?? '';
+        const hay = `${li.dataset.name ?? ''} ${li.dataset.keywords ?? ''} ${blurb}`;
         const match = q === '' || hay.includes(q);
         li.hidden = !match;
         if (match) visible++;
