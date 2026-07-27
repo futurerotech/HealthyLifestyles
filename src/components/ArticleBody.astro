@@ -24,7 +24,9 @@ interface Props {
 
 const { article, pageUrl } = Astro.props;
 const [category, related, tools, allCats] = await Promise.all([
-  getArticleCategory(article.category).then((c) => c!),
+  // Undefined when the article's category isn't a content section (e.g. a
+  // kind='tool' category) — render without category chrome, never crash SSG.
+  getArticleCategory(article.category),
   getRelatedArticles(article.slug, 3),
   Promise.all(article.relatedTools.map((slug) => getTool(slug))).then((results) =>
     results.filter((t): t is NonNullable<typeof t> => !!t && !!t.live),
@@ -52,7 +54,7 @@ if (h2Positions.length >= 5) tryAd(h2Positions[3]);
 const breadcrumbItems = [
   { label: 'Home', href: '/' },
   { label: 'Wellness Hub', href: '/wellness-hub' },
-  { label: category.name, href: `/wellness-hub/${category.slug}` },
+  ...(category ? [{ label: category.name, href: `/wellness-hub/${category.slug}` }] : []),
   { label: article.title },
 ];
 
@@ -72,9 +74,11 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
   <header class="wh-article__header">
     <div class="container">
       <Breadcrumb items={breadcrumbItems} />
-      <span class="wh-article__cat" style={`--c:${category.color}`}>
-        <Icon name={category.icon} size={15} /> {category.name}
-      </span>
+      {category && (
+        <span class="wh-article__cat" style={`--c:${category.color}`}>
+          <Icon name={category.icon} size={15} /> {category.name}
+        </span>
+      )}
       <h1>{article.title}</h1>
       <p class="lead wh-article__lead">{article.excerpt}</p>
 

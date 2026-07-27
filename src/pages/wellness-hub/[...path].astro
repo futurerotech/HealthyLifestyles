@@ -70,6 +70,19 @@ const breadcrumb = (crumbs: { label: string; href?: string }[]) => ({
   })),
 });
 
+// Bulletproofing (SSG): an article whose category is missing from the section
+// list — e.g. assigned to a kind='tool' category, or a deleted category — must
+// never crash the build. Degrade to a neutral "Wellness Hub" section instead.
+type ArticleCat = NonNullable<Awaited<ReturnType<typeof getArticleCategory>>>;
+const FALLBACK_ARTICLE_CATEGORY: ArticleCat = {
+  id: '',
+  name: 'Wellness Hub',
+  slug: '',
+  blurb: '',
+  icon: 'book',
+  color: '#16a34a',
+};
+
 // --- Advanced schema builders (emitted when the CMS flag is set — Phase 9;
 //     the title/step heuristics were removed in favour of the isHowTo /
 //     isHealthTopic booleans, which are the single source of truth). ---
@@ -155,7 +168,7 @@ if (props.kind === 'article' && article) {
   const ogImage = new URL(`/og/articles/${article.slug}.png`, origin).href;
   image = ogImage;
 
-  const categorySafe = category!;
+  const categorySafe = category ?? FALLBACK_ARTICLE_CATEGORY;
 
   const entities = article.semanticEntities || [];
   const authorEntity = await resolveAuthor(article.author);
@@ -196,7 +209,7 @@ if (props.kind === 'article' && article) {
     publisher: { '@id': orgId },
     mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
     image: ogImage,
-    articleSection: categorySafe.name,
+    ...(categorySafe.slug ? { articleSection: categorySafe.name } : {}),
     inLanguage: 'en',
     // P15-P7b — speakable references ONLY stable selectors that exist in the
     // rendered HTML: the lead (always) + the key-takeaways box (when present).
@@ -223,7 +236,9 @@ if (props.kind === 'article' && article) {
     breadcrumb([
       { label: 'Home', href: '/' },
       { label: 'Wellness Hub', href: '/wellness-hub' },
-      { label: categorySafe.name, href: `/wellness-hub/${categorySafe.slug}` },
+      ...(categorySafe.slug
+        ? [{ label: categorySafe.name, href: `/wellness-hub/${categorySafe.slug}` }]
+        : []),
       { label: article.title },
     ]),
     articleLd,
@@ -255,7 +270,7 @@ if (props.kind === 'article' && article) {
     getArticlesByCategory(props.categoryId),
   ]);
   const SITE = siteConsts.SITE;
-  const categorySafe = category!;
+  const categorySafe = category ?? FALLBACK_ARTICLE_CATEGORY;
   const totalPages = Math.max(1, Math.ceil(all.length / ARTICLES_PER_PAGE));
   const page = props.page;
   const pageArticles = all.slice((page - 1) * ARTICLES_PER_PAGE, page * ARTICLES_PER_PAGE);

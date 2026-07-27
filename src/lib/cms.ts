@@ -497,10 +497,14 @@ function mapArticle(a: CmsArticle): Article {
       citation: str(s.label || s.url),
       url: str(s.url) || undefined,
     })),
-    tags: ((a.tags as Record<string, unknown>[] | undefined)?.map((t) => ({
-      name: str(t.name),
-      slug: str(t.slug || t.id),
-    })) || []),
+    tags: (((a.tags as unknown) as (Record<string, unknown> | null)[] | undefined) || [])
+      // Payload can return null entries for deleted tag relations — never
+      // let a stale relation crash the build.
+      .filter((t): t is Record<string, unknown> => !!t)
+      .map((t) => ({
+        name: str(t.name),
+        slug: str(t.slug || t.id),
+      })),
     semanticEntities: (a.semanticEntities || [])
       .map((e) => ({ term: str(e.term), url: str(e.url) || undefined }))
       .filter((e) => e.term),
@@ -869,12 +873,14 @@ export async function getAdConfig(): Promise<AdConfig | null> {
     });
     if (!res.ok) {
       console.error(`[CMS] AdManagement fetch failed — ${res.status} ${res.statusText}`, `URL: ${res.url}`);
-      return null;
+      throw new Error("[CMS] Critical: AdManagement fetch failed. Aborting build to prevent ad-free deployment.");
     }
     return (await res.json()) as AdConfig;
   } catch (err) {
+    // Don't re-wrap our own critical abort — let it surface as-is.
+    if (err instanceof Error && err.message.includes('[CMS] Critical:')) throw err;
     console.error('[CMS] AdManagement fetch threw an unexpected error:', err);
-    return null;
+    throw new Error("[CMS] Critical: AdManagement fetch failed. Aborting build to prevent ad-free deployment.");
   }
 }
 
