@@ -2,9 +2,9 @@
 import LegalLayout from '../layouts/LegalLayout.astro';
 import { SITE } from '../consts';
 
-const updated = 'June 1, 2026';
+const updated = 'October 8, 2026';
 const title = `Cookie Policy | ${SITE.name}`;
-const description = `How ${SITE.name} uses cookies: essential only by default, optional analytics with your consent — never to store the data you enter.`;
+const description = `How ${SITE.name} uses local storage and optional analytics and advertising cookies.`;
 ---
 
 <LegalLayout title={title} description={description} heading="Cookie Policy" updated={updated}>
@@ -23,7 +23,7 @@ const description = `How ${SITE.name} uses cookies: essential only by default, o
   </p>
 
   <h2>How we use them</h2>
-  <p>We keep our use of these technologies to a minimum, in two categories:</p>
+  <p>We use these technologies for essential preferences and, with consent, analytics and advertising:</p>
 
   <h3>Essential (always on)</h3>
   <p>
@@ -33,20 +33,18 @@ const description = `How ${SITE.name} uses cookies: essential only by default, o
     ask you again on every visit.
   </p>
 
-  <h3>Analytics (optional, consent-based)</h3>
+  <h3>Analytics and advertising (optional, consent-based)</h3>
   <p>
-    With your consent, we may use privacy-respecting analytics to understand which tools
-    are useful and how to improve the site. These are loaded <strong>only</strong> after
-    you select "Accept all" in our cookie banner. If you choose "Reject non-essential",
-    no analytics cookies are set.
+    After you select "Accept all", analytics and Google AdSense may load and set cookies
+    or process device and browsing information for advertising. If you select "Reject
+    non-essential", we do not load the AdSense library or initialize its ad slots.
   </p>
 
-  <h2>Cookies we do not use</h2>
+  <h2>Tool data and local storage</h2>
   <p>
-    We do not use advertising cookies to build marketing profiles of you, and we do not
-    sell your data. Crucially, <strong>we never use cookies to store the health
-    information you enter into our calculators</strong> — those values are processed in
-    your browser and discarded.
+    The HRV log, Food and Symptom Diary, and Health Score can save data in your browser's
+    local storage. We also store your consent decision locally. Server-assisted features are described in our
+    <a href="/privacy">Privacy Policy</a>; cookies are not the only way data is processed.
   </p>
 
   <h2>Managing your choices</h2>
@@ -54,8 +52,9 @@ const description = `How ${SITE.name} uses cookies: essential only by default, o
   <ul>
     <li>
       <strong>Our cookie banner:</strong> Choose "Accept all" or "Reject non-essential"
-      when you first visit. To change your decision later, clear this site's data in your
-      browser and the banner will reappear.
+      when you first visit. To withdraw consent after scripts have loaded, clear this site's
+      data in your browser and reload; the banner will reappear. You may also need to clear
+      third-party cookies in your browser.
     </li>
     <li>
       <strong>Your browser settings:</strong> Most browsers let you block or delete
@@ -66,9 +65,8 @@ const description = `How ${SITE.name} uses cookies: essential only by default, o
 
   <h2>Third-party cookies</h2>
   <p>
-    Any optional analytics provider we use may set its own cookies when enabled with your
-    consent. These providers are selected for their respect for user privacy and are not
-    permitted to use the data for their own advertising.
+    Analytics providers and Google AdSense may set their own cookies after acceptance.
+    Consult their respective policies and your browser settings for more control.
   </p>
 
   <h2>Changes to this policy</h2>

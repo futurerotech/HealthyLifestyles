@@ -8,7 +8,7 @@ export const SITE = {
   /** Used in <title> suffix and OG site name. */
   shortName: 'HealthyLifeStyles',
   description:
-    'Free, instant, and accurate health calculators built on peer-reviewed scientific formulas. No signup, no data stored — just trustworthy wellness insights.',
+    'Free health calculators and wellness tools based on published methods. No account required; some features use a server or save data in your browser.',
   /** Default social share image (lives in /public). */
   ogImage: '/og-default.png',
   twitter: '@healthylifestyles',
@@ -44,14 +44,6 @@ export const CONTACT = {
   email: 'hello@healthylifesstyles.com',
 } as const;
 
-/**
- * E-E-A-T
- */
-export const EDITORIAL = {
-  reviewerName: 'HealthyLifeStyles Medical Review Team',
-  reviewerCredential: 'Licensed clinicians & registered dietitians',
-  lastReviewed: '2026-06-01',
-} as const;
 
 /**
  * Advertising.

@@ -63,7 +63,7 @@ const hasAd = slotEnabled && (showIns || !!hasCustom || !!affiliate);
       />
     </a>
   ) : hasCustom ? (
-    <Fragment set:html={hasCustom} />
+    <template data-ad-custom data-code={hasCustom} />
   ) : (
     <ins
       class="adsbygoogle"

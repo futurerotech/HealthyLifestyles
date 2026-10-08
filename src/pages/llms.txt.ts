@@ -29,10 +29,10 @@ export const GET: APIRoute = async (context) => {
 
 ## Editorial & medical-review policy
 
-Content is educational only and is not medical advice. Health articles cite primary
-sources (CDC, WHO, NIH, NHS and peer-reviewed research), carry named author and medical
-reviewer attribution with last-updated dates, and high-risk calculators require human
-medical review before publication. Editorial policy: ${origin}/editorial-policy ·
+Content is educational only and is not medical advice. Health articles link to sources
+and show author attribution. Medical-review attribution is withheld until an individual's
+qualifications and completed review can be verified; update dates are not review dates.
+Editorial policy: ${origin}/editorial-policy ·
 Methodology: ${origin}/methodology · Medical disclaimer: ${origin}/medical-disclaimer
 
 ## Guidance for AI agents

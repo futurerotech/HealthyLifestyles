@@ -2,17 +2,17 @@
 import LegalLayout from '../layouts/LegalLayout.astro';
 import { SITE } from '../consts';
 
-const updated = 'June 1, 2026';
+const updated = 'October 8, 2026';
 const title = `Privacy Policy | ${SITE.name}`;
-const description = `How ${SITE.name} handles your data: calculations run in your browser, your health inputs are never stored, and we keep tracking to a minimum.`;
+const description = `How ${SITE.name} handles calculator inputs, server-assisted features, local storage, subscriptions, and advertising.`;
 ---
 
 <LegalLayout title={title} description={description} heading="Privacy Policy" updated={updated}>
   <div class="legal-note">
     <p>
-      <strong>The short version:</strong> The numbers you type into our calculators
-      stay on your device and are never sent to us. We don't require an account, and
-      we keep any analytics minimal and consent-based.
+      <strong>The short version:</strong> Many calculators run in your browser, but some
+      features send inputs to a server or save readings on your device. Subscriptions
+      require contact information; analytics and advertising may use cookies after consent.
     </p>
   </div>
 
@@ -26,15 +26,19 @@ const description = `How ${SITE.name} handles your data: calculations run in you
 
   <h2>2. The data you enter into our tools</h2>
   <p>
-    Our calculators (such as the BMI, calorie, and body-fat tools) run entirely in
+    Many calculators (such as the BMI, calorie, and body-fat tools) run entirely in
     your web browser using client-side JavaScript. The values you enter — your
     height, weight, age, activity level, and similar inputs — are processed locally
     on your device to show your result.
   </p>
   <p>
-    <strong>We do not transmit, collect, store, or share the health information you
-    enter into our tools.</strong> When you close or reload the page, those values
-    are gone unless your own browser chooses to autofill a form field.
+    Some features work differently. Recipe analysis sends the recipe text and servings
+    through our frontend to our CMS for analysis. Downloading a share image sends the
+    result parameters to our image endpoint. The HRV log and Food and Symptom Diary save
+    readings and entries in your browser's local storage; Health Score saves a summary
+    of your assessment there. This data remains until you clear it or your browser's
+    site data. Avoid entering
+    identifying or sensitive medical information into free-text fields.
   </p>
 
   <h2>3. Information we may collect automatically</h2>
@@ -48,25 +52,29 @@ const description = `How ${SITE.name} handles your data: calculations run in you
     <li>The pages you view and how you arrived at the site</li>
   </ul>
   <p>
-    We use this aggregated, non-identifying information only to understand which
-    tools are useful and to keep the site fast and reliable. Analytics cookies are
-    only set if you consent — see our <a href="/cookie-policy">Cookie Policy</a>.
+    Our hosting provider may process access logs when you visit. If you accept
+    analytics, we also send page paths and performance metrics to our own endpoint;
+    these records include a timestamp and approximate country and help us keep the
+    site reliable. This optional measurement does not run before consent. See our
+    <a href="/cookie-policy">Cookie Policy</a> for details.
   </p>
 
   <h2>4. Cookies and local storage</h2>
   <p>
     We use a small amount of local storage to remember your cookie-consent choice so
-    we don't ask you on every visit. Non-essential cookies (for analytics) are loaded
-    only after you accept them. You can change your choice at any time. Full details
+    we don't ask you on every visit. We send optional performance measurements and load
+    third-party analytics and advertising scripts only after you accept them. To withdraw
+    consent after loading them, clear this site's
+    data in your browser and reload; you may also need to clear third-party cookies. Full details
     are in our <a href="/cookie-policy">Cookie Policy</a>.
   </p>
 
   <h2>5. Third-party services</h2>
   <p>
-    We rely on reputable providers for website hosting, content delivery, and
-    optional, privacy-respecting analytics. These providers process technical data on
-    our behalf and are not permitted to use it for their own purposes. We do not sell
-    your personal information to anyone.
+    Hosting, analytics, and advertising providers may process technical data according
+    to their own policies. If you submit an email address to subscribe or request an
+    offer, we send it to our CMS and may forward it to our email automation provider
+    to deliver updates. You can contact us to ask about or delete a subscription.
   </p>
 
   <h2>6. Children's privacy</h2>
@@ -80,9 +88,8 @@ const description = `How ${SITE.name} handles your data: calculations run in you
   <p>
     Depending on where you live (for example, under the GDPR in the UK and EU, or the
     CCPA in California), you may have rights to access, correct, or delete personal
-    information, and to object to certain processing. Because we don't collect the
-    health data you enter and don't hold personal accounts, there is typically no
-    personal profile for us to retrieve. If you have a request or question, please
+    information, and to object to certain processing. No account is required for the tools,
+    but subscriptions and server-assisted features may process information. If you have a request, please
     <a href="/contact">contact us</a>.
   </p>
 

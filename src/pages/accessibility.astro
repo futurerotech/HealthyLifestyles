@@ -1,7 +1,6 @@
 ---
 import LegalLayout from '../layouts/LegalLayout.astro';
-import { SITE, EDITORIAL, CONTACT } from '../consts';
-import { formatDate } from '../lib/text';
+import { SITE, CONTACT } from '../consts';
 
 const title = `Accessibility | ${SITE.name}`;
 const description = `${SITE.name}'s accessibility statement: our WCAG 2.1 AA target, the measures we take, known limitations, and how to report an issue.`;
@@ -23,7 +22,7 @@ const jsonLd = [
   title={title}
   description={description}
   heading="Accessibility"
-  updated={formatDate(EDITORIAL.lastReviewed)}
+
   jsonLd={jsonLd}
 >
   <p>

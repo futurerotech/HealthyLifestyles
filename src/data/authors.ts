@@ -1,12 +1,8 @@
 /**
  * Authors & reviewers for E-E-A-T bylines and /author/[slug] pages.
  *
- * HONESTY NOTE: these are real organizational entities — our editorial team and
- * our medical review board — not invented individuals. We deliberately do NOT
- * fabricate named experts, credentials, or stock-photo faces (Google penalizes
- * fake authorship, and it erodes trust). When real, named, credentialed people
- * join, add them here as `schemaType: 'Person'` with their photo + profile links
- * and set them as the `author`/`reviewer` on the relevant content.
+ * HONESTY NOTE: these are organizational entities, not invented individuals.
+ * Add a named person only after verifying their identity and credentials.
  */
 import { SOCIAL_FOLLOW, SOCIAL_NETWORKS } from '../consts';
 
@@ -46,22 +42,10 @@ export const AUTHORS: Author[] = [
     schemaType: 'Organization',
     links: SITE_LINKS,
   },
-  {
-    slug: 'medical-review',
-    name: 'HealthyLifeStyles Medical Review Board',
-    role: 'Medical & Accuracy Review',
-    credential: 'Licensed clinicians & registered dietitians',
-    bio: 'Our medical review board checks health-related tools and articles for clinical accuracy, safe framing, and appropriate disclaimers before they publish. Reviewers are qualified healthcare professionals; we are in the process of adding their individual names and credentials to this page.',
-    initials: 'MR',
-    color: '#0ea5e9',
-    schemaType: 'Organization',
-    links: SITE_LINKS,
-  },
 ];
 
 // Canonical roles used across the site.
 export const DEFAULT_AUTHOR_SLUG = 'editorial-team';
-export const REVIEWER_SLUG = 'medical-review';
 
 export const getAuthor = (slug: string): Author | undefined =>
   AUTHORS.find((a) => a.slug === slug);
@@ -73,5 +57,3 @@ export const resolveAuthor = (nameOrSlug: string): Author => {
   const byName = AUTHORS.find((a) => a.name === nameOrSlug);
   return byName ?? getAuthor(DEFAULT_AUTHOR_SLUG)!;
 };
-
-export const getReviewer = (): Author => getAuthor(REVIEWER_SLUG)!;
