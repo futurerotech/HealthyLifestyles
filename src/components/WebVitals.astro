@@ -42,6 +42,8 @@
     } catch (e) {}
 
     function send() {
+      // Local performance observations are never transmitted without consent.
+      if (window.HLS_CONSENT !== 'accept') return;
       if (sent || lcp === null) return; // no LCP yet → nothing meaningful to report
       sent = true;
       var nav = performance.getEntriesByType('navigation')[0];

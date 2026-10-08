@@ -2,17 +2,15 @@
 import LegalLayout from '../layouts/LegalLayout.astro';
 import { SITE } from '../consts';
 
-const updated = 'June 1, 2026';
+
 const title = `Privacy Policy | ${SITE.name}`;
-const description = `How ${SITE.name} handles your data: calculations run in your browser, your health inputs are never stored, and we keep tracking to a minimum.`;
+const description = `How ${SITE.name} handles your data: feature-specific processing, server requests, and locally saved readings.`;
 ---
 
-<LegalLayout title={title} description={description} heading="Privacy Policy" updated={updated}>
+<LegalLayout title={title} description={description} heading="Privacy Policy">
   <div class="legal-note">
     <p>
-      <strong>The short version:</strong> The numbers you type into our calculators
-      stay on your device and are never sent to us. We don't require an account, and
-      we keep any analytics minimal and consent-based.
+      <strong>The short version:</strong> Many calculators run locally, but some features send information to a server or save it in your browser. Data handling depends on the feature.
     </p>
   </div>
 
@@ -32,9 +30,16 @@ const description = `How ${SITE.name} handles your data: calculations run in you
     on your device to show your result.
   </p>
   <p>
-    <strong>We do not transmit, collect, store, or share the health information you
-    enter into our tools.</strong> When you close or reload the page, those values
-    are gone unless your own browser chooses to autofill a form field.
+    Recipe Analyzer sends ingredients and serving information by POST to <code>/api/analyze-recipe</code> for server-side processing, which may involve a nutrition or AI provider depending on the active service. Avoid including identifying or sensitive information.
+  </p>
+  <p>
+    Result-image downloads first send the tool name, value, label, and optional category and color to <code>/api/result-image</code> in URL query parameters. These URLs may appear in hosting or service logs. A local image fallback does not undo the initial request. Social sharing sends a URL and, for some platforms, result text to that platform, whose privacy practices apply.
+  </p>
+  <p>
+    The HRV log saves readings and notes in your browser's <code>localStorage</code>. They can persist after reloading or closing the page. Delete readings in the log or clear this site's browser data to remove them locally. This does not delete information already sent to servers or shared with others.
+  </p>
+  <p>
+    Server logs and third-party services have separate retention practices. We do not promise immediate deletion or a fixed retention period that has not been verified. Optional server-connected features send the information you submit to their configured service.
   </p>
 
   <h2>3. Information we may collect automatically</h2>
@@ -48,9 +53,7 @@ const description = `How ${SITE.name} handles your data: calculations run in you
     <li>The pages you view and how you arrived at the site</li>
   </ul>
   <p>
-    We use this aggregated, non-identifying information only to understand which
-    tools are useful and to keep the site fast and reliable. Analytics cookies are
-    only set if you consent — see our <a href="/cookie-policy">Cookie Policy</a>.
+    Technical request data may identify a device or visit and may be retained by hosting, analytics, or advertising services. See our <a href="/cookie-policy">Cookie Policy</a>.
   </p>
 
   <h2>4. Cookies and local storage</h2>
@@ -63,10 +66,7 @@ const description = `How ${SITE.name} handles your data: calculations run in you
 
   <h2>5. Third-party services</h2>
   <p>
-    We rely on reputable providers for website hosting, content delivery, and
-    optional, privacy-respecting analytics. These providers process technical data on
-    our behalf and are not permitted to use it for their own purposes. We do not sell
-    your personal information to anyone.
+    We use providers for hosting, content delivery, and optional analytics, advertising, or server-assisted features. Their data processing and retention practices depend on the service. Contact us about a specific feature before submitting sensitive information.
   </p>
 
   <h2>6. Children's privacy</h2>
@@ -80,9 +80,7 @@ const description = `How ${SITE.name} handles your data: calculations run in you
   <p>
     Depending on where you live (for example, under the GDPR in the UK and EU, or the
     CCPA in California), you may have rights to access, correct, or delete personal
-    information, and to object to certain processing. Because we don't collect the
-    health data you enter and don't hold personal accounts, there is typically no
-    personal profile for us to retrieve. If you have a request or question, please
+    information, and to object to certain processing. Data held depends on which features you use; locally saved readings remain in your browser. If you have a request or question, please
     <a href="/contact">contact us</a>.
   </p>
 
@@ -96,8 +94,7 @@ const description = `How ${SITE.name} handles your data: calculations run in you
 
   <h2>9. Changes to this policy</h2>
   <p>
-    We may update this Privacy Policy from time to time. When we do, we'll revise the
-    "Last updated" date above. Significant changes will be highlighted on this page.
+    We may update this Privacy Policy from time to time. Check this page for changes to feature-specific practices.
   </p>
 
   <h2>10. Contact us</h2>

@@ -1,0 +1,161 @@
+{
+  "tool": "alcohol-units-calculator",
+  "title": "How Do You Calculate Alcohol Units in Your Drinks?",
+  "excerpt": "Learn the exact formula for alcohol units, how UK units compare to US standard drinks, and what it means for your weekly limits and calories.",
+  "snippetAnswer": "A UK alcohol unit equals 10 mL (8 g) of pure alcohol: multiply drink volume in mL by %ABV, then divide by 1,000. A 175 mL glass of 13% wine equals about 2.3 units. The NHS recommends no more than 14 units per week for both men and women, spread over three or more days (NHS, 2023).",
+  "category": "health-risk",
+  "tags": ["alcohol", "health-risk", "nutrition"],
+  "author": "editorial-team",
+  "reviewer": "",
+  "publishDate": "2025-04-18",
+  "updatedDate": "2025-04-18",
+  "featured": false,
+  "primaryTool": "alcohol-units-calculator",
+  "relatedTools": ["bmi-calculator", "calorie-deficit-calculator", "body-fat-percentage-calculator"],
+  "relatedArticles": [],
+  "layoutBlocks": [
+    {
+      "type": "paragraph",
+      "text": "A standard 175 mL glass of 13% wine isn't one drink, it's 2.3 UK units, or about 1.3 US standard drinks. Most people track alcohol by counting glasses, not grams of ethanol, and that habit routinely undercounts real weekly intake by 30% or more. The math behind the number is simple, and once you know it, every calorie count on a drinks menu looks different."
+    },
+    { "type": "toolEmbed", "toolSlug": "alcohol-units-calculator" },
+    {
+      "type": "list",
+      "ordered": false,
+      "items": [
+        "One UK unit equals 10 mL (8 g) of pure alcohol; a US standard drink is 14 g, about 1.75 times more.",
+        "NHS low-risk guidance caps both men and women at 14 units per week, spread across three or more days (NHS, 2023).",
+        "Pure alcohol supplies 7 kcal per gram, so a 175 mL glass of 13% wine adds roughly 126 kcal from alcohol alone.",
+        "CDC defines binge drinking as 4+ drinks for women or 5+ for men within about two hours (CDC, 2024)."
+      ]
+    },
+    { "type": "heading", "level": 2, "text": "How Do You Calculate Alcohol Units?" },
+    {
+      "type": "paragraph",
+      "text": "You calculate a UK alcohol unit by multiplying the drink's volume in milliliters by its ABV percentage, then dividing by 1,000. A 250 mL glass of 12% wine works out to (250 × 12) ÷ 1,000 = 3 units. The US measures differently: a standard drink there equals 14 grams of pure alcohol, about 1.75 times one UK unit, so the two figures are never interchangeable without converting first."
+    },
+    {
+      "type": "paragraph",
+      "text": "The gram-based version matters more once calories enter the picture. Pure alcohol has a density of 0.789 grams per milliliter, so a 175 mL glass of 13% wine holds about 18 grams of ethanol, roughly 2.3 UK units or 1.3 US standard drinks. At 7 calories per gram, that's about 126 calories from alcohol alone, before counting residual sugar in the wine or anything mixed with a spirit. Alcohol counts as neither protein, carb, nor fat, so see how it fits into your [daily macro targets](/tools/macro-calculator) before you assume a glass of wine doesn't count toward your nutrition goals."
+    },
+    { "type": "heading", "level": 2, "text": "Is a UK Alcohol Unit the Same as a US Standard Drink?" },
+    {
+      "type": "paragraph",
+      "text": "No. A UK unit is 10 mL (8 grams) of pure alcohol, while a US standard drink is defined by the NIAAA as 14 grams, about 75% more alcohol per drink (NIAAA, 2024). That mismatch means a British guideline of 14 units a week is not 14 American drinks, it's closer to 8 US standard drinks worth of total alcohol. Confusing the two systems is the most common measurement error in alcohol tracking."
+    },
+    {
+      "type": "paragraph",
+      "text": "Reference drinks are also defined differently on each side of the Atlantic. A US standard drink assumes 12 oz of 5% beer, 5 oz of 12% wine, or 1.5 oz of 40% spirit, each landing near 14 grams of alcohol. A UK unit, by contrast, scales directly with whatever ABV and pour size sits in your actual glass, which is why a strong 15% natural wine can quietly contain 50% more alcohol than a standard 12% pour of the same size."
+    },
+    { "type": "heading", "level": 2, "text": "How Many Units Are in a Glass of Wine, Beer, or a Shot of Spirits?" },
+    {
+      "type": "paragraph",
+      "text": "A standard 175 mL glass of 13% wine is about 2.3 units, a pint (568 mL) of 4% beer is about 2.3 units too, and a single 25 mL shot of 40% spirit is exactly 1 unit. Because units scale with both volume and ABV, doubling either number roughly doubles the total, so a large 250 mL wine at 13% jumps to 3.25 units, not 2.3."
+    },
+    {
+      "type": "list",
+      "ordered": false,
+      "items": [
+        "Wine, 175 mL, 13% ABV: about 2.3 units (1.3 US standard drinks)",
+        "Beer, pint (568 mL), 4% ABV: about 2.3 units (1.3 US standard drinks)",
+        "Spirit, single shot (25 mL), 40% ABV: 1 unit (0.7 US standard drinks)",
+        "Champagne, 125 mL flute, 12% ABV: about 1.5 units (0.85 US standard drinks)"
+      ]
+    },
+    { "type": "heading", "level": 2, "text": "How Many Alcohol Units Per Week Are Considered Safe?" },
+    {
+      "type": "paragraph",
+      "text": "The NHS recommends no more than 14 units per week for both men and women, spread across three or more days with several alcohol-free days included (NHS, 2023). The US framework differs: the Dietary Guidelines for Americans define moderate drinking as up to 1 drink per day for women and 2 for men, while NIAAA's low-risk thresholds cap women at 7 drinks weekly (3 per occasion) and men at 14 weekly (4 per occasion). Going over either single-occasion limit counts as risky drinking even when your weekly total looks fine. Compare your total to your [BMR calculator](/tools/bmr-calculator) baseline and track trends with a [BMI calculator](/tools/bmi-calculator) to see what share of your daily energy budget alcohol takes up on drinking days."
+    },
+    { "type": "heading", "level": 2, "text": "Why Do Alcohol Calories Hurt Weight Loss More Than Food Calories?" },
+    {
+      "type": "paragraph",
+      "text": "Alcohol calories are metabolically different, not just numerically added. Your liver treats ethanol as a priority fuel and pauses fatty acid metabolism to clear it first, so the 126 calories in that glass of wine don't just add to your daily total, they also delay fat-burning for several hours afterward. This is the mechanism most calorie-counting advice skips when it lists alcohol as simply '7 calories per gram.'"
+    },
+    {
+      "type": "paragraph",
+      "text": "Mixers stack sugar calories on top of this delay, and snacks eaten while drinking rarely get logged accurately. Two glasses of wine most nights can add 1,700-plus calories a week without touching food at all, run the numbers through a [calorie deficit calculator](/tools/calorie-deficit-calculator) to see how much that shifts your weekly target. Treat each drink as roughly 100-150 calories plus several hours of stalled fat-burning, not just a line item."
+    },
+    { "type": "heading", "level": 2, "text": "What Should You Actually Do With Your Weekly Unit Count?" },
+    {
+      "type": "paragraph",
+      "text": "If your weekly total lands under 14 units (UK) or under 7-14 US standard drinks depending on sex, with no single-occasion binge, you're within low-risk guidelines, and the priority becomes spacing drinks across the week rather than the total alone. If you're actively cutting weight, budget alcohol like any other calorie source: log it before you drink, not after, and expect the scale to move slower on weeks with three or more drinking occasions even when your unit count technically qualifies as safe."
+    },
+    {
+      "type": "paragraph",
+      "text": "Track body composition alongside your unit log, since alcohol shifts water weight and can mask real fat loss on the scale for days. A [body fat percentage calculator](/tools/body-fat-percentage-calculator) and an [ideal weight calculator](/tools/ideal-weight-calculator) give a steadier trend line than daily weigh-ins when drinking habits fluctuate. Realistic expectation: cutting three drinking occasions a month typically saves 1,500 to 2,500 calories, close to a full day of eating."
+    },
+    { "type": "heading", "level": 2, "text": "People Also Ask" },
+    {
+      "type": "paragraph",
+      "text": "Here are quick, standalone answers to the questions people ask most often about tracking alcohol units and standard drinks."
+    },
+    {
+      "type": "disclaimer",
+      "text": "This article is for general education and does not replace personalized medical advice. If you're concerned about your drinking habits, talk to your primary care physician or contact the SAMHSA National Helpline at 1-800-662-4357."
+    }
+  ],
+  "faq": [
+    {
+      "question": "Do men and women have different safe drinking limits?",
+      "answer": "Yes. NIAAA sets low-risk limits at 7 drinks per week for women versus 14 for men, reflecting real physiological differences, including lower body water and different alcohol dehydrogenase enzyme activity, not just body size (NIAAA, 2024). The same drink raises blood alcohol content higher and faster in most women than in most men of similar weight."
+    },
+    {
+      "question": "Is red wine healthier than beer or spirits?",
+      "answer": "No. Any unit of alcohol, regardless of type, carries the same calorie and health risk profile per gram of ethanol. Purported heart benefits of red wine are outweighed by cancer and liver risks at a population level, according to the 2020-2025 Dietary Guidelines for Americans advisory review, so treat all alcohol types as equivalent unit for unit."
+    },
+    {
+      "question": "How long does it take the body to process one alcohol unit?",
+      "answer": "The liver processes roughly one UK unit per hour on average, though this varies with body weight, sex, food intake, and liver health (NHS, 2023). That means 4 units of wine takes about four hours to clear fully, which is why blood alcohol levels can still be elevated the next morning after a late night."
+    },
+    {
+      "question": "What counts as binge drinking?",
+      "answer": "CDC defines binge drinking as 4 or more drinks for women or 5 or more for men within roughly two hours, enough to raise blood alcohol concentration to 0.08% or higher (CDC, 2024). That's typically 3 to 4 UK units consumed in a single sitting, well above what a slow weekly pace would produce."
+    },
+    {
+      "question": "Can you 'save up' alcohol units across the week?",
+      "answer": "No. The 14-units-per-week NHS guideline is meant as a spread-out average across three or more days, not a total to bank and spend in one sitting (NHS, 2023). Drinking all 14 units in a single night carries far higher acute health risk than the same total spread evenly through the week."
+    }
+  ],
+  "sources": [
+    { "label": "NIAAA – What Is A Standard Drink? (2024)", "url": "https://www.niaaa.nih.gov/alcohols-effects-health/overview-alcohol-consumption/what-standard-drink" },
+    { "label": "NHS – Calculating Alcohol Units (2023)", "url": "https://www.nhs.uk/live-well/alcohol-advice/calculating-alcohol-units/" },
+    { "label": "CDC – Binge Drinking Fact Sheet (2024)", "url": "https://www.cdc.gov/alcohol/fact-sheets/binge-drinking.htm" }
+  ],
+  "semanticEntities": [
+    { "term": "Standard drink", "url": "https://en.wikipedia.org/wiki/Standard_drink" },
+    { "term": "Blood alcohol content", "url": "https://en.wikipedia.org/wiki/Blood_alcohol_content" },
+    { "term": "Binge drinking", "url": "https://en.wikipedia.org/wiki/Binge_drinking" },
+    { "term": "Alcohol dehydrogenase", "url": "https://en.wikipedia.org/wiki/Alcohol_dehydrogenase" },
+    { "term": "Fatty acid metabolism", "url": "https://en.wikipedia.org/wiki/Fatty_acid_metabolism" }
+  ],
+  "seo": {
+    "metaTitle": "Alcohol Units Calculator: How to Calculate Your Total",
+    "metaDescription": "See how alcohol units are calculated from ABV and volume, compare UK units to US standard drinks, and check the calorie cost with this handy free tool.",
+    "slug": "alcohol-units-calculator",
+    "canonical": "",
+    "noindex": false,
+    "keywords": [
+      "alcohol units calculator",
+      "standard drink calculator",
+      "alcohol unit guidelines",
+      "how many units in wine",
+      "standard drink",
+      "blood alcohol content",
+      "binge drinking",
+      "alcohol dehydrogenase",
+      "fatty acid metabolism"
+    ]
+  },
+  "ogTitle": "How Many Alcohol Units Are in Your Drink?",
+  "ogDescription": "Wondering how many units are in your wine or beer? Calculate exact alcohol units and US standard drinks, plus the calorie impact, with our free calculator.",
+  "twitterTitle": "Alcohol Units Calculator: Wine, Beer & Spirits",
+  "twitterDescription": "Calculate your exact alcohol units, compare them to US standard drinks, and see the calorie cost of your week. Try the free calculator now.",
+  "pushTitle": "Know Your Real Alcohol Units",
+  "pushBody": "See exactly how many units and calories are in your drinks, then compare to weekly safe limits with our free calculator.",
+  "aiGenerated": true,
+  "reviewedByHuman": false,
+  "isHowTo": false,
+  "isHealthTopic": true,
+  "aiImagePrompt": "A photorealistic overhead flat-lay on a light wooden table showing a measuring jigger, a glass of red wine filled to a standard pour line, a pint glass of golden beer, and a small shot glass of clear spirit, arranged next to a notebook with a pen and a calculator, soft natural window light, shallow depth of field, warm neutral tones, no text or typography visible, high resolution editorial photography style."
+}

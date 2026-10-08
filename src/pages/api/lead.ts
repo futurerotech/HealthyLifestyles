@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { validSubscriber } from '../../lib/subscription-api';
 import { getLeadGenConfig } from '../../lib/lead-config';
 
 export const prerender = false;
@@ -30,8 +31,15 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(null, { status: 204, headers: cors(origin) });
   }
 
+  if (!import.meta.env.CMS_URL?.trim() || !import.meta.env.INTERNAL_API_KEY?.trim()) {
+    return Response.json({ ok: false, error: 'Subscription service is unavailable.' }, { status: 503 });
+  }
+
   try {
-    const body = await request.json();
+    const body = await request.json().catch(() => null);
+    if (!validSubscriber(body, true)) {
+      return Response.json({ ok: false, error: 'Invalid subscription payload.' }, { status: 400, headers: cors(origin) });
+    }
     const { email, name, offer, tool, sourcePage } = body;
 
     if (!email || typeof email !== 'string') {
@@ -46,13 +54,13 @@ export const POST: APIRoute = async ({ request }) => {
     // The CMS Subscribers/Leads collections gate `create` on this shared secret
     // (header `x-internal-key`); it must equal the CMS's INTERNAL_API_KEY env.
     // (Previously sent `Authorization: Bearer` which the gate does not check.)
-    const internalKey = import.meta.env.INTERNAL_API_KEY || import.meta.env.CMS_API_KEY || '';
+    const internalKey = import.meta.env.INTERNAL_API_KEY;
     const cmsHeaders: Record<string, string> = {
       'Content-Type': 'application/json',
     };
     if (internalKey) cmsHeaders['x-internal-key'] = internalKey;
 
-    fetch(`${cmsUrl}/api/subscribers`, {
+    const saved = await fetch(`${cmsUrl}/api/subscribers`, {
       method: 'POST',
       headers: cmsHeaders,
       body: JSON.stringify({
@@ -61,7 +69,8 @@ export const POST: APIRoute = async ({ request }) => {
         source: 'web-form',
         metadata: { offer, tool, sourcePage },
       }),
-    }).catch(() => { /* non-blocking */ });
+    });
+    if (!saved.ok) throw new Error('CMS rejected subscription');
 
     // Build payload for n8n
     const payload = {
@@ -100,8 +109,8 @@ export const POST: APIRoute = async ({ request }) => {
       headers: { 'Content-Type': 'application/json', ...cors(origin) },
     });
   } catch {
-    return new Response(JSON.stringify({ ok: false, error: 'Invalid request' }), {
-      status: 400,
+    return new Response(JSON.stringify({ ok: false, error: 'Unable to save subscription. Please try again.' }), {
+      status: 502,
       headers: { 'Content-Type': 'application/json', ...cors(origin) },
     });
   }

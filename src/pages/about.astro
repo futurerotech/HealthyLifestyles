@@ -45,7 +45,7 @@ const values = [
     icon: 'lock',
     color: 'var(--green-primary)',
     title: 'Privacy by design',
-    body: 'Your numbers are processed entirely in your browser. We never upload, store, sell, or share the health data you enter. No account is required to use any tool.',
+    body: 'Many calculations run in your browser. Recipe analysis and result-image downloads send data to a server; the HRV log saves readings locally. See our privacy policy for feature-specific details.',
   },
   {
     icon: 'check',
@@ -65,7 +65,7 @@ const stats = [
   { value: `${liveCount}+`, label: 'Free tools' },
   { value: `${CATEGORIES.length}`, label: 'Health categories' },
   { value: '100%', label: 'Free, no signup' },
-  { value: '0', label: 'Data points stored' },
+  { value: 'US', label: 'Primary audience' },
 ];
 
 const title = `About ${SITE.name} | Our Mission & How We Work`;
@@ -161,7 +161,7 @@ const description = `${SITE.name} builds free, private, science-backed health ca
           <span class="about__step-num">2</span>
           <div>
             <h3>You enter your numbers privately</h3>
-            <p>Calculations run in your browser using JavaScript. The values you type never travel to a server — there's nothing for us to store or leak.</p>
+            <p>Many calculations run in your browser. Server-assisted features and locally saved readings have different privacy implications. Read our <a href="/privacy">privacy policy</a> before using them.</p>
           </div>
         </li>
         <li>

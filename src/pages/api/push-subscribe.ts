@@ -1,10 +1,18 @@
 import type { APIRoute } from 'astro';
+import { validPush } from '../../lib/subscription-api';
 
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request }) => {
+  if (!import.meta.env.CMS_URL?.trim() || !import.meta.env.INTERNAL_API_KEY?.trim()) {
+    return Response.json({ ok: false, message: 'Subscription service is unavailable.' }, { status: 503 });
+  }
+
   try {
-    const sub = await request.json();
+    const sub = await request.json().catch(() => null);
+    if (!validPush(sub)) {
+      return Response.json({ ok: false, message: 'Invalid subscription payload.' }, { status: 400 });
+    }
     const { endpoint, keys } = sub;
 
     if (!endpoint || !keys?.auth || !keys?.p256dh) {
@@ -15,13 +23,13 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const cmsUrl = import.meta.env.CMS_URL || 'http://localhost:3000';
-    const apiKey = import.meta.env.CMS_API_KEY || '';
+    const apiKey = import.meta.env.INTERNAL_API_KEY || '';
 
     const res = await fetch(`${cmsUrl}/api/push-subscriptions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+        ...(apiKey ? { 'x-internal-key': apiKey } : {}),
       },
       body: JSON.stringify({
         endpoint,
