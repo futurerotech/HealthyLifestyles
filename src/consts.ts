@@ -44,14 +44,6 @@ export const CONTACT = {
   email: 'hello@healthylifesstyles.com',
 } as const;
 
-/**
- * E-E-A-T
- */
-export const EDITORIAL = {
-  reviewerName: 'HealthyLifeStyles Medical Review Team',
-  reviewerCredential: 'Licensed clinicians & registered dietitians',
-  lastReviewed: '2026-06-01',
-} as const;
 
 /**
  * Advertising.

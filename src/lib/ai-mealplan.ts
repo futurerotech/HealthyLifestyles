@@ -19,13 +19,29 @@ export function normalizeAiMealPlan(data: { days?: { meals?: any[] }[] }, inputs
     for (const m of d.meals) {
       const ingredients = Array.isArray(m.ingredients) ? m.ingredients.map(String) : [];
       let recipeId = `ai-${out.length}-${meals.length}`;
+      const type: PlannedMeal['type'] = ['breakfast', 'lunch', 'dinner', 'snack'].includes(m.type) ? m.type : 'lunch';
       if (restricted) {
         const recipe = compatible.find((candidate) => candidate.id === m.recipeId);
-        if (!recipe || JSON.stringify(normalizeIngredients(ingredients)) !== JSON.stringify(normalizeIngredients(recipe.ingredients))) return null;
-        recipeId = recipe.id;
+        if (!recipe || !recipe.meals.includes(type) || JSON.stringify(normalizeIngredients(ingredients)) !== JSON.stringify(normalizeIngredients(recipe.ingredients))) return null;
+        const requestedServings = Number(m.servings);
+        const servings = Number.isFinite(requestedServings) && requestedServings > 0
+          ? Math.min(2, Math.max(0.5, requestedServings))
+          : 1;
+        meals.push({
+          type,
+          recipeId: recipe.id,
+          name: recipe.name,
+          servings,
+          kcal: Math.round(recipe.kcal * servings),
+          protein: Math.round(recipe.protein * servings * 10) / 10,
+          carbs: Math.round(recipe.carbs * servings * 10) / 10,
+          fat: Math.round(recipe.fat * servings * 10) / 10,
+          ingredients: [...recipe.ingredients],
+        });
+        continue;
       }
       meals.push({
-        type: ['breakfast', 'lunch', 'dinner', 'snack'].includes(m.type) ? m.type : 'lunch',
+        type,
         recipeId,
         name: String(m.name || 'Meal'),
         servings: Number(m.servings) > 0 ? Number(m.servings) : 1,

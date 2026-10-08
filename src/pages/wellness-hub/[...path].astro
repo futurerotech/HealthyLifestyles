@@ -12,8 +12,9 @@ import {
   getArticlesByCategory,
   ARTICLES_PER_PAGE,
   resolveAuthor,
-  REVIEWER_SLUG,
+  getAuthors,
 } from '../../lib/cms';
+import { assignedReviewer } from '../../lib/medical-review';
 import { getTranslatedLocales } from '../../lib/cms';
 import { hreflangSet, NON_DEFAULT_LOCALES } from '../../lib/i18n';
 import { speakableSelectors, buildFaqPage } from '../../lib/article-schema';
@@ -125,7 +126,7 @@ function buildHealthTopicContent(
   a: Article,
   pageUrl: string,
   author: ReturnType<typeof authorLd>,
-  reviewer: ReturnType<typeof authorLd>,
+  reviewer?: ReturnType<typeof authorLd>,
 ): Record<string, unknown> | null {
   const topic = a.semanticEntities?.[0]?.term || a.title.replace(/^what is (an? )?/i, '').replace(/\?$/, '');
   if (!topic) return null;
@@ -139,8 +140,7 @@ function buildHealthTopicContent(
     text: a.excerpt,
     url: pageUrl,
     author,
-    reviewedBy: reviewer,
-    lastReviewed: a.updatedDate,
+    ...(reviewer ? { reviewedBy: reviewer } : {}),
   };
 }
 
@@ -172,14 +172,7 @@ if (props.kind === 'article' && article) {
 
   const entities = article.semanticEntities || [];
   const authorEntity = await resolveAuthor(article.author);
-  // Health articles must be reviewed by the medical review board. If the CMS
-  // reviewer relation is missing or incorrectly points back to the author,
-  // fall back to the canonical medical reviewer.
-  const rawReviewer = article.reviewer || REVIEWER_SLUG;
-  const reviewerEntity =
-    rawReviewer === article.author || rawReviewer === 'editorial-team'
-      ? await resolveAuthor(REVIEWER_SLUG)
-      : await resolveAuthor(rawReviewer);
+  const reviewerEntity = assignedReviewer(article.reviewer, await getAuthors());
   const orgId = `${origin.href}#org`;
 
   function authorLd(a: typeof authorEntity) {
@@ -203,9 +196,8 @@ if (props.kind === 'article' && article) {
     description: article.metaDescription,
     datePublished: article.publishDate,
     dateModified: article.updatedDate,
-    lastReviewed: article.updatedDate,
     author: authorLd(authorEntity),
-    reviewedBy: authorLd(reviewerEntity),
+    ...(reviewerEntity ? { reviewedBy: authorLd(reviewerEntity) } : {}),
     publisher: { '@id': orgId },
     mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
     image: ogImage,
@@ -250,7 +242,12 @@ if (props.kind === 'article' && article) {
   }
 
   if (article.isHealthTopic) {
-    const topic = buildHealthTopicContent(article, pageUrl, authorLd(authorEntity), authorLd(reviewerEntity));
+    const topic = buildHealthTopicContent(
+      article,
+      pageUrl,
+      authorLd(authorEntity),
+      reviewerEntity ? authorLd(reviewerEntity) : undefined,
+    );
     if (topic) jsonLd.push(topic);
   }
 

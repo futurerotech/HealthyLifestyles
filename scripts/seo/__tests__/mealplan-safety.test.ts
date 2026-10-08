@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 import { recomputeDay, withinTolerance, type PlanInputs } from '../../../src/lib/mealplan.ts';
+import { RECIPES } from '../../../src/data/recipes.ts';
 
 // Exercise the current island implementation until the same behavior is extracted.
 const extracted = new URL('../../../src/lib/ai-mealplan.ts', import.meta.url);
@@ -19,4 +20,22 @@ const response = { days: Array.from({ length: 7 }, () => ({ meals: Array.from({ 
 
 test('rejects AI ingredient lists that cannot be verified against selected allergen exclusions', () => {
   assert.equal(normalize(response, inputs), null);
+});
+
+test('uses trusted recipe identity and nutrition for diet-restricted AI meals', () => {
+  const recipe = RECIPES.find((item) => item.id === 'chickpea-salad')!;
+  const dietInputs: PlanInputs = {
+    ...inputs,
+    targets: { calories: 440, protein: 16, carbs: 48, fat: 18 },
+    diet: 'vegan',
+    excludeAllergens: [],
+  };
+  const aiResponse = { days: [{ meals: [{
+    type: 'lunch', recipeId: recipe.id, name: 'Beef steak bowl', servings: 1,
+    kcal: 440, protein: 16, carbs: 48, fat: 18, ingredients: recipe.ingredients,
+  }] }] };
+  const plan = normalize(aiResponse, dietInputs) as any;
+  assert.equal(plan?.days[0].meals[0].name, recipe.name);
+  assert.equal(plan?.days[0].meals[0].kcal, recipe.kcal);
+  assert.equal(plan?.days[0].meals[0].protein, recipe.protein);
 });

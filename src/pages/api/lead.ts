@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { validSubscriber } from '../../lib/subscription-api';
-import { getLeadGenConfig } from '../../lib/lead-config';
+import { getLeadDeliveryConfig } from '../../lib/lead-config';
 
 export const prerender = false;
 
@@ -83,7 +83,7 @@ export const POST: APIRoute = async ({ request }) => {
     };
 
     // Forward to n8n webhook if configured
-    const leadConfig = await getLeadGenConfig();
+    const leadConfig = await getLeadDeliveryConfig();
     const webhookUrl = leadConfig?.n8nWebhookUrl;
 
     if (webhookUrl) {

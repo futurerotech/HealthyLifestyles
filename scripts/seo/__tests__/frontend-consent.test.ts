@@ -51,6 +51,7 @@ test('vitals never transmit without current consent, including withdrawal before
   h.context.HLS_CONSENT = 'reject'; h.fire('pagehide'); assert.equal(h.beacons.length, 0);
 });
 test('cookie consent treats invalid storage as undecided and publishes explicit ads permission', () => {
+  assert.match(source('components/CookieConsent.astro'), /analytics and advertising/i);
   for (const stored of [null, 'invalid', 'reject', 'accept']) {
     const h = harness(); const updates: any[] = [];
     const banner = {hidden: true, querySelectorAll: () => []};

@@ -24,6 +24,15 @@ test('medical attribution requires a meaningful explicitly assigned reviewer; up
   assert.doesNotMatch(source('src/pages/about.astro'), /reviewerLd|Medically reviewed by/);
 });
 
+test('AI manifest and editorial copy do not imply unassigned medical review', () => {
+  const llms = source('src/pages/llms.txt.ts');
+  assert.doesNotMatch(llms, /carry named author and medical\s+reviewer attribution|require human\s+medical review/i);
+  assert.match(llms, /Medical-review attribution appears only when/i);
+  assert.doesNotMatch(source('src/pages/methodology.astro'), /author\/medical-review|medical review board/i);
+  assert.doesNotMatch(source('src/data/authors.ts'), /medical review board/i);
+  assert.doesNotMatch(source('src/data/articles.ts'), /each checked by our medical review team/i);
+});
+
 test('privacy explains recipe requests, result-image URLs, and persistent HRV readings', () => {
   const privacy = source('src/pages/privacy.astro');
   for (const text of ['Recipe Analyzer', '/api/analyze-recipe', '/api/result-image', 'query', 'HRV', 'localStorage', 'retention']) assert.ok(privacy.includes(text), text);

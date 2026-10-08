@@ -87,7 +87,7 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
         <span class="dot" aria-hidden="true"></span>
         <span>Published {formatDate(article.publishDate)}</span>
       </div>
-      <Byline author={article.author} updated={article.updatedDate} class="wh-article__byline" />
+      <Byline author={article.author} reviewer={article.reviewer} updated={article.updatedDate} class="wh-article__byline" />
 
       {/* P15-P7c — Key takeaways: server-rendered, exactly 3 editorial bullets,
           present in the initial static HTML. #key-takeaways is the STABLE
