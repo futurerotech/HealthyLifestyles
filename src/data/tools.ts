@@ -131,7 +131,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'vitamin-d-sun-calculator',
     title: 'Vitamin D & Sun Exposure Calculator',
-    blurb: 'Estimate your vitamin D synthesis potential from sun, skin type, and diet. Educational — does not measure blood levels.',
+    blurb: 'Explore sun exposure conditions and vitamin D food sources. Not a vitamin D test or safe-sun prescription.',
     category: 'nutrition',
     icon: 'gauge',
     gradient: 'amber',

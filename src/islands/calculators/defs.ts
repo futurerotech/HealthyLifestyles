@@ -1595,14 +1595,14 @@ export const DEFS: Record<string, CalcDef> = {
   // ---- Vitamin D & Sun Exposure (educational estimator) ----
   'vitamin-d-sun-calculator': {
     slug: 'vitamin-d-sun-calculator',
-    heading: 'Estimate your vitamin D potential',
+    heading: 'Explore sun exposure conditions',
     hasSex: false,
     fields: [
       F.age(30),
       {
         key: 'skinType', label: 'Skin type (Fitzpatrick)', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'iii',
-        help: 'Darker skin (higher type) needs more sun to make the same vitamin D — melanin absorbs UVB.',
+        help: 'Skin pigmentation affects UVB absorption, but skin type cannot determine a safe exposure time or vitamin D level.',
         options: [
           { value: 'i', label: 'Type I — Very fair, always burns, never tans' },
           { value: 'ii', label: 'Type II — Fair, easily burns, tans minimally' },
@@ -1615,7 +1615,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'uvIndex', label: 'UV index at your location', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '3-5',
-        help: 'Check your local UV index on a weather app. Higher UV = more vitamin D potential, but also more skin risk.',
+        help: 'Check your local UV index to plan sun protection. A higher UV index also means higher skin-damage risk.',
         options: [
           { value: '0-2', label: '0–2 (Low)' },
           { value: '3-5', label: '3–5 (Moderate)' },
@@ -1624,11 +1624,11 @@ export const DEFS: Record<string, CalcDef> = {
           { value: '11+', label: '11+ (Extreme)' },
         ],
       },
-      { key: 'timeOutdoors', label: 'Time outdoors midday', type: 'number', metricDefault: 15, min: 0, max: 600, suffix: 'min', allowZero: true, help: 'Minutes spent outdoors around midday (10am–3pm), when UVB is strongest.' },
+      { key: 'timeOutdoors', label: 'Time outdoors midday', type: 'number', metricDefault: 15, min: 0, max: 600, suffix: 'min', allowZero: true, help: 'Enter time already spent outdoors; do not extend sun exposure to raise a score.' },
       {
         key: 'skinExposed', label: 'Skin exposed', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'arms-face',
-        help: 'More skin exposed = more vitamin D — but also more UV risk.',
+        help: 'More exposed skin can increase UV damage. Protect skin rather than changing exposure to raise a score.',
         options: [
           { value: 'face-hands', label: 'Face & hands only (~5%)' },
           { value: 'arms-face', label: 'Arms & face (~15%)' },
@@ -1638,11 +1638,11 @@ export const DEFS: Record<string, CalcDef> = {
       },
       {
         key: 'sunscreen', label: 'Sunscreen use', type: 'select', metricDefault: 0, min: 0, max: 0,
-        selectDefault: 'after',
-        help: 'Sunscreen blocks UVB — the rays that make vitamin D. A short unprotected exposure before applying is a common compromise.',
+        selectDefault: 'spf30',
+        help: 'Do not delay sunscreen for vitamin D. Use shade, clothing, and broad-spectrum sunscreen when outdoors.',
         options: [
           { value: 'none', label: 'None' },
-          { value: 'after', label: 'Applied after initial sun exposure' },
+          { value: 'after', label: 'Applied only after initial sun exposure (not recommended)' },
           { value: 'spf30', label: 'SPF 30+ properly applied' },
         ],
       },
@@ -1665,7 +1665,7 @@ export const DEFS: Record<string, CalcDef> = {
       const uvKey = selects.uvIndex || '3-5';
       const timeOutdoors = vals.timeOutdoors;
       const skinExposed = selects.skinExposed || 'arms-face';
-      const sunscreen = selects.sunscreen || 'after';
+      const sunscreen = selects.sunscreen || 'spf30';
       const diet = selects.diet || 'occasional';
 
       // Transparent points system (0–4 per factor, max 20). Avoids the
@@ -1673,7 +1673,8 @@ export const DEFS: Record<string, CalcDef> = {
       const UV_PTS: Record<string, number> = { '0-2': 0, '3-5': 2, '6-7': 3, '8-10': 4, '11+': 4 };
       const SKIN_PTS: Record<string, number> = { i: 4, ii: 3.5, iii: 3, iv: 2.5, v: 2, vi: 1.5 };
       const EXPOSED_PTS: Record<string, number> = { 'face-hands': 1, 'arms-face': 2, 'arms-legs': 3, 'most-body': 4 };
-      const SCREEN_PTS: Record<string, number> = { none: 4, after: 3, spf30: 1 };
+      // Record historical sunscreen choices without rewarding unprotected exposure.
+      const SCREEN_PTS: Record<string, number> = { none: 1, after: 1, spf30: 1 };
 
       let timePts: number;
       if (timeOutdoors < 10) timePts = 1;
@@ -1684,7 +1685,7 @@ export const DEFS: Record<string, CalcDef> = {
       const uvPts = UV_PTS[uvKey] ?? 2;
       const skinPts = SKIN_PTS[skinType] ?? 3;
       const exposedPts = EXPOSED_PTS[skinExposed] ?? 2;
-      const screenPts = SCREEN_PTS[sunscreen] ?? 3;
+      const screenPts = SCREEN_PTS[sunscreen] ?? 1;
 
       const ageAdj = age >= 70 ? -2 : 0;
       const total = Math.max(0, uvPts + skinPts + timePts + exposedPts + screenPts + ageAdj);
@@ -1692,38 +1693,35 @@ export const DEFS: Record<string, CalcDef> = {
       const gaugeVal = (total / maxPts) * 10;
 
       const segments: Segment[] = [
-        { upTo: 3.3, label: 'Low', color: C.red },
-        { upTo: 6.6, label: 'Moderate', color: C.amber },
-        { upTo: 10, label: 'Good', color: C.green },
+        { upTo: 3.3, label: 'Lower exposure', color: C.slate },
+        { upTo: 6.6, label: 'Moderate exposure', color: C.amber },
+        { upTo: 10, label: 'Higher exposure', color: C.red },
       ];
       const band = bandFor(gaugeVal, segments);
 
-      // Dietary intake estimate (qualitative vs general RDA target).
-      const DIET: Record<string, { label: string; pts: number }> = {
-        rarely: { label: 'Well below target', pts: 0 },
-        occasional: { label: 'Below target', pts: 1 },
-        regular: { label: 'Near target', pts: 2 },
-        frequent: { label: 'Meets target', pts: 3 },
-        supplement: { label: 'Above target (from supplement)', pts: 4 },
+      // Food frequency does not establish vitamin D intake or adequacy.
+      const DIET: Record<string, string> = {
+        rarely: 'Rarely reported',
+        occasional: 'Occasionally reported',
+        regular: 'Regularly reported',
+        frequent: 'Frequently reported',
+        supplement: 'Supplement reported (dose unknown)',
       };
       const dietInfo = DIET[diet] ?? DIET.occasional;
 
       const skinTypeLabel = `Type ${skinType.toUpperCase()}`;
       const uvLabel = uvKey;
 
-      let dietNote = `NIH RDA is ~600 IU/day (800 if 70+). You appear to be: ${dietInfo.label}.`;
-      if (diet === 'supplement') {
-        dietNote += ' Do not exceed 4,000 IU/day from all sources without medical supervision — the safe upper limit for adults.';
-      }
+      const dietNote = `Food-frequency answers cannot establish vitamin D intake or adequacy. Check food and supplement labels; ask a healthcare professional about your needs.`;
 
       return {
         ok: true,
-        primaryLabel: 'Sun synthesis potential',
+        primaryLabel: 'Relative UV exposure conditions',
         primaryValue: band.label,
         category: { label: band.label, color: band.color },
         visual: { kind: 'gauge', value: gaugeVal, min: 0, max: 10, segments },
         rows: [
-          { label: 'Dietary intake', value: dietInfo.label, strong: true },
+          { label: 'Dietary vitamin D sources', value: dietInfo },
           { label: 'UV index', value: uvLabel },
           { label: 'Skin type', value: skinTypeLabel },
           { label: 'Time outdoors', value: `${fmt(timeOutdoors, 0)} min` },
@@ -1731,9 +1729,9 @@ export const DEFS: Record<string, CalcDef> = {
         ],
         callout: {
           tone: 'warn',
-          text: 'Balance sun for vitamin D with skin-cancer protection. The same UVB that makes vitamin D also damages skin and raises cancer risk. Never sunburn. If UV is high (6+), limit unprotected exposure to a few minutes and then apply SPF 30+. Check the EPA UV Index forecast for your area.',
+          text: 'This score is not a vitamin D level, a safe-sun target, or a reason to delay protection. UV exposure damages skin. Check the local UV Index; use shade, protective clothing, and broad-spectrum sunscreen as directed. Discuss vitamin D concerns separately with a healthcare professional.',
         },
-        note: `This tool estimates synthesis likelihood qualitatively — it does NOT measure your blood vitamin D level. ${dietNote} If you are concerned about deficiency, ask your doctor for a 25(OH)D blood test. Only a blood test can confirm your actual vitamin D status.`,
+        note: `This point score does NOT measure your vitamin D level or dose made by skin. ${dietNote} A clinician can decide whether a 25(OH)D blood test is appropriate; routine testing is not needed for everyone.`,
       };
     },
   },
