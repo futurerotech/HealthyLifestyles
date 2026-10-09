@@ -153,6 +153,9 @@ const dir = lang === 'ar' || lang.startsWith('ar-') ? 'rtl' : 'ltr';
       }
       function initUninitializedAds() {
         if (window.HLS_CONSENT !== 'accept' || document.prerendering) return;
+        document.querySelectorAll('img[data-ad-affiliate]').forEach(function (image) {
+          if (!image.getAttribute('src')) image.src = image.dataset.src || '';
+        });
         document.querySelectorAll('template[data-ad-custom]').forEach(function (template) {
           template.innerHTML = template.dataset.code || '';
           var fragment = template.content.cloneNode(true);

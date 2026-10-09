@@ -103,7 +103,7 @@ const year = 2026;
 
   <div class="container footer__bottom">
     <p>&copy; {year} {SITE.name}. All rights reserved.</p>
-    <p class="footer__sub">{SITE.tagline} · Built for the US, UK, Canada &amp; Australia.</p>
+    <p class="footer__sub">{SITE.tagline} · Built for the US, UK, Canada &amp; Australia. · <button type="button" class="footer__consent" data-open-consent>Cookie choices</button></p>
   </div>
 </footer>
 
@@ -207,6 +207,15 @@ const year = 2026;
   }
   .footer__sub {
     color: #64748b;
+  }
+  .footer__consent {
+    border: 0;
+    background: none;
+    color: #cbd5e1;
+    cursor: pointer;
+    padding: 0;
+    font: inherit;
+    text-decoration: underline;
   }
 
   @media (max-width: 760px) {

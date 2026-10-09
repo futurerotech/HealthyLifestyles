@@ -55,7 +55,8 @@ const hasAd = slotEnabled && (showIns || !!hasCustom || !!affiliate);
   {affiliate ? (
     <a href={affiliate.url} target="_blank" rel="noopener sponsored" class="ad__affiliate">
       <img
-        src={affiliate.image.url}
+        data-ad-affiliate
+        data-src={affiliate.image.url}
         alt={affiliate.alt || 'Advertisement'}
         width={affiliate.width || undefined}
         height={affiliate.height || undefined}
@@ -105,6 +106,10 @@ const hasAd = slotEnabled && (showIns || !!hasCustom || !!affiliate);
   .ad:has(ins.adsbygoogle[data-ad-status='unfilled']) {
     display: none !important;
     margin: 0 !important;
+  }
+  /* Do not request an affiliate image before consent. */
+  .ad:has(img[data-ad-affiliate]:not([src])) {
+    display: none !important;
   }
 
   /* Header ad renders in <body>, outside .container — constrain it to the same

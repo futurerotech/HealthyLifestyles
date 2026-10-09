@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
+import ts from 'typescript';
 
 const source = (path) => readFileSync(new URL(`../../../src/${path}`, import.meta.url), 'utf8');
 
@@ -41,6 +42,49 @@ test('AdSense loading and slot initialization wait for explicit consent', () => 
   assert.match(source('components/AdsLoader.astro'), /HLS_CONSENT.*accept/);
   assert.match(source('layouts/BaseLayout.astro'), /HLS_CONSENT.*accept/);
   assert.doesNotMatch(source('components/AdSlot.astro'), /<template[^>]*set:html/);
+  assert.match(source('components/AdSlot.astro'), /data-src=\{affiliate\.image\.url\}/);
+  assert.doesNotMatch(source('components/AdSlot.astro'), /^\s+src=\{affiliate\.image\.url\}/m);
+  assert.match(source('layouts/BaseLayout.astro'), /querySelectorAll\('img\[data-ad-affiliate\]'/);
+});
+
+test('consent can be changed without deleting locally saved tool data', () => {
+  assert.match(source('components/Footer.astro'), /data-open-consent/);
+  assert.match(source('components/CookieConsent.astro'), /closest\('\[data-open-consent\]'\)/);
+  assert.match(source('components/CookieConsent.astro'), /location\.reload\(\)/);
+  assert.doesNotMatch(source('pages/cookie-policy.astro'), /clear this site's\s+data in your browser and reload/i);
+});
+
+test('withdrawing consent preserves tool storage and reloads without opt-in', () => {
+  const script = source('components/CookieConsent.astro').match(/<script>([\s\S]*?)<\/script>/)?.[1];
+  assert.ok(script);
+  const handlers = {};
+  const storage = new Map([['hls-consent', 'accept'], ['hls-diary', 'saved entries']]);
+  let reloads = 0;
+  const banner = {
+    hidden: true,
+    querySelectorAll: () => ['accept', 'reject'].map((choice) => ({
+      dataset: { consent: choice }, addEventListener: (_, fn) => { handlers[choice] = fn; },
+    })),
+    querySelector: () => ({ focus: () => {} }),
+  };
+  const document = {
+    getElementById: () => banner,
+    addEventListener: (name, fn) => { handlers[name] = fn; },
+    dispatchEvent: () => {},
+  };
+  const window = {};
+  runInNewContext(ts.transpileModule(script, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText, {
+    document, window, localStorage: { getItem: (key) => storage.get(key), setItem: (key, value) => storage.set(key, value) },
+    location: { reload: () => { reloads++; } }, CustomEvent: class {},
+  });
+  assert.equal(window.HLS_CONSENT, 'accept');
+  handlers.click({ target: { closest: () => true } });
+  assert.equal(banner.hidden, false);
+  handlers.reject();
+  assert.equal(window.HLS_CONSENT, 'reject');
+  assert.equal(storage.get('hls-diary'), 'saved entries');
+  assert.equal(storage.get('hls-consent'), 'reject');
+  assert.equal(reloads, 1);
 });
 
 test('visitor-facing privacy claims describe server-assisted tools and local storage', () => {

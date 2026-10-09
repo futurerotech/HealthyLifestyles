@@ -137,8 +137,18 @@
       } catch {
         /* storage blocked — honour the choice for this session only */
       }
+      const wasAccepted = (window as unknown as { HLS_CONSENT?: Consent }).HLS_CONSENT === 'accept';
       apply(value);
       if (banner) banner.hidden = true;
+      // Reload to stop previously loaded scripts, without deleting saved tool data.
+      if (wasAccepted && value === 'reject') location.reload();
     });
+  });
+
+  document.addEventListener('click', (event) => {
+    if ((event.target as Element).closest('[data-open-consent]') && banner) {
+      banner.hidden = false;
+      banner.querySelector<HTMLButtonElement>('[data-consent="reject"]')?.focus();
+    }
   });
 </script>
