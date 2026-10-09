@@ -19,7 +19,7 @@
     "seo:meta": "node scripts/seo/metadata-audit.ts",
     "seo:budgets": "node scripts/seo/size-budget.ts",
     "test:feed": "node --test scripts/seo/__tests__/feed-date-integrity.test.ts",
-    "test:seo": "node --test scripts/seo/__tests__/feed-date-integrity.test.ts scripts/seo/__tests__/i18n.test.ts scripts/seo/__tests__/empty-shell.test.ts scripts/seo/__tests__/article-schema.test.ts scripts/seo/__tests__/html-scan.test.ts",
+    "test:seo": "node --test scripts/seo/__tests__/feed-date-integrity.test.ts scripts/seo/__tests__/i18n.test.ts scripts/seo/__tests__/empty-shell.test.ts scripts/seo/__tests__/article-schema.test.ts scripts/seo/__tests__/html-scan.test.ts scripts/seo/__tests__/vitamin-d-sun-safety.test.mjs",
     "seo:jsonld": "node scripts/seo/validate-jsonld.ts",
     "seo:richresults": "node scripts/seo/rich-results-check.ts",
     "seo:shacl": "node scripts/seo/validate-shacl.ts",

@@ -14,13 +14,13 @@ test('sun exposure copy does not prescribe unprotected minutes or delayed sunscr
   }
 });
 
-test('sunscreen choices cannot improve a desirable vitamin D score', () => {
+test('no vitamin D adequacy or reassuring UV exposure score is computed', () => {
   assert.match(calculator, /selectDefault: 'spf30'/);
   assert.doesNotMatch(calculator, /label: 'Good'|label: 'Meets target'|label: 'Above target'/);
-  const scores = calculator.match(/SCREEN_PTS: Record<string, number> = \{([^}]+)\}/)?.[1];
-  assert.ok(scores, 'sunscreen scoring table exists');
-  const values = [...scores.matchAll(/:\s*(\d+)/g)].map((m) => Number(m[1]));
-  assert.equal(new Set(values).size, 1, 'unprotected exposure must not receive more points');
+  assert.doesNotMatch(calculator, /SCREEN_PTS|SKIN_PTS|ageAdj|gaugeVal|kind: 'gauge'/);
+  assert.match(calculator, /visual: \{ kind: 'none' \}/);
+  assert.match(calculator, /sunscreen === 'none' \|\| sunscreen === 'after'/);
+  assert.match(calculator, /Do not delay (?:sun )?protection/);
 });
 
 test('dietary copy does not prescribe a blanket supplement dose or equate score with deficiency', () => {

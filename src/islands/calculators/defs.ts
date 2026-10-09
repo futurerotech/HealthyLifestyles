@@ -1598,7 +1598,6 @@ export const DEFS: Record<string, CalcDef> = {
     heading: 'Explore sun exposure conditions',
     hasSex: false,
     fields: [
-      F.age(30),
       {
         key: 'skinType', label: 'Skin type (Fitzpatrick)', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'iii',
@@ -1624,11 +1623,11 @@ export const DEFS: Record<string, CalcDef> = {
           { value: '11+', label: '11+ (Extreme)' },
         ],
       },
-      { key: 'timeOutdoors', label: 'Time outdoors midday', type: 'number', metricDefault: 15, min: 0, max: 600, suffix: 'min', allowZero: true, help: 'Enter time already spent outdoors; do not extend sun exposure to raise a score.' },
+      { key: 'timeOutdoors', label: 'Time outdoors midday', type: 'number', metricDefault: 15, min: 0, max: 600, suffix: 'min', allowZero: true, help: 'Enter time already spent outdoors; do not extend sun exposure to increase vitamin D.' },
       {
         key: 'skinExposed', label: 'Skin exposed', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'arms-face',
-        help: 'More exposed skin can increase UV damage. Protect skin rather than changing exposure to raise a score.',
+        help: 'More exposed skin can increase UV damage. Protect skin rather than exposing more to seek vitamin D.',
         options: [
           { value: 'face-hands', label: 'Face & hands only (~5%)' },
           { value: 'arms-face', label: 'Arms & face (~15%)' },
@@ -1660,44 +1659,12 @@ export const DEFS: Record<string, CalcDef> = {
       },
     ],
     compute: ({ vals, selects }) => {
-      const age = vals.age;
       const skinType = selects.skinType || 'iii';
       const uvKey = selects.uvIndex || '3-5';
       const timeOutdoors = vals.timeOutdoors;
       const skinExposed = selects.skinExposed || 'arms-face';
       const sunscreen = selects.sunscreen || 'spf30';
       const diet = selects.diet || 'occasional';
-
-      // Transparent points system (0–4 per factor, max 20). Avoids the
-      // over-penalisation that comes from multiplying five sub-1 factors.
-      const UV_PTS: Record<string, number> = { '0-2': 0, '3-5': 2, '6-7': 3, '8-10': 4, '11+': 4 };
-      const SKIN_PTS: Record<string, number> = { i: 4, ii: 3.5, iii: 3, iv: 2.5, v: 2, vi: 1.5 };
-      const EXPOSED_PTS: Record<string, number> = { 'face-hands': 1, 'arms-face': 2, 'arms-legs': 3, 'most-body': 4 };
-      // Record historical sunscreen choices without rewarding unprotected exposure.
-      const SCREEN_PTS: Record<string, number> = { none: 1, after: 1, spf30: 1 };
-
-      let timePts: number;
-      if (timeOutdoors < 10) timePts = 1;
-      else if (timeOutdoors <= 20) timePts = 2;
-      else if (timeOutdoors <= 30) timePts = 3;
-      else timePts = 4;
-
-      const uvPts = UV_PTS[uvKey] ?? 2;
-      const skinPts = SKIN_PTS[skinType] ?? 3;
-      const exposedPts = EXPOSED_PTS[skinExposed] ?? 2;
-      const screenPts = SCREEN_PTS[sunscreen] ?? 1;
-
-      const ageAdj = age >= 70 ? -2 : 0;
-      const total = Math.max(0, uvPts + skinPts + timePts + exposedPts + screenPts + ageAdj);
-      const maxPts = 20;
-      const gaugeVal = (total / maxPts) * 10;
-
-      const segments: Segment[] = [
-        { upTo: 3.3, label: 'Lower exposure', color: C.slate },
-        { upTo: 6.6, label: 'Moderate exposure', color: C.amber },
-        { upTo: 10, label: 'Higher exposure', color: C.red },
-      ];
-      const band = bandFor(gaugeVal, segments);
 
       // Food frequency does not establish vitamin D intake or adequacy.
       const DIET: Record<string, string> = {
@@ -1711,27 +1678,29 @@ export const DEFS: Record<string, CalcDef> = {
 
       const skinTypeLabel = `Type ${skinType.toUpperCase()}`;
       const uvLabel = uvKey;
+      const sunscreenLabel = sunscreen === 'none' ? 'None reported' : sunscreen === 'after' ? 'Applied after exposure' : 'SPF 30+ reported';
+      const needsProtectionReminder = sunscreen === 'none' || sunscreen === 'after';
 
       const dietNote = `Food-frequency answers cannot establish vitamin D intake or adequacy. Check food and supplement labels; ask a healthcare professional about your needs.`;
 
       return {
         ok: true,
-        primaryLabel: 'Relative UV exposure conditions',
-        primaryValue: band.label,
-        category: { label: band.label, color: band.color },
-        visual: { kind: 'gauge', value: gaugeVal, min: 0, max: 10, segments },
+        primaryLabel: 'Vitamin D & sun safety',
+        primaryValue: 'No safe UV target',
+        visual: { kind: 'none' },
         rows: [
           { label: 'Dietary vitamin D sources', value: dietInfo },
           { label: 'UV index', value: uvLabel },
           { label: 'Skin type', value: skinTypeLabel },
           { label: 'Time outdoors', value: `${fmt(timeOutdoors, 0)} min` },
-          { label: 'Age adjustment', value: ageAdj < 0 ? `Reduced (70+)` : 'None', strong: ageAdj < 0 },
+          { label: 'Skin exposed', value: skinExposed.replaceAll('-', ' ') },
+          { label: 'Sunscreen use', value: sunscreenLabel },
         ],
         callout: {
           tone: 'warn',
-          text: 'This score is not a vitamin D level, a safe-sun target, or a reason to delay protection. UV exposure damages skin. Check the local UV Index; use shade, protective clothing, and broad-spectrum sunscreen as directed. Discuss vitamin D concerns separately with a healthcare professional.',
+          text: `${needsProtectionReminder ? 'You reported no sunscreen or applying it only after initial exposure. Do not delay sun protection for vitamin D. ' : ''}UV exposure can damage skin. Check the local UV Index; use shade, protective clothing, and broad-spectrum sunscreen as directed. Discuss vitamin D concerns separately with a healthcare professional.`,
         },
-        note: `This point score does NOT measure your vitamin D level or dose made by skin. ${dietNote} A clinician can decide whether a 25(OH)D blood test is appropriate; routine testing is not needed for everyone.`,
+        note: `These answers do NOT measure your vitamin D level, dose made by skin, or a safe UV duration. ${dietNote} A clinician can decide whether a 25(OH)D blood test is appropriate; routine testing is not needed for everyone.`,
       };
     },
   },

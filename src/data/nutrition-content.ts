@@ -580,15 +580,15 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
     metaDescription:
       'Explore sun exposure conditions and vitamin D food sources. This educational tool cannot measure vitamin D levels or prescribe a safe UV dose.',
     intro:
-      'Explore conditions that affect UV exposure and learn about vitamin D food sources. This educational point score cannot tell you how much vitamin D your skin makes or whether your blood level is adequate.',
+      'Review your reported sun-exposure conditions and learn about vitamin D food sources. These answers cannot tell you how much vitamin D your skin makes or whether your blood level is adequate.',
     notice:
-      'Not a vitamin D test or a safe-sun prescription. Do not delay sun protection to improve a score. A clinician can determine whether a 25(OH)D blood test is appropriate; routine testing is not needed for everyone.',
+      'Not a vitamin D test or a safe-sun prescription. Do not delay sun protection to increase vitamin D. A clinician can determine whether a 25(OH)D blood test is appropriate; routine testing is not needed for everyone.',
     sections: [
       {
         h2: 'How your body makes vitamin D from sun',
         paragraphs: [
           'UVB radiation can trigger vitamin D production in skin. UV intensity, skin pigmentation, clothing, weather, season, and time outdoors all affect exposure; UV radiation also damages skin.',
-          'The point score groups reported exposure conditions as lower, moderate, or higher. It is not a vitamin D synthesis estimate, a safe target, or a reason to increase sun exposure.',
+          'This tool summarizes your reported conditions without calculating UV dose or vitamin D synthesis. Its inputs cannot establish a safe exposure target or a reason to increase sun exposure.',
         ],
       },
       {
