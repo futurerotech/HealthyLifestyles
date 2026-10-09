@@ -52,6 +52,11 @@ test('consent can be changed without deleting locally saved tool data', () => {
   assert.match(source('components/CookieConsent.astro'), /closest\('\[data-open-consent\]'\)/);
   assert.match(source('components/CookieConsent.astro'), /location\.reload\(\)/);
   assert.doesNotMatch(source('pages/cookie-policy.astro'), /clear this site's\s+data in your browser and reload/i);
+  assert.doesNotMatch(source('pages/privacy.astro'), /clear this site's\s+data in your browser and reload/i);
+});
+
+test('article references are not presented as an unverified review', () => {
+  assert.doesNotMatch(source('components/ArticleBody.astro'), /Reviewed\s*&amp;\s*sources/i);
 });
 
 test('withdrawing consent preserves tool storage and reloads without opt-in', () => {
