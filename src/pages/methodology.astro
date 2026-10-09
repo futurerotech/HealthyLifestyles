@@ -1,8 +1,6 @@
 ---
 import LegalLayout from '../layouts/LegalLayout.astro';
-import { SITE, EDITORIAL } from '../consts';
-import { formatDate } from '../lib/text';
-import { resolveAuthor, REVIEWER_SLUG } from '../lib/cms';
+import { SITE } from '../consts';
 
 const title = `Methodology & Formulas | ${SITE.name}`;
 const description = `The exact, published formulas behind every ${SITE.name} calculator — BMI, BMR, body fat, heart rate, due dates and more — with primary sources.`;
@@ -10,21 +8,7 @@ const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
 const orgId = `${origin.href}#org`;
 const pageUrl = new URL('/methodology', origin).href;
 
-const [authorEntity, reviewerEntity] = await Promise.all([
-  resolveAuthor('editorial-team'),
-  resolveAuthor(REVIEWER_SLUG),
-]);
 
-function authorLd(a: typeof authorEntity) {
-  return {
-    '@type': a.schemaType,
-    '@id': new URL(`/author/${a.slug}`, origin).href,
-    name: a.name,
-    url: new URL(`/author/${a.slug}`, origin).href,
-    ...(a.credential ? { credential: a.credential } : {}),
-    ...(a.schemaType === 'Person' ? { jobTitle: a.role, worksFor: { '@id': orgId } } : {}),
-  };
-}
 
 // Each calculator uses an established, published equation. Grouped by area.
 const GROUPS: { heading: string; items: { name: string; formula: string; source: string; url: string }[] }[] = [
@@ -95,9 +79,7 @@ const jsonLd = [
     description,
     url: pageUrl,
     inLanguage: 'en',
-    lastReviewed: EDITORIAL.lastReviewed,
-    author: authorLd(authorEntity),
-    reviewedBy: authorLd(reviewerEntity),
+
     publisher: { '@id': orgId },
   },
 ];
@@ -107,7 +89,7 @@ const jsonLd = [
   title={title}
   description={description}
   heading="Methodology & formulas"
-  updated={formatDate(EDITORIAL.lastReviewed)}
+
   jsonLd={jsonLd}
 >
   <p>
@@ -146,9 +128,10 @@ const jsonLd = [
     different activity-factor / formula choice.
   </p>
 
-  <h2>Reviewed by</h2>
+  <h2>Sources and editorial review</h2>
   <p>
-    Formulas and their sources are checked by our <a href="/author/medical-review">medical review board</a>.
-    Read how we work in our <a href="/editorial-policy">editorial policy</a>.
+    The formulas and references are listed above so readers can inspect the methods. We do not represent
+    this page as medically reviewed. Read how we research and attribute content in our
+    <a href="/editorial-policy">editorial policy</a>.
   </p>
 </LegalLayout>

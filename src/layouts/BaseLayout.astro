@@ -138,6 +138,7 @@ const dir = lang === 'ar' || lang.startsWith('ar-') ? 'rtl' : 'ltr';
         // Two rAFs guarantee layout has been computed before AdSense measures width.
         requestAnimationFrame(function () {
           requestAnimationFrame(function () {
+            if (window.HLS_CONSENT !== 'accept' || document.prerendering) return;
             if (el.getBoundingClientRect().width === 0) {
               console.warn('[AdSense] slot still 0px wide after paint — skipped', el);
               return;
@@ -151,6 +152,22 @@ const dir = lang === 'ar' || lang.startsWith('ar-') ? 'rtl' : 'ltr';
         });
       }
       function initUninitializedAds() {
+        if (window.HLS_CONSENT !== 'accept' || document.prerendering) return;
+        document.querySelectorAll('img[data-ad-affiliate]').forEach(function (image) {
+          if (!image.getAttribute('src')) image.src = image.dataset.src || '';
+        });
+        document.querySelectorAll('template[data-ad-custom]').forEach(function (template) {
+          template.innerHTML = template.dataset.code || '';
+          var fragment = template.content.cloneNode(true);
+          // innerHTML-created script nodes stay inert; recreate them only after consent.
+          fragment.querySelectorAll('script').forEach(function (oldScript) {
+            var script = document.createElement('script');
+            Array.from(oldScript.attributes).forEach(function (attr) { script.setAttribute(attr.name, attr.value); });
+            script.textContent = oldScript.textContent;
+            oldScript.replaceWith(script);
+          });
+          template.replaceWith(fragment);
+        });
         var slots = document.querySelectorAll(
           '.adsbygoogle:not([data-adsbygoogle-status]):not([data-ad-observed])'
         );
@@ -174,6 +191,8 @@ const dir = lang === 'ar' || lang.startsWith('ar-') ? 'rtl' : 'ltr';
         initUninitializedAds();
       }
       document.addEventListener('astro:page-load', initUninitializedAds);
+      document.addEventListener('consent-update', initUninitializedAds);
+      document.addEventListener('prerenderingchange', initUninitializedAds);
     </script>
 
     <script>

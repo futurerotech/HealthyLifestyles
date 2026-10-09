@@ -4,7 +4,8 @@
  *
  * PerformanceObserver only: LCP (last candidate), CLS (session-window model),
  * INP (longest interaction ≥40ms — converges on true INP at typical per-page
- * interaction counts). One sendBeacon per pageview on first hide/pagehide.
+ * interaction counts). One sendBeacon per pageview on first hide/pagehide,
+ * only when the visitor has opted in to analytics.
  * data-pt-skip keeps it on the main thread (it must observe real paint/input).
  */
 ---
@@ -43,6 +44,9 @@
 
     function send() {
       if (sent || lcp === null) return; // no LCP yet → nothing meaningful to report
+      // A local, first-party beacon still transmits the viewed path and region.
+      // Re-check on every hide so rejection or withdrawn consent cannot send it.
+      if (window.HLS_CONSENT !== 'accept') return;
       sent = true;
       var nav = performance.getEntriesByType('navigation')[0];
       try {

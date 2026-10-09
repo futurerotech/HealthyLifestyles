@@ -22,7 +22,7 @@ import { P7_FIXTURE_ARTICLE } from '../data/p7-fixture';
 
 // P15-P7 — off by default; set P7_FIXTURE=1 ONLY for the render-proof build.
 const P7_FIXTURE_ON = process.env.P7_FIXTURE === '1';
-import { SITE as LOCAL_SITE, NAV_LINKS as LOCAL_NAV_LINKS, FOOTER_LEGAL as LOCAL_FOOTER_LEGAL, FOOTER_COMPANY as LOCAL_FOOTER_COMPANY, SOCIAL_FOLLOW as LOCAL_SOCIAL_FOLLOW, SOCIAL_NETWORKS as LOCAL_SOCIAL_NETWORKS, ANALYTICS as LOCAL_ANALYTICS, EDITORIAL as LOCAL_EDITORIAL, CONTACT as LOCAL_CONTACT } from '../consts';
+import { SITE as LOCAL_SITE, NAV_LINKS as LOCAL_NAV_LINKS, FOOTER_LEGAL as LOCAL_FOOTER_LEGAL, FOOTER_COMPANY as LOCAL_FOOTER_COMPANY, SOCIAL_FOLLOW as LOCAL_SOCIAL_FOLLOW, SOCIAL_NETWORKS as LOCAL_SOCIAL_NETWORKS, ANALYTICS as LOCAL_ANALYTICS, CONTACT as LOCAL_CONTACT } from '../consts';
 
 const CMS_URL = (import.meta.env.CMS_URL as string) || 'http://localhost:3000';
 const DISABLED = (import.meta.env.CMS_DISABLE as string) === '1';
@@ -134,7 +134,6 @@ export interface SiteConsts {
   SOCIAL_FOLLOW: { network: string; href: string }[];
   SOCIAL_NETWORKS: Record<string, { label: string; color: string }>;
   ANALYTICS: { ga4Id: string; searchConsoleVerification: string };
-  EDITORIAL: { reviewerName: string; reviewerCredential: string; lastReviewed: string };
   CONTACT: { email: string };
 }
 
@@ -163,7 +162,6 @@ export async function getSiteConsts(): Promise<SiteConsts> {
       SOCIAL_FOLLOW: [...LOCAL_SOCIAL_FOLLOW].map((s) => ({ network: s.network, href: s.href })),
       SOCIAL_NETWORKS: { ...LOCAL_SOCIAL_NETWORKS } as Record<string, { label: string; color: string }>,
       ANALYTICS: { ...LOCAL_ANALYTICS } as { ga4Id: string; searchConsoleVerification: string },
-      EDITORIAL: { ...LOCAL_EDITORIAL } as { reviewerName: string; reviewerCredential: string; lastReviewed: string },
       CONTACT: { ...LOCAL_CONTACT } as { email: string },
     };
   }
@@ -196,7 +194,6 @@ export async function getSiteConsts(): Promise<SiteConsts> {
       ga4Id: s.ga4Id || LOCAL_ANALYTICS.ga4Id,
       searchConsoleVerification: s.searchConsoleId || LOCAL_ANALYTICS.searchConsoleVerification,
     },
-    EDITORIAL: { ...LOCAL_EDITORIAL } as { reviewerName: string; reviewerCredential: string; lastReviewed: string },
     CONTACT: {
       email: s.contactEmail || LOCAL_CONTACT.email,
     },
@@ -757,7 +754,8 @@ export async function getAuthors(): Promise<Author[]> {
     '/api/authors?limit=50&depth=0&sort=name',
   );
   if (data && Array.isArray(data.docs) && data.docs.length > 0) {
-    return data.docs.map(mapAuthor).filter((a) => a.slug && a.name);
+    const authors = data.docs.map(mapAuthor).filter((a) => a.slug && a.name && a.slug !== 'medical-review');
+    return authors.length ? authors : LOCAL_AUTHORS;
   }
   return LOCAL_AUTHORS;
 }
@@ -781,7 +779,7 @@ export async function resolveAuthor(nameOrSlug: string): Promise<Author> {
   return all[0] || LOCAL_AUTHORS[0]!;
 }
 
-export { DEFAULT_AUTHOR_SLUG, REVIEWER_SLUG } from '../data/authors';
+export { DEFAULT_AUTHOR_SLUG } from '../data/authors';
 
 /* ────────────────────────────────────────────  Pages ── */
 

@@ -1,10 +1,9 @@
 ---
 import LegalLayout from '../layouts/LegalLayout.astro';
-import { SITE, EDITORIAL, CONTACT } from '../consts';
-import { formatDate } from '../lib/text';
+import { SITE, CONTACT } from '../consts';
 
 const title = `Editorial Policy | ${SITE.name}`;
-const description = `How ${SITE.name} researches, writes, sources, medically reviews, and corrects its health calculators and guides.`;
+const description = `How ${SITE.name} researches, sources, and corrects its health calculators and guides.`;
 const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
 
 const jsonLd = [
@@ -23,7 +22,7 @@ const jsonLd = [
   title={title}
   description={description}
   heading="Editorial Policy"
-  updated={formatDate(EDITORIAL.lastReviewed)}
+
   jsonLd={jsonLd}
 >
   <p>
@@ -42,10 +41,9 @@ const jsonLd = [
 
   <h2>Who creates our content</h2>
   <p>
-    Content is produced by our <a href="/author/editorial-team">editorial team</a> and checked by our
-    <a href="/author/medical-review">medical review board</a>. We do not publish AI-generated articles as
-    finished work, and we do not invent author names or credentials. As we add named, credentialed
-    reviewers, their profiles and qualifications will appear on their author pages.
+    Content is researched and written by our <a href="/author/editorial-team">editorial team</a>. We do not
+    claim clinical review unless a qualified individual reviewer is explicitly named on the page. We do not
+    invent author names or credentials.
   </p>
 
   <h2>How we research and write</h2>
@@ -58,9 +56,9 @@ const jsonLd = [
 
   <h2>Medical &amp; accuracy review</h2>
   <p>
-    Health-related tools and articles are reviewed for clinical accuracy, safe framing, and appropriate
-    disclaimers before they publish. The reviewer and the review date are shown in the byline on each page
-    (“Medically reviewed by …, Updated …”). Reviewers are {EDITORIAL.reviewerCredential.toLowerCase()}.
+    Health-related content is educational and should not be treated as clinical advice. A visible medical-review
+    attribution is not displayed until an individual's qualifications and completed review can be verified;
+    an ordinary update date is not a medical-review date.
   </p>
 
   <h2>Sourcing &amp; citations</h2>
@@ -79,14 +77,14 @@ const jsonLd = [
 
   <h2>Corrections &amp; updates</h2>
   <p>
-    We revisit content as the evidence changes and correct errors promptly. Each page shows when it was last
-    updated. If you spot a mistake, please tell us at <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
+    We correct errors when identified. Pages show an update date only when one is available from the content record.
+    If you spot a mistake, please tell us at <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
     and we’ll review it.
   </p>
 
   <h2>Privacy</h2>
   <p>
-    Calculations run in your browser; the numbers you enter are not uploaded or stored. See our
+    Many calculations run in your browser; recipe analysis and image downloads use a server, and HRV readings persist locally. See our
     <a href="/privacy">privacy policy</a> for details.
   </p>
 </LegalLayout>

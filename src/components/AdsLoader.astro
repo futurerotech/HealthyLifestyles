@@ -2,9 +2,8 @@
 /**
  * The ONE and ONLY AdSense loader for the whole site.
  *
- * Loads adsbygoogle.js (our ca-pub client) exactly once for all visitors, using
- * the standard async Google integration so it never blocks the main thread or
- * degrades PageSpeed. No consent gate (US-first audience). Every ad UNIT comes
+ * Loads adsbygoogle.js once after explicit consent, using the standard async
+ * Google integration. Every ad UNIT comes
  * from the <AdSlot> component, driven by the Ad Management global — no ad code
  * lives anywhere else. Also wires the sticky-footer ad's close button.
  */
@@ -19,17 +18,23 @@ const clientId = adConfig?.adsenseClient || '';
 const enabled = masterOn && !!clientId && /^ca-pub-\d+$/.test(clientId);
 ---
 
-{
-  enabled && (
-    <script
-      async
-      src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${clientId}`}
-      crossorigin="anonymous"
-      fetchpriority="low"
-      is:inline
-    />
-  )
-}
+<script is:inline data-pt-skip define:vars={{ enabled, clientId }}>
+  (function () {
+    function loadAds() {
+      if (window.HLS_CONSENT !== 'accept' || document.prerendering) return;
+      if (!enabled || window.HLS_ADS_LOADED) return;
+      window.HLS_ADS_LOADED = true;
+      var s = document.createElement('script');
+      s.async = true;
+      s.crossOrigin = 'anonymous';
+      s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + clientId;
+      document.head.appendChild(s);
+    }
+    loadAds();
+    document.addEventListener('consent-update', loadAds);
+    document.addEventListener('prerenderingchange', loadAds);
+  })();
+</script>
 
 <!-- Sticky footer ad close button -->
 <script is:inline data-pt-skip>

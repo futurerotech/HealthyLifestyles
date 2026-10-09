@@ -1,8 +1,6 @@
 ---
 /**
- * E-E-A-T byline shown on every tool and article:
- *   "Written by X · Medically reviewed by Y, [credential] · Updated [date]"
- * Author + reviewer link to their /author/[slug] profile pages.
+ * Author byline. Clinical review requires a separately verified workflow.
  */
 import Avatar from './Avatar.astro';
 import Icon from './Icon.astro';
@@ -12,10 +10,8 @@ import { formatDate } from '../lib/text';
 interface Props {
   /** Author slug or display name; defaults to the editorial team. */
   author?: string;
-  /** ISO date the content was last updated / reviewed. */
-  updated: string;
-  /** Show the "medically reviewed by" clause (default true). */
-  reviewed?: boolean;
+  /** ISO date of a substantive content update, when available. */
+  updated?: string;
   class?: string;
 }
 
@@ -23,24 +19,20 @@ const allAuthors = await getAuthors();
 const authorMap = Object.fromEntries(allAuthors.map((a) => [a.slug, a]));
 const nameMap = Object.fromEntries(allAuthors.map((a) => [a.name, a]));
 const resolveAuthorLocal = (nameOrSlug: string) => authorMap[nameOrSlug] || nameMap[nameOrSlug] || allAuthors[0]!;
-const getReviewerLocal = () => authorMap['medical-review'] || allAuthors[1] || allAuthors[0]!;
-const { author = 'editorial-team', updated, reviewed = true, class: className } = Astro.props;
+const { author = 'editorial-team', updated, class: className } = Astro.props;
 const a = resolveAuthorLocal(author);
-const r = getReviewerLocal();
 ---
 
 <div class:list={['byline', className]}>
   <Avatar initials={a.initials} color={a.color} size={40} class="byline__avatar" />
   <p class="byline__text">
     Written by <a href={`/author/${a.slug}`}>{a.name}</a>
-    {reviewed && (
+    {updated && (
       <>
         <span class="byline__sep" aria-hidden="true">·</span>
-        Medically reviewed by <a href={`/author/${r.slug}`}>{r.name}</a>, {r.credential}
+        <span class="byline__updated"><Icon name="check" size={13} /> Updated {formatDate(updated)}</span>
       </>
     )}
-    <span class="byline__sep" aria-hidden="true">·</span>
-    <span class="byline__updated"><Icon name="check" size={13} /> Updated {formatDate(updated)}</span>
   </p>
 </div>
 

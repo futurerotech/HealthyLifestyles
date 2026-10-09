@@ -9,7 +9,6 @@
  * matching calculators both ways (relatedTools drives the "From the Wellness
  * Hub" block on tool pages).
  */
-import { EDITORIAL } from '../consts';
 import { stripInline } from '../lib/text';
 
 export interface ArticleCategory {
@@ -430,7 +429,7 @@ export const ARTICLES: Article[] = [
     excerpt:
       'Cycling between eating and fasting windows — like 16:8 — can help you eat less without counting every calorie. Here’s how to pick a schedule you’ll keep.',
     author: 'HealthyLifeStyles Editorial Team',
-    authorBio: 'researches and writes our evidence-based wellness guides, each checked by our medical review team.',
+    authorBio: 'researches and writes our evidence-based wellness guides with links to published sources.',
     publishDate: '2026-05-08',
     updatedDate: '2026-06-18',
     primaryTool: 'intermittent-fasting-calculator',
@@ -492,7 +491,7 @@ export const ARTICLES: Article[] = [
     excerpt:
       'Lion, Bear, Wolf, or Dolphin? Your chronotype is your body’s natural timing — and matching your day to it makes sleep and focus easier.',
     author: 'HealthyLifeStyles Editorial Team',
-    authorBio: 'researches and writes our evidence-based wellness guides, each checked by our medical review team.',
+    authorBio: 'researches and writes our evidence-based wellness guides with links to published sources.',
     publishDate: '2026-05-15',
     updatedDate: '2026-06-19',
     primaryTool: 'sleep-chronotype-quiz',
@@ -551,7 +550,7 @@ export const ARTICLES: Article[] = [
     excerpt:
       'A good meal plan starts with calories, locks in protein, and stays flexible enough to actually follow. Here’s the framework — plus a free generator.',
     author: 'HealthyLifeStyles Editorial Team',
-    authorBio: 'researches and writes our evidence-based wellness guides, each checked by our medical review team.',
+    authorBio: 'researches and writes our evidence-based wellness guides with links to published sources.',
     publishDate: '2026-05-22',
     updatedDate: '2026-06-17',
     primaryTool: 'meal-plan-generator',
@@ -615,7 +614,7 @@ export const ARTICLES: Article[] = [
     excerpt:
       'Safe weight loss takes longer than reality TV suggests. Here’s a realistic timeline by goal — and why the scale stalls partway through.',
     author: 'HealthyLifeStyles Editorial Team',
-    authorBio: 'researches and writes our evidence-based wellness guides, each checked by our medical review team.',
+    authorBio: 'researches and writes our evidence-based wellness guides with links to published sources.',
     publishDate: '2026-05-29',
     updatedDate: '2026-06-20',
     primaryTool: 'weight-loss-timeline-calculator',
@@ -674,7 +673,7 @@ export const ARTICLES: Article[] = [
       'Calories decide whether your weight changes; macros decide what that weight is — fat or muscle. Here’s how to set your protein, carbs, and fat for your goal, and adjust them as you go.',
     author: 'HealthyLifeStyles Editorial Team',
     authorBio:
-      'researches and writes our evidence-based wellness guides, each checked by our medical review team.',
+      'researches and writes our evidence-based wellness guides with links to published sources.',
     publishDate: '2026-06-23',
     updatedDate: '2026-06-23',
     primaryTool: 'macro-calculator',
@@ -808,10 +807,3 @@ export const articlePlainText = (article: Article): string => {
 export const articleFaq = (article: Article): { q: string; a: string }[] =>
   article.body.filter((b): b is Extract<ArticleBlock, { type: 'paa' }> => b.type === 'paa')
     .flatMap((b) => b.items);
-
-/** E-E-A-T review line shared by every article. */
-export const ARTICLE_REVIEW = {
-  reviewer: EDITORIAL.reviewerName,
-  credential: EDITORIAL.reviewerCredential,
-  lastReviewed: EDITORIAL.lastReviewed,
-};
