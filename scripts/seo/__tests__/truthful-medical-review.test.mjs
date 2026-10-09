@@ -33,6 +33,10 @@ test('privacy copy discloses server features, local storage and advertising', ()
   assert.match(source('pages/privacy.astro'), /Food and Symptom Diary/i);
   assert.match(source('pages/privacy.astro'), /Health Score/i);
   assert.match(source('pages/cookie-policy.astro'), /advertising/i);
+  assert.match(source('pages/cookie-policy.astro'), /affiliate images/i);
+  assert.match(source('components/CookieConsent.astro'), /custom ads/i);
+  assert.doesNotMatch(source('pages/privacy.astro'), /measurement does not run before consent/i);
+  assert.match(source('pages/privacy.astro'), /transmit(?:ted)? only after (?:you accept|consent)/i);
   for (const path of ['components/home/WhyTrust.astro', 'components/CookieConsent.astro']) {
     assert.doesNotMatch(source(path), /never uploaded|never stored|never\s+store the numbers/i, path);
   }
