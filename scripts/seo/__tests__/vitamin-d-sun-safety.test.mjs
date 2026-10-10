@@ -26,6 +26,7 @@ test('no vitamin D adequacy or reassuring UV exposure score is computed', () => 
 
 test('dietary copy does not prescribe a blanket supplement dose or equate score with deficiency', () => {
   assert.doesNotMatch(article, /1,000[–-]2,000 IU|3[–-]6 times more sun exposure|low, moderate, or good chance of adequate vitamin D/i);
+  assert.doesNotMatch(article, /(?:sun-exposure|vitamin D) score|calculator shows lower exposure/i);
   assert.match(article, /25\(OH\)D/);
 });
 

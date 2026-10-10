@@ -602,7 +602,7 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
         h2: 'Dietary vitamin D',
         paragraphs: [
           'Vitamin D food sources include fatty fish, egg yolks, and fortified foods such as some milk and plant-based alternatives. The NIH recommended dietary allowance is 600 IU/day for adults ages 19–70 and 800 IU/day for adults over 70. Food frequency alone cannot establish how much vitamin D you consume.',
-          'If you are considering a supplement, check its labeled dose and ask a healthcare professional what is appropriate for you. Do not take high doses simply because a calculator shows lower exposure; vitamin D intake and blood status are separate questions.',
+          'If you are considering a supplement, check its labeled dose and ask a healthcare professional what is appropriate for you. Do not take high doses based on this tool’s reported conditions; vitamin D intake and blood status are separate questions.',
         ],
       },
       {
@@ -629,7 +629,7 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
       },
       {
         q: 'Should I take a vitamin D supplement?',
-        a: 'Needs vary with age, diet, health conditions, and medications. Check how much vitamin D you already get from food and supplements and ask a healthcare professional about an appropriate dose; do not use this sun-exposure score to choose one.',
+        a: 'Needs vary with age, diet, health conditions, and medications. Check how much vitamin D you already get from food and supplements and ask a healthcare professional about an appropriate dose; this tool cannot determine one.',
       },
       {
         q: 'Does sunscreen block vitamin D production?',
