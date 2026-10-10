@@ -262,7 +262,9 @@ const medicalLd = {
       <p class:list={['tool__result-note', tool.riskLevel === 'high' && 'tool__result-note--high']} role="note">
         <Icon name="shield" size={16} />
         <span>
-          {tool.riskLevel === 'high'
+          {tool.slug === 'vitamin-d-sun-calculator'
+            ? 'This tool summarizes reported sun-exposure conditions; it does not estimate vitamin D production or diagnose deficiency. Consult a qualified professional about your health.'
+            : tool.riskLevel === 'high'
             ? 'This tool is for general education and is not medical advice, diagnosis, or treatment. Do not use it to make health decisions — talk to a qualified professional about your health.'
             : 'This is an educational estimate, not medical advice. Consult a qualified professional.'}
           {resultAuthority}
@@ -418,10 +420,10 @@ const medicalLd = {
         <aside class:list={['tool__disclaimer', tool.riskLevel === 'high' && 'tool__disclaimer--high']} role="note">
           <Icon name="shield" size={20} />
           <p>
-            <strong>Medical disclaimer:</strong> This calculator is for general
-            information and education only and is not medical advice, diagnosis, or
-            treatment. Results are estimates based on population formulas. Always
-            consult a qualified healthcare professional about your health.
+            <strong>Medical disclaimer:</strong>{' '}
+            {tool.slug === 'vitamin-d-sun-calculator'
+              ? 'This tool summarizes your inputs and provides general sun-safety information. It does not calculate vitamin D production, diagnose deficiency, or prescribe a safe UV dose. Consult a qualified healthcare professional about your health.'
+              : 'This calculator is for general information and education only and is not medical advice, diagnosis, or treatment. Results are estimates based on population formulas. Always consult a qualified healthcare professional about your health.'}
           </p>
         </aside>
       </div>
@@ -436,9 +438,10 @@ const medicalLd = {
     <!-- Branded footer shown only when printing / saving to PDF -->
     <div class="print-only print-sheet-foot">
       <p>
-        <strong>Not medical advice.</strong> This result is an educational estimate from {SITE.name}
-        ({SITE.tagline}), based on population formulas — not a diagnosis or treatment. Always consult a
-        qualified healthcare professional about your health.
+        <strong>Not medical advice.</strong>{' '}
+        {tool.slug === 'vitamin-d-sun-calculator'
+          ? 'This printed summary does not measure vitamin D or prescribe a safe UV dose. Consult a qualified healthcare professional about your health.'
+          : `This result is an educational estimate from ${SITE.name} (${SITE.tagline}), based on population formulas — not a diagnosis or treatment. Always consult a qualified healthcare professional about your health.`}
       </p>
       <p class="print-sheet-foot__url">{pageUrl}</p>
     </div>
