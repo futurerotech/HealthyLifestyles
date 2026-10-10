@@ -4,6 +4,7 @@ import { test } from 'node:test';
 
 const defs = readFileSync(new URL('../../../src/islands/calculators/defs.ts', import.meta.url), 'utf8');
 const content = readFileSync(new URL('../../../src/data/nutrition-content.ts', import.meta.url), 'utf8');
+const layout = readFileSync(new URL('../../../src/components/ToolPageLayout.astro', import.meta.url), 'utf8');
 const calculator = defs.split("'vitamin-d-sun-calculator': {")[1].split('// ---- Gut Health Score')[0];
 const article = content.split("'vitamin-d-sun-calculator': {")[1].split("'gut-health-score': {")[0];
 
@@ -26,4 +27,10 @@ test('no vitamin D adequacy or reassuring UV exposure score is computed', () => 
 test('dietary copy does not prescribe a blanket supplement dose or equate score with deficiency', () => {
   assert.doesNotMatch(article, /1,000[–-]2,000 IU|3[–-]6 times more sun exposure|low, moderate, or good chance of adequate vitamin D/i);
   assert.match(article, /25\(OH\)D/);
+});
+
+test('vitamin D tool disclaimers do not claim a formula-based estimate', () => {
+  assert.match(layout, /tool\.slug === 'vitamin-d-sun-calculator'/);
+  assert.match(layout, /This tool summarizes reported sun-exposure conditions; it does not estimate vitamin D production/);
+  assert.match(layout, /This printed summary does not measure vitamin D or prescribe a safe UV dose/);
 });
