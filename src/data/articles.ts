@@ -10,8 +10,10 @@
  * Hub" block on tool pages).
  */
 import { stripInline } from '../lib/text';
+import type { SeoMetadata } from '../lib/seo';
 
 export interface ArticleCategory {
+  seo?: SeoMetadata;
   id: string;
   name: string;
   slug: string;
@@ -23,6 +25,7 @@ export interface ArticleCategory {
 }
 
 export type ArticleBlock =
+  | { type: 'cms'; block: { blockType: string; [key: string]: unknown } }
   | { type: 'p'; text: string }
   | { type: 'h2'; text: string }
   | { type: 'h3'; text: string }
@@ -39,6 +42,7 @@ export interface ArticleSource {
 }
 
 export interface Article {
+  seo?: SeoMetadata;
   slug: string;
   /** H1 — the target keyword phrased as a human title. */
   title: string;
@@ -429,7 +433,7 @@ export const ARTICLES: Article[] = [
     excerpt:
       'Cycling between eating and fasting windows — like 16:8 — can help you eat less without counting every calorie. Here’s how to pick a schedule you’ll keep.',
     author: 'HealthyLifeStyles Editorial Team',
-    authorBio: 'researches and writes our evidence-based wellness guides, with linked sources so readers can verify the claims.',
+    authorBio: 'researches and writes our evidence-based wellness guides with links to published sources.',
     publishDate: '2026-05-08',
     updatedDate: '2026-06-18',
     primaryTool: 'intermittent-fasting-calculator',
@@ -491,7 +495,7 @@ export const ARTICLES: Article[] = [
     excerpt:
       'Lion, Bear, Wolf, or Dolphin? Your chronotype is your body’s natural timing — and matching your day to it makes sleep and focus easier.',
     author: 'HealthyLifeStyles Editorial Team',
-    authorBio: 'researches and writes our evidence-based wellness guides, with linked sources so readers can verify the claims.',
+    authorBio: 'researches and writes our evidence-based wellness guides with links to published sources.',
     publishDate: '2026-05-15',
     updatedDate: '2026-06-19',
     primaryTool: 'sleep-chronotype-quiz',
@@ -550,7 +554,7 @@ export const ARTICLES: Article[] = [
     excerpt:
       'A good meal plan starts with calories, locks in protein, and stays flexible enough to actually follow. Here’s the framework — plus a free generator.',
     author: 'HealthyLifeStyles Editorial Team',
-    authorBio: 'researches and writes our evidence-based wellness guides, with linked sources so readers can verify the claims.',
+    authorBio: 'researches and writes our evidence-based wellness guides with links to published sources.',
     publishDate: '2026-05-22',
     updatedDate: '2026-06-17',
     primaryTool: 'meal-plan-generator',
@@ -614,7 +618,7 @@ export const ARTICLES: Article[] = [
     excerpt:
       'Safe weight loss takes longer than reality TV suggests. Here’s a realistic timeline by goal — and why the scale stalls partway through.',
     author: 'HealthyLifeStyles Editorial Team',
-    authorBio: 'researches and writes our evidence-based wellness guides, with linked sources so readers can verify the claims.',
+    authorBio: 'researches and writes our evidence-based wellness guides with links to published sources.',
     publishDate: '2026-05-29',
     updatedDate: '2026-06-20',
     primaryTool: 'weight-loss-timeline-calculator',
@@ -673,7 +677,7 @@ export const ARTICLES: Article[] = [
       'Calories decide whether your weight changes; macros decide what that weight is — fat or muscle. Here’s how to set your protein, carbs, and fat for your goal, and adjust them as you go.',
     author: 'HealthyLifeStyles Editorial Team',
     authorBio:
-      'researches and writes our evidence-based wellness guides, with linked sources so readers can verify the claims.',
+      'researches and writes our evidence-based wellness guides with links to published sources.',
     publishDate: '2026-06-23',
     updatedDate: '2026-06-23',
     primaryTool: 'macro-calculator',
@@ -799,6 +803,7 @@ export const articlePlainText = (article: Article): string => {
     else if (b.type === 'ul' || b.type === 'ol') parts.push(...b.items.map(stripInline));
     else if (b.type === 'table') parts.push(...b.headers, ...b.rows.flat().map(stripInline));
     else if (b.type === 'paa') parts.push(...b.items.flatMap((i) => [i.q, i.a]));
+    else if (b.type === 'cms') parts.push(...['title', 'subtitle', 'heading', 'text'].map((key) => stripInline(String(b.block[key] || ''))));
   }
   return parts.join(' ');
 };

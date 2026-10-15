@@ -6,22 +6,35 @@ import vercel from '@astrojs/vercel';
 import { partytownSnippet } from '@builder.io/partytown/integration';
 import { copyLibFiles } from '@builder.io/partytown/utils';
 import * as path from 'path';
+import { readFileSync } from 'node:fs';
+import { loadEnv } from 'vite';
+import { buildRedirects, fetchRedirectSnapshot } from './scripts/seo/redirects.mjs';
+import sitemapPolicy from './scripts/seo/sitemap-policy.mjs';
 
 // ✅ correct domain
 export const SITE_URL = 'https://www.healthylifesstyles.com';
+const buildStartedAt = new Date().toISOString();
 
 await copyLibFiles(path.resolve('public', '~partytown'));
+const env = { ...loadEnv(process.env.NODE_ENV || 'production', process.cwd(), ''), ...process.env };
+const redirectSnapshot = await fetchRedirectSnapshot(env);
+/** @type {{ source: string, destination: string, permanent: boolean }[]} */
+const localRedirects = JSON.parse(readFileSync('vercel.json', 'utf8')).redirects || [];
 
 export default defineConfig({
   site: SITE_URL,
   output: 'static',
   adapter: vercel(),
   trailingSlash: 'never',
+  redirects: buildRedirects(redirectSnapshot || [], env.CMS_DISABLE === '1' ? localRedirects.filter((r) => r.source.startsWith('/tools/')) : localRedirects),
   integrations: [
     preact({ compat: true }),
     sitemap({
       filter: (page) =>
         !page.includes('/404') &&
+        !page.includes('/content-manifest.json') &&
+        !localRedirects.some((r) => new URL(page).pathname === r.source) &&
+        !(redirectSnapshot || []).some((r) => new URL(page).pathname === r.from) &&
         !page.includes('/og/') &&
         !page.includes('/embed/'),
       changefreq: 'weekly',
@@ -55,12 +68,14 @@ export default defineConfig({
         return { ...item, url, priority };
       },
     }),
+    sitemapPolicy(),
   ],
   build: {
     inlineStylesheets: 'auto',
   },
   compressHTML: true,
   vite: {
+    define: { __CMS_REDIRECT_SNAPSHOT__: JSON.stringify(redirectSnapshot), __CMS_BUILD_STARTED_AT__: JSON.stringify(buildStartedAt) },
     plugins: [
       {
         name: 'partytown-snippet',

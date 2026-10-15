@@ -6,7 +6,7 @@ on:
   # P15 close — run the full verify gate on PRs to dev too (Lighthouse blocking,
   # empty-shell, date-integrity, etc.). The promote job stays push-only.
   pull_request:
-    branches: [dev]
+    branches: [dev, main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -29,10 +29,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Phase 13 P2 — baseline-aware audit gate. BLOCKS only on NEW high/critical
-      # advisories vs audit-baseline.json (the 22 pre-existing legacy vulns are an
-      # accepted-risk ledger, out of scope by decree). Warn-only on new moderate/
-      # low; hard-fails if the baseline passes its reviewBy date (rot prevention).
+      # Release policy: unresolved high/critical vulnerabilities block promotion,
+      # including previously baselined advisories. Framework upgrades are separate.
+      - name: Security release gate
+        run: npm run security:check
+
+      # Keep the existing advisory ledger review guard as an additional check.
       - name: Audit delta (new high/critical only)
         run: node scripts/ci/audit-delta.ts
 
@@ -44,8 +46,11 @@ jobs:
       - name: SEO unit tests (D5 feed + P6 i18n + empty-shell)
         run: npm run test:seo
 
-      - name: Build Astro site
-        run: npm run build
+      - name: Build and verify CMS integration
+        env:
+          CMS_DISABLE: '1'
+          INDEXNOW_DISABLE: 'true'
+        run: npm run test:cms-build
 
       - name: Internal-link audit
         run: node scripts/seo/orphan-check.ts

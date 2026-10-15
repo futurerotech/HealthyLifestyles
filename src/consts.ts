@@ -8,7 +8,7 @@ export const SITE = {
   /** Used in <title> suffix and OG site name. */
   shortName: 'HealthyLifeStyles',
   description:
-    'Free, instant, and accurate health calculators built on peer-reviewed scientific formulas. No signup. See our privacy policy for feature-specific data handling.',
+    'Free health calculators and wellness tools based on published methods. No account required; some features use a server or save data in your browser.',
   /** Default social share image (lives in /public). */
   ogImage: '/og-default.png',
   twitter: '@healthylifestyles',

@@ -6,7 +6,12 @@
  * stays consistent within a category so the grid still reads as organized.
  */
 
+import type { SeoMetadata } from '../lib/seo';
+import type { CmsToolContent } from '../lib/cms-content';
+
 export interface Tool {
+  seo?: SeoMetadata;
+  cmsContent?: CmsToolContent;
   slug: string;
   title: string;
   /** Card / hero one-liner (plain English, active voice). */
@@ -131,7 +136,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'vitamin-d-sun-calculator',
     title: 'Vitamin D & Sun Exposure Calculator',
-    blurb: 'Estimate your vitamin D synthesis potential from sun, skin type, and diet. Educational — does not measure blood levels.',
+    blurb: 'Explore sun exposure conditions and vitamin D food sources. Not a vitamin D test or safe-sun prescription.',
     category: 'nutrition',
     icon: 'gauge',
     gradient: 'amber',

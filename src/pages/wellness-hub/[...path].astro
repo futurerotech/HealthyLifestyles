@@ -33,6 +33,7 @@ export async function getStaticPaths() {
   for (const c of ARTICLE_CATEGORIES) {
     const all = await getArticlesByCategory(c.id);
     const count = all.length;
+    if (count === 0) continue;
     const totalPages = Math.max(1, Math.ceil(count / ARTICLES_PER_PAGE));
     for (let p = 1; p <= totalPages; p++) {
       paths.push({
@@ -306,7 +307,7 @@ if (props.kind === 'article' && article) {
 }
 ---
 
-<BaseLayout title={title} description={description} image={image} type={article ? 'article' : 'website'} jsonLd={jsonLd} alternates={alternates}>
+<BaseLayout title={title} description={description} image={image} type={article ? 'article' : 'website'} seo={article?.seo || (archive && archive.page > 1 ? { ...archive.category.seo, metaTitle: undefined, metaDescription: undefined, canonical: undefined } : archive?.category.seo)} jsonLd={jsonLd} alternates={alternates}>
   <Fragment slot="head">
     {article?.heroImage?.url && (
       <link

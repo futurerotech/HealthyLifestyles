@@ -15,7 +15,7 @@ export const HOME_FAQ: FaqItem[] = [
   },
   {
     q: 'Is my data stored or shared?',
-    a: 'No. The values you enter are processed in your browser to show your result and are never sent to a server, stored, or shared with anyone.',
+    a: 'Many calculators process your inputs in your browser. Some features send inputs to a server, and the HRV log, Food and Symptom Diary, and Health Score use local storage. See our Privacy Policy for details.',
   },
   {
     q: 'How accurate are the results?',

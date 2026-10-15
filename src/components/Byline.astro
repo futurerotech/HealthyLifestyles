@@ -34,7 +34,7 @@ const r = assignedReviewer(reviewer, allAuthors);
     {r && (
       <>
         <span class="byline__sep" aria-hidden="true">·</span>
-        Medically reviewed by <a href={`/author/${r.slug}`}>{r.name}</a>, {r.credential}
+        Medically reviewed by <a href={`/author/${r.slug}`}>{r.name}</a>{r.credential ? `, ${r.credential}` : ''}
       </>
     )}
     {updated && (

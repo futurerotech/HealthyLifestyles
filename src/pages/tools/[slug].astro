@@ -2,24 +2,50 @@
 import ToolPageLayout from '../../components/ToolPageLayout.astro';
 import { getLiveTools } from '../../lib/cms';
 import { getToolContent } from '../../data/tool-content';
+import style0 from '../../styles/caffeine-curfew.css?url';
+import style1 from '../../styles/caffeine-tracker.css?url';
+import style2 from '../../styles/diary.css?url';
+import style3 from '../../styles/healthspan.css?url';
+import style4 from '../../styles/hrv.css?url';
+import style5 from '../../styles/fasting.css?url';
+import style6 from '../../styles/lifestyle-age.css?url';
+import style7 from '../../styles/meal-plan.css?url';
+import style8 from '../../styles/muscle-preservation.css?url';
+import style9 from '../../styles/recipe-analyzer.css?url';
+import style10 from '../../styles/sitting-reversal.css?url';
+import style11 from '../../styles/chronotype.css?url';
+import style12 from '../../styles/strength-program.css?url';
+import style13 from '../../styles/walk-it-off.css?url';
+import style14 from '../../styles/weight-timeline.css?url';
+
+const styles: Record<string, string> = {
+  'caffeine-curfew-calculator': style0,
+  'caffeine-intake-calculator': style1,
+  'food-symptom-diary': style2,
+  'healthspan-score': style3,
+  'hrv-explainer-log': style4,
+  'intermittent-fasting-calculator': style5,
+  'lifestyle-age-test': style6,
+  'meal-plan-generator': style7,
+  'muscle-preservation-calculator': style8,
+  'recipe-nutrition-analyzer': style9,
+  'sitting-disease-reversal-calculator': style10,
+  'sleep-chronotype-quiz': style11,
+  'strength-program-builder': style12,
+  'walk-it-off-calculator': style13,
+  'weight-loss-timeline-calculator': style14,
+};
 
 export async function getStaticPaths() {
-  // One statically generated page per live tool that has authored content.
-  // These tools have their own dedicated pages (so each can load its own
-  // stylesheet) — exclude them here to avoid duplicate routes.
-  const CUSTOM_PAGES = new Set(['meal-plan-generator', 'lifestyle-age-test', 'strength-program-builder', 'caffeine-curfew-calculator', 'muscle-preservation-calculator', 'sitting-disease-reversal-calculator', 'intermittent-fasting-calculator', 'sleep-chronotype-quiz', 'walk-it-off-calculator', 'weight-loss-timeline-calculator', 'caffeine-intake-calculator', 'healthspan-score', 'food-symptom-diary', 'hrv-explainer-log', 'recipe-nutrition-analyzer']);
   const liveTools = await getLiveTools();
-  return liveTools
-    .filter((tool) => !CUSTOM_PAGES.has(tool.slug))
-    .filter((tool) => getToolContent(tool.slug))
-    .map((tool) => ({
-      params: { slug: tool.slug },
-      props: { tool },
-    }));
+  return liveTools.map((tool) => {
+    const content = getToolContent(tool.slug);
+    if (!content) throw new Error(`Published tool has no authored content: ${tool.slug}`);
+    return { params: { slug: tool.slug }, props: { tool, content } };
+  });
 }
 
-const { tool } = Astro.props;
-const content = getToolContent(tool.slug)!;
+const { tool, content } = Astro.props;
 ---
 
-<ToolPageLayout tool={tool} content={content} />
+<ToolPageLayout tool={tool} content={content} stylesheet={styles[tool.slug]} />

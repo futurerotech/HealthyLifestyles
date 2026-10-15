@@ -17,9 +17,9 @@
     <div class="cookie-banner__copy">
       <h2 class="cookie-banner__title">We value your privacy</h2>
       <p>
-        We use essential cookies to make this site work. With your consent, we use
-        analytics and advertising cookies to understand site use and support this site.
-        We never store the numbers you enter. See our
+        We save your consent choice locally. If you accept, analytics, Google ads,
+        custom ads, and affiliate images may load. Some may use cookies. Some tools
+        save readings locally or send inputs to a server. See our
         <a href="/cookie-policy">Cookie Policy</a>.
       </p>
     </div>
@@ -139,8 +139,18 @@
       } catch {
         /* storage blocked — honour the choice for this session only */
       }
+      const wasAccepted = (window as unknown as { HLS_CONSENT?: Consent }).HLS_CONSENT === 'accept';
       apply(value);
       if (banner) banner.hidden = true;
+      // Reload to stop previously loaded scripts, without deleting saved tool data.
+      if (wasAccepted && value === 'reject') location.reload();
     });
+  });
+
+  document.addEventListener('click', (event) => {
+    if ((event.target as Element).closest('[data-open-consent]') && banner) {
+      banner.hidden = false;
+      banner.querySelector<HTMLButtonElement>('[data-consent="reject"]')?.focus();
+    }
   });
 </script>

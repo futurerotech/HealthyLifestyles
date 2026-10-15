@@ -47,7 +47,6 @@ let hubName = '';
 let hubHref = '';
 
 if (article) {
-  hubHref = `/wellness-hub/${article.category}`;
   if (relatedTools.length === 0) {
     const fetched = await Promise.all(article.relatedTools.map((slug) => getTool(slug)));
     relatedTools = fetched.filter((t): t is NonNullable<typeof t> => !!t && !!t.live);
@@ -56,9 +55,9 @@ if (article) {
     relatedArticles = await getRelatedArticles(article.slug, 3);
   }
   const cat = await getArticleCategory(article.category);
+  hubHref = cat ? `/wellness-hub/${cat.slug}` : '/wellness-hub';
   hubName = cat?.name || '';
 } else if (tool) {
-  hubHref = `/${tool.category}`;
   if (relatedTools.length === 0) {
     relatedTools = await getRelatedTools(tool.slug, 3);
   }
@@ -66,6 +65,7 @@ if (article) {
     relatedArticles = await getArticlesForTool(tool.slug, 3);
   }
   const cat = await getCategory(tool.category);
+  hubHref = cat ? `/${cat.slug}` : '/tools';
   hubName = cat?.name || '';
 }
 

@@ -30,8 +30,8 @@ export const GET: APIRoute = async (context) => {
 ## Editorial & medical-review policy
 
 Content is educational only and is not medical advice. Health articles link to sources
-and show author attribution. Medical-review attribution appears only when an individual
-reviewer and completed review are explicitly assigned; update dates are not review dates.
+and show author attribution. Medical-review attribution is withheld until an individual's
+qualifications and completed review can be verified; update dates are not review dates.
 Editorial policy: ${origin}/editorial-policy ·
 Methodology: ${origin}/methodology · Medical disclaimer: ${origin}/medical-disclaimer
 

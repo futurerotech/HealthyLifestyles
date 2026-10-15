@@ -11,7 +11,6 @@ import {
   getFeaturedArticle,
   getLatestArticles,
   getArticleCategory,
-  countArticlesByCategory,
   getTags,
   getArticlesByTag,
 } from '../../lib/cms';
@@ -24,10 +23,10 @@ const [siteConsts, articles, ARTICLE_CATEGORIES] = await Promise.all([
 const SITE = siteConsts.SITE;
 
 const featured = await getFeaturedArticle();
-const featuredCat = (await getArticleCategory(featured.category))!;
-const featuredMinutes = readingTimeMinutes(articlePlainText(featured));
+const featuredCat = (featured && await getArticleCategory(featured.category)) || { name: 'Wellness Hub', icon: 'book', color: '#16a34a' };
+const featuredMinutes = featured ? readingTimeMinutes(articlePlainText(featured)) : 0;
 // Everything else, newest first (featured already gets the hero spot).
-const latest = await getLatestArticles(articles.length, featured.slug);
+const latest = await getLatestArticles(articles.length, featured?.slug);
 
 // Subject tags with at least one article — the IA layer that guarantees every
 // live tag page has a hub-level inbound link.
@@ -105,6 +104,7 @@ const collectionLd = {
   </header>
 
   <!-- Featured guide -->
+  {featured && (
   <section class="wh-section">
     <div class="container">
       <div class="wh-section__head"><h2>Featured guide</h2></div>
@@ -141,6 +141,7 @@ const collectionLd = {
   </section>
 
   <!-- Category tiles -->
+  )}
   <section class="wh-section section-surface-2">
     <div class="container">
       <div class="wh-section__head">
@@ -149,7 +150,7 @@ const collectionLd = {
       </div>
       <div class="wh-cats">
         {ARTICLE_CATEGORIES.map((c) => {
-          const n = countArticlesByCategory(c.id);
+          const n = articles.filter((a) => a.category === c.id).length;
           const inner = (
             <>
               <span class="wh-cat-tile__icon" style={`background:${c.color}1a;color:${c.color}`}>

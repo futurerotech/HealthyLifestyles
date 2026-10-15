@@ -39,7 +39,7 @@ const values = [
     icon: 'lock',
     color: 'var(--green-primary)',
     title: 'Privacy by design',
-    body: 'Many calculations run in your browser. Recipe analysis and result-image downloads send data to a server; the HRV log saves readings locally. See our privacy policy for feature-specific details.',
+    body: 'Many calculations run in your browser. Recipe analysis and result-image downloads send data to a server; HRV, food diary, and Health Score features save data locally. See our privacy policy.',
   },
   {
     icon: 'check',
@@ -184,12 +184,12 @@ const description = `${SITE.name} builds free, science-backed health calculators
       <span class="eyebrow">Editorial standards</span>
       <h2 class="about__h2">How we create and check our content</h2>
       <p class="about__p">
-        Every calculator and article is written by our content team, built on a published,
-        peer-reviewed formula, and checked against authoritative sources such as the WHO, CDC,
-        American Heart Association, and primary research. We cite those sources on each tool page
-        so you can verify the methods. Pages are not represented as medically reviewed unless a
-        qualified individual reviewer is explicitly named on that page.
+        Our content team writes calculator explainers and articles using published methods and
+        sources such as the WHO, CDC, American Heart Association, and primary research where
+        relevant. We cite sources so you can inspect the methods. We do not currently display
+        clinical-review attribution without a verified individual review.
       </p>
+
     </div>
   </section>
 
@@ -317,6 +317,7 @@ const description = `${SITE.name} builds free, science-backed health calculators
     color: var(--muted);
     font-size: 0.95rem;
   }
+
 
 
   .about__disclaimer {

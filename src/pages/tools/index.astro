@@ -3,13 +3,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/Breadcrumb.astro';
 import Icon from '../../components/Icon.astro';
 import ToolCard from '../../components/ToolCard.astro';
-import { getCategories, getTools } from '../../lib/cms';
+import { getCategories, getTools, getPseoPages } from '../../lib/cms';
 import { getSiteConsts } from '../../lib/cms';
 
 const [categories, tools, siteConsts] = await Promise.all([getCategories(), getTools(), getSiteConsts()]);
 const SITE = siteConsts.SITE;
 const liveTools = tools.filter((t) => t.live);
 const liveCount = liveTools.length;
+const pseoPages = await getPseoPages();
 
 // Group tools by category, preserving the category display order.
 const grouped = categories.map((category) => ({
@@ -126,6 +127,10 @@ const collectionLd = {
     </div>
   </section>
 
+  {pseoPages.length > 0 && <section class="section container">
+    <h2>More wellness guides</h2>
+    <ul>{pseoPages.map((page) => <li><a href={`/tools/pseo/${page.slug}`}>{page.headline}</a></li>)}</ul>
+  </section>}
   <section class="cta-band">
     <div class="container cta-band__inner">
       <div>

@@ -3,7 +3,10 @@
  * `color` is the raw hex for inline use (SVG fills, JSON-LD, etc.).
  */
 
+import type { SeoMetadata } from '../lib/seo';
+
 export interface Category {
+  seo?: SeoMetadata;
   id: string;
   name: string;
   slug: string;

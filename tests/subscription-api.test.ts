@@ -35,8 +35,8 @@ test('server delivery configuration uses env or authenticated CMS and public con
   assert.equal((await config.getLeadDeliveryConfig())?.n8nApiKey, 'cms-workflow-test');
   assert.equal(new Headers(calls.at(-1)!.init.headers).get('authorization'), 'users API-Key admin-test');
   const publicConfig = await config.getLeadGenConfig();
-  assert.equal(publicConfig?.n8nWebhookUrl, undefined);
-  assert.equal(publicConfig?.n8nApiKey, undefined);
+  assert.equal(publicConfig && 'n8nWebhookUrl' in publicConfig, false);
+  assert.equal(publicConfig && 'n8nApiKey' in publicConfig, false);
   const count = calls.length;
   delete env.CMS_API_KEY;
   assert.equal(await config.getLeadDeliveryConfig(), null);
@@ -47,7 +47,7 @@ test('lead waits for CMS acceptance and never forwards or succeeds on CMS failur
   let release!: (response: Response) => void;
   respond = () => new Promise(resolve => { release = resolve; });
   let settled = false;
-  const pending = lead(request({ email: 'a@b.com' })).then(response => { settled = true; return response; });
+  const pending = Promise.resolve(lead(request({ email: 'a@b.com' }))).then(response => { settled = true; return response; });
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(calls.length, 1, 'No config lookup or forwarding before save');
   assert.equal(settled, false);

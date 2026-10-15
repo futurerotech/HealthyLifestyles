@@ -14,6 +14,7 @@ import {
   getCategories,
 } from '../lib/cms';
 import { articlePlainText } from '../data/articles';
+import PageRenderer from './blocks/PageRenderer.astro';
 import type { Article } from '../data/articles';
 import { renderInline, slugify, readingTimeMinutes, formatDate } from '../lib/text';
 
@@ -137,6 +138,7 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
 
       <div class="wh-prose">
         {article.body.map((block, i) => {
+          if (block.type === 'cms') return <PageRenderer layout={[block.block]} headingLevel="h2" />;
           if (block.type === 'h2')
             return (
               <>
@@ -200,7 +202,7 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
 
       {article.sources.length > 0 && (
         <section class="wh-sources" aria-labelledby="wh-sources-title">
-          <h2 id="wh-sources-title">Reviewed &amp; sources</h2>
+          <h2 id="wh-sources-title">Sources</h2>
           <ol>
             {article.sources.map((s) => (
               <li>

@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import SEO from '../components/SEO.astro';
+import type { SeoMetadata } from '../lib/seo';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import CookieConsent from '../components/CookieConsent.astro';
@@ -10,6 +11,7 @@ import AdSlot from '../components/AdSlot.astro';
 import AdsLoader from '../components/AdsLoader.astro';
 
 interface Props {
+  seo?: SeoMetadata;
   title: string;
   description: string;
   image?: string;
@@ -34,6 +36,7 @@ const {
   image,
   type,
   noindex,
+  seo,
   jsonLd,
   mainClass,
   noHeaderAd,
@@ -101,6 +104,7 @@ const dir = lang === 'ar' || lang.startsWith('ar-') ? 'rtl' : 'ltr';
       image={image}
       type={type}
       noindex={noindex}
+      seo={seo}
       jsonLd={jsonLd}
       alternates={alternates}
       ogLocale={ogLocale}
@@ -157,6 +161,21 @@ const dir = lang === 'ar' || lang.startsWith('ar-') ? 'rtl' : 'ltr';
       }
       function initUninitializedAds() {
         if (window.HLS_CONSENT !== 'accept' || document.prerendering) return;
+        document.querySelectorAll('img[data-ad-affiliate]').forEach(function (image) {
+          if (!image.getAttribute('src')) image.src = image.dataset.src || '';
+        });
+        document.querySelectorAll('template[data-ad-custom]').forEach(function (template) {
+          template.innerHTML = template.dataset.code || '';
+          var fragment = template.content.cloneNode(true);
+          // innerHTML-created script nodes stay inert; recreate them only after consent.
+          fragment.querySelectorAll('script').forEach(function (oldScript) {
+            var script = document.createElement('script');
+            Array.from(oldScript.attributes).forEach(function (attr) { script.setAttribute(attr.name, attr.value); });
+            script.textContent = oldScript.textContent;
+            oldScript.replaceWith(script);
+          });
+          template.replaceWith(fragment);
+        });
         var slots = document.querySelectorAll(
           '.adsbygoogle:not([data-adsbygoogle-status]):not([data-ad-observed])'
         );

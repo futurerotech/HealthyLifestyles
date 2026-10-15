@@ -10,7 +10,9 @@ const description = `How ${SITE.name} handles your data: feature-specific proces
 <LegalLayout title={title} description={description} heading="Privacy Policy">
   <div class="legal-note">
     <p>
-      <strong>The short version:</strong> Many calculators run locally, but some features send information to a server or save it in your browser. Data handling depends on the feature.
+      <strong>The short version:</strong> Many calculators run in your browser, but some
+      features send inputs to a server or save readings on your device. Subscriptions
+      require contact information; analytics and advertising may use cookies after consent.
     </p>
   </div>
 
@@ -24,13 +26,13 @@ const description = `How ${SITE.name} handles your data: feature-specific proces
 
   <h2>2. The data you enter into our tools</h2>
   <p>
-    Our calculators (such as the BMI, calorie, and body-fat tools) run entirely in
+    Many calculators (such as the BMI, calorie, and body-fat tools) run entirely in
     your web browser using client-side JavaScript. The values you enter — your
     height, weight, age, activity level, and similar inputs — are processed locally
     on your device to show your result.
   </p>
   <p>
-    Recipe Analyzer sends ingredients and serving information by POST to <code>/api/analyze-recipe</code> for server-side processing, which may involve a nutrition or AI provider depending on the active service. Avoid including identifying or sensitive information.
+    Recipe analysis in the Recipe Analyzer sends ingredients and serving information by POST to <code>/api/analyze-recipe</code> for server-side processing, which may involve a nutrition or AI provider depending on the active service. Avoid including identifying or sensitive information.
   </p>
   <p>
     Result-image downloads first send the tool name, value, label, and optional category and color to <code>/api/result-image</code> in URL query parameters. These URLs may appear in hosting or service logs. A local image fallback does not undo the initial request. Social sharing sends a URL and, for some platforms, result text to that platform, whose privacy practices apply.
@@ -38,6 +40,7 @@ const description = `How ${SITE.name} handles your data: feature-specific proces
   <p>
     The HRV log saves readings and notes in your browser's <code>localStorage</code>. They can persist after reloading or closing the page. Delete readings in the log or clear this site's browser data to remove them locally. This does not delete information already sent to servers or shared with others.
   </p>
+  <p>The Food and Symptom Diary saves entries in local storage. Health Score also saves a summary of your assessment there. Clear those entries in the tool or remove the site's browser data to delete the local copy.</p>
   <p>
     Server logs and third-party services have separate retention practices. We do not promise immediate deletion or a fixed retention period that has not been verified. Optional server-connected features send the information you submit to their configured service.
   </p>
@@ -53,20 +56,31 @@ const description = `How ${SITE.name} handles your data: feature-specific proces
     <li>The pages you view and how you arrived at the site</li>
   </ul>
   <p>
-    Technical request data may identify a device or visit and may be retained by hosting, analytics, or advertising services. See our <a href="/cookie-policy">Cookie Policy</a>.
+    Our hosting provider may process access logs when you visit. If you accept
+    analytics, we also send page paths and performance metrics to our own endpoint;
+    these records include a timestamp and approximate country and help us keep the
+    site reliable. Performance observations may be calculated locally before a choice,
+    but the metrics and page path are transmitted only after you accept. See our
+    <a href="/cookie-policy">Cookie Policy</a> for details.
   </p>
 
   <h2>4. Cookies and local storage</h2>
   <p>
     We use a small amount of local storage to remember your cookie-consent choice so
-    we don't ask you on every visit. Non-essential cookies (for analytics) are loaded
-    only after you accept them. You can change your choice at any time. Full details
-    are in our <a href="/cookie-policy">Cookie Policy</a>.
+    we don't ask you on every visit. We send optional performance measurements and load
+    third-party analytics and advertising scripts only after you accept them. To withdraw
+    consent, use "Cookie choices" in the footer and select "Reject non-essential". The
+    page reloads to stop scripts that were already loaded without deleting locally saved
+    tool data. You may separately need to clear third-party cookies. Full details are in
+    our <a href="/cookie-policy">Cookie Policy</a>.
   </p>
 
   <h2>5. Third-party services</h2>
   <p>
-    We use providers for hosting, content delivery, and optional analytics, advertising, or server-assisted features. Their data processing and retention practices depend on the service. Contact us about a specific feature before submitting sensitive information.
+    Hosting, analytics, and advertising providers may process technical data according
+    to their own policies. If you submit an email address to subscribe or request an
+    offer, we send it to our CMS and may forward it to our email automation provider
+    to deliver updates. You can contact us to ask about or delete a subscription.
   </p>
 
   <h2>6. Children's privacy</h2>

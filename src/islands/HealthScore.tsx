@@ -279,7 +279,7 @@ export default function HealthScore() {
           <button type="button" class="btn btn-primary btn-lg hs-start" onClick={() => startFresh(units)}>
             {saved ? 'Retake assessment' : 'Start my Health Score'}
           </button>
-          <p class="hs-intro__privacy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg> Private &amp; free. Your data never leaves your browser.</p>
+          <p class="hs-intro__privacy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg> Free, with no account. Your score is saved in this browser.</p>
         </div>
       </div>
     );
