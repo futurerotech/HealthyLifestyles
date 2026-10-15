@@ -1,4 +1,5 @@
 {
+  "git": { "deploymentEnabled": { "codex/**": false } },
   "headers": [
     {
       "source": "/content-manifest.json",

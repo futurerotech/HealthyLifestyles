@@ -9,7 +9,7 @@ const { page } = Astro.props;
 ---
 
 <BaseLayout title={page.seo?.metaTitle || page.headline} description={page.seo?.metaDescription || page.subheadline || page.headline} seo={page.seo}>
-  <article class="container section">
+  <article class="container section" data-cms-id={String(page.id)}>
     <h1>{page.headline}</h1>
     {page.subheadline && <p class="lead">{page.subheadline}</p>}
     <div class="prose" set:html={page.bodyHtml || ''} />

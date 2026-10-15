@@ -71,7 +71,7 @@ const toc = article.body.flatMap((b) =>
 const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning: 'shield' };
 ---
 
-<article class="wh-article">
+<article class="wh-article" data-cms-id={article.cmsId}>
   <header class="wh-article__header">
     <div class="container">
       <Breadcrumb items={breadcrumbItems} />

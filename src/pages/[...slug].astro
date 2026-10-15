@@ -43,7 +43,7 @@ const pageLd = {
       <link rel="preload" as="image" href={heroImage.url} fetchpriority="high" />
     )}
   </Fragment>
-  <article class="cms-page">
+  <article class="cms-page" data-cms-id={String(page.id)}>
     {!blocks.some((block) => block.blockType === 'hero') && <h1>{title}</h1>}
     {heroImage?.url && (
       <img

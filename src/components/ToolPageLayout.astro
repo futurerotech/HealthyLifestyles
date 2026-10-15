@@ -185,7 +185,7 @@ const medicalLd = {
   seo={tool.seo}
 >
   <Fragment slot="head">{stylesheet && <link rel="stylesheet" href={stylesheet} />}</Fragment>
-  <article class="tool">
+  <article class="tool" data-cms-id={tool.cmsId}>
     <!-- Branded header shown only when printing / saving to PDF -->
     <div class="print-only print-sheet-head">
       <div class="print-band">

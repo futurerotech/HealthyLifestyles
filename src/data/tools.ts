@@ -10,6 +10,7 @@ import type { SeoMetadata } from '../lib/seo';
 import type { CmsToolContent } from '../lib/cms-content';
 
 export interface Tool {
+  cmsId?: string;
   seo?: SeoMetadata;
   cmsContent?: CmsToolContent;
   slug: string;

@@ -42,6 +42,7 @@ export interface ArticleSource {
 }
 
 export interface Article {
+  cmsId?: string;
   seo?: SeoMetadata;
   slug: string;
   /** H1 — the target keyword phrased as a human title. */

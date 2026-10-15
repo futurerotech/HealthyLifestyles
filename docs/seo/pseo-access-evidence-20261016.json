@@ -1,0 +1,222 @@
+{
+  "date": "2026-10-16",
+  "timezone": "Europe/Paris",
+  "branch": "codex/seo-cms-sync",
+  "production": {
+    "cmsOrigin": "https://cms.healthylifesstyles.com",
+    "publishedArticles": 39,
+    "publishedToolRecords": 70,
+    "canonicalToolPages": 68,
+    "additionalPublishedPages": 0,
+    "pseo": {
+      "count": null,
+      "verified": false,
+      "httpStatus": 403
+    },
+    "recoveredFaq": {
+      "articles": 12,
+      "questions": 56
+    },
+    "heroImages": {
+      "total": 39,
+      "available": 39
+    },
+    "pagination": [
+      {
+        "collection": "articles",
+        "page": 1,
+        "count": 10,
+        "totalDocs": 39,
+        "status": 200,
+        "cacheControl": null,
+        "age": null
+      },
+      {
+        "collection": "articles",
+        "page": 2,
+        "count": 10,
+        "totalDocs": 39,
+        "status": 200,
+        "cacheControl": null,
+        "age": null
+      },
+      {
+        "collection": "articles",
+        "page": 3,
+        "count": 10,
+        "totalDocs": 39,
+        "status": 200,
+        "cacheControl": null,
+        "age": null
+      },
+      {
+        "collection": "articles",
+        "page": 4,
+        "count": 9,
+        "totalDocs": 39,
+        "status": 200,
+        "cacheControl": null,
+        "age": null
+      },
+      {
+        "collection": "tools",
+        "page": 1,
+        "count": 10,
+        "totalDocs": 70,
+        "status": 200,
+        "cacheControl": null,
+        "age": null
+      },
+      {
+        "collection": "tools",
+        "page": 2,
+        "count": 10,
+        "totalDocs": 70,
+        "status": 200,
+        "cacheControl": null,
+        "age": null
+      },
+      {
+        "collection": "tools",
+        "page": 3,
+        "count": 10,
+        "totalDocs": 70,
+        "status": 200,
+        "cacheControl": null,
+        "age": null
+      },
+      {
+        "collection": "tools",
+        "page": 4,
+        "count": 10,
+        "totalDocs": 70,
+        "status": 200,
+        "cacheControl": null,
+        "age": null
+      },
+      {
+        "collection": "tools",
+        "page": 5,
+        "count": 10,
+        "totalDocs": 70,
+        "status": 200,
+        "cacheControl": null,
+        "age": null
+      },
+      {
+        "collection": "tools",
+        "page": 6,
+        "count": 10,
+        "totalDocs": 70,
+        "status": 200,
+        "cacheControl": null,
+        "age": null
+      },
+      {
+        "collection": "tools",
+        "page": 7,
+        "count": 10,
+        "totalDocs": 70,
+        "status": 200,
+        "cacheControl": null,
+        "age": null
+      },
+      {
+        "collection": "pages",
+        "page": 1,
+        "count": 0,
+        "totalDocs": 0,
+        "status": 200,
+        "cacheControl": null,
+        "age": null
+      }
+    ]
+  },
+  "rootCause": {
+    "referencePolicy": "PseoPages.access.read = isAdmin",
+    "publicRenderer": "The previous public Next route queried status=published through the privileged Local API.",
+    "astroRequest": {
+      "method": "GET",
+      "authentication": "none",
+      "statusFilter": "published",
+      "selectedFields": "public rendered fields only"
+    },
+    "localFixPreviouslyUnpublished": true
+  },
+  "fixes": {
+    "publicRead": "status=published only; only administrators inspect drafts",
+    "privateFields": [
+      "template",
+      "dataset",
+      "keyword",
+      "variables"
+    ],
+    "writes": "admin only, including generation endpoint",
+    "frontendFallback": false,
+    "preservationGroups": [
+      "articles",
+      "tools",
+      "pages",
+      "pseo-pages"
+    ],
+    "pseoBaseline": "unverified, never assumed empty"
+  },
+  "tests": {
+    "cms": 78,
+    "seoAndLoaders": 69,
+    "preservation": 12,
+    "subscription": 5,
+    "typesPassedBothRepositories": true,
+    "cmsBuild": {
+      "passed": true,
+      "databaseTarget": "unreachable local dummy database",
+      "databasePush": false,
+      "migrationsRun": false
+    },
+    "fixtureBuild": {
+      "passed": true,
+      "publishedPseoPages": 3,
+      "draftExcluded": true,
+      "noIndexExcludedFromXml": true,
+      "editorialCanonicalExcludedFromXml": true,
+      "rootOutputUnchanged": true,
+      "links": {
+        "dead": 0,
+        "orphans": 0
+      },
+      "metadataPassed": true,
+      "jsonLdPassed": true
+    },
+    "directProductionCmsBuild": {
+      "checkedAt": "2026-10-15T22:16:27.512Z",
+      "workspace": "F:\\cloud\\.content-audit\\direct-cms-SNZweA",
+      "cmsOrigin": "https://cms.healthylifesstyles.com",
+      "exitCode": 1,
+      "pseo403": true,
+      "releaseReady": false,
+      "completed": false,
+      "generatedArticleCount": null,
+      "generatedToolCount": null
+    },
+    "releasePreflight": {
+      "exitCode": 1,
+      "message": "CONTENT PREFLIGHT BLOCKED: pseo-pages: public CMS HTTP 403"
+    }
+  },
+  "security": {
+    "lastVerifiedDate": "2026-10-15",
+    "lastKnownFindings": {
+      "total": 6,
+      "critical": 1,
+      "high": 4,
+      "low": 1
+    },
+    "reAuditedToday": false,
+    "upgraded": false,
+    "releaseGateEnabled": true,
+    "nextStageDeferredUntilDirectFunctionalBuildPasses": true
+  },
+  "releaseReady": false,
+  "productionWrites": false,
+  "pushMergeDeploy": false
+}

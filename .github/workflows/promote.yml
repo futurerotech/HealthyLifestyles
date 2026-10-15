@@ -52,6 +52,19 @@ jobs:
           INDEXNOW_DISABLE: 'true'
         run: npm run test:cms-build
 
+      - name: Content preservation regression tests
+        run: npm run test:content
+
+      # Fixture/offline success never authorizes promotion. This independent
+      # production-data build must preserve every current published ID and slug.
+      - name: Build complete published CMS content and run release preflight
+        env:
+          CMS_URL: 'https://cms.healthylifesstyles.com'
+          CMS_DISABLE: '0'
+          VERCEL_ENV: 'production'
+          INDEXNOW_DISABLE: 'true'
+        run: npm run build
+
       - name: Internal-link audit
         run: node scripts/seo/orphan-check.ts
 

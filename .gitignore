@@ -1,8 +1,11 @@
 node_modules/
 dist/
 .env
+.env.*
+!.env.example
 cms/
 .vercel
+.content-audit/
 
 # Local build/debug artifacts — never commit
 build*.log
