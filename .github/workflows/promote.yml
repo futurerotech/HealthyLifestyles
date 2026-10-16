@@ -1,8 +1,8 @@
-name: Promote dev to main
+name: Verify repair branches
 
 on:
   push:
-    branches: [dev]
+    branches: [dev, 'codex/**']
   # P15 close — run the full verify gate on PRs to dev too (Lighthouse blocking,
   # empty-shell, date-integrity, etc.). The promote job stays push-only.
   pull_request:
@@ -11,6 +11,9 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
   verify:
@@ -114,29 +117,3 @@ jobs:
         run: node scripts/seo/rich-results-check.ts
         continue-on-error: true
 
-  promote:
-    name: Promote to main
-    needs: verify
-    # Push-to-dev only: PRs run verify but never auto-promote.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout dev
-        uses: actions/checkout@v4
-        with:
-          ref: dev
-          fetch-depth: 0
-
-      - name: Fast-forward main
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          if ! git merge-base --is-ancestor origin/main HEAD; then
-            echo "ERROR: origin/main is not an ancestor of dev — fast-forward impossible."
-            echo "       main has diverged. Resolve manually; never force-push."
-            exit 1
-          fi
-          git push origin HEAD:main
