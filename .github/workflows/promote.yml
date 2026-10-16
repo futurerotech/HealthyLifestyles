@@ -116,4 +116,3 @@ jobs:
       - name: Rich Results check (non-blocking)
         run: node scripts/seo/rich-results-check.ts
         continue-on-error: true
-

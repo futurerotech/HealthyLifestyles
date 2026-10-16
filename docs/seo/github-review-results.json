@@ -1,0 +1,33 @@
+{
+  "reviewDate": "2026-10-16",
+  "branch": "codex/seo-cms-sync",
+  "mainMerged": false,
+  "productionDeployed": false,
+  "productionDataWritten": false,
+  "secretsPublished": false,
+  "pullRequest": "https://github.com/futurerotech/HealthyLifestyles/pull/9",
+  "checks": {
+    "seoAndLoaders": 69,
+    "contentPreservation": 12,
+    "api": 7,
+    "typecheck": "pass",
+    "fixtureBuild": "pass",
+    "fixturePseoPages": 3,
+    "security": {
+      "critical": 0,
+      "high": 0,
+      "moderate": 0,
+      "low": 0
+    },
+    "realCmsBuild": "blocked by production pseo-pages HTTP 403; no fallback"
+  },
+  "productionPseoCount": null,
+  "completeProductionBuildVerified": false,
+  "githubActions": {
+    "observedRun": "https://github.com/futurerotech/HealthyLifestyles/actions/runs/38839612254",
+    "testedHead": "12af5cc8626e79ad5f50b9d7bfc70f8ff0c9fd07",
+    "installSecurityTypesUnitAndFixtureChecks": "pass",
+    "productionContentGate": "failed on HTTP 403"
+  },
+  "releaseReady": false
+}
