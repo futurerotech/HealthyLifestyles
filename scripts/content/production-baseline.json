@@ -662,10 +662,9 @@
         "enabled": true
       }
     ],
-    "pages": []
+    "pages": [],
+    "pseo-pages": []
   },
-  "unverifiedCollections": [
-    "pseo-pages"
-  ],
   "pagesVerifiedAt": "2026-10-16"
 }
+
