@@ -1,12 +1,20 @@
-import { cp, mkdir, mkdtemp, symlink, readdir, stat, realpath, link } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, symlink, readdir, stat, realpath, link, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+
+export async function resolveAstroCli() {
+  const root = resolve('node_modules/astro');
+  const pkg = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'));
+  const bin = typeof pkg.bin === 'string' ? pkg.bin : pkg.bin?.astro;
+  if (!bin) throw new Error('Installed Astro does not declare its CLI');
+  return resolve(root, bin);
+}
 
 /** Disposable review workspace. Neither dist nor provider output in the repo is touched. */
 export async function createReviewWorkspace(prefix) {
   if (!/^[a-z-]+$/.test(prefix)) throw new Error('Invalid review workspace prefix');
   await mkdir('.content-audit', { recursive: true });
   const workspace = await mkdtemp(resolve(`.content-audit/${prefix}-`));
-  for (const entry of ['src', 'scripts', 'public', 'astro.config.mjs', 'vercel.json', 'package.json', 'tsconfig.json']) await cp(resolve(entry), resolve(workspace, entry), { recursive: true });
+  for (const entry of ['src', 'scripts', 'public', 'astro.config.mjs', 'vercel.json', 'package.json', 'package-lock.json', 'tsconfig.json']) await cp(resolve(entry), resolve(workspace, entry), { recursive: true });
   if (process.platform === 'win32') {
     // Vercel's file tracer tries to recreate junctions as privileged symlinks.
     // Give each workspace real directories and shared immutable package files.

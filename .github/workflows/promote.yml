@@ -46,6 +46,9 @@ jobs:
       - name: SEO unit tests (D5 feed + P6 i18n + empty-shell)
         run: npm run test:seo
 
+      - name: Subscription and native share-image API tests
+        run: npm run test:api
+
       - name: Build and verify CMS integration
         env:
           CMS_DISABLE: '1'

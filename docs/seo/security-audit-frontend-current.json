@@ -1,0 +1,23 @@
+{
+  "reviewDate": "2026-10-16",
+  "scope": "current frontend repair branch",
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "dependencies": {
+      "prod": 335,
+      "dev": 155,
+      "optional": 101,
+      "peer": 0,
+      "peerOptional": 0,
+      "total": 590
+    }
+  },
+  "vulnerabilities": {}
+}

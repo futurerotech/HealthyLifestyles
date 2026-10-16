@@ -92,7 +92,7 @@ function buildSvg(tool: string, value: string, label: string, category?: string,
 
   <!-- URL -->
   <text x="70" y="578" font-family="'Segoe UI', Arial, sans-serif" font-size="22" font-weight="700" fill="#64748b">healthylifesstyles.com</text>
-  <text x="1130" y="578" font-family="'Segoe UI', Arial, sans-serif" font-size="18" font-weight="500" fill="#475569" text-anchor="end">Free &middot; No signup &middot; Science-backed</text>
+  <text x="1130" y="578" font-family="'Segoe UI', Arial, sans-serif" font-size="18" font-weight="500" fill="#475569" text-anchor="end">Free &#183; No signup &#183; Science-backed</text>
 </svg>`;
 }
 
@@ -107,6 +107,10 @@ export const GET: APIRoute = async ({ url }) => {
 
   if (!value) {
     return new Response('Missing required query param: value', { status: 400 });
+  }
+
+  if (tool.length > 120 || value.length > 64 || label.length > 180 || (category?.length ?? 0) > 80) {
+    return new Response('Result image text exceeds the supported length.', { status: 400 });
   }
 
   const svg = buildSvg(tool, value, label, category, catColor);

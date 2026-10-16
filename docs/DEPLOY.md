@@ -1,5 +1,11 @@
 # Frontend Deployment Flow
 
+## GitHub implementation update — 16 October 2026
+
+The owner now authorizes pushes to repair branches and pull requests, with no main merge or deployment. Work is published at https://github.com/futurerotech/HealthyLifestyles/pull/9 on `codex/seo-cms-sync`. `vercel.json` disables automatic deployments for `codex/**` branches. Historical holds and audit results below describe earlier snapshots, not the current dependency tree.
+
+Astro 7.4, Vercel adapter 11, Preact integration 6 and sharp 0.35.5 replace vulnerable versions. A scoped override updates Vercel routing-utils' path-to-regexp from 6.1 to the compatible patched 6.3 series; fixture builds exercise redirects and provider output. The strict security gate now reports zero vulnerabilities. TypeScript, 69 SEO/loader tests, 12 preservation tests, 7 subscription/share-image tests and the isolated CMS fixture build pass. The image endpoint uses valid XML numeric entities and rejects oversized text; a native PNG decode verifies 1200x630 output. Full production content verification still requires the separately approved CMS access release; pSEO is not assumed empty. No deployment is authorized.
+
 The frontend (`www.healthylifesstyles.com`) is an Astro static site with Vercel server routes. Its GitHub repository is `futurerotech/HealthyLifestyles`. The independent Payload/Next.js application is `futurerotech/healthylifestyles-cms`, hosted on Hostinger at `cms.healthylifesstyles.com`. Astro reads the CMS over HTTPS; the CMS application is not deployed with Astro.
 
 ## خطة الإصدار المنفصلة — 16 أكتوبر 2026

@@ -80,8 +80,8 @@ export default defineConfig({
       {
         name: 'partytown-snippet',
         transformIndexHtml: {
-          enforce: 'post',
-          transform(html) {
+          order: 'post',
+          handler(html) {
             // adsbygoogle.push MUST be forwarded: AdSense loads in the Partytown
             // web worker (AdsLoader uses type="text/partytown"), but the per-slot
             // `(adsbygoogle=...).push({})` runs on the main thread. Without this

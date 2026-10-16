@@ -1,7 +1,7 @@
 import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
 import { readFile, access } from 'node:fs/promises';
-import { createReviewWorkspace } from '../content/workspace.mjs';
+import { createReviewWorkspace, resolveAstroCli } from '../content/workspace.mjs';
 import { verifyOutput } from '../content/preflight.mjs';
 import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
@@ -72,7 +72,7 @@ try {
   const workspace = await createReviewWorkspace('fixture');
   const artifact = (path) => resolve(workspace, path);
   const env = { ...process.env, CONTENT_BUILD_KIND: 'fixture', CMS_DISABLE: '0', CMS_URL: `http://127.0.0.1:${server.address().port}`, VERCEL_ENV: 'production', INDEXNOW_DISABLE: 'true' };
-  const child = spawn(process.execPath, [resolve('node_modules/astro/astro.js'), 'build'], { cwd: workspace, env, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
+  const child = spawn(process.execPath, [await resolveAstroCli(), 'build'], { cwd: workspace, env, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
   child.stdout.on('data', (data) => { output += data; });
   child.stderr.on('data', (data) => { output += data; });
   const exit = await new Promise((done) => { child.on('error', (error) => done(error.message)); child.on('exit', done); });

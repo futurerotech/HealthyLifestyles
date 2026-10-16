@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=22.22.0"
   },
   "scripts": {
     "dev": "astro dev",
@@ -30,24 +30,25 @@
     "seo:richresults": "node scripts/seo/rich-results-check.ts",
     "seo:shacl": "node scripts/seo/validate-shacl.ts",
     "test:degradation": "node --test scripts/seo/__tests__/degradation.test.ts",
-    "astro": "astro"
+    "astro": "astro",
+    "test:api": "node --test tests/subscription-api.test.ts tests/result-image.test.mjs"
   },
   "dependencies": {
-    "@astrojs/preact": "^4.1.0",
+    "@astrojs/preact": "^6.1.0",
     "@astrojs/rss": "^4.0.18",
     "@astrojs/sitemap": "^3.6.0",
-    "@astrojs/vercel": "^8.2.11",
+    "@astrojs/vercel": "^11.0.15",
     "@builder.io/partytown": "^0.10.3",
     "@fontsource-variable/inter": "^5.2.6",
     "@fontsource-variable/plus-jakarta-sans": "^5.2.6",
-    "astro": "^5.14.0",
+    "astro": "^7.4.0",
     "jspdf": "^4.2.1",
     "preact": "^10.27.2",
-    "sharp": "^0.33.0"
+    "sharp": "^0.35.5"
   },
   "optionalDependencies": {
-    "@img/sharp-linux-x64": "^0.33.0",
-    "@img/sharp-win32-x64": "^0.33.0"
+    "@img/sharp-linux-x64": "^0.35.5",
+    "@img/sharp-win32-x64": "^0.35.5"
   },
   "devDependencies": {
     "@types/jsonld": "1.5.15",
@@ -56,6 +57,12 @@
     "jsonld": "9.0.0",
     "lighthouse": "^13.4.0",
     "n3": "2.1.1",
-    "rdf-validate-shacl": "0.6.5"
+    "rdf-validate-shacl": "0.6.5",
+    "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "@vercel/routing-utils": {
+      "path-to-regexp": "^6.3.0"
+    }
   }
 }

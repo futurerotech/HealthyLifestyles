@@ -5,7 +5,7 @@ import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
 import { readPublishedInventory } from './inventory.mjs';
 import { verifyOutput, inspectHtml, inspectDocument, publicPath, SITE_ORIGIN } from './preflight.mjs';
-import { createReviewWorkspace } from './workspace.mjs';
+import { createReviewWorkspace, resolveAstroCli } from './workspace.mjs';
 import { documentProof } from '../../src/lib/content-integrity.mjs';
 
 const baseline = JSON.parse(await readFile(new URL('./production-baseline.json', import.meta.url), 'utf8'));
@@ -68,7 +68,7 @@ await new Promise((done) => server.listen(0, '127.0.0.1', done));
 try {
   const workspace = await createReviewWorkspace('production-review');
   const env = { ...process.env, CMS_DISABLE: '0', CMS_URL: `http://127.0.0.1:${server.address().port}`, VERCEL_ENV: 'production', INDEXNOW_DISABLE: 'true', CONTENT_BUILD_KIND: 'diagnostic' };
-  const child = spawn(process.execPath, [resolve('node_modules/astro/astro.js'), 'build'], { cwd: workspace, env, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
+  const child = spawn(process.execPath, [await resolveAstroCli(), 'build'], { cwd: workspace, env, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
   let output = ''; child.stdout.on('data', (chunk) => { output += chunk; }); child.stderr.on('data', (chunk) => { output += chunk; });
   const code = await new Promise((done, reject) => { child.once('error', reject); child.once('exit', done); });
   await writeFile(join(workspace, 'build.log'), output);
