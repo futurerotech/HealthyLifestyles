@@ -1,0 +1,25 @@
+---
+import ToolEmbed from '../ToolEmbed.astro';
+import { renderInline } from '../../lib/text';
+const block = Astro.props;
+const Heading = block.style === 'h2' ? 'h2' : block.style === 'h3' ? 'h3' : 'p';
+const List = block.style === 'ordered' ? 'ol' : 'ul';
+---
+
+<section class="prose">
+  {block.blockType === 'text' && <Heading set:html={renderInline(block.text || '')} />}
+  {block.blockType === 'list' && <List>{(block.items || []).map((item: any) => <li set:html={renderInline(typeof item === 'string' ? item : item.text || '')} />)}</List>}
+  {block.blockType === 'callout' && <aside class={`callout callout--${block.tone || 'info'}`}>
+    {block.title && <h2>{block.title}</h2>}<p set:html={renderInline(block.text || '')} />
+  </aside>}
+  {block.blockType === 'table' && <table>
+    {block.caption && <caption>{block.caption}</caption>}
+    <thead><tr>{(block.headers || []).map((header: string) => <th scope="col">{header}</th>)}</tr></thead>
+    <tbody>{(block.rows || []).map((row: any) => <tr>{(Array.isArray(row) ? row : row.cells || []).map((cell: string) => <td set:html={renderInline(cell)} />)}</tr>)}</tbody>
+  </table>}
+  {block.blockType === 'peopleAlsoAsk' && <section>
+    <h2>{block.heading || 'People also ask'}</h2>
+    {(block.items || []).map((item: any) => <details><summary>{item.question}</summary><p set:html={renderInline(item.answer || '')} /></details>)}
+  </section>}
+  {block.blockType === 'toolEmbed' && <ToolEmbed slug={block.tool?.slug || ''} label={block.label} />}
+</section>

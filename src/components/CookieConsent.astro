@@ -111,7 +111,9 @@
     // Expose for downstream scripts; fire an event analytics loaders can listen for.
     (window as unknown as { HLS_CONSENT?: Consent }).HLS_CONSENT = value;
     document.dispatchEvent(
-      new CustomEvent('consent-update', { detail: { analytics: value === 'accept', ads: value === 'accept' } })
+      new CustomEvent('consent-update', {
+        detail: { analytics: value === 'accept', ads: value === 'accept' },
+      }),
     );
   };
 

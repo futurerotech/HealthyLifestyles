@@ -10,13 +10,14 @@
  */
 import * as fs from 'fs'
 import * as path from 'path'
+import { reviewMetadataIssues } from './lib/review-metadata.ts'
 
 const DIST_DIR = path.resolve(process.cwd(), 'dist', 'client')
 const ORG_ID = 'https://www.healthylifesstyles.com/#org'
 
 interface Finding {
   page: string
-  type: 'invalid-json' | 'missing-context' | 'missing-type' | 'ymyl-missing-author' | 'ymyl-missing-reviewer' | 'ymyl-missing-last-reviewed' | 'orphan-publisher-ref' | 'orphan-worksfor-ref' | 'faqpage-empty' | 'faqpage-bad-qa' | 'speakable-empty'
+  type: 'invalid-json' | 'missing-context' | 'missing-type' | 'ymyl-missing-author' | 'invalid-review-metadata' | 'orphan-publisher-ref' | 'orphan-worksfor-ref' | 'faqpage-empty' | 'faqpage-bad-qa' | 'speakable-empty'
   message: string
 }
 
@@ -86,13 +87,8 @@ function main() {
         } else if (!obj.author['@id'] && !obj.author.name) {
           findings.push({ page, type: 'ymyl-missing-author', message: `YMYL author has no name or @id` })
         }
-        if (types.includes('MedicalWebPage') && !obj.reviewedBy) {
-          findings.push({ page, type: 'ymyl-missing-reviewer', message: 'MedicalWebPage missing reviewedBy' })
-        }
-        if (types.includes('MedicalWebPage') && !obj.lastReviewed) {
-          findings.push({ page, type: 'ymyl-missing-last-reviewed', message: 'MedicalWebPage missing lastReviewed' })
-        }
       }
+      for (const message of reviewMetadataIssues(obj)) findings.push({ page, type: 'invalid-review-metadata', message })
 
       if (types.includes('MedicalWebPage') || types.includes('Article') || types.includes('WebApplication')) {
         if (obj.publisher && obj.publisher['@id'] && obj.publisher['@id'] !== ORG_ID) {
@@ -142,7 +138,7 @@ function main() {
   }, {} as Record<string, number>)
 
   if (findings.length === 0) {
-    console.log('\nPASS: all JSON-LD blocks are valid and YMYL-compliant.')
+    console.log('\nPASS: JSON-LD structure, attribution and review metadata checks passed.')
     process.exit(0)
   }
 

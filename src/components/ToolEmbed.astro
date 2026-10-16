@@ -22,6 +22,10 @@ import Chronotype from '../islands/Chronotype.tsx';
 import WalkItOff from '../islands/WalkItOff.tsx';
 import WeightTimeline from '../islands/WeightTimeline.tsx';
 import CaffeineTracker from '../islands/CaffeineTracker.tsx';
+import HRVLog from '../islands/HRVLog.tsx';
+import FoodSymptomDiary from '../islands/FoodSymptomDiary.tsx';
+import RecipeAnalyzer from '../islands/RecipeAnalyzer.tsx';
+import HealthspanScore from '../islands/HealthspanScore.tsx';
 import '../styles/calculator.css';
 import { getTool } from '../lib/cms';
 import { getEngine } from '../lib/toolEngine';
@@ -63,6 +67,10 @@ const heading = label ?? (tool ? `Try the ${tool.title}` : 'Try the calculator')
         {engine === 'walk-it-off' && <WalkItOff client:visible />}
         {engine === 'weight-timeline' && <WeightTimeline client:visible />}
         {engine === 'caffeine-tracker' && <CaffeineTracker client:visible />}
+        {engine === 'hrv' && <HRVLog client:visible />}
+        {engine === 'diary' && <FoodSymptomDiary client:visible />}
+        {engine === 'recipe' && <RecipeAnalyzer client:visible />}
+        {engine === 'healthspan' && <HealthspanScore client:visible />}
         {engine === 'sleep' && <SleepCalculator client:visible slug={tool.slug} />}
         {engine === 'date' && <DateCalculator client:visible slug={tool.slug} />}
         {engine === 'pace' && <PaceCalculator client:visible slug={tool.slug} />}

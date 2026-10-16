@@ -43,6 +43,8 @@
     } catch (e) {}
 
     function send() {
+      // Local performance observations are never transmitted without consent.
+      if (window.HLS_CONSENT !== 'accept') return;
       if (sent || lcp === null) return; // no LCP yet → nothing meaningful to report
       // A local, first-party beacon still transmits the viewed path and region.
       // Re-check on every hide so rejection or withdrawn consent cannot send it.

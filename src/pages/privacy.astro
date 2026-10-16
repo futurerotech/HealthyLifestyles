@@ -2,12 +2,12 @@
 import LegalLayout from '../layouts/LegalLayout.astro';
 import { SITE } from '../consts';
 
-const updated = 'October 8, 2026';
+
 const title = `Privacy Policy | ${SITE.name}`;
-const description = `How ${SITE.name} handles calculator inputs, server-assisted features, local storage, subscriptions, and advertising.`;
+const description = `How ${SITE.name} handles your data: feature-specific processing, server requests, and locally saved readings.`;
 ---
 
-<LegalLayout title={title} description={description} heading="Privacy Policy" updated={updated}>
+<LegalLayout title={title} description={description} heading="Privacy Policy">
   <div class="legal-note">
     <p>
       <strong>The short version:</strong> Many calculators run in your browser, but some
@@ -32,13 +32,17 @@ const description = `How ${SITE.name} handles calculator inputs, server-assisted
     on your device to show your result.
   </p>
   <p>
-    Some features work differently. Recipe analysis sends the recipe text and servings
-    through our frontend to our CMS for analysis. Downloading a share image sends the
-    result parameters to our image endpoint. The HRV log and Food and Symptom Diary save
-    readings and entries in your browser's local storage; Health Score saves a summary
-    of your assessment there. This data remains until you clear it or your browser's
-    site data. Avoid entering
-    identifying or sensitive medical information into free-text fields.
+    Recipe analysis in the Recipe Analyzer sends ingredients and serving information by POST to <code>/api/analyze-recipe</code> for server-side processing, which may involve a nutrition or AI provider depending on the active service. Avoid including identifying or sensitive information.
+  </p>
+  <p>
+    Result-image downloads first send the tool name, value, label, and optional category and color to <code>/api/result-image</code> in URL query parameters. These URLs may appear in hosting or service logs. A local image fallback does not undo the initial request. Social sharing sends a URL and, for some platforms, result text to that platform, whose privacy practices apply.
+  </p>
+  <p>
+    The HRV log saves readings and notes in your browser's <code>localStorage</code>. They can persist after reloading or closing the page. Delete readings in the log or clear this site's browser data to remove them locally. This does not delete information already sent to servers or shared with others.
+  </p>
+  <p>The Food and Symptom Diary saves entries in local storage. Health Score also saves a summary of your assessment there. Clear those entries in the tool or remove the site's browser data to delete the local copy.</p>
+  <p>
+    Server logs and third-party services have separate retention practices. We do not promise immediate deletion or a fixed retention period that has not been verified. Optional server-connected features send the information you submit to their configured service.
   </p>
 
   <h2>3. Information we may collect automatically</h2>
@@ -90,8 +94,7 @@ const description = `How ${SITE.name} handles calculator inputs, server-assisted
   <p>
     Depending on where you live (for example, under the GDPR in the UK and EU, or the
     CCPA in California), you may have rights to access, correct, or delete personal
-    information, and to object to certain processing. No account is required for the tools,
-    but subscriptions and server-assisted features may process information. If you have a request, please
+    information, and to object to certain processing. Data held depends on which features you use; locally saved readings remain in your browser. If you have a request or question, please
     <a href="/contact">contact us</a>.
   </p>
 
@@ -105,8 +108,7 @@ const description = `How ${SITE.name} handles calculator inputs, server-assisted
 
   <h2>9. Changes to this policy</h2>
   <p>
-    We may update this Privacy Policy from time to time. When we do, we'll revise the
-    "Last updated" date above. Significant changes will be highlighted on this page.
+    We may update this Privacy Policy from time to time. Check this page for changes to feature-specific practices.
   </p>
 
   <h2>10. Contact us</h2>

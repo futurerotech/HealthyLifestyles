@@ -3,9 +3,13 @@
  * Per-page <head> SEO: title, description, canonical, Open Graph, Twitter Card,
  * favicons, manifest, theme-color, and JSON-LD. Drop one <SEO /> in every layout.
  */
-import { SITE, ANALYTICS, SOCIAL_FOLLOW } from '../consts';
+import { ANALYTICS as LOCAL_ANALYTICS } from '../consts';
+import { getSiteConsts } from '../lib/cms';
+import { resolveCanonical, type SeoMetadata } from '../lib/seo';
+const { SITE, ANALYTICS, SOCIAL_FOLLOW } = await getSiteConsts();
 
 interface Props {
+  seo?: SeoMetadata;
   title: string;
   description: string;
   /** Override the social image (absolute path under /public or full URL). */
@@ -31,14 +35,17 @@ const {
   jsonLd = [],
   alternates = [],
   ogLocale,
+  seo,
 } = Astro.props;
 
 const siteOrigin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
-const canonical = new URL(Astro.url.pathname, siteOrigin).href.replace(/\/$/, '') || siteOrigin.href;
-const ogImage = new URL(image, siteOrigin).href;
+const canonical = resolveCanonical(seo?.canonical, Astro.url.pathname, siteOrigin);
+const ogImage = new URL(seo?.ogImage || image, siteOrigin).href;
+const metaDescription = seo?.metaDescription || description;
+const isNoindex = noindex || seo?.noIndex === true;
 
 // Title is used verbatim — callers keep it ≤60 chars and brand-suffixed as needed.
-const fullTitle = title;
+const fullTitle = seo?.metaTitle || title;
 
 // Baseline structured data present on every page.
 const baseJsonLd: Record<string, unknown>[] = [
@@ -74,36 +81,36 @@ const allJsonLd = [...baseJsonLd, ...jsonLd];
 
 <!-- Primary meta -->
 <title>{fullTitle}</title>
-<meta name="description" content={description} />
-<link rel="canonical" href={canonical} />
+<meta name="description" content={metaDescription} />
+<link rel="canonical" href={canonical} data-editorial-canonical={seo?.canonical ? 'true' : undefined} />
 {/* P15-P6: hreflang — emitted ONLY when real translations exist (≥2 locales).
     The set always includes self + x-default→en, keeping return-tags reciprocal. */}
 {alternates.length >= 2 && alternates.map((a) => <link rel="alternate" hreflang={a.hreflang} href={a.href} />)}
 {/* P15-P4a: max-image-preview:large is a Google Discover eligibility signal.
     One robots meta per page — noindex pages don't advertise image previews. */}
-<meta name="robots" content={noindex ? 'noindex, nofollow' : 'max-image-preview:large'} />
+<meta name="robots" content={isNoindex ? 'noindex, follow' : 'max-image-preview:large'} />
 {ANALYTICS.searchConsoleVerification && (
   <meta name="google-site-verification" content={ANALYTICS.searchConsoleVerification} />
 )}
-{ANALYTICS.bingVerification && (
-  <meta name="msvalidate.01" content={ANALYTICS.bingVerification} />
+{LOCAL_ANALYTICS.bingVerification && (
+  <meta name="msvalidate.01" content={LOCAL_ANALYTICS.bingVerification} />
 )}
 <meta name="theme-color" content={SITE.themeColor} />
 
 <!-- Open Graph -->
 <meta property="og:type" content={type} />
 <meta property="og:site_name" content={SITE.name} />
-<meta property="og:title" content={fullTitle} />
-<meta property="og:description" content={description} />
+<meta property="og:title" content={seo?.ogTitle || fullTitle} />
+<meta property="og:description" content={seo?.ogDescription || metaDescription} />
 <meta property="og:url" content={canonical} />
 <meta property="og:image" content={ogImage} />
 <meta property="og:locale" content={ogLocale || SITE.locale} />
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content={fullTitle} />
-<meta name="twitter:description" content={description} />
-<meta name="twitter:image" content={ogImage} />
+<meta name="twitter:title" content={seo?.twitterTitle || seo?.ogTitle || fullTitle} />
+<meta name="twitter:description" content={seo?.twitterDescription || seo?.ogDescription || metaDescription} />
+<meta name="twitter:image" content={seo?.twitterImage ? new URL(seo.twitterImage, siteOrigin).href : ogImage} />
 <meta name="twitter:site" content={SITE.twitter} />
 
 <!-- Icons & manifest -->
@@ -115,6 +122,6 @@ const allJsonLd = [...baseJsonLd, ...jsonLd];
 <!-- Structured data -->
 {
   allJsonLd.map((obj) => (
-    <script type="application/ld+json" set:html={JSON.stringify(obj)} />
+    <script type="application/ld+json" set:html={JSON.stringify(obj).replace(/</g, '\\u003c')} />
   ))
 }

@@ -8,8 +8,6 @@ const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
 const orgId = `${origin.href}#org`;
 const pageUrl = new URL('/methodology', origin).href;
 
-
-
 // Each calculator uses an established, published equation. Grouped by area.
 const GROUPS: { heading: string; items: { name: string; formula: string; source: string; url: string }[] }[] = [
   {
@@ -74,12 +72,12 @@ const jsonLd = [
   {
     '@context': 'https://schema.org',
     '@type': 'MedicalWebPage',
+    author: { '@id': orgId },
     '@id': pageUrl,
     name: title,
     description,
     url: pageUrl,
     inLanguage: 'en',
-
     publisher: { '@id': orgId },
   },
 ];
@@ -89,7 +87,6 @@ const jsonLd = [
   title={title}
   description={description}
   heading="Methodology & formulas"
-
   jsonLd={jsonLd}
 >
   <p>

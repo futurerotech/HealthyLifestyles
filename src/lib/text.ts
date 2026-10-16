@@ -7,6 +7,8 @@
  * (never user input), so emitting HTML via `set:html` is safe here.
  */
 
+import { normalizeInternalHref } from './site-routes';
+
 /** URL/anchor-safe slug from a heading or title. */
 export function slugify(input: string): string {
   return input
@@ -18,7 +20,7 @@ export function slugify(input: string): string {
 }
 
 const escapeHtml = (s: string): string =>
-  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /**
  * Render a trusted inline string: escapes HTML, then re-enables `**bold**` and
@@ -29,6 +31,11 @@ export function renderInline(md: string): string {
   let s = escapeHtml(md);
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_m, label: string, href: string) => {
+    try {
+      const url = new URL(href.replace(/&amp;/g, '&'), 'https://www.healthylifesstyles.com');
+      if (!['http:', 'https:', 'mailto:'].includes(url.protocol)) return label;
+    } catch { return label; }
+    href = normalizeInternalHref(href);
     const external = /^https?:\/\//.test(href);
     const attrs = external ? ' target="_blank" rel="noopener nofollow"' : '';
     return `<a href="${href}"${attrs}>${label}</a>`;

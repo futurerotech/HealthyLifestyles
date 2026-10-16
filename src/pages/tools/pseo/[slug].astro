@@ -1,0 +1,19 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getPseoPages } from '../../../lib/cms';
+
+export async function getStaticPaths() {
+  return (await getPseoPages()).map((page) => ({ params: { slug: page.slug }, props: { page } }));
+}
+const { page } = Astro.props;
+---
+
+<BaseLayout title={page.seo?.metaTitle || page.headline} description={page.seo?.metaDescription || page.subheadline || page.headline} seo={page.seo}>
+  <article class="container section" data-cms-id={String(page.id)}>
+    <h1>{page.headline}</h1>
+    {page.subheadline && <p class="lead">{page.subheadline}</p>}
+    <div class="prose" set:html={page.bodyHtml || ''} />
+    {page.ctaUrl && <a class="btn btn-primary" href={page.ctaUrl}>{page.ctaText || 'Explore tools'}</a>}
+    <p>This content is for general education and wellness only. It does not replace professional medical advice.</p>
+  </article>
+</BaseLayout>

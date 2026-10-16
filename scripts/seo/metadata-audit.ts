@@ -38,6 +38,7 @@ interface Page {
   robots: string[];
   hreflang: { lang: string; href: string }[];
   noindex: boolean;
+  canonicalOverride: boolean;
 }
 
 const pages: Page[] = [];
@@ -61,7 +62,8 @@ function parse(file: string): void {
     description: attrs(html, /<meta name="description" content="([^"]*)"/g),
     canonical: attrs(html, /<link rel="canonical" href="([^"]*)"/g),
     robots,
-    noindex: robots.some((r) => /noindex/i.test(r)),
+    noindex: robots.some((r) => /noindex/i.test(r)) || /http-equiv="refresh"/i.test(html),
+    canonicalOverride: /data-editorial-canonical="true"/.test(html),
     hreflang: [...html.matchAll(/<link rel="alternate" hreflang="([^"]+)" href="([^"]+)"/g)].map((m) => ({ lang: m[1], href: m[2] })),
   });
 }
@@ -84,7 +86,7 @@ for (const p of pages) {
   if (p.canonical.length === 0) blocking.push(`${p.route}: indexable page missing canonical`);
   // Self-canonical policy (Phase E: pagination self-canonicalizes too).
   const expected = p.route === '/' ? [ORIGIN, `${ORIGIN}/`] : [`${ORIGIN}${p.route}`];
-  if (p.canonical[0] && !expected.includes(p.canonical[0])) {
+  if (p.canonical[0] && !p.canonicalOverride && !expected.includes(p.canonical[0])) {
     blocking.push(`${p.route}: canonical points elsewhere (${p.canonical[0]})`);
   }
   // Advisory lengths — guidance, not gospel.
@@ -99,7 +101,7 @@ const byCanonical = new Map<string, string[]>();
 const byTitle = new Map<string, string[]>();
 const byDesc = new Map<string, string[]>();
 for (const p of indexable) {
-  if (p.canonical[0]) byCanonical.set(p.canonical[0], [...(byCanonical.get(p.canonical[0]) ?? []), p.route]);
+  if (p.canonical[0] && !p.canonicalOverride) byCanonical.set(p.canonical[0], [...(byCanonical.get(p.canonical[0]) ?? []), p.route]);
   if (p.title[0]) byTitle.set(p.title[0], [...(byTitle.get(p.title[0]) ?? []), p.route]);
   if (p.description[0]) byDesc.set(p.description[0], [...(byDesc.get(p.description[0]) ?? []), p.route]);
 }

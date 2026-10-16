@@ -10,8 +10,9 @@ test('tools and articles do not receive a site-wide medical review attribution',
   assert.doesNotMatch(source('components/Byline.astro'), /reviewed = true|getReviewerLocal/);
   assert.doesNotMatch(source('components/ToolPageLayout.astro'), /reviewedBy: authorLd\(reviewerEntity\)|lastReviewed: EDITORIAL/);
   assert.doesNotMatch(source('pages/wellness-hub/[...path].astro'), /article\.reviewer \|\| REVIEWER_SLUG|lastReviewed: article\.updatedDate/);
-  assert.doesNotMatch(source('pages/wellness-hub/[...path].astro'), /reviewedBy:/);
-  assert.doesNotMatch(source('components/Byline.astro'), /Medically reviewed by/);
+  assert.match(source('pages/wellness-hub/[...path].astro'), /reviewerEntity \? \{ reviewedBy:/);
+  assert.match(source('components/Byline.astro'), /const r = assignedReviewer\(reviewer, allAuthors\)/);
+  assert.match(source('components/Byline.astro'), /\{r &&/);
 });
 
 test('editorial and legal pages do not claim an unverified review board', () => {

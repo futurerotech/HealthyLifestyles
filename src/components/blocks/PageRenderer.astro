@@ -3,9 +3,11 @@ import BlockHero from './BlockHero.astro';
 import BlockCalculatorEmbed from './BlockCalculatorEmbed.astro';
 import BlockTwoColumn from './BlockTwoColumn.astro';
 import BlockViralHookBanner from './BlockViralHookBanner.astro';
+import BlockContent from './BlockContent.astro';
 
 export interface Props {
   layout: Block[];
+  headingLevel?: 'h1' | 'h2';
 }
 
 type Block = {
@@ -13,7 +15,7 @@ type Block = {
   [key: string]: unknown;
 };
 
-const { layout } = Astro.props;
+const { layout, headingLevel = 'h1' } = Astro.props;
 
 function blockComponent(type: string): any {
   const map: Record<string, any> = {
@@ -21,6 +23,12 @@ function blockComponent(type: string): any {
     calculatorEmbed: BlockCalculatorEmbed,
     twoColumn: BlockTwoColumn,
     viralHookBanner: BlockViralHookBanner,
+    text: BlockContent,
+    list: BlockContent,
+    callout: BlockContent,
+    table: BlockContent,
+    peopleAlsoAsk: BlockContent,
+    toolEmbed: BlockContent,
   };
   return map[type] || null;
 }
@@ -30,8 +38,8 @@ function blockComponent(type: string): any {
   layout.map((block, i) => {
     const Component = blockComponent(block.blockType);
     if (!Component) {
-      return <div class="block-unknown" data-block={block.blockType}>Unsupported block: {block.blockType}</div>;
+      throw new Error(`Unsupported CMS page block: ${block.blockType}`);
     }
-    return <Component {...block} />;
+    return <Component {...block} headingLevel={headingLevel} />;
   })
 }

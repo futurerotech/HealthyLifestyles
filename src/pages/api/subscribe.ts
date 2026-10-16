@@ -1,10 +1,18 @@
 import type { APIRoute } from 'astro';
+import { validSubscriber } from '../../lib/subscription-api';
 
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request }) => {
+  if (!import.meta.env.CMS_URL?.trim() || !import.meta.env.INTERNAL_API_KEY?.trim()) {
+    return Response.json({ ok: false, message: 'Subscription service is unavailable.' }, { status: 503 });
+  }
+
   try {
-    const body = await request.json();
+    const body = await request.json().catch(() => null);
+    if (!validSubscriber(body)) {
+      return Response.json({ ok: false, message: 'Invalid subscription payload.' }, { status: 400 });
+    }
     const { email, name, interests, metadata, source } = body;
 
     if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -15,13 +23,13 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const cmsUrl = import.meta.env.CMS_URL || 'http://localhost:3000';
-    const apiKey = import.meta.env.CMS_API_KEY || '';
+    const apiKey = import.meta.env.INTERNAL_API_KEY || '';
 
     const res = await fetch(`${cmsUrl}/api/subscribers`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+        ...(apiKey ? { 'x-internal-key': apiKey } : {}),
       },
       body: JSON.stringify({
         email: email.toLowerCase().trim(),

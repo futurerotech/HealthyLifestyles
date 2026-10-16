@@ -2,15 +2,10 @@
 import LegalLayout from '../layouts/LegalLayout.astro';
 import { SITE } from '../consts';
 
-
 const title = `Medical Disclaimer | ${SITE.name}`;
 const description = 'Our tools and content are for general education and wellness only — not medical advice, diagnosis, or treatment. Always consult a healthcare professional.';
-
 const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
-
 const pageUrl = new URL('/medical-disclaimer', origin).href;
-
-
 
 const medicalLd = {
   '@context': 'https://schema.org',
@@ -19,7 +14,6 @@ const medicalLd = {
   url: pageUrl,
   description,
   inLanguage: 'en',
-
 };
 ---
 

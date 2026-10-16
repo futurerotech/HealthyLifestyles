@@ -12,7 +12,9 @@ import {
   getArticlesByCategory,
   ARTICLES_PER_PAGE,
   resolveAuthor,
+  getAuthors,
 } from '../../lib/cms';
+import { assignedReviewer } from '../../lib/medical-review';
 import { getTranslatedLocales } from '../../lib/cms';
 import { hreflangSet, NON_DEFAULT_LOCALES } from '../../lib/i18n';
 import { speakableSelectors, buildFaqPage } from '../../lib/article-schema';
@@ -31,6 +33,7 @@ export async function getStaticPaths() {
   for (const c of ARTICLE_CATEGORIES) {
     const all = await getArticlesByCategory(c.id);
     const count = all.length;
+    if (count === 0) continue;
     const totalPages = Math.max(1, Math.ceil(count / ARTICLES_PER_PAGE));
     for (let p = 1; p <= totalPages; p++) {
       paths.push({
@@ -124,6 +127,7 @@ function buildHealthTopicContent(
   a: Article,
   pageUrl: string,
   author: ReturnType<typeof authorLd>,
+  reviewer?: ReturnType<typeof authorLd>,
 ): Record<string, unknown> | null {
   const topic = a.semanticEntities?.[0]?.term || a.title.replace(/^what is (an? )?/i, '').replace(/\?$/, '');
   if (!topic) return null;
@@ -137,6 +141,7 @@ function buildHealthTopicContent(
     text: a.excerpt,
     url: pageUrl,
     author,
+    ...(reviewer ? { reviewedBy: reviewer } : {}),
   };
 }
 
@@ -168,6 +173,7 @@ if (props.kind === 'article' && article) {
 
   const entities = article.semanticEntities || [];
   const authorEntity = await resolveAuthor(article.author);
+  const reviewerEntity = assignedReviewer(article.reviewer, await getAuthors());
   const orgId = `${origin.href}#org`;
 
   function authorLd(a: typeof authorEntity) {
@@ -192,6 +198,7 @@ if (props.kind === 'article' && article) {
     datePublished: article.publishDate,
     dateModified: article.updatedDate,
     author: authorLd(authorEntity),
+    ...(reviewerEntity ? { reviewedBy: authorLd(reviewerEntity) } : {}),
     publisher: { '@id': orgId },
     mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
     image: ogImage,
@@ -236,7 +243,12 @@ if (props.kind === 'article' && article) {
   }
 
   if (article.isHealthTopic) {
-    const topic = buildHealthTopicContent(article, pageUrl, authorLd(authorEntity));
+    const topic = buildHealthTopicContent(
+      article,
+      pageUrl,
+      authorLd(authorEntity),
+      reviewerEntity ? authorLd(reviewerEntity) : undefined,
+    );
     if (topic) jsonLd.push(topic);
   }
 
@@ -295,7 +307,7 @@ if (props.kind === 'article' && article) {
 }
 ---
 
-<BaseLayout title={title} description={description} image={image} type={article ? 'article' : 'website'} jsonLd={jsonLd} alternates={alternates}>
+<BaseLayout title={title} description={description} image={image} type={article ? 'article' : 'website'} seo={article?.seo || (archive && archive.page > 1 ? { ...archive.category.seo, metaTitle: undefined, metaDescription: undefined, canonical: undefined } : archive?.category.seo)} jsonLd={jsonLd} alternates={alternates}>
   <Fragment slot="head">
     {article?.heroImage?.url && (
       <link

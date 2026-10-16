@@ -1,0 +1,107 @@
+{
+  "reviewDate": "2026-10-16",
+  "scope": "Read-only hosting investigation, local documentation updates and dependency audits",
+  "architecture": {
+    "frontend": { "repository": "futurerotech/HealthyLifestyles", "host": "Vercel", "origin": "https://www.healthylifesstyles.com", "adapter": "@astrojs/vercel", "output": "static" },
+    "cms": { "repository": "futurerotech/healthylifestyles-cms", "host": "Hostinger", "origin": "https://cms.healthylifesstyles.com", "framework": "Next.js / Payload" }
+  },
+  "productionWrites": false,
+  "pushMergeDeployMigrationExecuted": false,
+  "hostingSettingsChanged": false,
+  "applicationCodeChangedThisReview": false,
+  "previousWorkPreservedOnBranch": "codex/seo-cms-sync",
+  "repositoryEvidence": {
+    "promotion": "Both workflow files attempt dev-to-main automatic promotion after successful CI; pull requests run checks without promotion.",
+    "cmsWorkflowDeploysHostingerDirectly": false,
+    "cmsBuildScriptRunsMigrations": false,
+    "cmsStartScript": "next start -p 3000",
+    "schemaPush": "Enabled only by ALLOW_DB_PUSH=true; live environment unverified",
+    "prodMigrationsConfigured": false,
+    "startupWriteRisk": "payload.config.ts onInit creates four outreach-templates if empty, in both the local reference and candidate. A production-safe guard is required before a no-write release; not implemented in this documentation review.",
+    "activeVercelTrigger": "Manual admin button -> POST /api/deploy -> server-side VERCEL_DEPLOY_HOOK_URL",
+    "automaticVercelCallOnCmsBootFound": false,
+    "legacyTrigger": "origin/main contains triggerVercelDeploy.ts, but no active import was found; production SHA still needs verification.",
+    "cmsCiGaps": ["npm test not run", "npm audit release gate not run"],
+    "databaseTlsRisk": "Remote PostgreSQL config uses rejectUnauthorized=false; provider CA validation needs review."
+  },
+  "liveHostingVerification": {
+    "authenticatedAdminSurfaceAvailable": false,
+    "hostingerMode": "Cloud Startup managed Node.js / Next.js application in hPanel; not a VPS",
+    "hostingerModeEvidence": "Owner explicitly verified these settings in hPanel; not inspected directly by this agent",
+    "hostingerSourceBranchAndAutoDeploy": { "repository": "futurerotech/healthylifestyles-cms", "branch": "main", "autoDeploy": true, "evidence": "owner confirmation from hPanel" },
+    "hostingerNodeVersion": { "version": "22.x", "evidence": "owner confirmation from hPanel" },
+    "sshAvailable": { "value": true, "evidence": "owner confirmation; no SSH connection made" },
+    "hostingerLiveCommit": "unverified",
+    "hostingerProcessManagement": "Hostinger-managed Node.js lifecycle; actual start command remains unverified",
+    "hostingerBuildStartOverrides": "unverified",
+    "productionDatabaseProviderAndBackups": "unverified",
+    "productionMediaStoragePersistence": "unverified",
+    "vercelGitIntegrationProductionBranchAndBuildCommand": "unverified",
+    "productionVercelHookPresenceAndTarget": "unverified",
+    "externalAutomationCronN8nAndWebhookDeliveries": "unverified"
+  },
+  "liveGithubReadOnlyVerification": {
+    "repositoryPublic": true,
+    "defaultBranch": "main",
+    "mainSha": "b508b0dc3e751c276155468ebf55225522d84bbd",
+    "devSha": "1ba875407bdfcda996d4fc311540593d73b0b2db",
+    "devAheadOfMain": 0,
+    "devBehindMain": 7,
+    "mainProtectedFromBranchResponse": false,
+    "publicRulesets": [],
+    "promotionWorkflowState": "active",
+    "mainWorkflowContentReadLive": true,
+    "mainWorkflowRunsUnitTestsOrAuditGate": false,
+    "latestTwoVisibleHistoricalPrRuns": "success; not evidence for the new patch",
+    "administrativeProtectionApiStatus": 401,
+    "webhooksApiStatus": 401,
+    "administrativeSettingsAuthenticated": false,
+    "refsOrSettingsModified": false
+  },
+  "localEnvironmentEvidenceOnly": {
+    "databaseProvider": "Neon",
+    "s3ConfigurationPresent": false,
+    "vercelHookPresent": false,
+    "productionInferenceAllowed": false,
+    "credentialsAndProviderHostnamesOmitted": true,
+    "backupEnvAndDatabaseDumpNotRead": true
+  },
+  "currentPublicCmsRead": {
+    "pagination": "All successful collections fetched through readPublishedCollection with stable ID ordering, limit 10 and totalDocs/duplicate validation",
+    "articles": 39,
+    "publishedTools": 70,
+    "enabledTools": 70,
+    "expectedCanonicalToolPages": 68,
+    "legacyToolRedirects": 2,
+    "pages": 0,
+    "pseoStatus": 403,
+    "publishedPseoCount": null,
+    "completeRealFrontendBuildVerified": false
+  },
+  "freshLocalLockfileAudits": {
+    "frontend": { "critical": 1, "high": 4, "moderate": 0, "low": 1, "total": 6, "report": "security-audit-frontend-20261016.json" },
+    "cmsAll": { "critical": 2, "high": 13, "moderate": 12, "low": 3, "total": 30, "report": "security-audit-cms-20261016.json" },
+    "cmsOmitDev": { "critical": 0, "high": 12, "moderate": 10, "low": 3, "total": 25, "report": "security-audit-cms-runtime-20261016.json" },
+    "countsArePackageFindingsNotUniqueCves": true,
+    "proveProductionInstalledVersions": false,
+    "dependencyUpgradesExecuted": false
+  },
+  "releaseStages": [
+    "Read-only verification of actual hosting and automation settings; identify exact live CMS commit",
+    "Prepare a minimal schema-compatible access patch plus explicit startup no-seed protection; preserve wider local branch",
+    "Pass CMS security and tests; prepare verified database/media/code backup and rehearse code rollback in isolated staging",
+    "Obtain explicit approval for CMS-only release and any unavoidable automatic trigger chain",
+    "Verify all published pSEO through API, private-field and draft denial, complete inventory and unchanged production content",
+    "Review pSEO baseline, then full real CMS Astro build with security and content gates intact",
+    "Obtain separate explicit approval for frontend Git/Preview/Production deployment chain",
+    "Verify final Vercel deployment receipt, all routes/images/SEO and independent frontend rollback target"
+  ],
+  "releaseReady": false,
+  "officialReferences": [
+    "https://www.hostinger.com/support/how-to-deploy-a-nodejs-website-in-hostinger/",
+    "https://www.hostinger.com/support/how-to-redeploy-a-node-js-application/",
+    "https://vercel.com/docs/git",
+    "https://vercel.com/docs/deploy-hooks",
+    "https://vercel.com/docs/deployments/rollback-production-deployment"
+  ]
+}

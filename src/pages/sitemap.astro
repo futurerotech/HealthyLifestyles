@@ -1,17 +1,21 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Breadcrumb from '../components/Breadcrumb.astro';
-import { getCategories, getTools, getArticles, getSiteConsts } from '../lib/cms';
+import { getCategories, getArticleCategories, getTools, getArticles, getSiteConsts, getPseoPages, getCmsPages, getAuthors } from '../lib/cms';
 
-const [categories, tools, articles, siteConsts] = await Promise.all([
+const [categories, articleCategories, tools, articles, siteConsts] = await Promise.all([
   getCategories(),
+  getArticleCategories(),
   getTools(),
   getArticles(),
   getSiteConsts(),
 ]);
 
 const liveTools = tools.filter((t) => t.live);
-const publishedArticles = articles.filter((a) => a._status === 'published');
+const pseoPages = (await getPseoPages()).filter((page) => !page.seo?.noIndex);
+const cmsPages = (await getCmsPages()).filter((page) => page.slug && !['index', 'home'].includes(page.slug) && !page.seo?.noIndex);
+const authors = await getAuthors();
+const publishedArticles = articles.filter((a) => !a.seo?.noIndex);
 
 // Group tools by category
 const toolsByCategory = categories.map((cat) => ({
@@ -20,7 +24,7 @@ const toolsByCategory = categories.map((cat) => ({
 })).filter((g) => g.tools.length > 0);
 
 // Group articles by category
-const articlesByCategory = categories.map((cat) => ({
+const articlesByCategory = articleCategories.map((cat) => ({
   category: cat,
   articles: publishedArticles.filter((a) => a.category === cat.id),
 })).filter((g) => g.articles.length > 0);
@@ -114,7 +118,7 @@ const breadcrumbLd = {
             <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 0.4rem;">
               {articles.map((article) => (
                 <li>
-                  <a href={`/wellness-hub/${article.category}/${article.slug}`} style="color: var(--green-700); font-size: 0.88rem; text-decoration: none;">
+                  <a href={`/wellness-hub/${article.slug}`} style="color: var(--green-700); font-size: 0.88rem; text-decoration: none;">
                     {article.title}
                   </a>
                 </li>
@@ -125,6 +129,9 @@ const breadcrumbLd = {
       </section>
     )}
 
+    {pseoPages.length > 0 && <section><h2>More wellness guides</h2><ul>{pseoPages.map((page) => <li><a href={`/tools/pseo/${page.slug}`}>{page.headline}</a></li>)}</ul></section>}
+    {cmsPages.length > 0 && <section><h2>More pages</h2><ul>{cmsPages.map((page) => <li><a href={`/${page.slug}`}>{page.title}</a></li>)}</ul></section>}
+    {authors.length > 0 && <section><h2>Authors</h2><ul>{authors.map((author) => <li><a href={`/author/${author.slug}`}>{author.name}</a></li>)}</ul></section>}
     <p style="color: var(--muted); font-size: 0.8rem; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border);">
       For search engines, see our <a href="/sitemap-index.xml" style="color: var(--green-700);">XML sitemap</a>.
     </p>

@@ -6,7 +6,13 @@
  * stays consistent within a category so the grid still reads as organized.
  */
 
+import type { SeoMetadata } from '../lib/seo';
+import type { CmsToolContent } from '../lib/cms-content';
+
 export interface Tool {
+  cmsId?: string;
+  seo?: SeoMetadata;
+  cmsContent?: CmsToolContent;
   slug: string;
   title: string;
   /** Card / hero one-liner (plain English, active voice). */

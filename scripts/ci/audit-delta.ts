@@ -48,7 +48,10 @@ function runNpmAudit(): { totals: Record<string, number>; advisories: Advisory[]
     metadata?: { vulnerabilities?: Record<string, number> };
     vulnerabilities?: Record<string, { via?: unknown[] }>;
   };
-  const totals = report.metadata?.vulnerabilities ?? {};
+  const totals = report.metadata?.vulnerabilities;
+  if (!totals || typeof totals.total !== 'number' || totals.total < 0) {
+    throw new Error('npm audit did not return a valid vulnerability inventory');
+  }
   const byId = new Map<number, Advisory>();
   for (const [pkg, vuln] of Object.entries(report.vulnerabilities ?? {})) {
     for (const via of vuln.via ?? []) {
@@ -81,6 +84,13 @@ function main(): void {
     console.log(`  npm totals: ${JSON.stringify(totals)}`);
     console.log(`  advisories: ${advisories.length} (review by ${baseline.reviewBy})`);
     console.log('Review + commit the diff deliberately — the baseline is an accepted-risk ledger.');
+    return;
+  }
+
+  // With no vulnerable packages there is no accepted risk to renew. The strict
+  // npm audit gate still runs before this ledger check in CI and normal builds.
+  if (totals.total === 0) {
+    console.log('audit-delta: PASS — zero vulnerable packages; no baseline exception used.');
     return;
   }
 

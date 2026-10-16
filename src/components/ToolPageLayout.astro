@@ -44,9 +44,11 @@ import type { ToolContent } from '../data/content-types';
 interface Props {
   tool: Tool;
   content: ToolContent;
+  stylesheet?: string;
 }
 
-const { tool, content } = Astro.props;
+const { tool, stylesheet } = Astro.props;
+const content = { ...Astro.props.content, ...tool.cmsContent, ...(tool.cmsContent?.sections ? { directAnswer: undefined } : {}), seoTitle: tool.seo?.metaTitle || Astro.props.content.seoTitle, metaDescription: tool.seo?.metaDescription || Astro.props.content.metaDescription };
 const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
 const orgId = `${origin.href}#org`;
 
@@ -56,10 +58,8 @@ const [siteConsts, category, related, guides, authorEntity] = await Promise.all(
   getRelatedTools(tool.slug, 4),
   getArticlesForTool(tool.slug, 3),
   resolveAuthor('editorial-team'),
-
 ]);
 const SITE = siteConsts.SITE;
-
 const affiliate = getAffiliates(tool.slug);
 
 // Result-level safety line (YMYL). Names the relevant authority for sensitive topics.
@@ -150,7 +150,7 @@ const faqLd = {
   ],
 };
 
-// Health content → MedicalWebPage with review info for E-E-A-T.
+// Health content uses real authorship; review claims require an actual assigned reviewer.
 const medicalLd = {
   '@context': 'https://schema.org',
   '@type': 'MedicalWebPage',
@@ -181,9 +181,11 @@ const medicalLd = {
   description={content.metaDescription}
   image={`/og/tools/${tool.slug}.png`}
   type="website"
-  jsonLd={[breadcrumbLd, appLd, faqLd, medicalLd]}
+  jsonLd={[breadcrumbLd, appLd, ...(faqLd.mainEntity.length ? [faqLd] : []), medicalLd]}
+  seo={tool.seo}
 >
-  <article class="tool">
+  <Fragment slot="head">{stylesheet && <link rel="stylesheet" href={stylesheet} />}</Fragment>
+  <article class="tool" data-cms-id={tool.cmsId}>
     <!-- Branded header shown only when printing / saving to PDF -->
     <div class="print-only print-sheet-head">
       <div class="print-band">

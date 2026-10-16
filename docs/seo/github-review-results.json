@@ -1,0 +1,366 @@
+{
+  "reviewDate": "2026-10-16",
+  "branch": "codex/seo-cms-sync",
+  "mainMerged": false,
+  "productionDeployed": false,
+  "productionDataWritten": false,
+  "secretsPublished": false,
+  "pullRequest": "https://github.com/futurerotech/HealthyLifestyles/pull/9",
+  "checks": {
+    "seoAndLoaders": 69,
+    "contentPreservation": 12,
+    "api": 7,
+    "typecheck": "pass",
+    "fixtureBuild": "pass",
+    "fixturePseoPages": 3,
+    "security": {
+      "critical": 0,
+      "high": 0,
+      "moderate": 0,
+      "low": 0
+    },
+    "realCmsBuild": "blocked by production pseo-pages HTTP 403; no fallback"
+  },
+  "productionPseoCount": null,
+  "completeProductionBuildVerified": false,
+  "githubActions": {
+    "observedRun": "https://github.com/futurerotech/HealthyLifestyles/actions/runs/38840030098",
+    "testedHead": "20b66ef1a84c8ed0b7833ed3480b15d1b8b8b020",
+    "installSecurityTypesUnitAndFixtureChecks": "pass",
+    "productionContentGate": "failed on HTTP 403"
+  },
+  "releaseReady": false,
+  "recheckedAt": "2026-10-16T03:03:10.759Z",
+  "cms": {
+    "pullRequest": "https://github.com/futurerotech/healthylifestyles-cms/pull/27",
+    "verifiedHead": "c11472f6a6c4e985f9fa6e195f43fb55f9533994",
+    "verifiedRun": "https://github.com/futurerotech/healthylifestyles-cms/actions/runs/38842924663",
+    "githubActions": "all gates pass on Node 22.23.3; only disposable PostgreSQL used",
+    "unitTests": 101,
+    "restIntegrationTests": 5,
+    "typecheck": "pass",
+    "normalBuildMockDatabase": "pass",
+    "security": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "storagePatch": "remove unused find-node-modules dependency; 120 non-manifest files identical to official plugin 3.91.0; explicit patch identity and integrity verification; S3 SDK operations tested on loopback",
+    "minimalCandidate": {
+      "pullRequest": "https://github.com/futurerotech/healthylifestyles-cms/pull/28",
+      "head": "25fcfe218984ba589bcdf56c825cb82befccbaa6",
+      "githubMainBase": "b508b0dc3e751c276155468ebf55225522d84bbd",
+      "deployedHostingerSha": null,
+      "newMigrations": 0,
+      "localUnitTests": 67,
+      "localTypecheck": "pass",
+      "localNormalBuildWithMockConfiguration": "pass",
+      "ciRun": "https://github.com/futurerotech/healthylifestyles-cms/actions/runs/38843222182",
+      "ciConclusion": "success",
+      "releaseApproval": false,
+      "preExistingRisk": "base remote PostgreSQL TLS disables certificate validation; broader PR corrects it; verify CA and staging before any production approval"
+    }
+  },
+  "productionReadOnlyRecheck": {
+    "capturedAt": "2026-10-16T02:56:24.247Z",
+    "paginatedRequests": 12,
+    "articles": 39,
+    "toolRecords": 70,
+    "toolRoutes": 68,
+    "legacyToolAliases": 2,
+    "pages": 0,
+    "publishedPseoCount": null,
+    "publishedPseoAccess": "pseo-pages: public CMS HTTP 403",
+    "baselineDifferences": [],
+    "articleHeroImages": 39,
+    "articleHeroImagesHttp200": 39,
+    "recoveredFaqEntries": 56,
+    "recoveredFaqCountsMatch": true,
+    "articlesVerifiedByIdSlugTitleUrl": [
+      {
+        "id": "1",
+        "slug": "how-many-calories-to-lose-weight",
+        "title": "How Many Calories Should I Eat to Lose Weight?",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/how-many-calories-to-lose-weight",
+        "publishDate": "2026-04-12T00:00:00.000Z"
+      },
+      {
+        "id": "2",
+        "slug": "how-much-protein-do-i-need",
+        "title": "How Much Protein Do I Really Need?",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/how-much-protein-do-i-need",
+        "publishDate": "2026-03-05T00:00:00.000Z"
+      },
+      {
+        "id": "3",
+        "slug": "healthy-bmi-by-age",
+        "title": "What's a Healthy BMI by Age?",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/healthy-bmi-by-age",
+        "publishDate": "2026-02-18T00:00:00.000Z"
+      },
+      {
+        "id": "4",
+        "slug": "best-time-to-stop-drinking-coffee-for-sleep",
+        "title": "The Best Time to Stop Drinking Coffee for Better Sleep",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/best-time-to-stop-drinking-coffee-for-sleep",
+        "publishDate": "2026-05-02T00:00:00.000Z"
+      },
+      {
+        "id": "5",
+        "slug": "how-to-keep-muscle-while-losing-weight",
+        "title": "How to Keep Muscle While Losing Weight",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/how-to-keep-muscle-while-losing-weight",
+        "publishDate": "2026-04-26T00:00:00.000Z"
+      },
+      {
+        "id": "6",
+        "slug": "due-date-by-conception-date",
+        "title": "Due Date by Conception Date: How It Works",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/due-date-by-conception-date",
+        "publishDate": "2026-03-20T00:00:00.000Z"
+      },
+      {
+        "id": "7",
+        "slug": "intermittent-fasting-for-beginners",
+        "title": "Intermittent Fasting for Beginners: How to Pick a Schedule",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/intermittent-fasting-for-beginners",
+        "publishDate": "2026-05-08T00:00:00.000Z"
+      },
+      {
+        "id": "8",
+        "slug": "sleep-chronotypes-explained",
+        "title": "Sleep Chronotypes: Are You a Lion, Bear, Wolf, or Dolphin?",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/sleep-chronotypes-explained",
+        "publishDate": "2026-05-15T00:00:00.000Z"
+      },
+      {
+        "id": "9",
+        "slug": "how-to-build-a-meal-plan",
+        "title": "How to Build a High-Protein Meal Plan You’ll Actually Follow",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/how-to-build-a-meal-plan",
+        "publishDate": "2026-05-22T00:00:00.000Z"
+      },
+      {
+        "id": "10",
+        "slug": "how-long-does-it-take-to-lose-weight",
+        "title": "How Long Does It Take to Lose Weight? A Realistic Timeline",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/how-long-does-it-take-to-lose-weight",
+        "publishDate": "2026-05-29T00:00:00.000Z"
+      },
+      {
+        "id": "11",
+        "slug": "how-to-calculate-your-macros",
+        "title": "How to Calculate Your Macros for Your Goal",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/how-to-calculate-your-macros",
+        "publishDate": "2026-06-23T00:00:00.000Z"
+      },
+      {
+        "id": "13",
+        "slug": "how-much-water-should-you-drink-a-day",
+        "title": "How Much Water Should You Drink a Day?",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/how-much-water-should-you-drink-a-day",
+        "publishDate": "2026-07-01T12:00:00.000Z"
+      },
+      {
+        "id": "15",
+        "slug": "metabolic-age-calculator-guide",
+        "title": "What Is Metabolic Age and What Does It Say About Your Health?",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/metabolic-age-calculator-guide",
+        "publishDate": "2026-07-03T12:00:00.000Z"
+      },
+      {
+        "id": "16",
+        "slug": "calories-burned-calculator-guide",
+        "title": "How Are Calories Burned Calculated? A Guide to Energy Expenditure",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/calories-burned-calculator-guide",
+        "publishDate": "2026-07-03T12:00:00.000Z"
+      },
+      {
+        "id": "17",
+        "slug": "lean-body-mass-calculator-guide",
+        "title": "What Is Lean Body Mass and Why Does It Matter More Than Weight?",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/lean-body-mass-calculator-guide",
+        "publishDate": "2026-07-03T01:23:25.363Z"
+      },
+      {
+        "id": "19",
+        "slug": "how-to-calculate-calories-in-a-recipe",
+        "title": "How Do You Calculate the Calories in a Homemade Recipe?",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/how-to-calculate-calories-in-a-recipe",
+        "publishDate": "2026-07-07T12:00:00.000Z"
+      },
+      {
+        "id": "20",
+        "slug": "how-many-carbs-on-keto",
+        "title": "How Many Carbs Can You Eat on Keto?",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/how-many-carbs-on-keto",
+        "publishDate": "2026-07-07T12:00:00.000Z"
+      },
+      {
+        "id": "21",
+        "slug": "what-is-an-anti-inflammatory-diet",
+        "title": "What Is an Anti-Inflammatory Diet? Foods to Eat and Limit",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/what-is-an-anti-inflammatory-diet",
+        "publishDate": "2026-07-06T12:00:00.000Z"
+      },
+      {
+        "id": "22",
+        "slug": "how-do-you-know-if-your-gut-is-healthy",
+        "title": "How Do You Know If Your Gut Is Healthy?",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/how-do-you-know-if-your-gut-is-healthy",
+        "publishDate": "2026-07-06T12:00:00.000Z"
+      },
+      {
+        "id": "23",
+        "slug": "how-to-keep-a-food-and-symptom-diary",
+        "title": "How to Keep a Food and Symptom Diary That Finds Your Triggers",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/how-to-keep-a-food-and-symptom-diary",
+        "publishDate": "2026-07-07T12:00:00.000Z"
+      },
+      {
+        "id": "24",
+        "slug": "hidden-calories-in-alcohol-and-weight-loss",
+        "title": "Alcohol Calorie Calculator: Impact on Weight Loss",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/hidden-calories-in-alcohol-and-weight-loss",
+        "publishDate": "2026-07-26T12:00:00.000Z"
+      },
+      {
+        "id": "25",
+        "slug": "alcohol-units-calculator",
+        "title": "How Do You Calculate Alcohol Units in Your Drinks",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/alcohol-units-calculator",
+        "publishDate": "2026-07-26T12:00:00.000Z"
+      },
+      {
+        "id": "26",
+        "slug": "what-do-your-blood-pressure-numbers-mean",
+        "title": "What Do Your Blood Pressure Numbers Mean? (Age Guide)",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/what-do-your-blood-pressure-numbers-mean",
+        "publishDate": "2026-07-26T12:00:00.000Z"
+      },
+      {
+        "id": "27",
+        "slug": "how-to-read-your-hrv-trend",
+        "title": "How to Read Your HRV Trend Without Overreacting",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/how-to-read-your-hrv-trend",
+        "publishDate": "2026-10-08T12:00:00.000Z"
+      },
+      {
+        "id": "28",
+        "slug": "can-sun-exposure-tell-you-if-you-need-vitamin-d",
+        "title": "Can Sun Exposure Tell You If You Need Vitamin D?",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/can-sun-exposure-tell-you-if-you-need-vitamin-d",
+        "publishDate": "2026-10-09T12:00:00.000Z"
+      },
+      {
+        "id": "29",
+        "slug": "what-calorie-deficit-calculator-can-tell-you",
+        "title": "What Your Calorie Deficit Calculator Can—and Cannot—Tell You",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/what-calorie-deficit-calculator-can-tell-you",
+        "publishDate": "2026-10-10T12:00:00.000Z"
+      },
+      {
+        "id": "30",
+        "slug": "body-fat-calculator-what-the-navy-method-can-tell-you",
+        "title": "Body Fat Calculator: What a Tape Measure Can Tell You",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/body-fat-calculator-what-the-navy-method-can-tell-you",
+        "publishDate": "2026-10-10T12:00:00.000Z"
+      },
+      {
+        "id": "31",
+        "slug": "weight-loss-percentage-what-the-number-really-means",
+        "title": "Weight Loss Percentage: What the Number Really Means",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/weight-loss-percentage-what-the-number-really-means",
+        "publishDate": "2026-10-10T12:00:00.000Z"
+      },
+      {
+        "id": "32",
+        "slug": "waist-to-hip-ratio-how-to-measure-it-and-what-it-means",
+        "title": "Waist-to-Hip Ratio: How to Measure It and What It Means",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/waist-to-hip-ratio-how-to-measure-it-and-what-it-means",
+        "publishDate": "2026-10-10T12:00:00.000Z"
+      },
+      {
+        "id": "37",
+        "slug": "healthy-waist-to-height-ratio",
+        "title": "What Is a Healthy Waist-to-Height Ratio?",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/healthy-waist-to-height-ratio",
+        "publishDate": "2026-10-15T12:00:00.000Z"
+      },
+      {
+        "id": "38",
+        "slug": "ideal-weight-for-height-bmi-devine-guide",
+        "title": "What Is Your Ideal Weight for Your Height?",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/ideal-weight-for-height-bmi-devine-guide",
+        "publishDate": "2026-10-15T12:00:00.000Z"
+      },
+      {
+        "id": "39",
+        "slug": "what-is-bmr-calculator-daily-calorie-needs",
+        "title": "What Is BMR and How Many Calories Do You Burn at Rest?",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/what-is-bmr-calculator-daily-calorie-needs",
+        "publishDate": "2026-10-15T12:00:00.000Z"
+      },
+      {
+        "id": "40",
+        "slug": "flexibility-mobility-score-at-home-tests-guide",
+        "title": "What Does Your Flexibility & Mobility Score Mean?",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/flexibility-mobility-score-at-home-tests-guide",
+        "publishDate": "2026-10-15T12:00:00.000Z"
+      },
+      {
+        "id": "41",
+        "slug": "what-does-your-push-up-test-score-mean",
+        "title": "What Does Your Push-Up Test Score Mean?",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/what-does-your-push-up-test-score-mean",
+        "publishDate": "2026-10-15T12:00:00.000Z"
+      },
+      {
+        "id": "42",
+        "slug": "how-long-should-you-recover-between-workouts",
+        "title": "How Long Should You Recover Between Workouts?",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/how-long-should-you-recover-between-workouts",
+        "publishDate": "2026-10-15T12:00:00.000Z"
+      },
+      {
+        "id": "43",
+        "slug": "what-is-ffmi-fat-free-mass-index-guide",
+        "title": "What Is FFMI and What Does Your Score Mean?",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/what-is-ffmi-fat-free-mass-index-guide",
+        "publishDate": "2026-10-15T12:00:00.000Z"
+      },
+      {
+        "id": "44",
+        "slug": "what-is-one-rep-max-how-to-calculate-it",
+        "title": "What Is Your One-Rep Max and How Do You Calculate It?",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/what-is-one-rep-max-how-to-calculate-it",
+        "publishDate": "2026-10-15T12:00:00.000Z"
+      },
+      {
+        "id": "45",
+        "slug": "how-many-calories-burn-walking-10000-steps",
+        "title": "How Many Calories Do You Burn Walking 10,000 Steps?",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/how-many-calories-burn-walking-10000-steps",
+        "publishDate": "2026-10-15T12:00:00.000Z"
+      },
+      {
+        "id": "46",
+        "slug": "what-does-your-vo2-max-score-mean",
+        "title": "What Does Your VO2 Max Score Mean?",
+        "url": "https://www.healthylifesstyles.com/wellness-hub/what-does-your-vo2-max-score-mean",
+        "publishDate": "2026-10-15T12:00:00.000Z"
+      }
+    ],
+    "completeProductionBuildVerified": false,
+    "releaseReady": false
+  },
+  "releaseBlockers": [
+    "Confirm actual deployed Hostinger SHA; GitHub main is only the candidate base",
+    "Review and rehearse backup/rollback, TLS CA validation and isolated storage smoke test before an explicitly approved CMS-only release",
+    "Production pseo-pages still returns 403; its inventory is unknown and must never be treated as empty",
+    "After approved CMS-only release, verify all published pSEO routes/metadata and pass full real-CMS Astro preservation preflight before separate Vercel approval"
+  ]
+}

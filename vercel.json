@@ -1,6 +1,14 @@
-
 {
+  "git": { "deploymentEnabled": { "codex/**": false } },
   "headers": [
+    {
+      "source": "/content-manifest.json",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" },
+        { "key": "CDN-Cache-Control", "value": "no-store" },
+        { "key": "X-Robots-Tag", "value": "noindex" }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [
@@ -58,7 +66,7 @@
       ]
     },
     {
-      "source": "/((?!api/|_astro/|fonts/|og/).*)",
+      "source": "/((?!api/|_astro/|fonts/|og/|content-manifest\\.json$).*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -87,6 +95,33 @@
           "value": "upgrade-insecure-requests; frame-ancestors *"
         }
       ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/tools/body-fat-percentage-calculator",
+      "destination": "/tools/body-fat-calculator",
+      "permanent": true
+    },
+    {
+      "source": "/tools/how-much-protein-do-i-need",
+      "destination": "/tools/protein-intake-calculator",
+      "permanent": true
+    },
+    {
+      "source": "/articles/how-are-calories-burned-calculated-a-guide-to-energy-expenditure",
+      "destination": "/wellness-hub/calories-burned-calculator-guide",
+      "permanent": true
+    },
+    {
+      "source": "/articles/how-many-calories-should-i-eat-to-lose-weight",
+      "destination": "/wellness-hub/how-many-calories-to-lose-weight",
+      "permanent": true
+    },
+    {
+      "source": "/articles/understanding-basal-metabolic-rate-bmr",
+      "destination": "/tools/bmr-calculator",
+      "permanent": true
     }
   ]
 }

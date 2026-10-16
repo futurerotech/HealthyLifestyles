@@ -2,8 +2,8 @@
 /**
  * The ONE and ONLY AdSense loader for the whole site.
  *
- * Loads adsbygoogle.js once after explicit consent, using the standard async
- * Google integration. Every ad UNIT comes
+ * Loads adsbygoogle.js once after explicit acceptance, using the standard
+ * async main-thread Google integration (not Partytown). Every ad UNIT comes
  * from the <AdSlot> component, driven by the Ad Management global — no ad code
  * lives anywhere else. Also wires the sticky-footer ad's close button.
  */
@@ -27,6 +27,7 @@ const enabled = masterOn && !!clientId && /^ca-pub-\d+$/.test(clientId);
       var s = document.createElement('script');
       s.async = true;
       s.crossOrigin = 'anonymous';
+      s.fetchPriority = 'low';
       s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + clientId;
       document.head.appendChild(s);
     }

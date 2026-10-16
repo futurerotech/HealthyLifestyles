@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import SEO from '../components/SEO.astro';
+import type { SeoMetadata } from '../lib/seo';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import CookieConsent from '../components/CookieConsent.astro';
@@ -10,6 +11,7 @@ import AdSlot from '../components/AdSlot.astro';
 import AdsLoader from '../components/AdsLoader.astro';
 
 interface Props {
+  seo?: SeoMetadata;
   title: string;
   description: string;
   image?: string;
@@ -34,6 +36,7 @@ const {
   image,
   type,
   noindex,
+  seo,
   jsonLd,
   mainClass,
   noHeaderAd,
@@ -101,6 +104,7 @@ const dir = lang === 'ar' || lang.startsWith('ar-') ? 'rtl' : 'ltr';
       image={image}
       type={type}
       noindex={noindex}
+      seo={seo}
       jsonLd={jsonLd}
       alternates={alternates}
       ogLocale={ogLocale}
@@ -138,8 +142,12 @@ const dir = lang === 'ar' || lang.startsWith('ar-') ? 'rtl' : 'ltr';
         // Two rAFs guarantee layout has been computed before AdSense measures width.
         requestAnimationFrame(function () {
           requestAnimationFrame(function () {
-            if (window.HLS_CONSENT !== 'accept' || document.prerendering) return;
+            if (window.HLS_CONSENT !== 'accept' || document.prerendering) {
+              el.removeAttribute('data-ad-observed');
+              return;
+            }
             if (el.getBoundingClientRect().width === 0) {
+              el.removeAttribute('data-ad-observed');
               console.warn('[AdSense] slot still 0px wide after paint — skipped', el);
               return;
             }

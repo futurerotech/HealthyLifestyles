@@ -14,9 +14,9 @@ import {
   type MacroTargets,
   type PlanInputs,
   type PlannedDay,
-  type MealPlan,
 } from '../lib/mealplan';
 import { MEAL_PLAN } from '../consts';
+import { normalizeAiMealPlan } from '../lib/ai-mealplan';
 
 type Status = 'idle' | 'ok' | 'below-floor' | 'no-pool';
 
@@ -126,17 +126,17 @@ export default function MealPlanGenerator() {
       });
       if (!res.ok) throw new Error('bad response');
       const data = (await res.json()) as { days?: { meals?: any[] }[] };
-      const plan = normalizeAi(data, inputs);
+      const plan = normalizeAiMealPlan(data, inputs);
       if (!plan) throw new Error('invalid plan');
       setDays(plan.days);
       setPlanTargets(inputs.targets);
       setInputsUsed(inputs);
       setStatus('ok');
-      setAiNote('Generated with AI and checked against your macro targets.');
+      setAiNote('Generated with AI and checked against your macro targets. Always check ingredient labels; this is not an allergy-safety guarantee.');
     } catch {
       seedRef.current += 1;
       runLocal(inputs, seedRef.current);
-      setAiNote('AI generation was unavailable, so we built your plan from our recipe library instead.');
+      setAiNote('The AI plan was unavailable or could not be validated against your preferences. We used our tagged recipe library instead. Always check ingredient labels and cross-contact warnings.');
     } finally {
       setBusy(false);
     }
@@ -436,34 +436,4 @@ export default function MealPlanGenerator() {
     </div>
   );
 
-  // ---- AI response normalizer (defensive; validates macros) ----
-  function normalizeAi(data: { days?: { meals?: any[] }[] }, inputs: PlanInputs): MealPlan | null {
-    if (!data || !Array.isArray(data.days) || data.days.length < 1) return null;
-    const out: PlannedDay[] = [];
-    for (const d of data.days.slice(0, 7)) {
-      if (!Array.isArray(d.meals) || !d.meals.length) return null;
-      const meals = d.meals.map((m: any) => ({
-        type: (['breakfast', 'lunch', 'dinner', 'snack'].includes(m.type) ? m.type : 'lunch'),
-        recipeId: 'ai-' + Math.abs(hash(String(m.name || ''))),
-        name: String(m.name || 'Meal'),
-        servings: Number(m.servings) > 0 ? Number(m.servings) : 1,
-        kcal: Math.round(Number(m.kcal ?? m.calories) || 0),
-        protein: Number(m.protein) || 0,
-        carbs: Number(m.carbs) || 0,
-        fat: Number(m.fat) || 0,
-        ingredients: Array.isArray(m.ingredients) ? m.ingredients.map(String) : [],
-      }));
-      out.push(recomputeDay(meals));
-    }
-    // Validate: at least most days must land within tolerance, else reject.
-    const okDays = out.filter((day) => withinTolerance(day, inputs.targets)).length;
-    if (okDays < Math.ceil(out.length / 2)) return null;
-    return { days: out, targets: inputs.targets, allWithinTolerance: okDays === out.length };
-  }
-
-  function hash(s: string): number {
-    let h = 0;
-    for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
-    return h;
-  }
 }

@@ -7,7 +7,7 @@
  */
 import type { APIRoute } from 'astro';
 import sharp from 'sharp';
-import { getLiveTools, getTool } from '../../../data/tools';
+import { getLiveTools, getTool } from '../../../lib/cms';
 import { ICON_PATHS } from '../../../lib/icon-paths';
 import { GRADIENTS, DEFAULT_GRADIENT } from '../../../lib/gradients';
 import { SITE } from '../../../consts';
@@ -109,12 +109,12 @@ function buildSvg(title: string, desc: string, icon: string, gradient: string): 
 </svg>`;
 }
 
-export function getStaticPaths() {
-  return getLiveTools().map((t) => ({ params: { slug: t.slug } }));
+export async function getStaticPaths() {
+  return (await getLiveTools()).map((t) => ({ params: { slug: t.slug } }));
 }
 
 export const GET: APIRoute = async ({ params }) => {
-  const tool = getTool(String(params.slug));
+  const tool = await getTool(String(params.slug));
   if (!tool) return new Response('Not found', { status: 404 });
 
   const svg = buildSvg(tool.title, tool.blurb, tool.icon ?? 'flask', tool.gradient ?? 'blue');

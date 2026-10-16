@@ -1,8 +1,10 @@
 /**
  * Authors & reviewers for E-E-A-T bylines and /author/[slug] pages.
  *
- * HONESTY NOTE: these are organizational entities, not invented individuals.
- * Add a named person only after verifying their identity and credentials.
+ * HONESTY NOTE: these are real organizational entities, not invented individuals.
+ * We deliberately do NOT fabricate named experts, credentials, or stock-photo
+ * faces. Add a named person only when their identity, credentials, and profile
+ * details are verified, then assign them to the relevant content.
  */
 import { SOCIAL_FOLLOW, SOCIAL_NETWORKS } from '../consts';
 

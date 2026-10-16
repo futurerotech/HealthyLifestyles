@@ -4,12 +4,17 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=22.22.0"
   },
   "scripts": {
     "dev": "astro dev",
-    "prebuild": "node scripts/gen-icon-sprite.ts",
+    "security:check": "npm audit --audit-level=high",
+    "prebuild": "npm run security:check && node scripts/gen-icon-sprite.ts",
     "build": "astro build",
+    "postbuild": "npm run content:preflight && node scripts/seo/orphan-check.ts && node scripts/seo/metadata-audit.ts && node scripts/seo/date-integrity.ts && node scripts/seo/empty-shell-detector.ts && node scripts/seo/validate-jsonld.ts",
+    "content:preflight": "node scripts/content/preflight.mjs",
+    "content:audit": "node scripts/content/audit-production.mjs",
+    "test:content": "node --test scripts/content/__tests__/preservation.test.mjs",
     "preview": "astro preview",
     "gen:assets": "node scripts/gen-assets.mjs",
     "seo:cwv": "node scripts/seo/cwv-crawl.ts",
@@ -19,29 +24,31 @@
     "seo:meta": "node scripts/seo/metadata-audit.ts",
     "seo:budgets": "node scripts/seo/size-budget.ts",
     "test:feed": "node --test scripts/seo/__tests__/feed-date-integrity.test.ts",
-    "test:seo": "node --test scripts/seo/__tests__/feed-date-integrity.test.ts scripts/seo/__tests__/i18n.test.ts scripts/seo/__tests__/empty-shell.test.ts scripts/seo/__tests__/article-schema.test.ts scripts/seo/__tests__/html-scan.test.ts scripts/seo/__tests__/vitamin-d-sun-safety.test.mjs",
+    "test:cms-build": "node scripts/seo/verify-cms-build.mjs",
+    "test:seo": "node --test scripts/seo/__tests__/feed-date-integrity.test.ts scripts/seo/__tests__/i18n.test.ts scripts/seo/__tests__/empty-shell.test.ts scripts/seo/__tests__/article-schema.test.ts scripts/seo/__tests__/html-scan.test.ts scripts/seo/__tests__/vitamin-d-sun-safety.test.mjs scripts/seo/__tests__/truthful-medical-review.test.mjs scripts/seo/__tests__/site-contract.test.ts scripts/seo/__tests__/cms-snapshot.test.ts scripts/seo/__tests__/legacy-redirects.test.ts",
     "seo:jsonld": "node scripts/seo/validate-jsonld.ts",
     "seo:richresults": "node scripts/seo/rich-results-check.ts",
     "seo:shacl": "node scripts/seo/validate-shacl.ts",
     "test:degradation": "node --test scripts/seo/__tests__/degradation.test.ts",
-    "astro": "astro"
+    "astro": "astro",
+    "test:api": "node --test tests/subscription-api.test.ts tests/result-image.test.mjs"
   },
   "dependencies": {
-    "@astrojs/preact": "^4.1.0",
+    "@astrojs/preact": "^6.1.0",
     "@astrojs/rss": "^4.0.18",
     "@astrojs/sitemap": "^3.6.0",
-    "@astrojs/vercel": "^8.2.11",
+    "@astrojs/vercel": "^11.0.15",
     "@builder.io/partytown": "^0.10.3",
     "@fontsource-variable/inter": "^5.2.6",
     "@fontsource-variable/plus-jakarta-sans": "^5.2.6",
-    "astro": "^5.14.0",
+    "astro": "^7.4.0",
     "jspdf": "^4.2.1",
     "preact": "^10.27.2",
-    "sharp": "^0.33.0"
+    "sharp": "^0.35.5"
   },
   "optionalDependencies": {
-    "@img/sharp-linux-x64": "^0.33.0",
-    "@img/sharp-win32-x64": "^0.33.0"
+    "@img/sharp-linux-x64": "^0.35.5",
+    "@img/sharp-win32-x64": "^0.35.5"
   },
   "devDependencies": {
     "@types/jsonld": "1.5.15",
@@ -50,6 +57,13 @@
     "jsonld": "9.0.0",
     "lighthouse": "^13.4.0",
     "n3": "2.1.1",
-    "rdf-validate-shacl": "0.6.5"
+    "rdf-validate-shacl": "0.6.5",
+    "typescript": "^5.9.3",
+    "ws": "^8.22.0"
+  },
+  "overrides": {
+    "@vercel/routing-utils": {
+      "path-to-regexp": "^6.3.0"
+    }
   }
 }

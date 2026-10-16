@@ -6,9 +6,9 @@
  * pages can move from `import { TOOLS }` to `await getTools()` with no
  * downstream changes.
  *
- * If the CMS is unreachable, misconfigured, or returns nothing, every getter
- * falls back to the local `src/data/*` files. This keeps the site building even
- * with no CMS running — the CMS is an enhancement, not a hard dependency.
+ * Production requires complete published CMS responses. Empty collections are
+ * authoritative; failed reads never resurrect stale local content. Local data
+ * is available only for explicit offline/development builds.
  *
  * Configure with CMS_URL (defaults to http://localhost:3000). Set CMS_DISABLE=1
  * to force local data (useful for CI / offline builds).
@@ -19,14 +19,27 @@ import { CATEGORIES as LOCAL_CATEGORIES, type Category } from '../data/categorie
 import { ARTICLES as LOCAL_ARTICLES, ARTICLE_CATEGORIES as LOCAL_ARTICLE_CATEGORIES, ARTICLES_PER_PAGE, type Article, type ArticleCategory, type ArticleBlock } from '../data/articles';
 import { AUTHORS as LOCAL_AUTHORS, resolveAuthor as localResolveAuthor, type Author } from '../data/authors';
 import { P7_FIXTURE_ARTICLE } from '../data/p7-fixture';
+import { canonicalToolSlug, SUPPORTED_TOOL_SLUGS, TOOL_ALIASES, publicContentPath, SITE_ORIGIN, assertUniquePublicPaths } from './site-routes';
+import { resolveCanonical } from './seo';
+import type { SeoMetadata } from './seo';
+import { mapToolContent } from './cms-content';
+import { appendContentPage, documentProof } from './content-integrity.mjs';
 
 // P15-P7 — off by default; set P7_FIXTURE=1 ONLY for the render-proof build.
 const P7_FIXTURE_ON = process.env.P7_FIXTURE === '1';
 import { SITE as LOCAL_SITE, NAV_LINKS as LOCAL_NAV_LINKS, FOOTER_LEGAL as LOCAL_FOOTER_LEGAL, FOOTER_COMPANY as LOCAL_FOOTER_COMPANY, SOCIAL_FOLLOW as LOCAL_SOCIAL_FOLLOW, SOCIAL_NETWORKS as LOCAL_SOCIAL_NETWORKS, ANALYTICS as LOCAL_ANALYTICS, CONTACT as LOCAL_CONTACT } from '../consts';
 
-const CMS_URL = (import.meta.env.CMS_URL as string) || 'http://localhost:3000';
-const DISABLED = (import.meta.env.CMS_DISABLE as string) === '1';
-const TIMEOUT_MS = 4000;
+const CMS_URL = (process.env.CMS_URL || (import.meta.env.CMS_URL as string) || 'http://localhost:3000').replace(/\/$/, '');
+const DISABLED = (process.env.CMS_DISABLE ?? (import.meta.env.CMS_DISABLE as string)) === '1';
+const TIMEOUT_MS = 15_000;
+declare const __CMS_BUILD_STARTED_AT__: string;
+const buildStartedAt = typeof __CMS_BUILD_STARTED_AT__ === 'string' ? __CMS_BUILD_STARTED_AT__ : new Date().toISOString();
+const requests = new Map<string, Promise<unknown>>();
+const requestFailures = new Map<string, string>();
+const revisions = new Map<string, { collection: string; docId: string; updatedAt: string; path: string | null; noIndex: boolean; proof?: ReturnType<typeof documentProof> }>();
+const coveredCollections = new Set<string>();
+const fallbacksUsed = new Set<string>();
+declare const __CMS_REDIRECT_SNAPSHOT__: { id: string | number; updatedAt: string }[] | null;
 
 /** Payload REST list envelope. */
 interface PayloadList<T> {
@@ -37,18 +50,58 @@ interface PayloadList<T> {
 /** Fetch JSON from the CMS with a short timeout. Returns null on any failure. */
 async function cmsFetch<T>(pathAndQuery: string): Promise<T | null> {
   if (DISABLED) return null;
-  try {
+  if (requests.has(pathAndQuery)) return requests.get(pathAndQuery) as Promise<T | null>;
+  const request = (async () => { try {
     const res = await fetch(`${CMS_URL}${pathAndQuery}`, {
       headers: { Accept: 'application/json' },
       // Always pull fresh CMS data — never serve a cached ad/content config.
       cache: 'no-store',
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
-    if (!res.ok) return null;
+    if (!res.ok) { requestFailures.set(pathAndQuery, `HTTP ${res.status}`); return null; }
+    requestFailures.delete(pathAndQuery);
     return (await res.json()) as T;
-  } catch {
+  } catch (error) {
+    requestFailures.set(pathAndQuery, error instanceof Error ? error.name : 'transport failure');
     return null;
+  } })();
+  requests.set(pathAndQuery, request);
+  const result = await request;
+  // Retry failed transports; successful reads, including empty lists, are immutable for this build.
+  if (result === null) requests.delete(pathAndQuery);
+  return result;
+}
+
+function recordRevision(collection: string, value: unknown): void {
+  const doc = value as { id?: unknown; updatedAt?: string; seo?: SeoMetadata; slug?: string };
+  const id = doc?.id ?? (collection.startsWith('global:') ? collection : undefined);
+  if (id == null || !doc.updatedAt) return;
+  const path = collection === 'tools' && TOOL_ALIASES[doc.slug || ''] ? null : publicContentPath(collection, doc);
+  revisions.set(`${collection}:${id}`, {
+    collection, docId: String(id), updatedAt: doc.updatedAt,
+    ...(['articles', 'tools', 'pages', 'pseo-pages'].includes(collection) ? { proof: documentProof(collection, doc) } : {}),
+    path, noIndex: doc.seo?.noIndex === true || !!(path && doc.seo?.canonical && resolveCanonical(doc.seo.canonical, path, SITE_ORIGIN) !== `${SITE_ORIGIN}${path}`),
+  });
+}
+
+/** Never silently truncate a collection or return a half-fetched snapshot. */
+async function cmsList<T>(path: string): Promise<PayloadList<T> | null> {
+  const url = new URL(path, CMS_URL);
+  const state = { docs: [] as T[], total: null as number | null, ids: new Set<string>() };
+  for (let page = 1; ; page++) {
+    url.searchParams.set('page', String(page));
+    const data = await cmsFetch<PayloadList<T>>(`${url.pathname}${url.search}`);
+    if (!data) return null;
+    if (appendContentPage(state, data, url.pathname)) break;
   }
+  const collection = url.pathname.split('/')[2];
+  // Translated reads must never overwrite the authoritative English revision
+  // receipt for the same Payload ID (fallback-locale=none may contain nulls).
+  if (!url.searchParams.has('locale') || url.searchParams.get('locale') === 'en') {
+    coveredCollections.add(collection);
+    state.docs.forEach((doc) => recordRevision(collection, doc));
+  }
+  return { docs: state.docs, totalDocs: state.total! };
 }
 
 function str(v: unknown): string {
@@ -64,6 +117,24 @@ function absMediaUrl(v: unknown): string {
   const s = str(v);
   if (!s) return '';
   return /^https?:\/\//i.test(s) ? s : `${CMS_URL}${s.startsWith('/') ? '' : '/'}${s}`;
+}
+
+function normalizeMediaTree(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(normalizeMediaTree);
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(Object.entries(value).map(([key, item]) => [key,
+    key === 'url' && typeof item === 'string' && /^\/(?:api\/media|media)\//.test(item) ? absMediaUrl(item) : normalizeMediaTree(item),
+  ]));
+}
+
+type CmsSeo = Omit<SeoMetadata, 'ogImage' | 'twitterImage'> & {
+  ogImage?: { url?: string } | string | null;
+  twitterImage?: { url?: string } | string | null;
+};
+
+function mapSeo(value?: CmsSeo): SeoMetadata {
+  const image = (v: CmsSeo['ogImage']) => absMediaUrl(typeof v === 'string' ? v : v?.url) || undefined;
+  return { ...value, ogImage: image(value?.ogImage), twitterImage: image(value?.twitterImage) };
 }
 
 function pickSlug(rel: unknown): string {
@@ -134,6 +205,7 @@ export interface SiteConsts {
   SOCIAL_FOLLOW: { network: string; href: string }[];
   SOCIAL_NETWORKS: Record<string, { label: string; color: string }>;
   ANALYTICS: { ga4Id: string; searchConsoleVerification: string };
+
   CONTACT: { email: string };
 }
 
@@ -147,13 +219,16 @@ function mapSocialNetwork(
 }
 
 async function getCmsSettings(): Promise<CmsSettings | null> {
-  return cmsFetch<CmsSettings>('/api/globals/settings?depth=0');
+  const data = await cmsFetch<CmsSettings>('/api/globals/settings?depth=0');
+  if (data) { coveredCollections.add('global:settings'); recordRevision('global:settings', data); }
+  return data;
 }
 
 /** Consolidated site constants from CMS (settings global) with local fallback. */
 export async function getSiteConsts(): Promise<SiteConsts> {
   const s = await getCmsSettings();
   if (!s) {
+    assertLocalFallbackAllowed('settings');
     return {
       SITE: LOCAL_SITE as unknown as SiteData,
       NAV_LINKS: [...LOCAL_NAV_LINKS] as NavLink[],
@@ -162,6 +237,7 @@ export async function getSiteConsts(): Promise<SiteConsts> {
       SOCIAL_FOLLOW: [...LOCAL_SOCIAL_FOLLOW].map((s) => ({ network: s.network, href: s.href })),
       SOCIAL_NETWORKS: { ...LOCAL_SOCIAL_NETWORKS } as Record<string, { label: string; color: string }>,
       ANALYTICS: { ...LOCAL_ANALYTICS } as { ga4Id: string; searchConsoleVerification: string },
+
       CONTACT: { ...LOCAL_CONTACT } as { email: string },
     };
   }
@@ -194,6 +270,7 @@ export async function getSiteConsts(): Promise<SiteConsts> {
       ga4Id: s.ga4Id || LOCAL_ANALYTICS.ga4Id,
       searchConsoleVerification: s.searchConsoleId || LOCAL_ANALYTICS.searchConsoleVerification,
     },
+
     CONTACT: {
       email: s.contactEmail || LOCAL_CONTACT.email,
     },
@@ -203,6 +280,11 @@ export async function getSiteConsts(): Promise<SiteConsts> {
 /* ────────────────────────────────────────────  Tools ── */
 
 interface CmsTool {
+  whatItIs?: unknown;
+  howCalculated?: unknown;
+  howToRead?: unknown;
+  faq?: { question?: string; answer?: string }[];
+  sources?: { title?: string; url?: string }[];
   id?: string;
   slug?: string;
   name?: string;
@@ -215,12 +297,15 @@ interface CmsTool {
   related?: unknown[];
   riskLevel?: string;
   semanticEntities?: { term?: string; url?: string }[];
-  seo?: { metaDescription?: string; keywords?: string[] };
+  seo?: CmsSeo & { keywords?: string[] };
 }
 
 function mapTool(t: CmsTool): Tool {
   return {
-    slug: str(t.slug),
+    cmsId: t.id == null ? undefined : String(t.id),
+    slug: canonicalToolSlug(str(t.slug)),
+    seo: mapSeo(t.seo),
+    cmsContent: mapToolContent(t),
     title: str(t.name),
     blurb: str(t.seo?.metaDescription),
     category: pickSlug(t.category),
@@ -228,7 +313,7 @@ function mapTool(t: CmsTool): Tool {
     icon: str(t.icon) || undefined,
     gradient: str(t.gradient) || undefined,
     popular: Boolean(t.featured),
-    related: Array.isArray(t.related) ? t.related.map(pickSlug).filter(Boolean) : undefined,
+    related: Array.isArray(t.related) ? t.related.map(pickSlug).map(canonicalToolSlug).filter(Boolean) : undefined,
     live: t.enabled !== false,
     riskLevel: t.riskLevel === 'high' || t.riskLevel === 'medium' ? t.riskLevel : 'low',
     semanticEntities: (t.semanticEntities || [])
@@ -238,24 +323,17 @@ function mapTool(t: CmsTool): Tool {
 }
 
 /**
- * P16-J — production fallback prohibition. LOCAL_* content is a development/CI
- * convenience ONLY. A production deploy that silently ships stale hardcoded
- * content instead of the CMS would hide a data-loss outage from every gate —
- * so on Vercel production builds a CMS transport failure FAILS THE BUILD
- * loudly instead. Escape hatch (deliberate, logged decision only):
- * ALLOW_LOCAL_CONTENT_FALLBACK=true.
+ * Local datasets require an explicit offline development choice. A configured
+ * CMS failure must fail on local builds too, independent of Vercel flags.
  */
 function assertLocalFallbackAllowed(what: string): void {
-  const isProdDeploy = process.env.VERCEL_ENV === 'production';
-  const explicitlyAllowed = process.env.ALLOW_LOCAL_CONTENT_FALLBACK === 'true';
-  if (isProdDeploy && !explicitlyAllowed) {
+  if (!DISABLED || process.env.VERCEL_ENV === 'production') {
     throw new Error(
-      `[CMS] ${what}: CMS unreachable during a PRODUCTION build. Refusing to ` +
-        `silently ship LOCAL fallback content (P16-J). Fix the CMS/CMS_URL, or set ` +
-        `ALLOW_LOCAL_CONTENT_FALLBACK=true to consciously override.`,
+      `[CMS] ${what}: CMS unreachable. Refusing stale LOCAL fallback content. ` +
+        `Fix CMS connectivity; CMS_DISABLE=1 is only for explicit offline diagnostics and cannot pass release preflight.`,
     );
   }
-  console.error(`[CMS] ${what}: using LOCAL fallback content (allowed outside production deploys).`);
+  fallbacksUsed.add(what);
 }
 
 /**
@@ -269,11 +347,17 @@ let _toolsPromise: Promise<Tool[]> | null = null;
 export function getTools(): Promise<Tool[]> {
   if (!_toolsPromise) {
     _toolsPromise = (async () => {
-      const data = await cmsFetch<PayloadList<CmsTool>>(
-        '/api/tools?where[enabled][equals]=true&limit=300&depth=1&sort=sortOrder',
+      const data = await cmsList<CmsTool>(
+        '/api/tools?where[enabled][equals]=true&where[_status][equals]=published&limit=100&depth=2&sort=sortOrder,id&draft=false',
       );
-      if (data && Array.isArray(data.docs) && data.docs.length > 0) {
-        return data.docs.map(mapTool).filter((t) => t.slug && t.title);
+      if (data) {
+        // Alias records are historical redirects, never alternate content sources.
+        // Otherwise an enabled alias would resurrect its disabled canonical tool.
+        for (const doc of data.docs) if (!doc.slug || !doc.name) throw new Error(`[CMS] Invalid published tool ${doc.id}; cannot omit it silently.`);
+        const tools = data.docs.filter((t) => !TOOL_ALIASES[str(t.slug)]).map(mapTool);
+        const unsupported = tools.filter((t) => !SUPPORTED_TOOL_SLUGS.has(t.slug));
+        if (unsupported.length) throw new Error(`[CMS] Published tools have no frontend implementation: ${unsupported.map((t) => t.slug).join(', ')}. Implement them before publishing.`);
+        return tools;
       }
       assertLocalFallbackAllowed('getTools');
       return LOCAL_TOOLS;
@@ -283,26 +367,19 @@ export function getTools(): Promise<Tool[]> {
 }
 
 export async function getPopularTools(limit = 6): Promise<Tool[]> {
-  const data = await cmsFetch<PayloadList<CmsTool>>(
-    `/api/tools?where[enabled][equals]=true&where[featured][equals]=true&limit=${limit}&depth=1&sort=sortOrder`,
-  );
-  if (data && Array.isArray(data.docs) && data.docs.length > 0) {
-    return data.docs.map(mapTool).filter((t) => t.slug && t.title);
-  }
-  return localPopularTools(limit);
+  return (await getTools()).filter((t) => t.live && t.popular).slice(0, limit);
 }
 
 export async function getToolsByCategory(catSlug: string): Promise<Tool[]> {
   const all = await getTools();
   const filtered = all.filter((t) => t.category === catSlug);
-  if (filtered.length > 0) return filtered;
-  return localToolsByCat(catSlug);
+  return filtered;
 }
 
 export async function getRelatedTools(slug: string, limit = 4): Promise<Tool[]> {
   const all = await getTools();
   const tool = all.find((t) => t.slug === slug);
-  if (!tool) return localRelatedTools(slug, limit);
+  if (!tool) return [];
   const out: Tool[] = [];
   const push = (t?: Tool) => { if (t && t.live && t.slug !== slug && !out.includes(t)) out.push(t); };
   (tool.related ?? []).forEach((s) => push(all.find((t) => t.slug === s)));
@@ -319,12 +396,13 @@ export async function getLiveTools(): Promise<Tool[]> {
 
 export async function getTool(slug: string): Promise<Tool | undefined> {
   const all = await getTools();
-  return all.find((t) => t.slug === slug);
+  return all.find((t) => t.slug === canonicalToolSlug(slug));
 }
 
 /* ────────────────────────────────────────────  Categories (tool) ── */
 
 interface CmsCategory {
+  seo?: CmsSeo;
   slug?: string;
   name?: string;
   description?: string;
@@ -344,16 +422,18 @@ function mapCategory(c: CmsCategory): Category {
     icon: str(c.icon) || 'leaf',
     accent: str(c.accent) || color,
     color,
+    seo: mapSeo(c.seo),
   };
 }
 
 export async function getCategories(): Promise<Category[]> {
-  const data = await cmsFetch<PayloadList<CmsCategory>>(
-    '/api/categories?where[kind][equals]=tool&limit=50&depth=0&sort=order',
+  const data = await cmsList<CmsCategory>(
+    '/api/categories?where[kind][equals]=tool&limit=100&depth=1&sort=order',
   );
-  if (data && Array.isArray(data.docs) && data.docs.length > 0) {
+  if (data) {
     return data.docs.map(mapCategory).filter((c) => c.id && c.name);
   }
+  assertLocalFallbackAllowed('categories');
   return LOCAL_CATEGORIES;
 }
 
@@ -365,6 +445,7 @@ export async function getCategory(slug: string): Promise<Category | undefined> {
 /* ────────────────────────────────────────────  Article Categories ── */
 
 interface CmsArticleCategory {
+  seo?: CmsSeo;
   slug?: string;
   name?: string;
   description?: string;
@@ -383,21 +464,15 @@ function mapArticleCategory(c: CmsArticleCategory): ArticleCategory {
     blurb: str(c.description),
     icon: str(c.icon) || 'book',
     color,
+    seo: mapSeo(c.seo),
   };
-}
-
-async function getRawArticleCategories(): Promise<CmsArticleCategory[]> {
-  const data = await cmsFetch<PayloadList<CmsArticleCategory>>(
-    '/api/categories?where[kind][equals]=section&limit=50&depth=0&sort=order',
-  );
-  if (data && Array.isArray(data.docs) && data.docs.length > 0) return data.docs;
-  return [];
 }
 
 /** Article categories (content sections) — CMS-first, local fallback. */
 export async function getArticleCategories(): Promise<ArticleCategory[]> {
-  const cats = await getRawArticleCategories();
-  if (cats.length > 0) return cats.map(mapArticleCategory).filter((c) => c.id && c.name);
+  const data = await cmsList<CmsArticleCategory>('/api/categories?where[kind][equals]=section&limit=100&depth=1&sort=order');
+  if (data) return data.docs.map(mapArticleCategory).filter((c) => c.id && c.name);
+  assertLocalFallbackAllowed('article categories');
   return LOCAL_ARTICLE_CATEGORIES;
 }
 
@@ -409,6 +484,7 @@ export async function getArticleCategory(idOrSlug: string): Promise<ArticleCateg
 /* ────────────────────────────────────────────  Articles ── */
 
 interface CmsArticleBlock {
+  [key: string]: unknown;
   blockType?: string;
   style?: string;
   text?: string;
@@ -446,7 +522,7 @@ interface CmsArticle {
   primaryTool?: unknown;
   relatedTools?: unknown[];
   relatedArticles?: unknown[];
-  seo?: { metaTitle?: string; metaDescription?: string };
+  seo?: CmsSeo;
   semanticEntities?: { term?: string; url?: string }[];
   hasFAQ?: boolean;
   takeaways?: { text?: string }[];
@@ -457,10 +533,16 @@ function mapArticle(a: CmsArticle): Article {
   const catSlug = pickSlug(a.category);
   const authorObj = a.author as Record<string, unknown> | undefined;
   const reviewerObj = a.reviewer as Record<string, unknown> | undefined;
+  const body = mapArticleBlocks(a.layout || []);
+  const visibleFaq = new Set(body.flatMap((b) => b.type === 'paa' ? b.items.map((i) => `${i.q.trim()}\n${i.a.trim()}`) : []));
+  const additionalFaq = (a.faq || []).filter((f) => f.question && f.answer && !visibleFaq.has(`${f.question.trim()}\n${f.answer.trim()}`)).map((f) => ({ q: f.question!, a: f.answer! }));
+  if (additionalFaq.length) body.push({ type: 'paa', heading: 'Frequently asked questions', items: additionalFaq });
 
   return {
+    cmsId: a.id == null ? undefined : String(a.id),
     slug: str(a.slug),
     title: str(a.title),
+    seo: mapSeo(a.seo),
     seoTitle: str(a.seo?.metaTitle || a.title),
     metaDescription: str(a.seo?.metaDescription || a.excerpt),
     category: catSlug,
@@ -487,8 +569,8 @@ function mapArticle(a: CmsArticle): Article {
     // P15-P7 — editorial AEO controls (SD4: flags, never heuristics).
     hasFAQ: Boolean(a.hasFAQ),
     takeaways: (a.takeaways || []).map((t) => str(t.text)).filter(Boolean),
-    primaryTool: pickSlug(a.primaryTool),
-    relatedTools: (a.relatedTools || []).map(pickSlug).filter(Boolean),
+    primaryTool: canonicalToolSlug(pickSlug(a.primaryTool)),
+    relatedTools: (a.relatedTools || []).map(pickSlug).map(canonicalToolSlug).filter(Boolean),
     relatedArticles: (a.relatedArticles || []).map(pickSlug).filter(Boolean),
     sources: (a.sources || []).map((s) => ({
       citation: str(s.label || s.url),
@@ -505,7 +587,7 @@ function mapArticle(a: CmsArticle): Article {
     semanticEntities: (a.semanticEntities || [])
       .map((e) => ({ term: str(e.term), url: str(e.url) || undefined }))
       .filter((e) => e.term),
-    body: mapArticleBlocks(a.layout || []) as ArticleBlock[],
+    body,
   };
 }
 
@@ -529,7 +611,7 @@ function mapArticleBlocks(blocks: CmsArticleBlock[]): ArticleBlock[] {
       case 'toolEmbed':
         return {
           type: 'tool',
-          slug: pickSlug(b.tool || b.label || ''),
+          slug: canonicalToolSlug(pickSlug(b.tool || b.label || '')),
           label: str(b.label),
         } as ArticleBlock;
       case 'table':
@@ -555,44 +637,43 @@ function mapArticleBlocks(blocks: CmsArticleBlock[]): ArticleBlock[] {
             a: str((i as Record<string, unknown>).answer || (i as Record<string, unknown>).a),
           })),
         } as ArticleBlock;
+      case 'hero':
+      case 'calculatorEmbed':
+      case 'twoColumn':
+      case 'viralHookBanner':
+        return { type: 'cms', block: normalizeMediaTree(b) } as ArticleBlock;
       default:
-        return { type: 'p', text: '' } as ArticleBlock;
+        throw new Error(`Unsupported CMS article block: ${b.blockType}`);
     }
   }).filter((b: ArticleBlock) => !(b.type === 'p' && !(b as { text?: string }).text)) as ArticleBlock[];
 }
 
 export async function getArticle(slug: string): Promise<Article | null> {
-  const data = await cmsFetch<PayloadList<CmsArticle>>(
-    `/api/articles?where[slug][equals]=${slug}&depth=2&draft=false`,
-  );
-  if (P7_FIXTURE_ON && slug === P7_FIXTURE_ARTICLE.slug) return P7_FIXTURE_ARTICLE;
-  if (data && Array.isArray(data.docs) && data.docs.length > 0) {
-    return mapArticle(data.docs[0]);
-  }
-  const local = LOCAL_ARTICLES.find((a) => a.slug === slug);
-  return local || null;
+  return (await getArticles()).find((a) => a.slug === slug) ?? null;
 }
 
 // One shared fetch for the whole build. Previously EVERY prerendered page
 // re-ran this heavy depth-2 query; any single 4s timeout silently dropped that
 // one page to the local fallback (no hero images, stale copy) — builds were
 // nondeterministic per page. The promise is cached so all pages await the same
-// result, and the fetch retries twice before falling back for everyone.
+// result. Transport failures retry twice, then fail; local data requires an
+// explicit offline diagnostic choice and cannot pass release preflight.
 let _articlesPromise: Promise<Article[]> | null = null;
 
 export function getArticles(): Promise<Article[]> {
   if (!_articlesPromise) {
     _articlesPromise = (async () => {
       for (let attempt = 0; attempt < 3; attempt++) {
-        const data = await cmsFetch<PayloadList<CmsArticle>>(
-          '/api/articles?limit=1000&depth=2&sort=-publishDate&draft=false',
+        const data = await cmsList<CmsArticle>(
+          '/api/articles?where[_status][equals]=published&limit=100&depth=2&sort=-publishDate&draft=false',
         );
         // Transport failure (cmsFetch returned null / no list) → retry.
         if (!data || !Array.isArray(data.docs)) continue;
         // CMS is REACHABLE — its answer is authoritative even when empty. Do NOT
         // paper a reachable-but-empty CMS (e.g. a data-loss incident) over with
         // stale LOCAL content: that would hide the outage from every build gate.
-        const mapped = data.docs.map(mapArticle).filter((a) => a.slug && a.title);
+        for (const doc of data.docs) if (!doc.slug || !doc.title) throw new Error(`[CMS] Invalid published article ${doc.id}; cannot omit it silently.`);
+        const mapped = data.docs.map(mapArticle);
         if (mapped.length === 0) {
           console.error(`[CMS] articles endpoint reachable but yielded 0 usable articles (docs=${data.docs.length}) — surfacing the empty result, NOT masking with LOCAL fallback.`);
         }
@@ -614,7 +695,7 @@ export function getArticles(): Promise<Article[]> {
 // missing-translation behavior: no route, no hreflang, no empty shells, SD3).
 // There is deliberately NO local fallback here: LOCAL_ARTICLES is English-only,
 // and serving it under /es/ or /ar/ would fabricate translations. On CMS
-// failure a locale simply emits zero routes — never a failed build (SD5).
+// failure a configured CMS build stops rather than silently losing translations.
 const _localeArticles = new Map<string, Promise<Article[]>>();
 
 export function getArticlesForLocale(locale: string): Promise<Article[]> {
@@ -622,10 +703,10 @@ export function getArticlesForLocale(locale: string): Promise<Article[]> {
   let p = _localeArticles.get(locale);
   if (!p) {
     p = (async () => {
-      const data = await cmsFetch<PayloadList<CmsArticle>>(
-        `/api/articles?limit=1000&depth=2&sort=-publishDate&draft=false&locale=${locale}&fallback-locale=none`,
+      const data = await cmsList<CmsArticle>(
+        `/api/articles?where[_status][equals]=published&limit=100&depth=2&sort=-publishDate&draft=false&locale=${locale}&fallback-locale=none`,
       );
-      if (!data || !Array.isArray(data.docs)) return [];
+      if (!data) { if (!DISABLED) assertLocalFallbackAllowed(`articles locale ${locale}`); return []; }
       return data.docs
         // Translated = the localized essentials genuinely exist in this locale.
         .filter((d) => d.title && Array.isArray(d.layout) && d.layout.length > 0)
@@ -651,7 +732,7 @@ export async function getTranslatedLocales(slug: string, locales: readonly strin
 const byNewest = (a: Article, b: Article) =>
   (b.updatedDate || b.publishDate).localeCompare(a.updatedDate || a.publishDate);
 
-export async function getFeaturedArticle(): Promise<Article> {
+export async function getFeaturedArticle(): Promise<Article | undefined> {
   const all = await getArticles();
   return all.find((a) => a.featured) ?? [...all].sort(byNewest)[0];
 }
@@ -684,12 +765,13 @@ export async function getRelatedArticles(slug: string, limit = 3): Promise<Artic
 }
 
 export async function getTags(): Promise<{ name: string; slug: string }[]> {
-  const data = await cmsFetch<PayloadList<{ name: string; slug: string }>>(
+  const data = await cmsList<{ name: string; slug: string }>(
     '/api/tags?limit=100&depth=0',
   );
   if (data && Array.isArray(data.docs)) {
     return data.docs.map((t) => ({ name: str(t.name), slug: str(t.slug || t.name) }));
   }
+  assertLocalFallbackAllowed('tags');
   return [];
 }
 
@@ -750,13 +832,13 @@ function mapAuthor(a: CmsAuthor): Author {
 }
 
 export async function getAuthors(): Promise<Author[]> {
-  const data = await cmsFetch<PayloadList<CmsAuthor>>(
+  const data = await cmsList<CmsAuthor>(
     '/api/authors?limit=50&depth=0&sort=name',
   );
   if (data && Array.isArray(data.docs) && data.docs.length > 0) {
-    const authors = data.docs.map(mapAuthor).filter((a) => a.slug && a.name && a.slug !== 'medical-review');
-    return authors.length ? authors : LOCAL_AUTHORS;
+    return data.docs.map(mapAuthor).filter((a) => a.slug && a.name && !(a.slug === 'medical-review' && a.schemaType === 'Organization'));
   }
+  if (!data) assertLocalFallbackAllowed('authors');
   return LOCAL_AUTHORS;
 }
 
@@ -784,6 +866,7 @@ export { DEFAULT_AUTHOR_SLUG } from '../data/authors';
 /* ────────────────────────────────────────────  Pages ── */
 
 interface CmsPage {
+  seo?: SeoMetadata;
   id?: string;
   title?: string;
   slug?: string;
@@ -794,23 +877,17 @@ interface CmsPage {
 }
 
 export async function getCmsPage(slug: string): Promise<CmsPage | null> {
-  const data = await cmsFetch<PayloadList<CmsPage>>(
-    `/api/pages?where[slug][equals]=${slug}&depth=2&draft=false`,
-  );
-  if (data && Array.isArray(data.docs) && data.docs.length > 0) {
-    return data.docs[0] as CmsPage;
-  }
-  return null;
+  return (await getCmsPages()).find((p) => p.slug === slug) ?? null;
 }
 
-export async function getCmsPages(): Promise<CmsPage[]> {
-  const data = await cmsFetch<PayloadList<CmsPage>>(
-    '/api/pages?limit=500&depth=1&sort=-publishDate&draft=false',
-  );
-  if (data && Array.isArray(data.docs)) {
-    return data.docs as CmsPage[];
-  }
-  return [];
+let pagesPromise: Promise<CmsPage[]> | undefined;
+export function getCmsPages(): Promise<CmsPage[]> {
+  return pagesPromise ??= (async () => {
+    const data = await cmsList<Omit<CmsPage, 'seo'> & { seo?: CmsSeo }>('/api/pages?where[_status][equals]=published&limit=100&depth=2&sort=-publishDate&draft=false');
+    if (data) return data.docs.map((p) => ({ ...p, heroImage: normalizeMediaTree(p.heroImage), layout: normalizeMediaTree(p.layout) as unknown[], seo: mapSeo(p.seo) }));
+    assertLocalFallbackAllowed('pages');
+    return [];
+  })();
 }
 
 export async function getAllCmsSlugs(): Promise<string[]> {
@@ -863,23 +940,11 @@ export interface AdConfig {
 
 export async function getAdConfig(): Promise<AdConfig | null> {
   if (DISABLED) return null;
-  try {
-    const res = await fetch(`${CMS_URL}/api/globals/ad-management?depth=1`, {
-      headers: { Accept: 'application/json' },
-      cache: 'no-store',
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-    });
-    if (!res.ok) {
-      console.error(`[CMS] AdManagement fetch failed — ${res.status} ${res.statusText}`, `URL: ${res.url}`);
-      throw new Error("[CMS] Critical: AdManagement fetch failed. Aborting build to prevent ad-free deployment.");
-    }
-    return (await res.json()) as AdConfig;
-  } catch (err) {
-    // Don't re-wrap our own critical abort — let it surface as-is.
-    if (err instanceof Error && err.message.includes('[CMS] Critical:')) throw err;
-    console.error('[CMS] AdManagement fetch threw an unexpected error:', err);
-    throw new Error("[CMS] Critical: AdManagement fetch failed. Aborting build to prevent ad-free deployment.");
-  }
+  const data = await cmsFetch<AdConfig>('/api/globals/ad-management?depth=1');
+  if (!data) throw new Error('[CMS] Critical: AdManagement fetch failed. Aborting build to prevent ad-free deployment.');
+  coveredCollections.add('global:ad-management');
+  recordRevision('global:ad-management', data);
+  return normalizeMediaTree(data) as AdConfig;
 }
 
 /* ────────────────────────────────────────────  Lead Generation ── */
@@ -903,10 +968,74 @@ export interface LeadGenConfig {
   enabled: boolean;
   successMessage: string;
   offers: LeadOffer[];
-  n8nWebhookUrl?: string;
-  n8nApiKey?: string;
 }
 
 export async function getLeadGenConfig(): Promise<LeadGenConfig | null> {
-  return cmsFetch<LeadGenConfig>('/api/globals/lead-gen?depth=2');
+  const data = await cmsFetch<LeadGenConfig>('/api/globals/lead-gen?depth=2');
+  if (data) { coveredCollections.add('global:lead-gen'); recordRevision('global:lead-gen', data); }
+  else assertLocalFallbackAllowed('lead-gen');
+  return normalizeMediaTree(data) as LeadGenConfig | null;
+}
+
+export interface PseoPage {
+  id: string | number;
+  status: 'published';
+  slug: string;
+  headline: string;
+  subheadline?: string;
+  bodyHtml?: string;
+  ctaUrl?: string;
+  ctaText?: string;
+  seo?: SeoMetadata;
+}
+
+let pseoPromise: Promise<PseoPage[]> | undefined;
+export function getPseoPages(): Promise<PseoPage[]> {
+  return pseoPromise ??= (async () => {
+    const query = new URLSearchParams({ 'where[status][equals]': 'published', limit: '100', depth: '1', sort: 'id' });
+    // Fetch rendered fields only. Drafts and generation inputs are unnecessary;
+    // CMS access control remains authoritative even if a caller changes select.
+    for (const name of ['id', 'slug', 'status', 'headline', 'subheadline', 'bodyHtml', 'ctaUrl', 'ctaText', 'seo', 'updatedAt']) query.set(`select[${name}]`, 'true');
+    const path = `/api/pseo-pages?${query}`;
+    const data = await cmsList<Omit<PseoPage, 'seo'> & { seo?: CmsSeo }>(path);
+    if (!data) {
+      if (DISABLED) { assertLocalFallbackAllowed('pseo-pages'); return []; }
+      const reason = [...requestFailures].find(([key]) => key.startsWith('/api/pseo-pages?'))?.[1] || 'incomplete response';
+      throw new Error(`[CMS] GET /api/pseo-pages failed: ${reason}. Public reads must allow status=published only; drafts and generation inputs must remain private. No local fallback was used. Production access changes require an approved CMS deployment.`);
+    }
+    for (const doc of data.docs) if (doc.status !== 'published' || !/^[a-z0-9-]+$/.test(doc.slug || '') || !doc.headline?.trim() || !doc.bodyHtml?.trim()) throw new Error(`[CMS] Invalid published pSEO page ID ${doc.id}; cannot silently omit it.`);
+    return data.docs.map((p) => ({ id: p.id, status: p.status, slug: p.slug, headline: p.headline, subheadline: p.subheadline, bodyHtml: p.bodyHtml, ctaUrl: p.ctaUrl, ctaText: p.ctaText, seo: mapSeo(p.seo) }));
+  })();
+}
+
+/** Public metadata only: lets CMS acknowledge the exact revisions actually built. */
+export async function getContentManifest() {
+  const [tools, articles, categories, sections, authors, tags, pages, pseo] = await Promise.all([getTools(), getArticles(), getCategories(), getArticleCategories(), getAuthors(), getTags(), getCmsPages(), getPseoPages()]);
+  await Promise.all([getSiteConsts(), getAdConfig(), getLeadGenConfig()]);
+  assertUniquePublicPaths([
+    ...tools.map((t) => ({ collection: 'tools', slug: t.slug })),
+    ...articles.map((a) => ({ collection: 'articles', slug: a.slug })),
+    ...categories.map((c) => ({ collection: 'categories', kind: 'tool', slug: c.slug })),
+    ...sections.filter((c) => articles.some((a) => a.category === c.id)).map((c) => ({ collection: 'categories', kind: 'section', slug: c.slug })),
+    ...pages.filter((p) => p.slug && !['home', 'index'].includes(p.slug)).map((p) => ({ collection: 'pages', slug: p.slug! })),
+    ...pseo.map((p) => ({ collection: 'pseo-pages', slug: p.slug })),
+  ]);
+  const rendered = new Set([
+    ...tools.map((t) => `/tools/${t.slug}`), ...articles.map((a) => `/wellness-hub/${a.slug}`),
+    ...categories.map((c) => `/${c.slug}`),
+    ...sections.filter((c) => articles.some((a) => a.category === c.id)).map((c) => `/wellness-hub/${c.slug}`),
+    ...authors.map((a) => `/author/${a.slug}`),
+    ...tags.filter((t) => articles.some((a) => a.tags?.some((tag) => tag.slug === t.slug))).map((t) => `/wellness-hub/tag/${t.slug}`),
+    ...pages.filter((p) => p.slug && !['home', 'index'].includes(p.slug)).map((p) => `/${p.slug}`),
+    ...pseo.map((p) => `/tools/pseo/${p.slug}`),
+  ]);
+  if (__CMS_REDIRECT_SNAPSHOT__) {
+    coveredCollections.add('redirects');
+    __CMS_REDIRECT_SNAPSHOT__.forEach((doc) => recordRevision('redirects', doc));
+  }
+  return {
+    version: 1, source: DISABLED || fallbacksUsed.size ? 'local' : process.env.CONTENT_BUILD_KIND === 'diagnostic' ? 'diagnostic' : 'cms', cmsOrigin: new URL(CMS_URL).origin, buildStartedAt,
+    buildKind: ['fixture', 'diagnostic'].includes(process.env.CONTENT_BUILD_KIND || '') ? process.env.CONTENT_BUILD_KIND : DISABLED ? 'offline' : 'cms',
+    collections: [...coveredCollections].sort(), records: [...revisions.values()].map((r) => ({ ...r, path: r.path && rendered.has(r.path) ? r.path : null })),
+  };
 }

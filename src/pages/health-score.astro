@@ -4,6 +4,7 @@ import Breadcrumb from '../components/Breadcrumb.astro';
 import Icon from '../components/Icon.astro';
 import HealthScore from '../islands/HealthScore.tsx';
 import { SITE } from '../consts';
+
 import '../styles/health-score.css';
 
 const items = [{ label: 'Home', href: '/' }, { label: 'Health Score' }];
@@ -27,7 +28,6 @@ const orgId = `${origin.href}#org`;
 const pageUrl = new URL('/health-score', origin).href;
 
 
-
 const appLd = {
   '@context': 'https://schema.org',
   '@type': 'WebApplication',
@@ -40,7 +40,9 @@ const appLd = {
   isAccessibleForFree: true,
   offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
   publisher: { '@id': orgId },
+  author: { '@id': orgId },
 };
+
 
 ---
 

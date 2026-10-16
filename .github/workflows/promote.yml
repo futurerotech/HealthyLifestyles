@@ -1,16 +1,19 @@
-name: Promote dev to main
+name: Verify repair branches
 
 on:
   push:
-    branches: [dev]
+    branches: [dev, 'codex/**']
   # P15 close — run the full verify gate on PRs to dev too (Lighthouse blocking,
   # empty-shell, date-integrity, etc.). The promote job stays push-only.
   pull_request:
-    branches: [dev]
+    branches: [dev, main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
   verify:
@@ -29,10 +32,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Phase 13 P2 — baseline-aware audit gate. BLOCKS only on NEW high/critical
-      # advisories vs audit-baseline.json (the 22 pre-existing legacy vulns are an
-      # accepted-risk ledger, out of scope by decree). Warn-only on new moderate/
-      # low; hard-fails if the baseline passes its reviewBy date (rot prevention).
+      # Release policy: unresolved high/critical vulnerabilities block promotion,
+      # including previously baselined advisories. Framework upgrades are separate.
+      - name: Security release gate
+        run: npm run security:check
+
+      # Keep the existing advisory ledger review guard as an additional check.
       - name: Audit delta (new high/critical only)
         run: node scripts/ci/audit-delta.ts
 
@@ -44,7 +49,26 @@ jobs:
       - name: SEO unit tests (D5 feed + P6 i18n + empty-shell)
         run: npm run test:seo
 
-      - name: Build Astro site
+      - name: Subscription and native share-image API tests
+        run: npm run test:api
+
+      - name: Build and verify CMS integration
+        env:
+          CMS_DISABLE: '1'
+          INDEXNOW_DISABLE: 'true'
+        run: npm run test:cms-build
+
+      - name: Content preservation regression tests
+        run: npm run test:content
+
+      # Fixture/offline success never authorizes promotion. This independent
+      # production-data build must preserve every current published ID and slug.
+      - name: Build complete published CMS content and run release preflight
+        env:
+          CMS_URL: 'https://cms.healthylifesstyles.com'
+          CMS_DISABLE: '0'
+          VERCEL_ENV: 'production'
+          INDEXNOW_DISABLE: 'true'
         run: npm run build
 
       - name: Internal-link audit
@@ -92,30 +116,3 @@ jobs:
       - name: Rich Results check (non-blocking)
         run: node scripts/seo/rich-results-check.ts
         continue-on-error: true
-
-  promote:
-    name: Promote to main
-    needs: verify
-    # Push-to-dev only: PRs run verify but never auto-promote.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout dev
-        uses: actions/checkout@v4
-        with:
-          ref: dev
-          fetch-depth: 0
-
-      - name: Fast-forward main
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          if ! git merge-base --is-ancestor origin/main HEAD; then
-            echo "ERROR: origin/main is not an ancestor of dev — fast-forward impossible."
-            echo "       main has diverged. Resolve manually; never force-push."
-            exit 1
-          fi
-          git push origin HEAD:main

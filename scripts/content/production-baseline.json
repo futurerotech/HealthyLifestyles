@@ -1,0 +1,670 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15T17:46:27.771Z",
+  "cmsOrigin": "https://cms.healthylifesstyles.com",
+  "policy": "Fail closed on missing published IDs or changed slugs; update only after explicit content review. Never regenerate automatically during a build.",
+  "collections": {
+    "articles": [
+      {
+        "id": "1",
+        "slug": "how-many-calories-to-lose-weight",
+        "title": "How Many Calories Should I Eat to Lose Weight?",
+        "publishDate": "2026-04-12T00:00:00.000Z"
+      },
+      {
+        "id": "2",
+        "slug": "how-much-protein-do-i-need",
+        "title": "How Much Protein Do I Really Need?",
+        "publishDate": "2026-03-05T00:00:00.000Z"
+      },
+      {
+        "id": "3",
+        "slug": "healthy-bmi-by-age",
+        "title": "What's a Healthy BMI by Age?",
+        "publishDate": "2026-02-18T00:00:00.000Z"
+      },
+      {
+        "id": "4",
+        "slug": "best-time-to-stop-drinking-coffee-for-sleep",
+        "title": "The Best Time to Stop Drinking Coffee for Better Sleep",
+        "publishDate": "2026-05-02T00:00:00.000Z"
+      },
+      {
+        "id": "5",
+        "slug": "how-to-keep-muscle-while-losing-weight",
+        "title": "How to Keep Muscle While Losing Weight",
+        "publishDate": "2026-04-26T00:00:00.000Z"
+      },
+      {
+        "id": "6",
+        "slug": "due-date-by-conception-date",
+        "title": "Due Date by Conception Date: How It Works",
+        "publishDate": "2026-03-20T00:00:00.000Z"
+      },
+      {
+        "id": "7",
+        "slug": "intermittent-fasting-for-beginners",
+        "title": "Intermittent Fasting for Beginners: How to Pick a Schedule",
+        "publishDate": "2026-05-08T00:00:00.000Z"
+      },
+      {
+        "id": "8",
+        "slug": "sleep-chronotypes-explained",
+        "title": "Sleep Chronotypes: Are You a Lion, Bear, Wolf, or Dolphin?",
+        "publishDate": "2026-05-15T00:00:00.000Z"
+      },
+      {
+        "id": "9",
+        "slug": "how-to-build-a-meal-plan",
+        "title": "How to Build a High-Protein Meal Plan You’ll Actually Follow",
+        "publishDate": "2026-05-22T00:00:00.000Z"
+      },
+      {
+        "id": "10",
+        "slug": "how-long-does-it-take-to-lose-weight",
+        "title": "How Long Does It Take to Lose Weight? A Realistic Timeline",
+        "publishDate": "2026-05-29T00:00:00.000Z"
+      },
+      {
+        "id": "11",
+        "slug": "how-to-calculate-your-macros",
+        "title": "How to Calculate Your Macros for Your Goal",
+        "publishDate": "2026-06-23T00:00:00.000Z"
+      },
+      {
+        "id": "13",
+        "slug": "how-much-water-should-you-drink-a-day",
+        "title": "How Much Water Should You Drink a Day?",
+        "publishDate": "2026-07-01T12:00:00.000Z"
+      },
+      {
+        "id": "15",
+        "slug": "metabolic-age-calculator-guide",
+        "title": "What Is Metabolic Age and What Does It Say About Your Health?",
+        "publishDate": "2026-07-03T12:00:00.000Z"
+      },
+      {
+        "id": "16",
+        "slug": "calories-burned-calculator-guide",
+        "title": "How Are Calories Burned Calculated? A Guide to Energy Expenditure",
+        "publishDate": "2026-07-03T12:00:00.000Z"
+      },
+      {
+        "id": "17",
+        "slug": "lean-body-mass-calculator-guide",
+        "title": "What Is Lean Body Mass and Why Does It Matter More Than Weight?",
+        "publishDate": "2026-07-03T01:23:25.363Z"
+      },
+      {
+        "id": "19",
+        "slug": "how-to-calculate-calories-in-a-recipe",
+        "title": "How Do You Calculate the Calories in a Homemade Recipe?",
+        "publishDate": "2026-07-07T12:00:00.000Z"
+      },
+      {
+        "id": "20",
+        "slug": "how-many-carbs-on-keto",
+        "title": "How Many Carbs Can You Eat on Keto?",
+        "publishDate": "2026-07-07T12:00:00.000Z"
+      },
+      {
+        "id": "21",
+        "slug": "what-is-an-anti-inflammatory-diet",
+        "title": "What Is an Anti-Inflammatory Diet? Foods to Eat and Limit",
+        "publishDate": "2026-07-06T12:00:00.000Z"
+      },
+      {
+        "id": "22",
+        "slug": "how-do-you-know-if-your-gut-is-healthy",
+        "title": "How Do You Know If Your Gut Is Healthy?",
+        "publishDate": "2026-07-06T12:00:00.000Z"
+      },
+      {
+        "id": "23",
+        "slug": "how-to-keep-a-food-and-symptom-diary",
+        "title": "How to Keep a Food and Symptom Diary That Finds Your Triggers",
+        "publishDate": "2026-07-07T12:00:00.000Z"
+      },
+      {
+        "id": "24",
+        "slug": "hidden-calories-in-alcohol-and-weight-loss",
+        "title": "Alcohol Calorie Calculator: Impact on Weight Loss",
+        "publishDate": "2026-07-26T12:00:00.000Z"
+      },
+      {
+        "id": "25",
+        "slug": "alcohol-units-calculator",
+        "title": "How Do You Calculate Alcohol Units in Your Drinks",
+        "publishDate": "2026-07-26T12:00:00.000Z"
+      },
+      {
+        "id": "26",
+        "slug": "what-do-your-blood-pressure-numbers-mean",
+        "title": "What Do Your Blood Pressure Numbers Mean? (Age Guide)",
+        "publishDate": "2026-07-26T12:00:00.000Z"
+      },
+      {
+        "id": "27",
+        "slug": "how-to-read-your-hrv-trend",
+        "title": "How to Read Your HRV Trend Without Overreacting",
+        "publishDate": "2026-10-08T12:00:00.000Z"
+      },
+      {
+        "id": "28",
+        "slug": "can-sun-exposure-tell-you-if-you-need-vitamin-d",
+        "title": "Can Sun Exposure Tell You If You Need Vitamin D?",
+        "publishDate": "2026-10-09T12:00:00.000Z"
+      },
+      {
+        "id": "29",
+        "slug": "what-calorie-deficit-calculator-can-tell-you",
+        "title": "What Your Calorie Deficit Calculator Can—and Cannot—Tell You",
+        "publishDate": "2026-10-10T12:00:00.000Z"
+      },
+      {
+        "id": "30",
+        "slug": "body-fat-calculator-what-the-navy-method-can-tell-you",
+        "title": "Body Fat Calculator: What a Tape Measure Can Tell You",
+        "publishDate": "2026-10-10T12:00:00.000Z"
+      },
+      {
+        "id": "31",
+        "slug": "weight-loss-percentage-what-the-number-really-means",
+        "title": "Weight Loss Percentage: What the Number Really Means",
+        "publishDate": "2026-10-10T12:00:00.000Z"
+      },
+      {
+        "id": "32",
+        "slug": "waist-to-hip-ratio-how-to-measure-it-and-what-it-means",
+        "title": "Waist-to-Hip Ratio: How to Measure It and What It Means",
+        "publishDate": "2026-10-10T12:00:00.000Z"
+      },
+      {
+        "id": "37",
+        "slug": "healthy-waist-to-height-ratio",
+        "title": "What Is a Healthy Waist-to-Height Ratio?",
+        "publishDate": "2026-10-15T12:00:00.000Z"
+      },
+      {
+        "id": "38",
+        "slug": "ideal-weight-for-height-bmi-devine-guide",
+        "title": "What Is Your Ideal Weight for Your Height?",
+        "publishDate": "2026-10-15T12:00:00.000Z"
+      },
+      {
+        "id": "39",
+        "slug": "what-is-bmr-calculator-daily-calorie-needs",
+        "title": "What Is BMR and How Many Calories Do You Burn at Rest?",
+        "publishDate": "2026-10-15T12:00:00.000Z"
+      },
+      {
+        "id": "40",
+        "slug": "flexibility-mobility-score-at-home-tests-guide",
+        "title": "What Does Your Flexibility & Mobility Score Mean?",
+        "publishDate": "2026-10-15T12:00:00.000Z"
+      },
+      {
+        "id": "41",
+        "slug": "what-does-your-push-up-test-score-mean",
+        "title": "What Does Your Push-Up Test Score Mean?",
+        "publishDate": "2026-10-15T12:00:00.000Z"
+      },
+      {
+        "id": "42",
+        "slug": "how-long-should-you-recover-between-workouts",
+        "title": "How Long Should You Recover Between Workouts?",
+        "publishDate": "2026-10-15T12:00:00.000Z"
+      },
+      {
+        "id": "43",
+        "slug": "what-is-ffmi-fat-free-mass-index-guide",
+        "title": "What Is FFMI and What Does Your Score Mean?",
+        "publishDate": "2026-10-15T12:00:00.000Z"
+      },
+      {
+        "id": "44",
+        "slug": "what-is-one-rep-max-how-to-calculate-it",
+        "title": "What Is Your One-Rep Max and How Do You Calculate It?",
+        "publishDate": "2026-10-15T12:00:00.000Z"
+      },
+      {
+        "id": "45",
+        "slug": "how-many-calories-burn-walking-10000-steps",
+        "title": "How Many Calories Do You Burn Walking 10,000 Steps?",
+        "publishDate": "2026-10-15T12:00:00.000Z"
+      },
+      {
+        "id": "46",
+        "slug": "what-does-your-vo2-max-score-mean",
+        "title": "What Does Your VO2 Max Score Mean?",
+        "publishDate": "2026-10-15T12:00:00.000Z"
+      }
+    ],
+    "tools": [
+      {
+        "id": "1",
+        "slug": "intermittent-fasting-calculator",
+        "title": "Intermittent Fasting Calculator & Timer",
+        "enabled": true
+      },
+      {
+        "id": "2",
+        "slug": "meal-plan-generator",
+        "title": "7-Day Meal Plan Generator",
+        "enabled": true
+      },
+      {
+        "id": "3",
+        "slug": "muscle-preservation-calculator",
+        "title": "Muscle Preservation Calculator",
+        "enabled": true
+      },
+      {
+        "id": "4",
+        "slug": "calorie-calculator",
+        "title": "Calorie Calculator",
+        "enabled": true
+      },
+      {
+        "id": "5",
+        "slug": "macro-calculator",
+        "title": "Macro Calculator",
+        "enabled": true
+      },
+      {
+        "id": "6",
+        "slug": "protein-intake-calculator",
+        "title": "Protein Intake Calculator",
+        "enabled": true
+      },
+      {
+        "id": "7",
+        "slug": "water-intake-calculator",
+        "title": "Water Intake Calculator",
+        "enabled": true
+      },
+      {
+        "id": "8",
+        "slug": "calorie-deficit-calculator",
+        "title": "Calorie Deficit Calculator",
+        "enabled": true
+      },
+      {
+        "id": "9",
+        "slug": "keto-calculator",
+        "title": "Keto Calculator",
+        "enabled": true
+      },
+      {
+        "id": "10",
+        "slug": "bmr-calculator",
+        "title": "BMR Calculator",
+        "enabled": true
+      },
+      {
+        "id": "11",
+        "slug": "weight-loss-timeline-calculator",
+        "title": "Weight Loss Timeline Calculator",
+        "enabled": true
+      },
+      {
+        "id": "12",
+        "slug": "bmi-calculator",
+        "title": "BMI Calculator",
+        "enabled": true
+      },
+      {
+        "id": "13",
+        "slug": "body-fat-calculator",
+        "title": "Body Fat Calculator",
+        "enabled": true
+      },
+      {
+        "id": "14",
+        "slug": "ideal-weight-calculator",
+        "title": "Ideal Weight Calculator",
+        "enabled": true
+      },
+      {
+        "id": "15",
+        "slug": "lean-body-mass-calculator",
+        "title": "Lean Body Mass Calculator",
+        "enabled": true
+      },
+      {
+        "id": "16",
+        "slug": "waist-to-height-ratio-calculator",
+        "title": "Waist-to-Height Ratio Calculator",
+        "enabled": true
+      },
+      {
+        "id": "17",
+        "slug": "waist-to-hip-ratio-calculator",
+        "title": "Waist-to-Hip Ratio Calculator",
+        "enabled": true
+      },
+      {
+        "id": "18",
+        "slug": "weight-loss-percentage-calculator",
+        "title": "Weight Loss Percentage Calculator",
+        "enabled": true
+      },
+      {
+        "id": "19",
+        "slug": "walk-it-off-calculator",
+        "title": "Walk It Off Calculator",
+        "enabled": true
+      },
+      {
+        "id": "20",
+        "slug": "strength-program-builder",
+        "title": "Strength Program Builder",
+        "enabled": true
+      },
+      {
+        "id": "21",
+        "slug": "sitting-disease-reversal-calculator",
+        "title": "Sitting Disease Reversal Calculator",
+        "enabled": true
+      },
+      {
+        "id": "22",
+        "slug": "one-rep-max-calculator",
+        "title": "One-Rep Max Calculator",
+        "enabled": true
+      },
+      {
+        "id": "23",
+        "slug": "running-pace-calculator",
+        "title": "Running Pace Calculator",
+        "enabled": true
+      },
+      {
+        "id": "24",
+        "slug": "calories-burned-calculator",
+        "title": "Calories Burned Calculator",
+        "enabled": true
+      },
+      {
+        "id": "25",
+        "slug": "vo2-max-calculator",
+        "title": "VO₂ Max Calculator",
+        "enabled": true
+      },
+      {
+        "id": "26",
+        "slug": "steps-to-calories-calculator",
+        "title": "Steps to Calories Calculator",
+        "enabled": true
+      },
+      {
+        "id": "27",
+        "slug": "target-heart-rate-calculator",
+        "title": "Target Heart Rate Calculator",
+        "enabled": true
+      },
+      {
+        "id": "28",
+        "slug": "max-heart-rate-calculator",
+        "title": "Max Heart Rate Calculator",
+        "enabled": true
+      },
+      {
+        "id": "29",
+        "slug": "blood-pressure-checker",
+        "title": "Blood Pressure Checker",
+        "enabled": true
+      },
+      {
+        "id": "30",
+        "slug": "resting-heart-rate-checker",
+        "title": "Resting Heart Rate Checker",
+        "enabled": true
+      },
+      {
+        "id": "31",
+        "slug": "metabolic-age-calculator",
+        "title": "Metabolic Age Calculator",
+        "enabled": true
+      },
+      {
+        "id": "32",
+        "slug": "alcohol-calorie-calculator",
+        "title": "Alcohol Calorie Calculator",
+        "enabled": true
+      },
+      {
+        "id": "33",
+        "slug": "due-date-calculator",
+        "title": "Pregnancy Due Date Calculator",
+        "enabled": true
+      },
+      {
+        "id": "34",
+        "slug": "pregnancy-week-calculator",
+        "title": "Pregnancy Week-by-Week",
+        "enabled": true
+      },
+      {
+        "id": "35",
+        "slug": "ovulation-calculator",
+        "title": "Ovulation Calculator",
+        "enabled": true
+      },
+      {
+        "id": "36",
+        "slug": "period-calculator",
+        "title": "Period Calculator",
+        "enabled": true
+      },
+      {
+        "id": "37",
+        "slug": "pregnancy-weight-gain-calculator",
+        "title": "Pregnancy Weight Gain Calculator",
+        "enabled": true
+      },
+      {
+        "id": "38",
+        "slug": "sleep-chronotype-quiz",
+        "title": "Sleep Chronotype Quiz",
+        "enabled": true
+      },
+      {
+        "id": "39",
+        "slug": "caffeine-intake-calculator",
+        "title": "Caffeine Intake Calculator",
+        "enabled": true
+      },
+      {
+        "id": "40",
+        "slug": "caffeine-curfew-calculator",
+        "title": "Caffeine Curfew Calculator",
+        "enabled": true
+      },
+      {
+        "id": "41",
+        "slug": "sleep-calculator",
+        "title": "Sleep Calculator",
+        "enabled": true
+      },
+      {
+        "id": "42",
+        "slug": "nap-calculator",
+        "title": "Nap Calculator",
+        "enabled": true
+      },
+      {
+        "id": "43",
+        "slug": "sleep-debt-calculator",
+        "title": "Sleep Debt Calculator",
+        "enabled": true
+      },
+      {
+        "id": "44",
+        "slug": "lifestyle-age-test",
+        "title": "Lifestyle Age Test",
+        "enabled": true
+      },
+      {
+        "id": "45",
+        "slug": "waist-health-risk-calculator",
+        "title": "Waist-Based Health Risk",
+        "enabled": true
+      },
+      {
+        "id": "46",
+        "slug": "heart-disease-risk-calculator",
+        "title": "Heart Disease Risk (Educational)",
+        "enabled": true
+      },
+      {
+        "id": "47",
+        "slug": "diabetes-risk-calculator",
+        "title": "Type 2 Diabetes Risk (Educational)",
+        "enabled": true
+      },
+      {
+        "id": "48",
+        "slug": "smoking-cost-calculator",
+        "title": "Smoking Cost Calculator",
+        "enabled": true
+      },
+      {
+        "id": "49",
+        "slug": "alcohol-units-calculator",
+        "title": "Alcohol Units Calculator",
+        "enabled": true
+      },
+      {
+        "id": "50",
+        "slug": "sleep-quality-check",
+        "title": "Sleep Quality Self-Check",
+        "enabled": true
+      },
+      {
+        "id": "51",
+        "slug": "stress-level-check",
+        "title": "Stress Level Self-Check",
+        "enabled": true
+      },
+      {
+        "id": "52",
+        "slug": "burnout-self-check",
+        "title": "Burnout Self-Check",
+        "enabled": true
+      },
+      {
+        "id": "53",
+        "slug": "box-breathing-timer",
+        "title": "Box Breathing Timer",
+        "enabled": true
+      },
+      {
+        "id": "54",
+        "slug": "body-fat-percentage-calculator",
+        "title": "Body Fat Percentage Calculator",
+        "enabled": true
+      },
+      {
+        "id": "55",
+        "slug": "how-much-protein-do-i-need",
+        "title": "How Much Protein Do I Need",
+        "enabled": true
+      },
+      {
+        "id": "56",
+        "slug": "healthspan-score",
+        "title": "Healthspan Score",
+        "enabled": true
+      },
+      {
+        "id": "57",
+        "slug": "ffmi-calculator",
+        "title": "FFMI Calculator",
+        "enabled": true
+      },
+      {
+        "id": "58",
+        "slug": "recovery-time-calculator",
+        "title": "Recovery Time Calculator",
+        "enabled": true
+      },
+      {
+        "id": "59",
+        "slug": "push-up-test-calculator",
+        "title": "Push-Up Test Calculator",
+        "enabled": true
+      },
+      {
+        "id": "60",
+        "slug": "flexibility-mobility-score",
+        "title": "Flexibility & Mobility Score",
+        "enabled": true
+      },
+      {
+        "id": "61",
+        "slug": "vitamin-d-sun-calculator",
+        "title": "Vitamin D & Sun Exposure Calculator",
+        "enabled": true
+      },
+      {
+        "id": "62",
+        "slug": "gut-health-score",
+        "title": "Gut Health Score",
+        "enabled": true
+      },
+      {
+        "id": "63",
+        "slug": "anti-inflammatory-score",
+        "title": "Anti-Inflammatory Diet Score",
+        "enabled": true
+      },
+      {
+        "id": "64",
+        "slug": "food-symptom-diary",
+        "title": "Food & Symptom Diary",
+        "enabled": true
+      },
+      {
+        "id": "65",
+        "slug": "hrv-explainer-log",
+        "title": "HRV Explainer & Log",
+        "enabled": true
+      },
+      {
+        "id": "66",
+        "slug": "blue-light-exposure-estimator",
+        "title": "Blue Light Exposure Estimator",
+        "enabled": true
+      },
+      {
+        "id": "67",
+        "slug": "phq-9-depression-screener",
+        "title": "PHQ-9 Depression Screener",
+        "enabled": true
+      },
+      {
+        "id": "68",
+        "slug": "gad-7-anxiety-screener",
+        "title": "GAD-7 Anxiety Screener",
+        "enabled": true
+      },
+      {
+        "id": "69",
+        "slug": "who-5-wellbeing-screener",
+        "title": "WHO-5 Well-Being Index",
+        "enabled": true
+      },
+      {
+        "id": "70",
+        "slug": "recipe-nutrition-analyzer",
+        "title": "Recipe Nutrition Analyzer",
+        "enabled": true
+      }
+    ],
+    "pages": [],
+    "pseo-pages": []
+  },
+  "pagesVerifiedAt": "2026-10-16"
+}
+

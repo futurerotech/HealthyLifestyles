@@ -10,8 +10,10 @@
  * Hub" block on tool pages).
  */
 import { stripInline } from '../lib/text';
+import type { SeoMetadata } from '../lib/seo';
 
 export interface ArticleCategory {
+  seo?: SeoMetadata;
   id: string;
   name: string;
   slug: string;
@@ -23,6 +25,7 @@ export interface ArticleCategory {
 }
 
 export type ArticleBlock =
+  | { type: 'cms'; block: { blockType: string; [key: string]: unknown } }
   | { type: 'p'; text: string }
   | { type: 'h2'; text: string }
   | { type: 'h3'; text: string }
@@ -39,6 +42,8 @@ export interface ArticleSource {
 }
 
 export interface Article {
+  cmsId?: string;
+  seo?: SeoMetadata;
   slug: string;
   /** H1 — the target keyword phrased as a human title. */
   title: string;
@@ -799,6 +804,7 @@ export const articlePlainText = (article: Article): string => {
     else if (b.type === 'ul' || b.type === 'ol') parts.push(...b.items.map(stripInline));
     else if (b.type === 'table') parts.push(...b.headers, ...b.rows.flat().map(stripInline));
     else if (b.type === 'paa') parts.push(...b.items.flatMap((i) => [i.q, i.a]));
+    else if (b.type === 'cms') parts.push(...['title', 'subtitle', 'heading', 'text'].map((key) => stripInline(String(b.block[key] || ''))));
   }
   return parts.join(' ');
 };

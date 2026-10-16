@@ -1,6 +1,7 @@
 ---
 export interface Props {
   title: string;
+  headingLevel?: 'h1' | 'h2';
   subtitle?: string | null;
   cta: { label: string; url: string } | null;
   backgroundImage?: { url: string; alt?: string } | null;
@@ -8,12 +9,13 @@ export interface Props {
 }
 
 const { title, subtitle, cta, backgroundImage, overlay = 'dark' } = Astro.props;
+const Heading = Astro.props.headingLevel || 'h1';
 ---
 
 <section class="page-hero" style={backgroundImage?.url ? `background-image: url(${backgroundImage.url})` : undefined}>
   <div class={`page-hero__overlay page-hero__overlay--${overlay}`}>
     <div class="page-hero__body">
-      <h1 class="page-hero__title">{title}</h1>
+      <Heading class="page-hero__title">{title}</Heading>
       {subtitle && <p class="page-hero__subtitle">{subtitle}</p>}
       {cta?.label && cta?.url && (
         <a href={cta.url} class="btn btn--primary btn--lg page-hero__cta">{cta.label}</a>

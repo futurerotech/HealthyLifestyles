@@ -27,14 +27,16 @@ const EXCLUDED_PATHS = [/^\/og\//i, /^\/embed\//i, /^\/api\//i, /^\/404/i, /^\/$
 const ASSET_EXTENSIONS = /\.(woff2?|css|js|mjs|svg|png|jpg|jpeg|webp|ico|webmanifest|txt|xml|json|pdf)$/i
 const TRACKED_ARTICLE_OR_TOOL = /^\/(tools|wellness-hub)\/[^/]+$/
 const TRACKED_TAG_PAGE = /^\/wellness-hub\/tag\/[^/]+$/
+const TRACKED_PSEO_PAGE = /^\/tools\/pseo\/[^/]+$/
 
 function isTrackedPage(urlPath: string): boolean {
   // Track tools, articles, and tag pages. Tag pages were previously invisible
   // to this audit — which is exactly how two of them shipped as orphans.
-  return TRACKED_ARTICLE_OR_TOOL.test(urlPath) || TRACKED_TAG_PAGE.test(urlPath)
+  return TRACKED_ARTICLE_OR_TOOL.test(urlPath) || TRACKED_TAG_PAGE.test(urlPath) || TRACKED_PSEO_PAGE.test(urlPath)
 }
 
 interface PageInfo {
+  redirect: boolean
   filePath: string
   urlPath: string
   outboundLinks: Set<string>
@@ -55,11 +57,14 @@ function isSpam(urlPath: string): boolean {
 function extractLinks(html: string): string[] {
   const links: string[] = []
   // Match href="/..." or href='/...' (internal absolute paths only)
-  const regex = /href=(["'])(\/[^"']+)\1/g
+  const regex = /href=(["'])([^"']+)\1/g
   let match: RegExpExecArray | null
   while ((match = regex.exec(html)) !== null) {
     // Strip query string and fragment for target matching.
-    links.push(match[2].split(/[?#]/)[0])
+    try {
+      const url = new URL(match[2].replace(/&amp;/g, '&'), 'https://www.healthylifesstyles.com');
+      if (url.origin === 'https://www.healthylifesstyles.com') links.push(url.pathname.replace(/\/$/, '') || '/');
+    } catch { /* Invalid links are reported by the metadata/URL checks. */ }
   }
   return links
 }
@@ -94,6 +99,7 @@ async function main() {
 
     pages.set(urlPath, {
       filePath: file,
+      redirect: /http-equiv="refresh"/i.test(html),
       urlPath,
       outboundLinks: outbound,
       inboundLinks: new Set(),
@@ -104,13 +110,13 @@ async function main() {
   for (const page of pages.values()) {
     for (const target of page.outboundLinks) {
       const targetPage = pages.get(target)
-      if (targetPage) {
+      if (targetPage && target !== page.urlPath) {
         targetPage.inboundLinks.add(page.urlPath)
       }
     }
   }
 
-  const trackedPages = [...pages.values()].filter((p) => isTrackedPage(p.urlPath))
+  const trackedPages = [...pages.values()].filter((p) => !p.redirect && isTrackedPage(p.urlPath))
   const orphans = trackedPages.filter((p) => p.inboundLinks.size === 0)
 
   const deadLinks: { source: string; target: string }[] = []
@@ -164,10 +170,10 @@ async function main() {
   }
 
   if (deadLinks.length > 0) {
-    console.log('\nWARN: dead internal links found (reported for fixing; not failing build).')
+    console.log('\nFAIL: dead internal links found.')
   }
 
-  if (orphans.length > 0 || spamLinks.length > 0) {
+  if (orphans.length > 0 || spamLinks.length > 0 || deadLinks.length > 0) {
     console.log('\nFAIL: orphan/spam-link checks failed.')
     process.exit(1)
   }
