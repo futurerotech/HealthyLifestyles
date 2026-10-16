@@ -58,7 +58,8 @@
     "lighthouse": "^13.4.0",
     "n3": "2.1.1",
     "rdf-validate-shacl": "0.6.5",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "ws": "^8.22.0"
   },
   "overrides": {
     "@vercel/routing-utils": {
