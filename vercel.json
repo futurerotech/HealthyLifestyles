@@ -1,12 +1,38 @@
 {
-  "git": { "deploymentEnabled": { "codex/**": false } },
+  "git": {
+    "deploymentEnabled": {
+      "codex/**": false
+    }
+  },
   "headers": [
     {
       "source": "/content-manifest.json",
       "headers": [
-        { "key": "Cache-Control", "value": "no-store" },
-        { "key": "CDN-Cache-Control", "value": "no-store" },
-        { "key": "X-Robots-Tag", "value": "noindex" }
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "CDN-Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
+      "source": "/(game|games|index\\.php|category|tag|wp-content|wp-admin|wp-includes)(/.*)?",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
       ]
     },
     {
@@ -98,6 +124,17 @@
     }
   ],
   "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "healthylifesstyles.com"
+        }
+      ],
+      "destination": "https://www.healthylifesstyles.com/:path*",
+      "statusCode": 301
+    },
     {
       "source": "/tools/body-fat-percentage-calculator",
       "destination": "/tools/body-fat-calculator",
