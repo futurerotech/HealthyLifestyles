@@ -32,6 +32,8 @@ export default defineConfig({
     sitemap({
       filter: (page) =>
         !page.includes('/404') &&
+        !/\/(?:api|og|embed|game|games|wp-content|wp-admin|wp-includes|category|tag)(?:\/|$)/.test(new URL(page).pathname) &&
+        !new URL(page).pathname.startsWith('/index.php') &&
         !page.includes('/content-manifest.json') &&
         !localRedirects.some((r) => new URL(page).pathname === r.source) &&
         !(redirectSnapshot || []).some((r) => new URL(page).pathname === r.from) &&
@@ -48,9 +50,9 @@ export default defineConfig({
         locales: { en: 'en', es: 'es', ar: 'ar' },
       },
       serialize: (item) => {
-        const url = item.url.replace(/(.+?)\/$/, '$1');
+        const url = new URL(item.url).pathname === '/' ? `${SITE_URL}/` : item.url.replace(/\/$/, '');
         let priority = 0.7;
-        if (url === 'https://www.healthylifesstyles.com') {
+        if (url === `${SITE_URL}/`) {
           priority = 1.0;
         } else if (/\/wellness-hub\/[^/]+$/.test(url) && !/\/wellness-hub$/.test(url)) {
           priority = 0.8;
