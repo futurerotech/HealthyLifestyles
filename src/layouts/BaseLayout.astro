@@ -59,7 +59,7 @@ const dir = lang === 'ar' || lang.startsWith('ar-') ? 'rtl' : 'ltr';
          skipped entirely for reduced-motion users. -->
     <script is:inline>
       try {
-        if (!matchMedia('(prefers-reduced-motion: reduce)').matches && !/bot|googlebot|crawler|spider|lighthouse/i.test(navigator.userAgent)) {
+        if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
           document.documentElement.classList.add('js-reveal');
         }
       } catch (e) {}
@@ -226,7 +226,7 @@ const dir = lang === 'ar' || lang.startsWith('ar-') ? 'rtl' : 'ltr';
           { rootMargin: '0px 0px -8% 0px', threshold: 0.04 },
         );
         els.forEach((el) => io.observe(el));
-        window.setTimeout(() => els.forEach(reveal), 500);
+        window.setTimeout(() => els.forEach(reveal), 2400);
       }
     </script>
   </body>
