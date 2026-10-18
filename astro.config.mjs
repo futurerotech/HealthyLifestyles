@@ -24,7 +24,7 @@ const localRedirects = JSON.parse(readFileSync('vercel.json', 'utf8')).redirects
 export default defineConfig({
   site: SITE_URL,
   output: 'static',
-  adapter: vercel(),
+  adapter: vercel({ middlewareMode: 'edge' }),
   trailingSlash: 'never',
   redirects: buildRedirects(redirectSnapshot || [], env.CMS_DISABLE === '1' ? localRedirects.filter((r) => r.source.startsWith('/tools/')) : localRedirects),
   integrations: [
