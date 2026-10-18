@@ -19,7 +19,7 @@ await copyLibFiles(path.resolve('public', '~partytown'));
 const env = { ...loadEnv(process.env.NODE_ENV || 'production', process.cwd(), ''), ...process.env };
 const redirectSnapshot = await fetchRedirectSnapshot(env);
 /** @type {{ source: string, destination: string, permanent: boolean }[]} */
-const localRedirects = JSON.parse(readFileSync('vercel.json', 'utf8')).redirects || [];
+const localRedirects = (JSON.parse(readFileSync('vercel.json', 'utf8')).redirects || []).filter((r) => !r.has && r.source.startsWith('/'));
 
 export default defineConfig({
   site: SITE_URL,
