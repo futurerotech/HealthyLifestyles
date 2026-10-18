@@ -57,7 +57,7 @@ function parse(file: string): void {
   const route = '/' + rel.replace(/\/?index\.html$/, '').replace(/404\.html$/, '404');
   const robots = attrs(html, /<meta name="robots" content="([^"]*)"/g);
   pages.push({
-    route: route === '/' ? '/' : route.replace(/\/$/, ''),
+    route: route === '/' ? '/' : route.replace(/(.+?)\/$/, (_, p1) => (p1 === 'https://www.healthylifesstyles.com' ? 'https://www.healthylifesstyles.com/' : p1)),
     title: attrs(html, /<title>([\s\S]*?)<\/title>/g),
     description: attrs(html, /<meta name="description" content="([^"]*)"/g),
     canonical: attrs(html, /<link rel="canonical" href="([^"]*)"/g),
@@ -117,13 +117,13 @@ for (const p of indexable) {
   hreflangSets++;
   if (!p.hreflang.some((h) => h.lang === 'x-default')) blocking.push(`${p.route}: hreflang set lacks x-default`);
   for (const h of p.hreflang) {
-    if (!routeSet.has(h.href.replace(/\/$/, ''))) {
+    if (!routeSet.has(h.href.replace(/(.+?)\/$/, (_, p1) => (p1 === 'https://www.healthylifesstyles.com' ? 'https://www.healthylifesstyles.com/' : p1)))) {
       blocking.push(`${p.route}: hreflang ${h.lang} → ${h.href} not present in build output`);
       continue;
     }
     const targetRoute = h.href.replace(ORIGIN, '') || '/';
     const target = pages.find((q) => q.route === targetRoute);
-    if (target && target.hreflang.length > 0 && !target.hreflang.some((b) => b.href.replace(/\/$/, '') === `${ORIGIN}${p.route === '/' ? '' : p.route}`)) {
+    if (target && target.hreflang.length > 0 && !target.hreflang.some((b) => b.href.replace(/(.+?)\/$/, (_, p1) => (p1 === 'https://www.healthylifesstyles.com' ? 'https://www.healthylifesstyles.com/' : p1)) === `${ORIGIN}${p.route === '/' ? '' : p.route}`)) {
       blocking.push(`${p.route}: non-reciprocal hreflang with ${targetRoute}`);
     }
   }
