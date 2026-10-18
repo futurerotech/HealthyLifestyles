@@ -33,7 +33,7 @@ const description =
   <Hero />
 
   <!-- Popular tools -->
-  <section class="section" aria-labelledby="popular-title" data-reveal>
+  <section class="section" aria-labelledby="popular-title">
     <div class="container">
       <div class="section-head section-head--row">
         <div>
@@ -53,7 +53,7 @@ const description =
   </section>
 
   <!-- Categories -->
-  <section class="section section-mint" aria-labelledby="cat-title" data-reveal>
+  <section class="section section-mint" aria-labelledby="cat-title">
     <div class="container">
       <div class="section-head">
         <span class="eyebrow">Browse by topic</span>
@@ -71,11 +71,24 @@ const description =
     </div>
   </section>
 
+  <!-- Original server-rendered editorial introduction: indexable without JavaScript. -->
+  <section class="section" aria-labelledby="about-platform">
+    <div class="container container-narrow">
+      <div class="section-head">
+        <span class="eyebrow">About HealthyLifeStyles</span>
+        <h2 id="about-platform">Practical health tools with transparent methods</h2>
+      </div>
+      <p>HealthyLifeStyles brings everyday health calculations and evidence-informed wellness guidance together in one free, accessible place. You can estimate calorie needs, compare body measurements, explore heart-rate targets, and reflect on sleep habits without creating an account. Our goal is to make the assumptions behind each result understandable, rather than present an estimate as a personal diagnosis.</p>
+      <p>Different tools use different kinds of evidence. For example, some energy calculations use the Mifflin–St Jeor equation, while body-fat estimates may use the U.S. Navy circumference method. Self-report screeners such as WHO-5 and PHQ-9 are questionnaires, not metabolic equations, and their scores must not be treated as medical diagnoses. On relevant tool pages we explain formulas, inputs, limitations, and sources so you can judge whether a result fits your question.</p>
+      <p>Many calculators run directly in your browser. Other features may contact our servers or save preferences locally, so our <a href="/privacy">privacy policy</a> explains important differences instead of promising that every input stays on your device. Our <a href="/methodology">methodology</a> and <a href="/editorial-policy">editorial policy</a> describe how we present references and review our content. You remain in control of how to use the information, and individual clinical decisions belong with qualified healthcare professionals.</p>
+    </div>
+  </section>
+
   <WhyTrust />
   <Faq />
 
   <!-- Final CTA -->
-  <section class="cta-band" data-reveal>
+  <section class="cta-band">
     <div class="container cta-band__inner">
       <div>
         <h2>Ready to know your numbers?</h2>

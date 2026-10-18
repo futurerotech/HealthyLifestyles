@@ -2,31 +2,58 @@
 # Search engines: full access.
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /embed/
+Disallow: /og/
 
 # Generative-AI / LLM crawlers — explicitly welcomed so our science-backed
 # health content is eligible for AI answers and citations.
 User-agent: GPTBot
 Allow: /
+Disallow: /api/
+Disallow: /embed/
+Disallow: /og/
 
 User-agent: OAI-SearchBot
 Allow: /
+Disallow: /api/
+Disallow: /embed/
+Disallow: /og/
 
 User-agent: ChatGPT-User
 Allow: /
+Disallow: /api/
+Disallow: /embed/
+Disallow: /og/
 
 User-agent: ClaudeBot
 Allow: /
+Disallow: /api/
+Disallow: /embed/
+Disallow: /og/
 
 User-agent: anthropic-ai
 Allow: /
+Disallow: /api/
+Disallow: /embed/
+Disallow: /og/
 
 User-agent: Claude-Web
 Allow: /
+Disallow: /api/
+Disallow: /embed/
+Disallow: /og/
 
 User-agent: PerplexityBot
 Allow: /
+Disallow: /api/
+Disallow: /embed/
+Disallow: /og/
 
 User-agent: Google-Extended
 Allow: /
+Disallow: /api/
+Disallow: /embed/
+Disallow: /og/
 
 Sitemap: https://www.healthylifesstyles.com/sitemap-index.xml

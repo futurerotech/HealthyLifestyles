@@ -42,6 +42,10 @@ test('canonicals and noindex control sitemap membership', () => {
   const origin = 'https://www.healthylifesstyles.com';
   assert.equal(resolveCanonical('/preferred#fragment', '/other', origin), `${origin}/preferred`);
   assert.throws(() => resolveCanonical('javascript:alert(1)', '/other', origin));
+  assert.equal(resolveCanonical(undefined, '/', origin), `${origin}/`);
+  assert.equal(resolveCanonical('', '/', origin), `${origin}/`);
+  assert.equal(resolveCanonical('/', '/', origin), `${origin}/`);
+  assert.equal(resolveCanonical(undefined, '/tools/bmi-calculator/', origin), `${origin}/tools/bmi-calculator`);
   assert.equal(isIndexableHtml('<meta name="robots" content="noindex, follow">', `${origin}/a`), false);
   assert.equal(isIndexableHtml(`<link rel="canonical" href="${origin}/b">`, `${origin}/a`), false);
   assert.equal(isIndexableHtml(`<link rel="canonical" href="${origin}/a">`, `${origin}/a`), true);

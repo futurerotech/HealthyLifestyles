@@ -1,12 +1,25 @@
 {
-  "git": { "deploymentEnabled": { "codex/**": false } },
+  "git": {
+    "deploymentEnabled": {
+      "codex/**": false
+    }
+  },
   "headers": [
     {
       "source": "/content-manifest.json",
       "headers": [
-        { "key": "Cache-Control", "value": "no-store" },
-        { "key": "CDN-Cache-Control", "value": "no-store" },
-        { "key": "X-Robots-Tag", "value": "noindex" }
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "CDN-Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
       ]
     },
     {
@@ -122,6 +135,45 @@
       "source": "/articles/understanding-basal-metabolic-rate-bmr",
       "destination": "/tools/bmr-calculator",
       "permanent": true
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "healthylifesstyles.com"
+        }
+      ],
+      "headers": {
+        "Location": "https://www.healthylifesstyles.com/$1"
+      },
+      "status": 301
+    },
+    {
+      "src": "/(?:game|games)(?:/.*)?",
+      "status": 410,
+      "headers": {
+        "X-Robots-Tag": "noindex",
+        "Cache-Control": "public, max-age=300"
+      }
+    },
+    {
+      "src": "/index\\.php(?:/.*)?",
+      "status": 410,
+      "headers": {
+        "X-Robots-Tag": "noindex",
+        "Cache-Control": "public, max-age=300"
+      }
+    },
+    {
+      "src": "/(?:wp-content|wp-admin|wp-includes|category|tag)(?:/.*)?",
+      "status": 410,
+      "headers": {
+        "X-Robots-Tag": "noindex",
+        "Cache-Control": "public, max-age=300"
+      }
     }
   ]
 }

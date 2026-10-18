@@ -36,7 +36,9 @@ export default defineConfig({
         !localRedirects.some((r) => new URL(page).pathname === r.source) &&
         !(redirectSnapshot || []).some((r) => new URL(page).pathname === r.from) &&
         !page.includes('/og/') &&
-        !page.includes('/embed/'),
+        !page.includes('/embed/') &&
+        !page.includes('/api/') &&
+        !page.includes('/og/'),
       changefreq: 'weekly',
       // P16 — hreflang in the sitemap too (head already emits it via SEO.astro).
       // The integration annotates xhtml:link alternates only for URLs whose
@@ -48,9 +50,9 @@ export default defineConfig({
         locales: { en: 'en', es: 'es', ar: 'ar' },
       },
       serialize: (item) => {
-        const url = item.url.replace(/(.+?)\/$/, '$1');
+        const url = new URL(item.url).pathname === '/' ? item.url : item.url.replace(/\/$/, '');
         let priority = 0.7;
-        if (url === 'https://www.healthylifesstyles.com') {
+        if (url === 'https://www.healthylifesstyles.com/') {
           priority = 1.0;
         } else if (/\/wellness-hub\/[^/]+$/.test(url) && !/\/wellness-hub$/.test(url)) {
           priority = 0.8;
