@@ -1,40 +1,5 @@
 {
-  "git": {
-    "deploymentEnabled": {
-      "codex/**": false
-    }
-  },
   "headers": [
-    {
-      "source": "/content-manifest.json",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store"
-        },
-        {
-          "key": "CDN-Cache-Control",
-          "value": "no-store"
-        },
-        {
-          "key": "X-Robots-Tag",
-          "value": "noindex"
-        }
-      ]
-    },
-    {
-      "source": "/(game|games|index\\.php|category|tag|wp-content|wp-admin|wp-includes)(/.*)?",
-      "headers": [
-        {
-          "key": "X-Robots-Tag",
-          "value": "noindex"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
-    },
     {
       "source": "/(.*)",
       "headers": [
@@ -61,6 +26,19 @@
         {
           "key": "Cross-Origin-Opener-Policy",
           "value": "same-origin"
+        }
+      ]
+    },
+    {
+      "source": "/(game|games|index\\.php|wp-content|wp-admin|wp-includes)(/.*)?",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
         }
       ]
     },
@@ -92,7 +70,7 @@
       ]
     },
     {
-      "source": "/((?!api/|_astro/|fonts/|og/|content-manifest\\.json$).*)",
+      "source": "/((?!api/|_astro/|fonts/|og/).*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -133,31 +111,6 @@
         }
       ],
       "destination": "https://www.healthylifesstyles.com/:path*",
-      "statusCode": 301
-    },
-    {
-      "source": "/tools/body-fat-percentage-calculator",
-      "destination": "/tools/body-fat-calculator",
-      "permanent": true
-    },
-    {
-      "source": "/tools/how-much-protein-do-i-need",
-      "destination": "/tools/protein-intake-calculator",
-      "permanent": true
-    },
-    {
-      "source": "/articles/how-are-calories-burned-calculated-a-guide-to-energy-expenditure",
-      "destination": "/wellness-hub/calories-burned-calculator-guide",
-      "permanent": true
-    },
-    {
-      "source": "/articles/how-many-calories-should-i-eat-to-lose-weight",
-      "destination": "/wellness-hub/how-many-calories-to-lose-weight",
-      "permanent": true
-    },
-    {
-      "source": "/articles/understanding-basal-metabolic-rate-bmr",
-      "destination": "/tools/bmr-calculator",
       "permanent": true
     }
   ]
