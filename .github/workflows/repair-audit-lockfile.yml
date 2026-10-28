@@ -21,13 +21,15 @@ jobs:
         with:
           node-version: '22'
           cache: npm
+      - name: Resolve narrowly scoped safe dependency override into lockfile
+        run: npm install --package-lock-only --ignore-scripts
       - name: Record baseline audit
         continue-on-error: true
         run: |
           npm ci --ignore-scripts
           npm audit --json > audit-before.json || true
-      - name: Safe lockfile remediation (no force, no major upgrades)
-        run: npm audit fix --package-lock-only --ignore-scripts
+      - name: Verify lockfile remediation without force
+        run: npm audit --audit-level=high
       - name: Reinstall exact repaired lockfile
         run: npm ci --ignore-scripts
       - name: Verify high-severity audit gate
