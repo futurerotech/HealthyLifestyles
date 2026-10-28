@@ -36,9 +36,11 @@ jobs:
         run: |
           npm audit --json > audit-after.json || true
           npm audit --audit-level=high
-      - name: Test normal build without CMS writes
+      - name: Test complete published CMS build (read-only)
         env:
-          CMS_DISABLE: '1'
+          CMS_URL: 'https://cms.healthylifesstyles.com'
+          CMS_DISABLE: '0'
+          VERCEL_ENV: 'production'
           INDEXNOW_DISABLE: 'true'
         run: npm run build
       - name: Commit ONLY validated lockfile to this repair branch
