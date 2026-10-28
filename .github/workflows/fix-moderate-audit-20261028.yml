@@ -1,0 +1,44 @@
+name: Repair remaining moderate npm advisory (isolated)
+
+on:
+  push:
+    branches: [fix/security-audit-vercel-20261028]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Repair lockfile with non-breaking dependency updates
+        run: |
+          npm install --package-lock-only --ignore-scripts
+          npm audit fix --package-lock-only --ignore-scripts
+      - name: Verify exact clean install and ZERO audit advisories
+        run: |
+          npm ci --ignore-scripts
+          npm audit --audit-level=low
+          node scripts/ci/audit-delta.ts
+      - name: Validate full real CMS production-data build without writes
+        env:
+          CMS_URL: https://cms.healthylifesstyles.com
+          CMS_DISABLE: '0'
+          VERCEL_ENV: production
+          INDEXNOW_DISABLE: 'true'
+        run: npm run build
+      - name: Commit only safe validated lockfile
+        run: |
+          if ! git diff --quiet -- package-lock.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add package-lock.json
+            git commit -m "fix(deps): eliminate moderate fast-uri advisory"
+            git push origin HEAD:fix/security-audit-vercel-20261028
+          fi
