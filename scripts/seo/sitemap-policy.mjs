@@ -2,6 +2,17 @@ import { readdir, readFile, writeFile, stat } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+/**
+ * Keep legacy /tag/* and any other legacy/private tag segment out of the
+ * sitemap, but permit real editorial /wellness-hub/tag/:slug archives.
+ * getStaticPaths already generates only tag archives containing articles;
+ * the build hook below still removes noindex/non-self-canonical pages.
+ */
+export function isExcludedSitemapPath(pathname) {
+  if (/^\/wellness-hub\/tag\/[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pathname)) return false;
+  return /\/(?:api|og|embed|game|games|wp-content|wp-admin|wp-includes|category|tag)(?:\/|$)/.test(pathname);
+}
+
 export function isIndexableHtml(html, url) {
   if (/<meta\b[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(html)) return false;
   const canonical = html.match(/<link\b[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)/i)?.[1];
