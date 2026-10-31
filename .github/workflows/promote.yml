@@ -53,6 +53,11 @@ jobs:
             console.log("HLS_CURRENT_AUDIT_ADVISORIES="+JSON.stringify([...entries.values()].sort((x,y)=>x.id-y.id)));
           '
 
+      # Targeted regression proof runs without renewing expired accepted risk.
+      # The full build remains blocked by audit-delta until security review.
+      - name: Tag sitemap route contract (independent of security exception)
+        run: node --test scripts/seo/__tests__/site-contract.test.ts
+
       # Keep the existing advisory ledger review guard as an additional check.
       - name: Audit delta (new high/critical only)
         run: node scripts/ci/audit-delta.ts
