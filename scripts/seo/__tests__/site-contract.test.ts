@@ -5,7 +5,7 @@ import { canonicalToolSlug, toolPath, categoryPath, normalizeInternalHref, SUPPO
 import { registerHooks } from 'node:module';
 import { resolveCanonical } from '../../../src/lib/seo.ts';
 import { buildRedirects } from '../redirects.mjs';
-import { isIndexableHtml } from '../sitemap-policy.mjs';
+import { isIndexableHtml, isExcludedSitemapPath } from '../sitemap-policy.mjs';
 import { reviewMetadataIssues } from '../lib/review-metadata.ts';
 registerHooks({ resolve(specifier, context, next) {
   if (specifier.startsWith('.') && !/\.[a-z]+$/i.test(specifier)) specifier += '.ts';
@@ -73,4 +73,13 @@ test('review metadata never requires invented reviews and rejects malformed clai
   assert.ok(reviewMetadataIssues({ lastReviewed: '2026-01-01' }).length);
   assert.ok(reviewMetadataIssues({ reviewedBy: { name: 'Reviewer' }, lastReviewed: '2026-02-30' }).length);
   assert.ok(reviewMetadataIssues({ reviewedBy: { name: 'Reviewer' }, lastReviewed: '2099-01-01' }).length);
+});
+
+test('sitemap allows real wellness tag archives while excluding legacy tag paths', () => {
+  assert.equal(isExcludedSitemapPath('/wellness-hub/tag/nutrition'), false);
+  assert.equal(isExcludedSitemapPath('/wellness-hub/tag/sleep-recovery'), false);
+  for (const path of ['/tag/nutrition', '/legacy/tag/nutrition', '/category/nutrition',
+    '/wellness-hub/tag/', '/wellness-hub/tag/foo/bar', '/api/private', '/embed/tool']) {
+    assert.equal(isExcludedSitemapPath(path), true, path);
+  }
 });

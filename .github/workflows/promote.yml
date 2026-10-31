@@ -37,6 +37,16 @@ jobs:
       - name: Security release gate
         run: npm run security:check
 
+      # Verify sitemap behavior before the unchanged blocking risk gate.
+      - name: Tag sitemap route contract (independent of security exception)
+        run: node --test scripts/seo/__tests__/site-contract.test.ts
+
+      - name: Isolated CMS fixture sitemap build
+        env:
+          CMS_DISABLE: '1'
+          INDEXNOW_DISABLE: 'true'
+        run: npm run test:cms-build
+
       # Keep the existing advisory ledger review guard as an additional check.
       - name: Audit delta (new high/critical only)
         run: node scripts/ci/audit-delta.ts
@@ -70,6 +80,9 @@ jobs:
           VERCEL_ENV: 'production'
           INDEXNOW_DISABLE: 'true'
         run: npm run build
+
+      - name: Verify published CMS tag sitemap and Vercel output
+        run: node scripts/seo/verify-built-tag-sitemap.mjs
 
       - name: Internal-link audit
         run: node scripts/seo/orphan-check.ts
