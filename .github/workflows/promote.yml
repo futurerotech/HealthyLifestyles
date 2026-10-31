@@ -58,6 +58,12 @@ jobs:
       - name: Tag sitemap route contract (independent of security exception)
         run: node --test scripts/seo/__tests__/site-contract.test.ts
 
+      - name: Isolated CMS fixture sitemap build (security gate remains blocking)
+        env:
+          CMS_DISABLE: '1'
+          INDEXNOW_DISABLE: 'true'
+        run: npm run test:cms-build
+
       # Keep the existing advisory ledger review guard as an additional check.
       - name: Audit delta (new high/critical only)
         run: node scripts/ci/audit-delta.ts
