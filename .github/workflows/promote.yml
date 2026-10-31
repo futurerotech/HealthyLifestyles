@@ -37,6 +37,22 @@ jobs:
       - name: Security release gate
         run: npm run security:check
 
+      # Temporary read-only evidence: inventory current advisory IDs without
+      # renewing the expired human-reviewed risk ledger or relaxing the gate.
+      - name: Capture current advisory inventory for security review
+        run: |
+          npm audit --json > "$RUNNER_TEMP/hls-audit.json" || true
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const a=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/hls-audit.json","utf8"));
+            const entries=new Map();
+            for (const [pkg,v] of Object.entries(a.vulnerabilities || {}))
+              for (const x of v.via || []) if(x && typeof x === "object" && typeof x.source === "number")
+                entries.set(x.source, {id:x.source,severity:x.severity,package:x.name||pkg,title:x.title});
+            console.log("HLS_CURRENT_AUDIT_TOTALS="+JSON.stringify(a.metadata?.vulnerabilities));
+            console.log("HLS_CURRENT_AUDIT_ADVISORIES="+JSON.stringify([...entries.values()].sort((x,y)=>x.id-y.id)));
+          '
+
       # Keep the existing advisory ledger review guard as an additional check.
       - name: Audit delta (new high/critical only)
         run: node scripts/ci/audit-delta.ts
