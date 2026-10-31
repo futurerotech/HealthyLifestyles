@@ -16,6 +16,34 @@ permissions:
   contents: read
 
 jobs:
+  regenerate-review-lock:
+    if: github.event_name == 'pull_request' && github.head_ref == 'fix/seo-wellness-tag-sitemap-20261031'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/seo-wellness-tag-sitemap-20261031
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Regenerate lockfile on isolated branch
+        run: npm install --package-lock-only --ignore-scripts --no-audit
+      - name: Verify updated dependency tree
+        run: |
+          npm ci --ignore-scripts
+          npm ls glob minimatch
+          npm audit --audit-level=high
+      - name: Commit review lockfile
+        run: |
+          if git diff --quiet -- package-lock.json; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package-lock.json
+          git commit -m "fix(security): lock patched transitive packages"
+          git push origin HEAD:fix/seo-wellness-tag-sitemap-20261031
   verify:
     name: Verify
     runs-on: ubuntu-latest
