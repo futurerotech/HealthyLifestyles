@@ -81,6 +81,9 @@ jobs:
           INDEXNOW_DISABLE: 'true'
         run: npm run build
 
+      - name: Verify published CMS tag sitemap and Vercel output
+        run: node scripts/seo/verify-built-tag-sitemap.mjs
+
       - name: Internal-link audit
         run: node scripts/seo/orphan-check.ts
 
