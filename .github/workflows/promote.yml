@@ -148,7 +148,13 @@ jobs:
               speedIndex: metric('speed-index'), serverResponse: metric('server-response-time'),
               performance: report.categories?.performance?.score ?? null,
               cpuSlowdownMultiplier: report.configSettings?.throttling?.cpuSlowdownMultiplier ?? null,
-              warnings: (report.runWarnings || []).length
+              warnings: (report.runWarnings || []).length,
+              mainThread: (a['mainthread-work-breakdown']?.details?.items || []).map(({group, duration}) => ({group, duration})),
+              scripts: (a['bootup-time']?.details?.items || []).slice(0, 8).map(item => {
+                let resource = 'other';
+                try { const u = new URL(item.url); resource = u.hostname === 'localhost' ? u.pathname : u.hostname; } catch {}
+                return {resource, total: item.total, scripting: item.scripting, scriptParseCompile: item.scriptParseCompile};
+              })
             }));
           }
           NODE
