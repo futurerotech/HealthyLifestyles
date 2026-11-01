@@ -21,8 +21,34 @@ export function getAttribute(tag, name) {
   return match?.[1] ?? match?.[2] ?? match?.[3];
 }
 
+// Only real metadata in the HTML head can determine crawlability. Literal
+// examples in comments, scripts or body text are not robots/canonical tags.
+// For isolated unit-test HTML fragments without a <head>, inspect the fragment.
+function metadataSource(html) {
+  const active = html
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/<(script|style|template|noscript|textarea|title)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, '');
+  const head = /<head(?:\s[^>]*)?>/i.exec(active);
+  if (!head) return active;
+  const rest = active.slice(head.index + head[0].length);
+  const closing = /<\/head\s*>/i.exec(rest);
+  return closing ? rest.slice(0, closing.index) : '';
+}
+
+function metadataTags(html, tagName) {
+  return [...metadataSource(html).matchAll(new RegExp('<' + tagName + '\\b[^>]*>', 'gi'))]
+    .map(match => match[0]);
+}
+
+export function canonicalTargets(html) {
+  return metadataTags(html, 'link')
+    .filter(tag => (getAttribute(tag, 'rel') ?? '').trim().toLowerCase()
+      .split(/\s+/).includes('canonical'))
+    .map(tag => getAttribute(tag, 'href'));
+}
+
 export function isIndexableHtml(html, url) {
-  for (const [tag] of html.matchAll(/<meta\b[^>]*>/gi)) {
+  for (const tag of metadataTags(html, 'meta')) {
     const name = getAttribute(tag, 'name')?.trim().toLowerCase();
     if (name === 'robots' || name === 'googlebot') {
       const directives = getAttribute(tag, 'content') ?? '';
@@ -30,13 +56,7 @@ export function isIndexableHtml(html, url) {
     }
   }
 
-  const canonicals = [];
-  for (const [tag] of html.matchAll(/<link\b[^>]*>/gi)) {
-    const rel = getAttribute(tag, 'rel')?.toLowerCase() ?? '';
-    if (rel.split(/\s+/).includes('canonical')) {
-      canonicals.push(getAttribute(tag, 'href'));
-    }
-  }
+  const canonicals = canonicalTargets(html);
   // Missing or conflicting canonical targets are never safe sitemap entries.
   if (canonicals.length > 1 || (canonicals.length === 1 && !canonicals[0])) return false;
   return canonicals.length === 0 ||
