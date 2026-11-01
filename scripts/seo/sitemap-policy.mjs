@@ -13,10 +13,34 @@ export function isExcludedSitemapPath(pathname) {
   return /\/(?:api|og|embed|game|games|wp-content|wp-admin|wp-includes|category|tag)(?:\/|$)/.test(pathname);
 }
 
+// HTML attributes can occur in any order and can be quoted or unquoted.
+// Read only known attribute names from the actual tag; do not rely on
+// "name" preceding "content" or "rel" preceding "href".
+function getAttribute(tag, name) {
+  const match = tag.match(new RegExp('\\s' + name + '\\s*=\\s*(?:"([^"]*)"|\\x27([^\\x27]*)\\x27|([^\\s>]+))', 'i'));
+  return match?.[1] ?? match?.[2] ?? match?.[3];
+}
+
 export function isIndexableHtml(html, url) {
-  if (/<meta\b[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(html)) return false;
-  const canonical = html.match(/<link\b[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)/i)?.[1];
-  return !canonical || canonical.replace(/\/$/, '') === url.replace(/\/$/, '');
+  for (const [tag] of html.matchAll(/<meta\b[^>]*>/gi)) {
+    const name = getAttribute(tag, 'name')?.trim().toLowerCase();
+    if (name === 'robots' || name === 'googlebot') {
+      const directives = getAttribute(tag, 'content') ?? '';
+      if (/(?:^|[\s,;])(?:noindex|none)(?=$|[\s,;])/i.test(directives)) return false;
+    }
+  }
+
+  const canonicals = [];
+  for (const [tag] of html.matchAll(/<link\b[^>]*>/gi)) {
+    const rel = getAttribute(tag, 'rel')?.toLowerCase() ?? '';
+    if (rel.split(/\s+/).includes('canonical')) {
+      canonicals.push(getAttribute(tag, 'href'));
+    }
+  }
+  // Missing or conflicting canonical targets are never safe sitemap entries.
+  if (canonicals.length > 1 || (canonicals.length === 1 && !canonicals[0])) return false;
+  return canonicals.length === 0 ||
+    canonicals[0].replace(/\/$/, '') === url.replace(/\/$/, '');
 }
 
 export default function sitemapPolicy() {
