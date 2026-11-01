@@ -17,8 +17,15 @@ export function isExcludedSitemapPath(pathname) {
 // Read only known attribute names from the actual tag; do not rely on
 // "name" preceding "content" or "rel" preceding "href".
 export function getAttribute(tag, name) {
-  const match = tag.match(new RegExp('\\s' + name + '\\s*=\\s*(?:"([^"]*)"|\\x27([^\\x27]*)\\x27|([^\\s>]+))', 'i'));
-  return match?.[1] ?? match?.[2] ?? match?.[3];
+  // Consume whole quoted values, so text inside one attribute cannot masquerade
+  // as another attribute. HTML attribute names are ASCII case-insensitive.
+  const attributes = /\s+([^\s"'<>\/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'\x60=<>]+)))?/g;
+  for (const match of tag.matchAll(attributes)) {
+    if (match[1].toLowerCase() === name.toLowerCase()) {
+      return match[2] ?? match[3] ?? match[4] ?? '';
+    }
+  }
+  return undefined;
 }
 
 // Only real metadata in the HTML head can determine crawlability. Literal
