@@ -10,6 +10,7 @@
  */
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
+import { getAttribute, isIndexableHtml } from './sitemap-policy.mjs';
 
 export const PUBLIC_ORIGIN = 'https://www.healthylifesstyles.com';
 const TAG_PREFIX = PUBLIC_ORIGIN + '/wellness-hub/tag/';
@@ -57,7 +58,7 @@ async function limitedText(response, label) {
   }
   return Buffer.concat(chunks).toString('utf8');
 }
-async function getText(url, fetcher, label) {
+async function getText(url, fetcher, label, { checkRobotsHeader = false } = {}) {
   let response;
   try {
     response = await fetcher(url, {
@@ -71,6 +72,12 @@ async function getText(url, fetcher, label) {
   if (!response || response.status !== 200 || response.redirected ||
       (response.url && response.url !== url)) {
     throw new Error(label + ': expected direct HTTP 200 from approved public origin');
+  }
+  // Live HTTP headers can override an otherwise self-canonical HTML page.
+  // Fail closed on noindex/none (including agent-scoped directives); this is
+  // a release gate, not an assertion of Google's actual indexing state.
+  if (checkRobotsHeader && /(?:^|[\s,;:])(?:noindex|none)(?=$|[\s,;])/i.test(response.headers?.get('x-robots-tag') ?? '')) {
+    throw new Error(label + ': X-Robots-Tag disallows indexing');
   }
   return limitedText(response, label);
 }
@@ -86,19 +93,18 @@ function tagLinks(html) {
   }
   return [...result].sort();
 }
-function elementAttribute(tag, name) {
-  const pattern = new RegExp('\\b' + name + '\\s*=\\s*(["\\x27])([^"\\x27]*)\\1', 'i');
-  return tag.match(pattern)?.[2] ?? '';
-}
 export function assertIndexableTagHtml(html, canonical) {
-  const links = [...html.matchAll(/<link\b[^>]*>/gi)].map(m => m[0]);
-  const self = links.filter(l => elementAttribute(l, 'rel').split(/\s+/).includes('canonical'));
-  if (self.length !== 1 || elementAttribute(self[0], 'href') !== canonical) {
+  // Require exactly one declared self-canonical. The shared build-time
+  // parser catches robots/googlebot noindex and conflicting canonicals.
+  const canonicals = [...html.matchAll(/<link\b[^>]*>/gi)]
+    .map(match => match[0])
+    .filter(tag => (getAttribute(tag, 'rel') ?? '')
+      .trim().toLowerCase().split(/\s+/).includes('canonical'));
+  if (canonicals.length !== 1 ||
+      getAttribute(canonicals[0], 'href') !== canonical) {
     throw new Error('Tag page canonical mismatch');
   }
-  const meta = [...html.matchAll(/<meta\b[^>]*>/gi)].map(m => m[0]);
-  if (meta.some(m => ['robots','googlebot'].includes(elementAttribute(m,'name').toLowerCase()) &&
-      /(?:^|[\s,;])(?:noindex|none)(?:$|[\s,;])/i.test(elementAttribute(m,'content')))) {
+  if (!isIndexableHtml(html, canonical)) {
     throw new Error('Tag page has noindex directive');
   }
 }
@@ -145,7 +151,7 @@ export async function verifyPublicTagSitemap({ fetcher = fetch } = {}) {
   const samples = [linked[0], linked[Math.floor(linked.length / 2)], linked[linked.length - 1]];
   const uniqueSamples = [...new Set(samples)];
   for (const page of uniqueSamples) {
-    assertIndexableTagHtml(await getText(page, fetcher, 'Tag archive'), page);
+    assertIndexableTagHtml(await getText(page, fetcher, 'Tag archive', { checkRobotsHeader: true }), page);
   }
   return Object.freeze({
     kind: 'public-wellness-tag-sitemap-postdeploy',
@@ -155,6 +161,7 @@ export async function verifyPublicTagSitemap({ fetcher = fetch } = {}) {
     linkedTagArchives: linked.length,
     listedTagArchives: tagURLs.length,
     tagPageSamplesVerified: uniqueSamples.length,
+    tagPageHeaderSamplesVerified: uniqueSamples.length,
     verified: true,
     indexingSubmissionRequests: 0,
     productionWrites: 0,
