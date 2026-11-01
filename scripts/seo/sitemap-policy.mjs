@@ -43,8 +43,11 @@ function metadataSource(html) {
 }
 
 function metadataTags(html, tagName) {
-  return [...metadataSource(html).matchAll(new RegExp('<' + tagName + '\\b[^>]*>', 'gi'))]
-    .map(match => match[0]);
+  // A > inside a quoted attribute value does not terminate an HTML tag.
+  const pattern = tagName === 'meta'
+    ? /<meta\b(?:[^>"']|"[^"]*"|'[^']*')*>/gi
+    : /<link\b(?:[^>"']|"[^"]*"|'[^']*')*>/gi;
+  return [...metadataSource(html).matchAll(pattern)].map(match => match[0]);
 }
 
 export function canonicalTargets(html) {
