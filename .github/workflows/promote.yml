@@ -159,6 +159,23 @@ jobs:
           }
           NODE
 
+      # Diagnostic-only repeated Lighthouse sample on the SAME completed static build.
+      # The existing one-run Lighthouse release gate above is unchanged and blocking.
+      # Do not upload these private local reports or interpret diagnostic variance as a release PASS.
+      - name: Lighthouse same-build variance unit tests
+        run: node --test scripts/seo/__tests__/lighthouse-variance.test.mjs
+
+      - name: Lighthouse same-build homepage variance (diagnostic-only)
+        if: always()
+        continue-on-error: true
+        run: |
+          if [ ! -f dist/client/index.html ]; then
+            echo 'No built homepage available for optional variance diagnosis'
+            exit 0
+          fi
+          npx --yes @lhci/cli@0.14.x collect --config=./lighthouserc.variance.json
+          node scripts/seo/lighthouse-variance.mjs
+
       # Phase 9 P3 — external Rich Results validation. Best-effort and NON-BLOCKING:
       # the script always exits 0, and continue-on-error guarantees an external API
       # limit/timeout can never fail verify or strand the auto-promotion.
