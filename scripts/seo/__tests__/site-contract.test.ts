@@ -107,6 +107,17 @@ test('review metadata never requires invented reviews and rejects malformed clai
   assert.ok(reviewMetadataIssues({ reviewedBy: { name: 'Reviewer' }, lastReviewed: '2099-01-01' }).length);
 });
 
+test('sitemap ignores inert comment, script and body metadata, but still obeys real head robots', () => {
+  const url = 'https://www.healthylifesstyles.com/wellness-hub/tag/nutrition';
+  const head = '<!doctype html><html><head><link href=' + url + ' rel=canonical></head>';
+  const inert = '<body><!-- <meta name="robots" content="noindex"> -->' +
+    '<script>const x = `<link rel="canonical" href="https://wrong.test">`;</script>' +
+    '<template><meta name="robots" content="none"></template>' +
+    '<meta name="robots" content="noindex"></body></html>';
+  assert.equal(isIndexableHtml(head + inert, url), true);
+  assert.equal(isIndexableHtml(head.replace('</head>', '<meta name="robots" content="noindex"></head>') + inert, url), false);
+});
+
 test('sitemap allows real wellness tag archives while excluding legacy tag paths', () => {
   assert.equal(isExcludedSitemapPath('/wellness-hub/tag/nutrition'), false);
   assert.equal(isExcludedSitemapPath('/wellness-hub/tag/sleep-recovery'), false);
