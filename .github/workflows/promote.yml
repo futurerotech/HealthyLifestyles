@@ -127,6 +127,32 @@ jobs:
       - name: Lighthouse CWV budget (blocking)
         run: npx --yes @lhci/cli@0.14.x autorun
 
+      # Preserve compact lab diagnostics even when the blocking assertion fails.
+      # Reports are local static-build data; do not print URLs, DOM or page content.
+      - name: Lighthouse diagnostic metrics
+        if: always()
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const dir = '.lighthouseci';
+          if (!fs.existsSync(dir)) { console.log('No Lighthouse reports available'); process.exit(0); }
+          for (const name of fs.readdirSync(dir).filter(n => /^lhr-.*\.json$/.test(n)).sort()) {
+            const report = JSON.parse(fs.readFileSync(dir + '/' + name, 'utf8'));
+            const a = report.audits || {};
+            const metric = key => a[key]?.numericValue ?? null;
+            console.log(JSON.stringify({
+              report: name, lighthouseVersion: report.lighthouseVersion,
+              fetchTime: report.fetchTime, timing: report.timing?.total,
+              lcp: metric('largest-contentful-paint'), fcp: metric('first-contentful-paint'),
+              tbt: metric('total-blocking-time'), cls: metric('cumulative-layout-shift'),
+              speedIndex: metric('speed-index'), serverResponse: metric('server-response-time'),
+              performance: report.categories?.performance?.score ?? null,
+              cpuSlowdownMultiplier: report.configSettings?.throttling?.cpuSlowdownMultiplier ?? null,
+              warnings: (report.runWarnings || []).length
+            }));
+          }
+          NODE
+
       # Phase 9 P3 — external Rich Results validation. Best-effort and NON-BLOCKING:
       # the script always exits 0, and continue-on-error guarantees an external API
       # limit/timeout can never fail verify or strand the auto-promotion.
