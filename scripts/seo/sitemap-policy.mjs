@@ -16,7 +16,7 @@ export function isExcludedSitemapPath(pathname) {
 // HTML attributes can occur in any order and can be quoted or unquoted.
 // Read only known attribute names from the actual tag; do not rely on
 // "name" preceding "content" or "rel" preceding "href".
-function getAttribute(tag, name) {
+export function getAttribute(tag, name) {
   const match = tag.match(new RegExp('\\s' + name + '\\s*=\\s*(?:"([^"]*)"|\\x27([^\\x27]*)\\x27|([^\\s>]+))', 'i'));
   return match?.[1] ?? match?.[2] ?? match?.[3];
 }
