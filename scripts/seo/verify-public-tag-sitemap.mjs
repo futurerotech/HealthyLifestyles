@@ -10,7 +10,7 @@
  */
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
-import { getAttribute, isIndexableHtml } from './sitemap-policy.mjs';
+import { canonicalTargets, isIndexableHtml } from './sitemap-policy.mjs';
 
 export const PUBLIC_ORIGIN = 'https://www.healthylifesstyles.com';
 const TAG_PREFIX = PUBLIC_ORIGIN + '/wellness-hub/tag/';
@@ -96,12 +96,9 @@ function tagLinks(html) {
 export function assertIndexableTagHtml(html, canonical) {
   // Require exactly one declared self-canonical. The shared build-time
   // parser catches robots/googlebot noindex and conflicting canonicals.
-  const canonicals = [...html.matchAll(/<link\b[^>]*>/gi)]
-    .map(match => match[0])
-    .filter(tag => (getAttribute(tag, 'rel') ?? '')
-      .trim().toLowerCase().split(/\s+/).includes('canonical'));
+  const canonicals = canonicalTargets(html);
   if (canonicals.length !== 1 ||
-      getAttribute(canonicals[0], 'href') !== canonical) {
+      canonicals[0] !== canonical) {
     throw new Error('Tag page canonical mismatch');
   }
   if (!isIndexableHtml(html, canonical)) {
