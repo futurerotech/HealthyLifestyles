@@ -135,3 +135,12 @@ test('quoted attribute values cannot impersonate metadata attributes', () => {
   assert.equal(isIndexableHtml(`<link data-note=" href=wrong " href="${url}" rel=canonical>`, url), true);
   assert.equal(isIndexableHtml(`<link data-note=" rel=canonical " href="${url}/wrong">`, url), true);
 });
+
+
+test('metadata tags may contain greater-than inside quoted attribute values', () => {
+  const url = 'https://www.healthylifesstyles.com/wellness-hub/tag/nutrition';
+  assert.equal(isIndexableHtml('<head><meta data-note="1 > 0" name=robots content=noindex></head>', url), false);
+  assert.equal(isIndexableHtml("<head><meta data-note='1 > 0' name=googlebot content=none></head>", url), false);
+  assert.equal(isIndexableHtml(`<head><link data-note="1 > 0" rel=canonical href="${url}/wrong"></head>`, url), false);
+  assert.equal(isIndexableHtml(`<head><link data-note='1 > 0' rel=canonical href="${url}"></head>`, url), true);
+});
