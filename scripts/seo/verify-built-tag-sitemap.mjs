@@ -8,7 +8,7 @@
 import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
-import { isIndexableHtml } from './sitemap-policy.mjs';
+import { canonicalTargets, isIndexableHtml } from './sitemap-policy.mjs';
 
 const ORIGIN = 'https://www.healthylifesstyles.com';
 const output = resolve('dist/client');
@@ -45,8 +45,9 @@ for (const entry of entries) {
   assert.equal(inSitemap, shouldIndex,
     'Tag indexability/sitemap mismatch: ' + slug + ' (indexable=' + shouldIndex + ')');
   if (shouldIndex) {
-    const link = html.match(/<link\b[^>]*rel=["']canonical["'][^>]*>/i)?.[0] ?? '';
-    const href = link.match(/\bhref=["']([^"']+)["']/i)?.[1];
+    const targets = canonicalTargets(html);
+    assert.equal(targets.length, 1, 'Indexable tag archive must have one canonical: ' + slug);
+    const href = targets[0];
     assert.equal(href?.replace(/\/$/, ''), canonical,
       'Indexable tag archive must declare a self-canonical: ' + slug);
     indexable++;
