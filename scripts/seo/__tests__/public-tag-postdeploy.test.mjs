@@ -95,6 +95,31 @@ test('noindex meta or mismatched canonical on tag archives rejects release', asy
   await assert.rejects(() => verifyPublicTagSitemap({fetcher:x.fetcher}), /noindex/);
 });
 
+test('postdeploy uses shared indexability rules for unquoted attributes and canonical variants', () => {
+  const url = tag('nutrition');
+  assert.throws(() => assertIndexableTagHtml(
+    '<meta content=noindex name=robots><link href=' + url + ' rel=CANONICAL>', url), /noindex/);
+  assert.throws(() => assertIndexableTagHtml(
+    '<meta name=googlebot content=none><link rel=canonical href=' + url + '>', url), /noindex/);
+  assert.throws(() => assertIndexableTagHtml(
+    '<link href=' + url + ' rel=canonical><link rel=canonical href=' + url + '>', url), /canonical mismatch/);
+  assert.doesNotThrow(() => assertIndexableTagHtml(
+    '<meta content=follow name=robots><link href=' + url + ' rel=CANONICAL>', url));
+});
+
+test('live X-Robots-Tag noindex/none disqualifies a tag sample despite indexable HTML', async () => {
+  for (const directive of ['noindex', 'googlebot: none']) {
+    const url = tag('nutrition');
+    const x = fixture({ responseOverrides: {
+      [url]: new Response(tagHtml('nutrition'), {
+        status: 200, headers: { 'X-Robots-Tag': directive },
+      }),
+    } });
+    await assert.rejects(() => verifyPublicTagSitemap({fetcher:x.fetcher}), /X-Robots-Tag/);
+    assert.deepEqual(x.calls.map(c => c.url), [indexUrl, childUrl, hubUrl, url]);
+  }
+});
+
 test('redirects and oversized sitemap responses are not followed or accepted', async () => {
   const redir = fixture({responseOverrides:{
     [indexUrl]: new Response(null,{status:302,headers:{location:'/different.xml'}}),
