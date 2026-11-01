@@ -41,6 +41,10 @@ jobs:
       - name: Tag sitemap route contract (independent of security exception)
         run: node --test scripts/seo/__tests__/site-contract.test.ts
 
+      # No public HTTP request in CI; verify the manual post-deploy gate with fixtures.
+      - name: Public tag post-deploy read-only verifier (mock-only)
+        run: node --test scripts/seo/__tests__/public-tag-postdeploy.test.mjs
+
       - name: Isolated CMS fixture sitemap build
         env:
           CMS_DISABLE: '1'
