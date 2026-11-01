@@ -126,3 +126,12 @@ test('sitemap allows real wellness tag archives while excluding legacy tag paths
     assert.equal(isExcludedSitemapPath(path), true, path);
   }
 });
+
+
+test('quoted attribute values cannot impersonate metadata attributes', () => {
+  const url = 'https://www.healthylifesstyles.com/wellness-hub/tag/nutrition';
+  assert.equal(isIndexableHtml('<meta data-note=" name=robots " content=noindex>', url), true);
+  assert.equal(isIndexableHtml('<meta data-note=" name=robots " name=robots content=noindex>', url), false);
+  assert.equal(isIndexableHtml(`<link data-note=" href=wrong " href="${url}" rel=canonical>`, url), true);
+  assert.equal(isIndexableHtml(`<link data-note=" rel=canonical " href="${url}/wrong">`, url), true);
+});
