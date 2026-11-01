@@ -47,6 +47,38 @@ test('canonicals and noindex control sitemap membership', () => {
   assert.equal(isIndexableHtml(`<link rel="canonical" href="${origin}/a">`, `${origin}/a`), true);
 });
 
+test('sitemap indexability honors robots and canonical attributes regardless of order', () => {
+  const url = 'https://www.healthylifesstyles.com/wellness-hub/tag/nutrition';
+  const wrong = 'https://www.healthylifesstyles.com/wellness-hub/tag/other';
+  const excluded = [
+    '<meta content="noindex, follow" name="robots">',
+    "<meta content='follow, NOINDEX' name='ROBOTS'>",
+    '<meta name="googlebot" content="noindex">',
+    '<meta content="none" name="googlebot">',
+    '<meta content=none name=robots>',
+    '<meta content="nofollow,none" name="robots">',
+    `<link href="${wrong}" rel="canonical">`,
+    `<link href='${wrong}' rel='canonical alternate'>`,
+    `<link href=${wrong} rel=canonical>`,
+    '<link rel="canonical">',
+    `<link rel="canonical" href="${url}"><link href="${wrong}" rel="canonical">`,
+  ];
+  for (const html of excluded) {
+    assert.equal(isIndexableHtml(html, url), false, html);
+  }
+  const allowed = [
+    '<meta content="index, follow" name="robots">',
+    '<meta name="description" content="the text mentions noindex">',
+    '<meta content="nofollow" name="robots">',
+    `<link href="${url}" rel="canonical">`,
+    `<link rel="canonical" href="${url}/">`,
+    `<meta name="robots" content="max-image-preview:large"><link href="${url}" rel="canonical">`,
+  ];
+  for (const html of allowed) {
+    assert.equal(isIndexableHtml(html, url), true, html);
+  }
+});
+
 test('article/category collisions and reserved static routes block a build', () => {
   assert.throws(() => assertUniquePublicPaths([{ collection: 'articles', slug: 'nutrition' }, { collection: 'categories', slug: 'nutrition', kind: 'section' }]), /Duplicate/);
   assert.throws(() => assertUniquePublicPaths([{ collection: 'pages', slug: 'about' }]), /Duplicate/);
