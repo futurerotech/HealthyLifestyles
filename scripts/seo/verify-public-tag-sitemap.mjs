@@ -10,7 +10,7 @@
  */
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
-import { canonicalTargets, isIndexableHtml } from './sitemap-policy.mjs';
+import { canonicalTargets, getAttribute, isIndexableHtml } from './sitemap-policy.mjs';
 
 export const PUBLIC_ORIGIN = 'https://www.healthylifesstyles.com';
 const TAG_PREFIX = PUBLIC_ORIGIN + '/wellness-hub/tag/';
@@ -83,9 +83,19 @@ async function getText(url, fetcher, label, { checkRobotsHeader = false } = {}) 
 }
 function tagLinks(html) {
   const result = new Set();
-  for (const match of html.matchAll(/<a\b[^>]*\bhref\s*=\s*(["'])(.*?)\1/gi)) {
+  // Text examples in comments or raw-text elements are not rendered links.
+  // Match full HTML opening tags, not substrings inside quoted attributes.
+  // A quoted ">" cannot terminate an anchor tag prematurely.
+  const active = html
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/<(script|style|template|noscript|textarea)\b(?:[^>"']|"[^"]*"|'[^']*')*>[\s\S]*?<\/\1\s*>/gi, '');
+  for (const match of active.matchAll(/<(?:[^>"']|"[^"]*"|'[^']*')*>/g)) {
+    const tag = match[0];
+    if (!/^<a(?=[\s/>])/i.test(tag)) continue;
+    const href = getAttribute(tag, 'href');
+    if (!href) continue;
     let u;
-    try { u = new URL(match[2], PUBLIC_ORIGIN); } catch { continue; }
+    try { u = new URL(href, PUBLIC_ORIGIN); } catch { continue; }
     if (u.origin !== PUBLIC_ORIGIN || !TAG_ROUTE.test(u.pathname) ||
         u.search || u.hash) continue;
     result.add(u.href);
@@ -93,6 +103,7 @@ function tagLinks(html) {
   }
   return [...result].sort();
 }
+
 export function assertIndexableTagHtml(html, canonical) {
   // Require exactly one declared self-canonical. The shared build-time
   // parser catches robots/googlebot noindex and conflicting canonicals.
