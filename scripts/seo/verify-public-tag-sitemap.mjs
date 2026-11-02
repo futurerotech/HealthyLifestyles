@@ -88,7 +88,7 @@ function tagLinks(html) {
   // A quoted ">" cannot terminate an anchor tag prematurely.
   const active = html
     .replace(/<!--[\s\S]*?-->/g, '')
-    .replace(/<(script|style|template|noscript|textarea)\b(?:[^>"']|"[^"]*"|'[^']*')*>[\s\S]*?<\/\1\s*>/gi, '');
+    .replace(/<(script|style|template|noscript|textarea|title)\b(?:[^>"']|"[^"]*"|'[^']*')*>[\s\S]*?<\/\1\s*>/gi, '');
   for (const match of active.matchAll(/<(?:[^>"']|"[^"]*"|'[^']*')*>/g)) {
     const tag = match[0];
     if (!/^<a(?=[\s/>])/i.test(tag)) continue;

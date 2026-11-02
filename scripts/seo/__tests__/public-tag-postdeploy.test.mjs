@@ -57,6 +57,21 @@ test('valid postdeploy sitemap contains every linked tag and sampled pages are i
     c.options.credentials === 'omit' && c.options.signal));
 });
 
+test('Hub discovery ignores raw title text containing fake tag anchors', async () => {
+  const document = '<!doctype html><html><head>' +
+    '<title data-note="1 > 0">Example <a href="/wellness-hub/tag/ghost-title"></title>' +
+    '</head><body>' +
+    names.map(n => '<a href="/wellness-hub/tag/' + n + '">Tag</a>').join('') +
+    '</body></html>';
+  const x = fixture({ responseOverrides: {
+    [hubUrl]: new Response(document, {status: 200}),
+  } });
+  const result = await verifyPublicTagSitemap({fetcher: x.fetcher});
+  assert.equal(result.linkedTagArchives, names.length);
+  assert.equal(result.tagPageSamplesVerified, names.length);
+  assert.equal(x.calls.length, 6);
+});
+
 test('Hub discovery excludes fake tag links in comments, scripts and quoted attributes', async () => {
   const real = names.map(n => '<a href="/wellness-hub/tag/' + n + '">Tag</a>').join('');
   const examples = '<!-- <a href="/wellness-hub/tag/ghost-comment"> -->' +
