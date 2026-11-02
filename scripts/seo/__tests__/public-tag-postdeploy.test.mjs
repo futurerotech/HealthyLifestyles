@@ -57,6 +57,32 @@ test('valid postdeploy sitemap contains every linked tag and sampled pages are i
     c.options.credentials === 'omit' && c.options.signal));
 });
 
+test('Hub discovery excludes fake tag links in comments, scripts and quoted attributes', async () => {
+  const real = names.map(n => '<a href="/wellness-hub/tag/' + n + '">Tag</a>').join('');
+  const examples = '<!-- <a href="/wellness-hub/tag/ghost-comment"> -->' +
+    '<script>var example = "<a href=/wellness-hub/tag/ghost-script>";</script>' +
+    '<style>.sample::before { content: "<a href=/wellness-hub/tag/ghost-style>"; }</style>' +
+    '<template><a href="/wellness-hub/tag/ghost-template">Example</a></template>' +
+    '<div data-note="<a href=' + "'/wellness-hub/tag/ghost-attribute'" + '>">Text</div>';
+  const x = fixture({ hub: real + examples });
+  const result = await verifyPublicTagSitemap({ fetcher: x.fetcher });
+  assert.equal(result.linkedTagArchives, names.length);
+  assert.equal(result.tagPageSamplesVerified, names.length);
+  assert.equal(x.calls.length, 6);
+});
+
+test('Hub link parser preserves href after a quoted greater-than and ignores attribute text', async () => {
+  const hub = '<a data-note="1 > 0" href="/wellness-hub/tag/nutrition">Nutrition</a>' +
+    '<a href="/wellness-hub/tag/sleep">Sleep</a>' +
+    '<a data-note=" href=' + "'/wellness-hub/tag/ghost-attribute'" +
+    ' " href="/wellness-hub/tag/strength-training">Strength</a>';
+  const x = fixture({ hub });
+  const result = await verifyPublicTagSitemap({ fetcher: x.fetcher });
+  assert.equal(result.linkedTagArchives, 3);
+  assert.equal(result.tagPageSamplesVerified, 3);
+  assert.equal(x.calls.length, 6);
+});
+
 test('predeployment public sitemap with zero tags is explicitly NO-GO', async () => {
   const x = fixture({sitemap:childXml([hubUrl])});
   await assert.rejects(() => verifyPublicTagSitemap({fetcher:x.fetcher}), /zero Wellness Hub tag archives/);
