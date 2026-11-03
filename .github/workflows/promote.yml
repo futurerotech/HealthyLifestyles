@@ -54,6 +54,12 @@ jobs:
           INDEXNOW_DISABLE: 'true'
         run: npm run test:cms-build
 
+      # Real Chrome verifies hydrated Preact calculator outputs after genuine
+      # keyboard input in synthetic authored and implicit article embeds.
+      # Uses only isolated fixture output; never contacts production CMS.
+      - name: Article calculator browser interaction (Chrome, desktop + mobile)
+        run: node scripts/seo/article-calculator-browser-proof.mjs
+
       # Keep the existing advisory ledger review guard as an additional check.
       - name: Audit delta (new high/critical only)
         run: node scripts/ci/audit-delta.ts
