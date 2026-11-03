@@ -107,6 +107,7 @@ async function testCase(cdp, origin, c) {
   assert.equal(initial.island, true, c.article + ' must include real Astro island');
   const fieldId = '#calc-' + c.slug + '-' + c.field;
   await until(cdp.evaluate, '(() => { const root=document.querySelector(' + JSON.stringify(scope) + '); const island=root?.querySelector("astro-island"); return island && !island.hasAttribute("ssr") && root.querySelector(".calc__value") && root.querySelector(' + JSON.stringify(fieldId) + ') })()', c.article + ' hydrated');
+  await until(cdp.evaluate, '(() => { const root=document.querySelector(' + JSON.stringify(scope) + '); const facebook=root?.querySelector("a[aria-label=\\"Share result on Facebook\\"]"); const x=root?.querySelector("a[aria-label=\\"Share result on X (Twitter)\\"]"); return facebook && x && new URL(facebook.href).searchParams.get("u") === location.href && new URL(x.href).searchParams.get("text")?.includes(location.href); })()', c.article + ' share links include current page');
   await delay(750); // first-time result count-up animation
   const before = await cdp.evaluate('document.querySelector(' + JSON.stringify(scope) + ')?.querySelector(".calc__value")?.textContent?.trim()');
   assert.ok(before && before !== '—', c.article + ' initial output not ready');

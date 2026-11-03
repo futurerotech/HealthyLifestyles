@@ -1,5 +1,5 @@
 /** @jsxImportSource preact */
-import { useCallback, useState } from 'preact/hooks';
+import { useCallback, useEffect, useState } from 'preact/hooks';
 
 interface Props {
   /** Tool name (e.g. "BMI Calculator") */
@@ -19,8 +19,11 @@ interface Props {
 export default function ShareResult({ tool, value, label, category, categoryColor, toolSlug }: Props) {
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
 
-  const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+  useEffect(() => {
+    setShareUrl(window.location.href);
+  }, []);
   const shareText = category
     ? `My ${tool} result: ${value} — ${category}. Check yours:`
     : `My ${tool} result: ${value}. Check yours:`;
@@ -82,7 +85,7 @@ export default function ShareResult({ tool, value, label, category, categoryColo
     <div class="share-result">
       <p class="share-result__heading">Share your result</p>
       <div class="share-result__buttons">
-        <a
+        {shareUrl && <a
           href={xUrl}
           target="_blank"
           rel="noopener noreferrer"
@@ -93,9 +96,9 @@ export default function ShareResult({ tool, value, label, category, categoryColo
             <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
           </svg>
           <span>X</span>
-        </a>
+        </a>}
 
-        <a
+        {shareUrl && <a
           href={fbUrl}
           target="_blank"
           rel="noopener noreferrer"
@@ -106,12 +109,13 @@ export default function ShareResult({ tool, value, label, category, categoryColo
             <path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12S0 5.417 0 12.044c0 5.633 3.926 10.348 9.101 11.647Z" />
           </svg>
           <span>Facebook</span>
-        </a>
+        </a>}
 
         <button
           type="button"
           class="share-result__btn share-result__btn--copy"
           onClick={handleCopy}
+          disabled={!shareUrl}
           aria-label={copied ? 'Link copied' : 'Copy link'}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
