@@ -113,6 +113,10 @@ export const GET: APIRoute = async ({ url }) => {
     return new Response('Result image text exceeds the supported length.', { status: 400 });
   }
 
+  if ([tool, value, label, category ?? ''].some(text => /[\u0000-\u0008\u000b\u000c\u000e-\u001f\ufffe\uffff]/u.test(text))) {
+    return new Response('Result image text contains invalid characters.', { status: 400 });
+  }
+
   const svg = buildSvg(tool, value, label, category, catColor);
   const png = await sharp(Buffer.from(svg)).png().toBuffer();
 

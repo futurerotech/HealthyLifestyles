@@ -24,6 +24,13 @@ test('share endpoint rejects a missing result and oversized rendering input', as
   assert.equal((await request({ value: '1', tool: 'x'.repeat(121) })).status, 400);
 });
 
+test('share endpoint rejects XML-invalid control characters without crashing', async () => {
+  for (const field of ['tool', 'value', 'label', 'category']) {
+    const response = await request({ value: '24.5', [field]: 'bad\u0001text' });
+    assert.equal(response.status, 400, `${field} must reject invalid XML characters`);
+  }
+});
+
 test('category text remains within its badge on the rendered PNG', async () => {
   const category = 'Healthy';
   const plain = await request({ value: '24.5' });
