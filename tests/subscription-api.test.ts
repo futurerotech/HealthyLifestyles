@@ -20,7 +20,19 @@ registerHooks({
 const subscribe = (await import('../src/pages/api/subscribe.ts')).POST;
 const push = (await import('../src/pages/api/push-subscribe.ts')).POST;
 const lead = (await import('../src/pages/api/lead.ts')).POST;
+const leadOptions = (await import('../src/pages/api/lead.ts')).OPTIONS;
 const originalFetch = globalThis.fetch;
+
+test('lead preflight permits only configured origins without contacting CMS', async () => {
+  assert.equal(typeof leadOptions, 'function');
+  for (const [origin, allowed] of [['https://www.healthylifesstyles.com', true], ['https://attacker.example', false]] as const) {
+    const response = await leadOptions({ request: new Request('https://www.healthylifesstyles.com/api/lead', { method: 'OPTIONS', headers: { Origin: origin, 'Access-Control-Request-Method': 'POST', 'Access-Control-Request-Headers': 'content-type' } }) } as any);
+    assert.equal(response.status, 204);
+    assert.equal(response.headers.get('access-control-allow-origin'), allowed ? origin : null);
+    assert.match(response.headers.get('vary') || '', /origin/i);
+  }
+  assert.equal(calls.length, 0);
+});
 
 test('server delivery configuration uses env or authenticated CMS and public config strips secrets', async () => {
   const config = await import('../src/lib/lead-config.ts');
