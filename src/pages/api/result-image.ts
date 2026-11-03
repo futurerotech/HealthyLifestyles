@@ -87,7 +87,7 @@ function buildSvg(tool: string, value: string, label: string, category?: string,
   ${category ? `
   <g transform="translate(${(W - (escapeXml(category).length * categoryFontSize * 0.7 + 56)) / 2} 490)">
     <rect width="${escapeXml(category).length * categoryFontSize * 0.7 + 56}" height="48" rx="24" fill="${catColorHex}" fill-opacity="0.16"/>
-    <text x="28" y="31" font-family="'Segoe UI', Arial, sans-serif" font-size="${categoryFontSize}" font-weight="700" fill="${catColorHex}" text-anchor="middle">${escapeXml(category)}</text>
+    <text x="${(escapeXml(category).length * categoryFontSize * 0.7 + 56) / 2}" y="31" font-family="'Segoe UI', Arial, sans-serif" font-size="${categoryFontSize}" font-weight="700" fill="${catColorHex}" text-anchor="middle">${escapeXml(category)}</text>
   </g>` : ''}
 
   <!-- URL -->
