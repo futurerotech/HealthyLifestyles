@@ -42,6 +42,20 @@ test('list, individual article, and pagination use one authoritative CMS snapsho
   assert.deepEqual(list[0].seo, { canonical: '/preferred', noIndex: true, ogTitle: 'Social title', ogImage: 'https://cms.example.test/image.png', twitterImage: undefined });
 });
 
+test('preview reads published articles without CMS write credentials', async () => {
+  process.env.VERCEL_ENV = 'preview';
+  const calls: RequestInit[] = [];
+  globalThis.fetch = (async (_input, init) => {
+    calls.push(init || {});
+    return Response.json({ totalDocs: 1, docs: [{ id: 42, slug: 'published', title: 'Published', _status: 'published', layout: [] }] });
+  }) as typeof fetch;
+  assert.equal((await (await fresh()).getArticles())[0].slug, 'published');
+  assert.equal(calls.length, 1);
+  const headers = new Headers(calls[0].headers);
+  assert.equal(headers.get('authorization'), null);
+  assert.equal(headers.get('x-internal-key'), null);
+});
+
 test('empty and disabled CMS catalogues do not resurrect local tools', async () => {
   globalThis.fetch = (async () => Response.json({ totalDocs: 0, docs: [] })) as typeof fetch;
   const cms = await fresh();
