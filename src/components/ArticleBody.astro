@@ -17,6 +17,8 @@ import { articlePlainText } from '../data/articles';
 import PageRenderer from './blocks/PageRenderer.astro';
 import type { Article } from '../data/articles';
 import { renderInline, slugify, readingTimeMinutes, formatDate } from '../lib/text';
+import { needsPrimaryToolEmbed } from '../lib/article-primary-tool.mjs';
+import { canonicalToolSlug } from '../lib/site-routes';
 
 interface Props {
   article: Article;
@@ -37,6 +39,8 @@ const [category, related, tools, allCats] = await Promise.all([
 const minutes = readingTimeMinutes(articlePlainText(article));
 const sidebarTools = tools;
 const catLookup = Object.fromEntries(allCats.map((c) => [c.slug, c]));
+const primaryTool = article.primaryTool && needsPrimaryToolEmbed(article.primaryTool, article.body, canonicalToolSlug)
+  ? await getTool(article.primaryTool) : undefined;
 
 // In-content ads (approved placement audit): ONE unit before the second H2 —
 // i.e. after the intro + the whole first section — and, on long articles
@@ -137,6 +141,7 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
       )}
 
       <div class="wh-prose">
+        {primaryTool?.live && <ToolEmbed slug={primaryTool.slug} />}
         {article.body.map((block, i) => {
           if (block.type === 'cms') return <PageRenderer layout={[block.block]} headingLevel="h2" />;
           if (block.type === 'h2')

@@ -34,6 +34,8 @@ const catalogue = {
   ],
 };
 catalogue.articles[0].tags = [catalogue.tags[0]];
+catalogue.articles[0].primaryTool = { slug: 'bmi-calculator' };
+catalogue.articles[1].primaryTool = { slug: 'body-fat-calculator' };
 const cmsEditedTool = catalogue.tools.find((t) => t.slug === 'body-fat-calculator');
 catalogue.articles[0].layout.push(
   { blockType: 'hero', title: 'Inline CMS article hero' },
@@ -95,6 +97,10 @@ try {
   assert.match(renderedArticle, /<h2[^>]*>Inline CMS article hero<\/h2>/);
   assert.match(renderedArticle, /CMS article columns/);
   assert.match(renderedArticle, /CMS article banner/);
+  assert.equal((renderedArticle.match(/data-tool="bmi-calculator"/g) || []).length, 1, 'Authored primary calculator must not be duplicated');
+  const articleWithImplicitPrimary = await html('wellness-hub/how-many-calories-to-lose-weight');
+  assert.match(articleWithImplicitPrimary, /data-tool="body-fat-calculator"/);
+  assert.match(articleWithImplicitPrimary, /<astro-island[^>]*component-url="[^"]*Calculator/);
   assert.doesNotMatch(renderedArticle, /cms\.healthylifesstyles\.com\/embed\//);
   const hub = await html('wellness-hub');
   assert.doesNotMatch(hub, /\[object Promise\]/);

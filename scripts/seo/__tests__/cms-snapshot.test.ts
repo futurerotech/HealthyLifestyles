@@ -29,6 +29,7 @@ test('list, individual article, and pagination use one authoritative CMS snapsho
   globalThis.fetch = (async (input) => {
     const url = new URL(String(input)); calls.push(url.href);
     assert.equal(url.searchParams.get('where[_status][equals]'), 'published');
+    assert.equal(url.searchParams.get('limit'), '10');
     const page = Number(url.searchParams.get('page'));
     return Response.json({ totalDocs: 2, docs: [{ id: page, slug: `article-${page}`, title: `CMS article ${page}`, _status: 'published', layout: [], seo: { canonical: '/preferred', noIndex: true, ogTitle: 'Social title', ogImage: { url: '/image.png' } } }] });
   }) as typeof fetch;
