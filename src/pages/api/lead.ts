@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { validSubscriber } from '../../lib/subscription-api';
 import { getLeadDeliveryConfig } from '../../lib/lead-config';
+import { externalWritesAllowed } from '../../lib/external-write-policy';
 
 export const prerender = false;
 
@@ -27,6 +28,9 @@ export const OPTIONS: APIRoute = ({ request }) =>
 
 export const POST: APIRoute = async ({ request }) => {
   const origin = request.headers.get('origin') || '';
+  if (!externalWritesAllowed()) {
+    return Response.json({ ok: false, error: 'This service is unavailable in this environment.' }, { status: 503, headers: cors(origin) });
+  }
 
   if (!import.meta.env.CMS_URL?.trim() || !import.meta.env.INTERNAL_API_KEY?.trim()) {
     return Response.json({ ok: false, error: 'Subscription service is unavailable.' }, { status: 503, headers: cors(origin) });
