@@ -49,26 +49,43 @@ The documentation-only commit containing this handoff is *not* itself a new appl
 - At that build, 60 published articles and 68 generated calculator routes were reported. Recheck content inventory when release-stage evidence requires it; do not hardcode these numbers as permanent facts.
 - `vercel.json` intentionally disables automatic Git deployments for `codex/**`. Do not remove that guard to force a Preview.
 
-## 5. Current exact blocker: Vercel authentication / secret scope
+## 5. Verified resolution of the Vercel Preview secret scope — 2026-11-04
 
-**Last owner-supplied Codex status** (not independently proven in this session): Vercel CLI `59.20.0` was installed and executable in an isolated directory; an official device authorization page was opened for the owner. The owner has **not supplied confirmation that the device authorization completed**. An authenticated browser is not automatically an authenticated CLI; a separate ChatGPT session cannot inherit a Codex host CLI session. This handoff does not establish current CLI access.
+**PASS — EXECUTED directly through authenticated Vercel connector, independently read back.** The owner completed explicit team access consent. No Codex CLI session or Codex credits were used. Target verified: team `healthy-lifestyles` ID `team_DuQjbVToWiyUCDUl2CUYK9qx`; project `healthy-lifestyles` ID `prj_9stLJyxbXEQeRxdykwMQKp3cePun`; official domains `www.healthylifesstyles.com` and `healthylifesstyles.com`.
 
-**Vercel variable evidence from authenticated browser report:** `CMS_URL`, `CMS_API_KEY`, and `INTERNAL_API_KEY` are assigned to both Production and Preview; there were no linked shared variables at that inspection. Secrets are write-only in the UI. Editing with an empty value is **not proven** to retain the Production value; no change was saved. Public published-content GET returned 60 published articles without credentials; this does not demonstrate a complete Preview build.
+Before changes, both sensitive project env records had exactly the `production` and `preview` targets and no custom-environment or branch overrides. Using the Vercel project's *edit environment variable* PATCH interface (the same target-only approach used by the fixed Vercel CLI 59.20.0; cf. https://github.com/vercel/vercel/issues/16622), two **sequential** calls submitted **only** `{ target: ["production"] }`. No `value`, `type`, `key`, or other replacement fields were supplied, and no secret value was read or logged.
 
-**Safe continuation sequence:**
+Post-call metadata independently verified after **each** operation:
 
-1. In the same authorized Codex/local host environment, confirm the official device-flow login completed. Check `vercel whoami` using the isolated verified executable, without printing session tokens. If login is still pending, the **one owner action** is to finish the authorized Vercel device confirmation in that exact session.
-2. Confirm actual installed `vercel --version >= 59.20.0`, the target Vercel account/team, existing project `healthy-lifestyles`, project ID and clean isolated working-directory link. Never create a new project or link/alter the owner checkout blindly.
-3. Inspect only environment-variable metadata: identities, types, target arrays and branch overrides for `CMS_API_KEY` and `INTERNAL_API_KEY`. Do not display, retrieve, re-enter, export or rotate secret values.
-4. Inspect the precise provider operation for **removing only the Preview target from a multi-target record**, preserving Production and value. Vercel CLI releases **before 59.20.0** had a documented destructive cross-target bug; never use them. Verify the chosen version and effective operation, and, if needed, an isolated synthetic nonproduction rehearsal. A command with an environment flag is *not sufficient proof* unless the implementation is known and tested.
-5. Only if preservation is demonstrably guaranteed and account/project/record identity is exact, carry out the owner's **already conditional, scoped authorization**. Stop without modification otherwise. Recheck Production still has both variables, Preview has neither, `CMS_URL` unchanged, and no deploy/hook fired. Do not claim secret-value identity from hidden UI fields; support it with operation semantics/provider evidence.
-6. If this environment lacks the Codex CLI/authenticated Vercel access, do not fabricate access or request account credentials in chat. Continue read-only evidence checks and maintain the blocker for the same authorized session.
+| Variable | Preserved record ID | Final targets | Result |
+| --- | --- | --- | --- |
+| `CMS_API_KEY` | `JiHf34zwse6o2XYk` | `["production"]` | PASS |
+| `INTERNAL_API_KEY` | `6iDjkwkwCOHfHJlf` | `["production"]` | PASS |
+| `CMS_URL` | `GBM67LZcHsYjUJc2` | `["production","preview"]` | UNCHANGED |
 
-## 6. Further Preview / release blockers
+This proves the records remain assigned to Production and shows that no replacement secret value was transmitted. Because Vercel stored secrets are unreadable, a byte-for-byte comparison of secret contents was *not* possible; do not claim to have read or compared them. There was no deletion, regeneration, or redeployment.
+
+Vercel team event log listed exactly the two `env-variable-edit` events in the latest project scope; it showed **no new deployment event** since 2026-11-03. Production deployment `dpl_G7zS66ihLZmC2MGR2v3kMDPYuShc` remained `READY`, branch `main`, SHA `d11131327ab12a04e5358fb8096e8deed7554c48`. Project-level SSO protection reports `enabled=true`, `deploymentType=all_except_custom_domains`.
+
+### Critical legacy-Preview caveat
+
+The existing PR #18 Preview `dpl_J6eKMMkfs3bayHpbBi4yYrRE4jCS` remained `READY`, SHA `15e495b0788c21dba59035247c2d7eda13bf1727`. Its published GitHub source had outbound-write-capable `/api/subscribe`, `/api/lead` and `/api/push-subscribe` routes, **without** PR #19's `external-write-policy.ts` guard. This old Preview was built when production-write keys were reportedly assigned to Preview. Official Vercel documentation (https://vercel.com/docs/environment-variables and https://vercel.com/docs/environment-variables/rotating-secrets) confirms environment-variable changes affect **new deployments only**, not earlier builds. Therefore the old deployment may retain the old keys. Team SSO protection is enabled, but this is not proof those authenticated legacy routes cannot write. Do not claim previous deployments were sanitized. Do **not** invalidate Production credentials, delete an old Preview, bypass SSO, or invoke any write route without separate owner authorization.
+
+### Event and cost follow-up
+
+Authenticated Vercel inventory reported **zero** team/project Webhooks, installed Integration Configurations, project Drains, and project Connector connections. GitHub Actions workflow inspection in the frontend and CMS main branches found no `deployment_status` or `repository_dispatch` triggers. External GitHub Apps/n8n consumers remain UNKNOWN: absence of configured Vercel webhook records and workflow listeners does not settle outside integrations.
+
+Hobby build/deployment quota **remaining balance is UNKNOWN**; previous dashboard count `83 completed / 410 failed builds` was 30-day history, not remaining allowance. The Vercel billing charges endpoint returned `404 costs_not_found`, and the team metadata did not disclose a plan/remaining-quota counter. A rollback-candidate listing request returned `403` (not authorized); eligibility of a previous production rollback target remains unproven. Do not infer an expense or free capacity from these errors.
+
+**Release status: NO-GO. Preview creation: still requires separate explicit owner approval.**
+
+**NEXT STEP:** Verify or safely contain *legacy PR #18 Preview* exposure, verify any external event consumers and account-specific Hobby capacity, and establish rollback readiness with permissions available. Only then seek separate authorization for exactly ONE new clean Preview at the then-current reviewed SHA, with these future deployments lacking the two production-write keys. Do **not** repeat the completed credential-scoping operation or send the owner to Codex.
+
+## 6. Remaining Preview / release blockers (after 2026-11-04 separation)
 
 - **Deployment-event receivers:** GitHub frontend and CMS workflows inspected did not contain a `deployment_status` or `repository_dispatch` consumer; external GitHub Apps, n8n and third-party receivers remain unverified. Vercel project exposes a `Payload CMS Update` deploy hook targeting `main`. Do **not** invoke this hook; trace actual external consumers before claiming safe Preview.
 - **Hobby quota:** owner-observed count was **83 completed / 410 failed builds in 30 days**, not an authoritative remaining 24-hour build/deployment allowance. Inspect the actual current limits and account usage before proposing an additional build; no resource upgrades or new charges.
-- **Preview isolation:** provider Preview must not contain CMS write secrets or produce unintended build/runtime outbound writes. Code-level tests pass; deployed environment and event consumers remain unverified.
+- **Preview isolation:** the **project's future Preview configuration** now excludes both production-write secrets (PASS). Previous Preview deployments may still retain the old credentials; no new PR #19 Preview has been executed. Deployed runtime isolation and external consumers remain unverified.
 - **Exact-SHA Preview acceptance:** a PR #18 deployment is not evidence for PR #19. Even after feasibility gates pass, **explicit separate owner authorization** is required to create ONE nonproduction Preview. Then match deployed source/content to the final reviewed SHA and test calculators, sharing, preflight, SEO, keyboard/mobile and data isolation.
 - **Rollback:** existing older Ready deployment is not a verified eligible and compatible rollback target. Confirm actual Production deployment ID/SHA, known-good target, eligible provider action, domains and CMS/media compatibility, all without executing rollback.
 - **Integration:** verify PR #17 → PR #18 → PR #19 chain and CI. Merge/release only in an owner-approved order; a Ready/CI status alone does not imply authorization.
@@ -79,4 +96,4 @@ Use concise Arabic for reports; keep commands, code, identifiers and artifacts i
 
 State: (a) exact verified GitHub SHA; (b) actual operations and files changed; (c) tests/CI run and current status; (d) provider evidence vs owner report vs unknown; (e) safety boundaries respected; (f) each remaining blocker; (g) **GO/NO-GO** and **NEXT STEP** as the final field. Record durable updates on PR #19 and update this file when the verified milestone changes. Do not claim infinite background continuation.
 
-**Next immediate action at this checkpoint:** finish/verify Vercel CLI device-flow authentication in the **same Codex host session**, then read-only verify the Vercel account, existing project and the two multi-target secret records before any conditional Preview-only scope removal. If that host session is not available, leave the secrets unchanged and request the single access action.
+**Next immediate action after the 2026-11-04 checkpoint:** Do NOT repeat Vercel login or secret separation. Assess the legacy PR #18 Preview's historical credential exposure and the external event consumers, verify actual Hobby build/deployment capacity and authorized rollback readiness, and propose ONE clean PR #19 Preview only after separate owner approval.
