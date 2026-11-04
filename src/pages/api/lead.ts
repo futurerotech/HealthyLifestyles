@@ -1,20 +1,19 @@
 import type { APIRoute } from 'astro';
 import { validSubscriber } from '../../lib/subscription-api';
 import { getLeadDeliveryConfig } from '../../lib/lead-config';
+import { externalWritesAllowed } from '../../lib/external-write-policy';
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ request }) => {
-  // Strict allow-list. Reflecting `origin || '*'` is the reflected-origin
-  // anti-pattern (the CMS subscriberSync endpoint warns about the same thing).
-  const ALLOWED_ORIGINS = new Set<string>(
+// Strict allow-list; never reflect arbitrary request origins.
+const ALLOWED_ORIGINS = new Set<string>(
     [
       'https://www.healthylifesstyles.com',
       'http://localhost:4321',
       'http://localhost:3000',
     ].filter(Boolean),
   );
-  const cors = (origin: string): Record<string, string> => {
+const cors = (origin: string): Record<string, string> => {
     const h: Record<string, string> = {
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
@@ -24,15 +23,17 @@ export const POST: APIRoute = async ({ request }) => {
     return h;
   };
 
-  const origin = request.headers.get('origin') || '';
+export const OPTIONS: APIRoute = ({ request }) =>
+  new Response(null, { status: 204, headers: cors(request.headers.get('origin') || '') });
 
-  // Handle preflight
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: cors(origin) });
+export const POST: APIRoute = async ({ request }) => {
+  const origin = request.headers.get('origin') || '';
+  if (!externalWritesAllowed()) {
+    return Response.json({ ok: false, error: 'This service is unavailable in this environment.' }, { status: 503, headers: cors(origin) });
   }
 
   if (!import.meta.env.CMS_URL?.trim() || !import.meta.env.INTERNAL_API_KEY?.trim()) {
-    return Response.json({ ok: false, error: 'Subscription service is unavailable.' }, { status: 503 });
+    return Response.json({ ok: false, error: 'Subscription service is unavailable.' }, { status: 503, headers: cors(origin) });
   }
 
   try {

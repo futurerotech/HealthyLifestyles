@@ -1,3 +1,23 @@
+# HealthyLifeStyles — CURRENT ENGINEERING INSTRUCTIONS (owner-approved, 2026-11-04)
+
+> **READ FIRST:** [docs/HEALTHYLIFESTYLES_ENGINEERING_CONTINUITY.md](docs/HEALTHYLIFESTYLES_ENGINEERING_CONTINUITY.md).
+> This is the current, scoped handoff and safety contract for anyone continuing the HealthyLifeStyles frontend release work. It reflects the owner's explicit request to continue from the last verified point, follow the established master prompt without scope drift, persist evidence, and **always end with the exact next action**.
+>
+> The material under **Historical AGENTS snapshot** is preserved unchanged for provenance, but describes an older local CMS/adapter layout and is **not evidence of the current deployed architecture or release status**.
+
+## Mandatory operating rules
+- First read this file, the linked continuity record, the current PR #19 and its latest comments, and the applicable Google Drive project journal. Verify live HEAD and provider state instead of assuming historical snapshots remain current.
+- **Scope lock:** continue the latest owner-approved HealthyLifeStyles milestone; do not pivot to other projects, unrelated features, DNS/staging rebuilds, or repeat passing tests without a regression reason.
+- Implement authorized, reversible engineering fixes with proof; save code and exact results on the existing development PR. Do not claim work or tests that were not performed.
+- **Production change control:** no PR merge, main push, Vercel Production deployment, Hostinger CMS deployment, rollback, production DNS change, paid upgrade, Neon/R2/CMS production write, indexing submission or secret replacement without the owner's specific approval. Preview creation itself also requires separate approval after safety/cost gates.
+- The owner's existing **conditional** approval only permits removing Preview access to `CMS_API_KEY` and `INTERNAL_API_KEY` when the current Production assignments **and stored values** are demonstrably preserved. If identity, CLI version, record scope, or preservation is uncertain: make no change. Never expose or request secrets in chat.
+- Keep Astro/Vercel frontend and Payload/Next.js Hostinger CMS distinct. Do not rewrite `vercel.json`, `astro.config.mjs`, ads, security headers, redirects or CMS schemas wholesale.
+- Every engineer's end-of-session report must state observed changes, evidence, blockers, **GO/NO-GO**, and one concrete **NEXT STEP**. Save this handoff on PR #19; do not imply any task continues in the background without an actual running mechanism.
+
+---
+
+## Historical AGENTS snapshot (preserved for reference; superseded where stale)
+
 ## Goal
 Build a complete omnichannel SEO, indexing, social preview, AI copilot, pSEO, ad management, Lead Gen, Viral Share, and Audience/Push Notification system for a Payload CMS + Astro stack.
 

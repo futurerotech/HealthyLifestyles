@@ -29,6 +29,7 @@ test('list, individual article, and pagination use one authoritative CMS snapsho
   globalThis.fetch = (async (input) => {
     const url = new URL(String(input)); calls.push(url.href);
     assert.equal(url.searchParams.get('where[_status][equals]'), 'published');
+    assert.equal(url.searchParams.get('limit'), '10');
     const page = Number(url.searchParams.get('page'));
     return Response.json({ totalDocs: 2, docs: [{ id: page, slug: `article-${page}`, title: `CMS article ${page}`, _status: 'published', layout: [], seo: { canonical: '/preferred', noIndex: true, ogTitle: 'Social title', ogImage: { url: '/image.png' } } }] });
   }) as typeof fetch;
@@ -39,6 +40,20 @@ test('list, individual article, and pagination use one authoritative CMS snapsho
   assert.equal((await cms.getArticle('missing')), null);
   assert.equal(calls.length, 2, 'No per-page refetch and no local resurrection');
   assert.deepEqual(list[0].seo, { canonical: '/preferred', noIndex: true, ogTitle: 'Social title', ogImage: 'https://cms.example.test/image.png', twitterImage: undefined });
+});
+
+test('preview reads published articles without CMS write credentials', async () => {
+  process.env.VERCEL_ENV = 'preview';
+  const calls: RequestInit[] = [];
+  globalThis.fetch = (async (_input, init) => {
+    calls.push(init || {});
+    return Response.json({ totalDocs: 1, docs: [{ id: 42, slug: 'published', title: 'Published', _status: 'published', layout: [] }] });
+  }) as typeof fetch;
+  assert.equal((await (await fresh()).getArticles())[0].slug, 'published');
+  assert.equal(calls.length, 1);
+  const headers = new Headers(calls[0].headers);
+  assert.equal(headers.get('authorization'), null);
+  assert.equal(headers.get('x-internal-key'), null);
 });
 
 test('empty and disabled CMS catalogues do not resurrect local tools', async () => {

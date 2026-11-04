@@ -31,7 +31,7 @@ import { SITE as LOCAL_SITE, NAV_LINKS as LOCAL_NAV_LINKS, FOOTER_LEGAL as LOCAL
 
 const CMS_URL = (process.env.CMS_URL || (import.meta.env.CMS_URL as string) || 'http://localhost:3000').replace(/\/$/, '');
 const DISABLED = (process.env.CMS_DISABLE ?? (import.meta.env.CMS_DISABLE as string)) === '1';
-const TIMEOUT_MS = 15_000;
+const TIMEOUT_MS = 30_000;
 declare const __CMS_BUILD_STARTED_AT__: string;
 const buildStartedAt = typeof __CMS_BUILD_STARTED_AT__ === 'string' ? __CMS_BUILD_STARTED_AT__ : new Date().toISOString();
 const requests = new Map<string, Promise<unknown>>();
@@ -665,7 +665,7 @@ export function getArticles(): Promise<Article[]> {
     _articlesPromise = (async () => {
       for (let attempt = 0; attempt < 3; attempt++) {
         const data = await cmsList<CmsArticle>(
-          '/api/articles?where[_status][equals]=published&limit=100&depth=2&sort=-publishDate&draft=false',
+          '/api/articles?where[_status][equals]=published&limit=10&depth=2&sort=-publishDate&draft=false',
         );
         // Transport failure (cmsFetch returned null / no list) → retry.
         if (!data || !Array.isArray(data.docs)) continue;
@@ -704,7 +704,7 @@ export function getArticlesForLocale(locale: string): Promise<Article[]> {
   if (!p) {
     p = (async () => {
       const data = await cmsList<CmsArticle>(
-        `/api/articles?where[_status][equals]=published&limit=100&depth=2&sort=-publishDate&draft=false&locale=${locale}&fallback-locale=none`,
+        `/api/articles?where[_status][equals]=published&limit=10&depth=2&sort=-publishDate&draft=false&locale=${locale}&fallback-locale=none`,
       );
       if (!data) { if (!DISABLED) assertLocalFallbackAllowed(`articles locale ${locale}`); return []; }
       return data.docs

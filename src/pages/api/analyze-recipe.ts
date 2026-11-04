@@ -1,8 +1,10 @@
 import type { APIRoute } from 'astro';
+import { externalWritesAllowed, externalWritesUnavailable } from '../../lib/external-write-policy';
 
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request }) => {
+  if (!externalWritesAllowed()) return externalWritesUnavailable();
   try {
     const body = await request.json();
     const { text, servings } = body;
