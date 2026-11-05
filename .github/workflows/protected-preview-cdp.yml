@@ -1,0 +1,75 @@
+# Manual read-only browser acceptance for ONE pre-existing protected Preview.
+# This file is inert until separately approved, merged to main AND Vercel
+# Trusted Sources specifically authorizes the GitHub workflow for Preview.
+# No scheduled/push/PR trigger, no deployments and no persistent bypass secret.
+name: Protected Preview Chrome CDP (manual OIDC)
+on:
+  workflow_dispatch:
+    inputs:
+      approval:
+        description: Confirm owner-authorized, READ-ONLY Preview CDP test
+        required: true
+        type: choice
+        default: CANCEL
+        options:
+          - CANCEL
+          - RUN_PREVIEW_CDP_READ_ONLY
+
+permissions:
+  contents: read
+
+concurrency:
+  group: healthy-lifestyles-protected-preview-cdp
+  cancel-in-progress: false
+
+jobs:
+  protected-preview-cdp:
+    if: >-
+      github.repository == 'futurerotech/HealthyLifestyles' &&
+      github.ref == 'refs/heads/main' &&
+      github.actor == 'futurerotech' &&
+      inputs.approval == 'RUN_PREVIEW_CDP_READ_ONLY'
+    name: Exact-SHA protected Preview Chrome CDP
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      HLS_PREVIEW_URL: https://healthy-lifestyles-6qxe0ldyl-healthy-lifestyles.vercel.app/
+      HLS_PREVIEW_DEPLOYMENT_ID: dpl_FkEKMnHXy1gKWpodmS4b7P6imFVb
+      HLS_PREVIEW_SHA: 90fd4d4d880827dd7ea6f7a69164b622e35e449e
+      HLS_RUNNER_REVIEWED_SHA: dc85e56e4bfbce64914d07e74e74f7ebfdcb1903
+      HLS_APPROVAL: ${{ inputs.approval }}
+
+    steps:
+      - name: Checkout exact reviewed read-only CDP runner
+        uses: actions/checkout@v4
+        with:
+          ref: dc85e56e4bfbce64914d07e74e74f7ebfdcb1903
+          persist-credentials: false
+
+      - name: Assert runner commit has not changed
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$HLS_RUNNER_REVIEWED_SHA"
+          test -f scripts/seo/protected-preview-cdp.mjs
+          test -f scripts/seo/run-protected-preview-gh-oidc.mjs
+
+      - name: Configure Node 24 and npm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install frozen project dependencies without install scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Verify credential-scoping and dispatch policy offline
+        run: |
+          node scripts/seo/protected-preview-cdp.mjs --self-test
+          node scripts/seo/run-protected-preview-gh-oidc.mjs --self-test
+
+      - name: Execute browser CDP with ephemeral GitHub OIDC (manual only)
+        run: node scripts/seo/run-protected-preview-gh-oidc.mjs
