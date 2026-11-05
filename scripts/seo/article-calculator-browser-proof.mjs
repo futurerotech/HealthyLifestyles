@@ -6,6 +6,7 @@ import { resolve, extname, sep } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import * as chromeLauncher from 'chrome-launcher';
 import WebSocket from 'ws';
+import { assertRawArticleHead, readRawDocumentHtml } from './raw-article-head.mjs';
 
 const CASES = [
   { article: 'how-many-calories-to-lose-weight', slug: 'body-fat-calculator', field: 'waist', newValue: '105', width: 1280, height: 800, mobile: false },
@@ -66,6 +67,7 @@ async function cdpConnect(port) {
   const networkFailures = [];
   const unsafeRequests = [];
   const requests = new Map();
+  const documents = [];
   let allowedOrigin = '';
   function safeLocation(raw) {
     try { const u = new URL(raw); return u.origin + u.pathname; }
@@ -89,10 +91,17 @@ async function cdpConnect(port) {
       }
     } else if (msg.method === 'Network.responseReceived') {
       const { response, type } = msg.params || {};
-      if (!response || !['Script', 'Stylesheet'].includes(type)) return;
-      if (response.status >= 400 && safeLocation(response.url).startsWith(allowedOrigin + '/')) {
+      if (!response) return;
+      if (type === 'Document') {
+        documents.push({ status: response.status, url: safeLocation(response.url),
+          requestId: msg.params.requestId, finished: false });
+      }
+      if (['Script', 'Stylesheet'].includes(type) &&
+        response.status >= 400 && safeLocation(response.url).startsWith(allowedOrigin + '/')) {
         networkFailures.push({ status: response.status, url: safeLocation(response.url) });
       }
+    } else if (msg.method === 'Network.loadingFinished') {
+      for (const d of documents) if (d.requestId === msg.params?.requestId) d.finished = true;
     } else if (msg.method === 'Network.loadingFailed' && !msg.params?.canceled) {
       const request = requests.get(msg.params?.requestId);
       if (request && safeLocation(request.url).startsWith(allowedOrigin + '/')) {
@@ -117,12 +126,13 @@ async function cdpConnect(port) {
   function beginCase(origin) {
     allowedOrigin = origin;
     requests.clear();
+    documents.length = 0;
     errors.length = 0;
     consoleErrors.length = 0;
     networkFailures.length = 0;
     unsafeRequests.length = 0;
   }
-  return { ws, send, evaluate, errors, consoleErrors, networkFailures, unsafeRequests, beginCase };
+  return { ws, send, evaluate, documents, errors, consoleErrors, networkFailures, unsafeRequests, beginCase };
 }
 
 async function until(evaluate, expression, stage) {
@@ -140,6 +150,12 @@ async function testCase(cdp, origin, c) {
   await cdp.send('Page.navigate', { url: origin + '/wellness-hub/' + c.article + '/' });
   const scope = '.wh-embed[data-tool="' + c.slug + '"]';
   await until(cdp.evaluate, 'document.readyState !== "loading" && !!document.querySelector(' + JSON.stringify(scope) + ')', c.article + ' embed present');
+  const rawResponse = await readRawDocumentHtml(cdp, origin,
+    '/wellness-hub/' + c.article + '/');
+  const expectedCanonical = 'https://www.healthylifesstyles.com/wellness-hub/' + c.article;
+  const rawSeo = assertRawArticleHead(rawResponse, expectedCanonical);
+  console.log('PASS real Chrome original HTTP HTML SEO: ' + c.article +
+    ' ' + JSON.stringify({ canonical: rawSeo.canonical, rawResponseNotLogged: true }));
   const initial = await cdp.evaluate('(() => { const e = document.querySelectorAll(' + JSON.stringify(scope) + '); e[0]?.scrollIntoView({block:"center"}); return { count:e.length, island:!!e[0]?.querySelector("astro-island") }; })()');
   assert.equal(initial.count, 1, c.article + ' must not duplicate calculator');
   assert.equal(initial.island, true, c.article + ' must include real Astro island');

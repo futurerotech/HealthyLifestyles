@@ -11,6 +11,7 @@
 import assert from 'node:assert/strict';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { runInNewContext } from 'node:vm';
+import { assertRawArticleHead, readRawDocumentHtml, selfTestRawArticleHead } from './raw-article-head.mjs';
 
 const WRITE = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 const HEADER = 'x-vercel-trusted-oidc-idp-token';
@@ -105,6 +106,7 @@ function selfTest() {
     { document: { querySelector: () => ({ ...fallback,
       getBoundingClientRect: () => ({ width: 0, height: 0 }) }) } }), false,
   'Hidden calculator must not be treated as exposed');
+  selfTestRawArticleHead();
   console.log('PASS protected-preview CDP self-test: pinned origin, scoped credential, mutation-denial policy, zero-box island scroll regression');
 }
 async function cdpConnect(port, cfg, WS) {
@@ -173,10 +175,12 @@ async function cdpConnect(port, cfg, WS) {
     } else if (msg.method === 'Network.responseReceived') {
       const response = p.response || {}, url = safePath(response.url || '');
       if (url.startsWith(cfg.origin + '/')) {
-        if (p.type === 'Document') documents.push({ status: response.status, url });
+        if (p.type === 'Document') documents.push({ status: response.status, url, requestId: p.requestId, finished: false });
         if (['Script', 'Stylesheet'].includes(p.type) && response.status >= 400)
           problems.network.push({ status: response.status, url });
       }
+    } else if (msg.method === 'Network.loadingFinished') {
+      for (const d of documents) if (d.requestId === p.requestId) d.finished = true;
     } else if (msg.method === 'Network.loadingFailed' && !p.canceled) {
       const url = pendingRequests.get(p.requestId);
       if (url && url.startsWith(cfg.origin + '/'))
@@ -222,6 +226,12 @@ async function inspect(cdp, cfg, article) {
   await until(cdp.evaluate, 'document.readyState !== "loading" && location.origin === ' +
     JSON.stringify(cfg.origin) + ' && !!document.querySelector(".wh-embed astro-island")',
     'authenticated page and calculator embed');
+  const rawResponse = await readRawDocumentHtml(cdp, cfg.origin, path);
+  const publicCanonical = 'https://www.healthylifesstyles.com/wellness-hub/' + article.slug;
+  const rawSeo = assertRawArticleHead(rawResponse, publicCanonical);
+  console.log(JSON.stringify({ type: 'original-http-html-seo', article: article.slug,
+    canonical: rawSeo.canonical, ogUrlConsistent: true, htmlMetaIndexable: true,
+    rawResponseNotLogged: true }));
   // ToolEmbed.astro renders Calculator with client:visible. At 390x844, the
   // embedded calculator is often below the article introduction; hydration
   // cannot start until the island enters the actual Chromium viewport.
