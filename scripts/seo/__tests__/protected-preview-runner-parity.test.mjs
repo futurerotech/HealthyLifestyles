@@ -18,7 +18,7 @@ const controller = readPinned('scripts/seo/protected-preview-cdp.mjs');
 const localFixture = read('scripts/seo/article-calculator-browser-proof.mjs');
 
 const PIN = Object.freeze({
-  sha: 'e46c09e44105fb4e0e10a6174dfd606e0f545a11',
+  sha: '07d4b20010dbdc676d2b52d7e1e46b2607a6ae08',
   repo: 'futurerotech/HealthyLifestyles',
   branch: 'codex/protected-preview-cdp-trigger-20261105',
   workflow: '.github/workflows/protected-preview-cdp-activation.yml',
@@ -79,6 +79,24 @@ test('pinned runner preserves the zero-box fix and refuses mutation requests', (
   assert.match(controller, /delete process\.env\.ACTIONS_ID_TOKEN_REQUEST_TOKEN/);
   assert.match(controller, /Fetch\.enable/);
   assert.match(controller, /const scrolled = await cdp\.evaluate\(viewportExposureExpression\(\)\)/);
+});
+
+test('original HTTP canonical/OG/robots gate is present in immutable CDP source and local Chrome', () => {
+  const raw = readPinned('scripts/seo/raw-article-head.mjs');
+  const originalFixture = readPinned('scripts/seo/article-calculator-browser-proof.mjs');
+  assert.match(raw, /Network\.getResponseBody/);
+  assert.match(raw, /export function assertRawArticleHead\(/);
+  assert.match(raw, /export async function readRawDocumentHtml\(/);
+  assert.match(raw, /assert\.equal\(canonical\.length,\s*1/);
+  assert.match(raw, /assert\.equal\(og\.length,\s*1/);
+  assert.match(raw, /(?:none\|noindex)/);
+  assert.match(controller, /readRawDocumentHtml\(cdp, cfg\.origin, path\)/);
+  assert.match(controller, /assertRawArticleHead\(rawResponse, publicCanonical\)/);
+  assert.match(controller, /selfTestRawArticleHead\(\)/);
+  assert.match(originalFixture, /readRawDocumentHtml\(cdp, origin/);
+  assert.match(originalFixture, /assertRawArticleHead\(rawResponse, expectedCanonical\)/);
+  assert.doesNotMatch(controller, /console\.log\(rawResponse\)/);
+  assert.doesNotMatch(controller, /console\.log\(originalHtml\)/);
 });
 
 console.log('OFFLINE_ONLY: checked-out runner and activation workflow agree on GitHub push, Preview pins and fixture fields.');
