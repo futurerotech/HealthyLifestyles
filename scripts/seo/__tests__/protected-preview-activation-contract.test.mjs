@@ -20,7 +20,7 @@ const PINS = Object.freeze({
   previewUrl: 'https://healthy-lifestyles-6qxe0ldyl-healthy-lifestyles.vercel.app/',
   deploymentId: 'dpl_FkEKMnHXy1gKWpodmS4b7P6imFVb',
   previewSha: '90fd4d4d880827dd7ea6f7a69164b622e35e449e',
-  reviewedRunnerSha: 'e46c09e44105fb4e0e10a6174dfd606e0f545a11',
+  reviewedRunnerSha: '07d4b20010dbdc676d2b52d7e1e46b2607a6ae08',
 });
 
 function hasLine(line) {
@@ -81,7 +81,7 @@ test('previously consumed activation marker is absent or cannot be replayed', ()
 });
 
 test('the exact reviewed controller is checked out without persistent Git credentials', () => {
-  assert.match(workflow, /Checkout exact reviewed controller \(not the activation commit\)[\s\S]*?\n          ref: e46c09e44105fb4e0e10a6174dfd606e0f545a11\n          path: runner\n          persist-credentials: false/);
+  assert.match(workflow, /Checkout exact reviewed controller \(not the activation commit\)[\s\S]*?\n          ref: 07d4b20010dbdc676d2b52d7e1e46b2607a6ae08\n          path: runner\n          persist-credentials: false/);
   assert.match(workflow, /Install reviewed frozen deps with no lifecycle scripts[\s\S]*?\n        run: npm ci --ignore-scripts --no-audit --no-fund/);
   assert.match(workflow, /Verify offline OIDC and request-isolation policies[\s\S]*?node scripts\/seo\/protected-preview-cdp\.mjs --self-test[\s\S]*?node scripts\/seo\/run-protected-preview-gh-oidc\.mjs --self-test/);
 });

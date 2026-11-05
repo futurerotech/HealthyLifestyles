@@ -82,7 +82,7 @@ jobs:
       - name: Checkout immutable pinned CDP runner (offline-only)
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: e46c09e44105fb4e0e10a6174dfd606e0f545a11
+          ref: 07d4b20010dbdc676d2b52d7e1e46b2607a6ae08
           path: .ci-reviewed-controller
           persist-credentials: false
 
@@ -95,7 +95,7 @@ jobs:
           ACTIONS_ID_TOKEN_REQUEST_URL: ''
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "e46c09e44105fb4e0e10a6174dfd606e0f545a11"
+          test "$(git rev-parse HEAD)" = "07d4b20010dbdc676d2b52d7e1e46b2607a6ae08"
           node scripts/seo/protected-preview-cdp.mjs --self-test
           node scripts/seo/run-protected-preview-gh-oidc.mjs --self-test
 
