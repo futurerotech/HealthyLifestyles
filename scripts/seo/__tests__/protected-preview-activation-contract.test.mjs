@@ -47,7 +47,10 @@ test('preview destination remains immutable and never targets Production', () =>
   hasLine('HLS_PREVIEW_DEPLOYMENT_ID: ' + PINS.deploymentId);
   hasLine('HLS_PREVIEW_SHA: ' + PINS.previewSha);
   hasLine('HLS_APPROVAL: RUN_PREVIEW_CDP_READ_ONLY');
-  assert.doesNotMatch(workflow, /\b(vercel\s+(deploy|promote)|workflow_dispatch|environment:\s*production)\b/i);
+  // Reject executable YAML directives, not commentary mentioning blocked modes.
+  assert.doesNotMatch(workflow, /^\s*workflow_dispatch\s*:/m);
+  assert.doesNotMatch(workflow, /^\s*environment:\s*production\b/im);
+  assert.doesNotMatch(workflow, /^\s*(?:run:\s*)?vercel\s+(?:deploy|promote)\b/im);
 });
 
 test('all THREE runner pins match the separately reviewed SHA', () => {
