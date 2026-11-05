@@ -63,6 +63,9 @@ jobs:
       # Offline policy test only; must never receive OIDC or visit an external Preview.
       - name: Protected Preview CDP runner safety policy (offline-only)
         run: node scripts/seo/protected-preview-cdp.mjs --self-test
+      # Offline authorization-policy test; never requests an OIDC token in CI.
+      - name: Manual GitHub OIDC Preview CDP launcher policy (offline-only)
+        run: node scripts/seo/run-protected-preview-gh-oidc.mjs --self-test
 
       # Keep the existing advisory ledger review guard as an additional check.
       - name: Audit delta (new high/critical only)
