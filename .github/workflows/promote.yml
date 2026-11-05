@@ -37,6 +37,20 @@ jobs:
       - name: Security release gate
         run: npm run security:check
 
+      # Verify sitemap behavior before the unchanged blocking risk gate.
+      - name: Tag sitemap route contract (independent of security exception)
+        run: node --test scripts/seo/__tests__/site-contract.test.ts
+
+      # No public HTTP request in CI; verify the manual post-deploy gate with fixtures.
+      - name: Public tag post-deploy read-only verifier (mock-only)
+        run: node --test scripts/seo/__tests__/public-tag-postdeploy.test.mjs
+
+      - name: Isolated CMS fixture sitemap build
+        env:
+          CMS_DISABLE: '1'
+          INDEXNOW_DISABLE: 'true'
+        run: npm run test:cms-build
+
       # Keep the existing advisory ledger review guard as an additional check.
       - name: Audit delta (new high/critical only)
         run: node scripts/ci/audit-delta.ts
@@ -70,6 +84,9 @@ jobs:
           VERCEL_ENV: 'production'
           INDEXNOW_DISABLE: 'true'
         run: npm run build
+
+      - name: Verify published CMS tag sitemap and Vercel output
+        run: node scripts/seo/verify-built-tag-sitemap.mjs
 
       - name: Internal-link audit
         run: node scripts/seo/orphan-check.ts
@@ -109,6 +126,55 @@ jobs:
       # Gate-0). @lhci/cli is npx-fetched in CI only — not a repo dep.
       - name: Lighthouse CWV budget (blocking)
         run: npx --yes @lhci/cli@0.14.x autorun
+
+      # Preserve compact lab diagnostics even when the blocking assertion fails.
+      # Reports are local static-build data; do not print URLs, DOM or page content.
+      - name: Lighthouse diagnostic metrics
+        if: always()
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const dir = '.lighthouseci';
+          if (!fs.existsSync(dir)) { console.log('No Lighthouse reports available'); process.exit(0); }
+          for (const name of fs.readdirSync(dir).filter(n => /^lhr-.*\.json$/.test(n)).sort()) {
+            const report = JSON.parse(fs.readFileSync(dir + '/' + name, 'utf8'));
+            const a = report.audits || {};
+            const metric = key => a[key]?.numericValue ?? null;
+            console.log(JSON.stringify({
+              report: name, lighthouseVersion: report.lighthouseVersion,
+              fetchTime: report.fetchTime, timing: report.timing?.total,
+              lcp: metric('largest-contentful-paint'), fcp: metric('first-contentful-paint'),
+              tbt: metric('total-blocking-time'), cls: metric('cumulative-layout-shift'),
+              speedIndex: metric('speed-index'), serverResponse: metric('server-response-time'),
+              performance: report.categories?.performance?.score ?? null,
+              cpuSlowdownMultiplier: report.configSettings?.throttling?.cpuSlowdownMultiplier ?? null,
+              warnings: (report.runWarnings || []).length,
+              mainThread: (a['mainthread-work-breakdown']?.details?.items || []).map(({group, duration}) => ({group, duration})),
+              scripts: (a['bootup-time']?.details?.items || []).slice(0, 8).map(item => {
+                let resource = 'other';
+                try { const u = new URL(item.url); resource = u.hostname === 'localhost' ? u.pathname : u.hostname; } catch {}
+                return {resource, total: item.total, scripting: item.scripting, scriptParseCompile: item.scriptParseCompile};
+              })
+            }));
+          }
+          NODE
+
+      # Diagnostic-only repeated Lighthouse sample on the SAME completed static build.
+      # The existing one-run Lighthouse release gate above is unchanged and blocking.
+      # Do not upload these private local reports or interpret diagnostic variance as a release PASS.
+      - name: Lighthouse same-build variance unit tests
+        run: node --test scripts/seo/__tests__/lighthouse-variance.test.mjs
+
+      - name: Lighthouse same-build homepage variance (diagnostic-only)
+        if: always()
+        continue-on-error: true
+        run: |
+          if [ ! -f dist/client/index.html ]; then
+            echo 'No built homepage available for optional variance diagnosis'
+            exit 0
+          fi
+          npx --yes @lhci/cli@0.14.x collect --config=./lighthouserc.variance.json
+          node scripts/seo/lighthouse-variance.mjs
 
       # Phase 9 P3 — external Rich Results validation. Best-effort and NON-BLOCKING:
       # the script always exits 0, and continue-on-error guarantees an external API
