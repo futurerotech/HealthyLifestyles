@@ -27,7 +27,7 @@ const originalVercelEnv = process.env.VERCEL_ENV;
 
 test('lead preflight permits only configured origins without contacting CMS', async () => {
   assert.equal(typeof leadOptions, 'function');
-  for (const [origin, allowed] of [['https://www.healthylifesstyles.com', true], ['https://attacker.example', false]] as const) {
+  for (const [origin, allowed] of [['https://www.healthylifesstyles.com', true], ['https://attacker.example', false], ['http://localhost:4321', false]] as const) {
     const response = await leadOptions({ request: new Request('https://www.healthylifesstyles.com/api/lead', { method: 'OPTIONS', headers: { Origin: origin, 'Access-Control-Request-Method': 'POST', 'Access-Control-Request-Headers': 'content-type' } }) } as any);
     assert.equal(response.status, 204);
     assert.equal(response.headers.get('access-control-allow-origin'), allowed ? origin : null);
@@ -35,6 +35,27 @@ test('lead preflight permits only configured origins without contacting CMS', as
   }
   assert.equal(calls.length, 0);
 });
+
+
+test('lead POST blocks untrusted, local, null, and missing origins before CMS or webhook writes', async () => {
+  const payload = JSON.stringify({ email: 'user@example.com' });
+  for (const origin of ['https://attacker.example', 'https://www.healthylifesstyles.com.evil.example', 'http://localhost:4321', 'null', '']) {
+    const headers = new Headers({ 'Content-Type': 'text/plain' });
+    if (origin) headers.set('Origin', origin);
+    const response = await lead({
+      request: new Request('https://www.healthylifesstyles.com/api/lead', { method: 'POST', headers, body: payload }),
+    } as any);
+    assert.equal(response.status, 403, origin || 'missing Origin');
+    assert.deepEqual(await response.json(), { ok: false, error: 'Origin not allowed.' });
+    assert.equal(response.headers.get('access-control-allow-origin'), null);
+    assert.equal(calls.length, 0, 'No CMS or webhook calls for a disallowed Origin');
+  }
+
+  const accepted = await lead(request({ email: 'user@example.com' }));
+  assert.equal(accepted.status, 200, 'Canonical first-party form must remain functional');
+  assert.equal(calls[0]?.url, 'https://cms.example.test/api/subscribers');
+});
+
 
 test('server delivery configuration uses env or authenticated CMS and public config strips secrets', async () => {
   const config = await import('../src/lib/lead-config.ts');
@@ -84,7 +105,7 @@ test('invalid subscription payloads are rejected before contacting CMS', async (
     for (const body of bodies) {
       assert.equal((await handler(request(body))).status, 400, JSON.stringify(body));
     }
-    assert.equal((await handler({ request: new Request('https://site.test', { method: 'POST', body: '{' }) } as any)).status, 400);
+    assert.equal((await handler({ request: new Request('https://site.test', { method: 'POST', headers: { Origin: 'https://www.healthylifesstyles.com' }, body: '{' }) } as any)).status, 400);
   }
   assert.equal(calls.length, 0);
 });
@@ -119,7 +140,7 @@ afterEach(() => {
   if (originalVercelEnv === undefined) delete process.env.VERCEL_ENV;
   else process.env.VERCEL_ENV = originalVercelEnv;
 });
-const request = (body: unknown) => ({ request: new Request('https://www.healthylifesstyles.com/api/test', { method: 'POST', body: JSON.stringify(body) }) }) as any;
+const request = (body: unknown) => ({ request: new Request('https://www.healthylifesstyles.com/api/test', { method: 'POST', headers: { Origin: 'https://www.healthylifesstyles.com' }, body: JSON.stringify(body) }) }) as any;
 const pushBody = { endpoint: 'https://push.example.test/send/id', keys: { auth: 'a'.repeat(22), p256dh: 'B'.repeat(87) } };
 
 test('nonproduction and unknown environments make zero CMS or webhook requests despite credentials and spoofed headers', async () => {
