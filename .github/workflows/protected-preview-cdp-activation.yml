@@ -34,7 +34,7 @@ jobs:
       HLS_PREVIEW_URL: https://healthy-lifestyles-6qxe0ldyl-healthy-lifestyles.vercel.app/
       HLS_PREVIEW_DEPLOYMENT_ID: dpl_FkEKMnHXy1gKWpodmS4b7P6imFVb
       HLS_PREVIEW_SHA: 90fd4d4d880827dd7ea6f7a69164b622e35e449e
-      HLS_RUNNER_REVIEWED_SHA: 19c4a4fa064b4dc57c26c40d7a28356444079189
+      HLS_RUNNER_REVIEWED_SHA: 4b9451214d538e754b710938a588046a742502dc
       HLS_APPROVAL: RUN_PREVIEW_CDP_READ_ONLY
 
     steps:
@@ -57,14 +57,14 @@ jobs:
             'EXPLICIT_OWNER_APPROVED_READ_ONLY_CDP_V1' \
             'DEPLOYMENT=dpl_FkEKMnHXy1gKWpodmS4b7P6imFVb' \
             'PREVIEW_SHA=90fd4d4d880827dd7ea6f7a69164b622e35e449e' \
-            'RUNNER_SHA=19c4a4fa064b4dc57c26c40d7a28356444079189')"
+            'RUNNER_SHA=4b9451214d538e754b710938a588046a742502dc')"
           test "$(cat .github/preview-cdp-activation.txt)" = "$expected"
           echo 'PASS single-file owner activation matches immutable protected Preview pins'
 
       - name: Checkout exact reviewed controller (not the activation commit)
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: 19c4a4fa064b4dc57c26c40d7a28356444079189
+          ref: 4b9451214d538e754b710938a588046a742502dc
           path: runner
           persist-credentials: false
 
