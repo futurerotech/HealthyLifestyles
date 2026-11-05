@@ -10,6 +10,7 @@
  */
 import assert from 'node:assert/strict';
 import { setTimeout as sleep } from 'node:timers/promises';
+import { runInNewContext } from 'node:vm';
 
 const WRITE = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 const HEADER = 'x-vercel-trusted-oidc-idp-token';
@@ -48,6 +49,20 @@ function safePath(raw) {
   try { const u = new URL(raw); return u.origin + u.pathname; }
   catch { return '[non-http resource]'; }
 }
+// Keep this expression self-contained: it runs in real Chrome and in the offline
+// mocked-DOM regression. Astro island hosts can have a zero-sized box, so
+// scrolling the host itself does not reliably expose client:visible content.
+function viewportExposureExpression() {
+  return '(() => {const root=document.querySelector(".wh-embed");' +
+    'const island=root?.querySelector("astro-island");if(!island)return false;' +
+    'const result=root.querySelector(".calc__value");' +
+    'const resultBox=result?.getBoundingClientRect();' +
+    'const target=resultBox?.width>0&&resultBox?.height>0?result:root;' +
+    'const box=target.getBoundingClientRect();if(!(box.width>0&&box.height>0))return false;' +
+    'root.scrollIntoView({block:"center",behavior:"instant"});' +
+    'if(target!==root)target.scrollIntoView({block:"center",behavior:"instant"});' +
+    'return true;})()';
+}
 function selfTest() {
   const e = { HLS_PREVIEW_URL: 'https://healthy-lifestyles-test-healthy-lifestyles.vercel.app/',
     HLS_PREVIEW_SHA: 'a'.repeat(40), HLS_PREVIEW_DEPLOYMENT_ID: 'dpl_sample',
@@ -63,7 +78,32 @@ function selfTest() {
     'http://healthy-lifestyles-test-healthy-lifestyles.vercel.app/', x.origin + '/other',
     x.origin + '/?auth=1']) assert.throws(() => config({ ...e, HLS_PREVIEW_URL: wrong }));
   assert.throws(() => config({ ...e, VERCEL_OIDC_TOKEN: '' }));
-  console.log('PASS protected-preview CDP self-test: pinned origin, scoped credential, mutation-denial policy');
+  // Regression from live attempt #42120916786: Astro host has no layout box
+  // despite SSR calculator output. Scroll its measurable wrapper and content.
+  const moves = [];
+  const island = { getBoundingClientRect: () => ({ width: 0, height: 0 }) };
+  const result = { getBoundingClientRect: () => ({ width: 90, height: 24 }),
+    scrollIntoView: () => moves.push('result') };
+  const root = { getBoundingClientRect: () => ({ width: 390, height: 600 }),
+    scrollIntoView: () => moves.push('root'),
+    querySelector: q => q === 'astro-island' ? island : q === '.calc__value' ? result : null };
+  const context = { document: { querySelector: q => q === '.wh-embed' ? root : null } };
+  assert.equal(runInNewContext(viewportExposureExpression(), context), true,
+    'Zero-box island must not prevent exposure of the rendered calculator');
+  assert.deepEqual(moves, ['root', 'result'],
+    'Must scroll measurable elements, never the zero-box island host');
+  moves.length = 0;
+  const fallback = { ...root, querySelector: q => q === 'astro-island' ? island : null };
+  assert.equal(runInNewContext(viewportExposureExpression(),
+    { document: { querySelector: () => fallback } }), true, 'SSR wrapper fallback');
+  assert.deepEqual(moves, ['root'], 'SSR wrapper alone remains a safe scroll target');
+  assert.equal(runInNewContext(viewportExposureExpression(),
+    { document: { querySelector: () => null } }), false, 'Missing embed must fail closed');
+  assert.equal(runInNewContext(viewportExposureExpression(),
+    { document: { querySelector: () => ({ ...fallback,
+      getBoundingClientRect: () => ({ width: 0, height: 0 }) }) } }), false,
+  'Hidden calculator must not be treated as exposed');
+  console.log('PASS protected-preview CDP self-test: pinned origin, scoped credential, mutation-denial policy, zero-box island scroll regression');
 }
 async function cdpConnect(port, cfg, WS) {
   let target;
@@ -180,9 +220,36 @@ async function inspect(cdp, cfg, article) {
   await until(cdp.evaluate, 'document.readyState !== "loading" && location.origin === ' +
     JSON.stringify(cfg.origin) + ' && !!document.querySelector(".wh-embed astro-island")',
     'authenticated page and calculator embed');
-  await until(cdp.evaluate, '(() => {const i=document.querySelector(".wh-embed astro-island");' +
-    'return !!i && !i.hasAttribute("ssr") && !!document.querySelector(".wh-embed .calc__value");})()',
-    'hydrated Astro island');
+  // ToolEmbed.astro renders Calculator with client:visible. At 390x844, the
+  // embedded calculator is often below the article introduction; hydration
+  // cannot start until the island enters the actual Chromium viewport.
+  const scrolled = await cdp.evaluate(viewportExposureExpression());
+  assert.equal(scrolled, true, 'Calculator SSR content has no measurable box for viewport exposure');
+  try {
+    await until(cdp.evaluate, '(() => {const i=document.querySelector(".wh-embed astro-island");' +
+      'return !!i && !i.hasAttribute("ssr") && !!document.querySelector(".wh-embed .calc__value");})()',
+      'hydrated Astro island after client:visible viewport exposure');
+  } catch (error) {
+    const observed = await cdp.evaluate('(() => {const root=document.querySelector(".wh-embed");' +
+      'const i=root?.querySelector("astro-island");const value=root?.querySelector(".calc__value");' +
+      'const rect=e=>{if(!e)return null;const r=e.getBoundingClientRect();' +
+      'return {width:Math.round(r.width),height:Math.round(r.height),' +
+      'top:Math.round(r.top),bottom:Math.round(r.bottom)};};' +
+      'return {present:!!i,ssr:i?.hasAttribute("ssr"),result:!!value,' +
+      'rootRect:rect(root),islandRect:rect(i),resultRect:rect(value),' +
+      'rootDisplay:root?getComputedStyle(root).display:null,' +
+      'islandDisplay:i?getComputedStyle(i).display:null,' +
+      'viewport:{innerWidth:innerWidth,innerHeight:innerHeight,' +
+      'clientWidth:document.documentElement.clientWidth,' +
+      'visualScale:visualViewport?.scale??null},' +
+      'astroIslandRegistered:!!customElements.get("astro-island"),' +
+      'readyState:document.readyState};})()');
+    console.error(JSON.stringify({type:'safe-hydration-diagnostics',observed,
+      consoleErrors:cdp.problems.console.length,
+      firstPartyNetworkFailures:cdp.problems.network.length,
+      blockedWrites:cdp.problems.writes.length}));
+    throw error;
+  }
   const data = await cdp.evaluate('(() => {const root=document.querySelector(".wh-embed");' +
     'const i=root?.querySelector("astro-island");return {' +
     'url:location.origin+location.pathname,h1:document.querySelector("h1")?.textContent?.trim(),' +
