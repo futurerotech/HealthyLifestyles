@@ -1,0 +1,11 @@
+{
+  "ci": {
+    "collect": {
+      "staticDistDir": "dist/client",
+      "url": [
+        "/"
+      ],
+      "numberOfRuns": 3
+    }
+  }
+}
