@@ -50,9 +50,11 @@ export default defineConfig({
         locales: { en: 'en', es: 'es', ar: 'ar' },
       },
       serialize: (item) => {
-        const url = new URL(item.url).pathname === '/' ? `${SITE_URL}/` : item.url.replace(/\/$/, '');
+        const cleanUrl = item.url.replace(/(.+?)\/$/, '$1');
+        const isHome = cleanUrl === SITE_URL;
+        const url = isHome ? `${SITE_URL}/` : cleanUrl;
         let priority = 0.7;
-        if (url === `${SITE_URL}/`) {
+        if (isHome) {
           priority = 1.0;
         } else if (/\/wellness-hub\/[^/]+$/.test(url) && !/\/wellness-hub$/.test(url)) {
           priority = 0.8;
