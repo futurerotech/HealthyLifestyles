@@ -82,7 +82,7 @@ jobs:
       - name: Checkout immutable pinned CDP runner (offline-only)
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: 4b9451214d538e754b710938a588046a742502dc
+          ref: e46c09e44105fb4e0e10a6174dfd606e0f545a11
           path: .ci-reviewed-controller
           persist-credentials: false
 
@@ -95,9 +95,12 @@ jobs:
           ACTIONS_ID_TOKEN_REQUEST_URL: ''
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "4b9451214d538e754b710938a588046a742502dc"
+          test "$(git rev-parse HEAD)" = "e46c09e44105fb4e0e10a6174dfd606e0f545a11"
           node scripts/seo/protected-preview-cdp.mjs --self-test
           node scripts/seo/run-protected-preview-gh-oidc.mjs --self-test
+
+      - name: Verify checked-out runner and activation identity parity (offline-only)
+        run: node --test scripts/seo/__tests__/protected-preview-runner-parity.test.mjs
 
       # Keep the existing advisory ledger review guard as an additional check.
       - name: Audit delta (new high/critical only)
