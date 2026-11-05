@@ -60,6 +60,10 @@ jobs:
       - name: Article calculator browser interaction (Chrome, desktop + mobile)
         run: node scripts/seo/article-calculator-browser-proof.mjs
 
+      # Offline policy test only; must never receive OIDC or visit an external Preview.
+      - name: Protected Preview CDP runner safety policy (offline-only)
+        run: node scripts/seo/protected-preview-cdp.mjs --self-test
+
       # Keep the existing advisory ledger review guard as an additional check.
       - name: Audit delta (new high/critical only)
         run: node scripts/ci/audit-delta.ts

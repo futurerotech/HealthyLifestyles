@@ -1,0 +1,251 @@
+/**
+ * Authorized read-only Chromium CDP gate for an EXISTING protected Vercel Preview.
+ * Before running, verify HLS_PREVIEW_URL, HLS_PREVIEW_SHA and HLS_PREVIEW_DEPLOYMENT_ID
+ * from the Vercel provider. This script does not independently attest remote SHA.
+ * Only run in an authorized browser environment; never bypass Work policies.
+ *
+ * vercel env run -- node scripts/seo/protected-preview-cdp.mjs
+ * Environment: HLS_PREVIEW_URL, HLS_PREVIEW_SHA, HLS_PREVIEW_DEPLOYMENT_ID,
+ * VERCEL_OIDC_TOKEN. No secret is printed, persisted or shared with other origins.
+ */
+import assert from 'node:assert/strict';
+import { setTimeout as sleep } from 'node:timers/promises';
+
+const WRITE = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+const HEADER = 'x-vercel-trusted-oidc-idp-token';
+const CASES = [
+  { slug: 'calories-burned-calculator-guide', first: '72', second: '80' },
+  { slug: 'how-many-calories-to-lose-weight', first: '72', second: '80' },
+];
+function config(env) {
+  let u;
+  try { u = new URL(env.HLS_PREVIEW_URL || ''); }
+  catch { throw new Error('Missing or invalid HLS_PREVIEW_URL'); }
+  if (u.protocol !== 'https:' || !/^healthy-lifestyles-[a-z0-9-]+-healthy-lifestyles\.vercel\.app$/.test(u.hostname)
+    || u.username || u.password || u.search || u.hash || u.pathname !== '/') {
+    throw new Error('Refusing URL outside the expected protected Preview host');
+  }
+  assert.match(env.HLS_PREVIEW_SHA || '', /^[a-f0-9]{40}$/, 'Expected pinned commit SHA');
+  assert.match(env.HLS_PREVIEW_DEPLOYMENT_ID || '', /^dpl_[A-Za-z0-9]+$/, 'Expected pinned deployment ID');
+  const token = env.VERCEL_OIDC_TOKEN || '';
+  if (!token || /[\r\n]/.test(token)) throw new Error('Missing or invalid process-scoped VERCEL_OIDC_TOKEN');
+  return { origin: u.origin, sha: env.HLS_PREVIEW_SHA, id: env.HLS_PREVIEW_DEPLOYMENT_ID, token };
+}
+function decision(url, method, origin) {
+  if (WRITE.has(String(method).toUpperCase())) return { block: true, scoped: false };
+  let scoped = false;
+  try { scoped = new URL(url).origin === origin; } catch {}
+  return { block: false, scoped };
+}
+function headerEntries(headers, token) {
+  return Object.entries(headers || {}).filter(([name]) => name.toLowerCase() !== HEADER)
+    .map(([name, value]) => ({ name, value: String(value) }))
+    .concat([{ name: HEADER, value: token }]);
+}
+function safePath(raw) {
+  try { const u = new URL(raw); return u.origin + u.pathname; }
+  catch { return '[non-http resource]'; }
+}
+function selfTest() {
+  const e = { HLS_PREVIEW_URL: 'https://healthy-lifestyles-test-healthy-lifestyles.vercel.app/',
+    HLS_PREVIEW_SHA: 'a'.repeat(40), HLS_PREVIEW_DEPLOYMENT_ID: 'dpl_sample',
+    VERCEL_OIDC_TOKEN: 'opaque-sample-credential' };
+  const x = config(e);
+  assert.deepEqual(decision(x.origin + '/wellness-hub/', 'GET', x.origin), { block: false, scoped: true });
+  assert.deepEqual(decision('https://third-party.example/', 'GET', x.origin), { block: false, scoped: false });
+  for (const method of WRITE) assert.equal(decision(x.origin + '/api/lead', method, x.origin).block, true);
+  assert.equal(headerEntries({ Accept: '*/*' }, x.token).filter(y => y.name === HEADER).length, 1);
+  for (const wrong of ['https://www.healthylifesstyles.com/', 'https://other.vercel.app/',
+    'http://healthy-lifestyles-test-healthy-lifestyles.vercel.app/', x.origin + '/other',
+    x.origin + '/?auth=1']) assert.throws(() => config({ ...e, HLS_PREVIEW_URL: wrong }));
+  assert.throws(() => config({ ...e, VERCEL_OIDC_TOKEN: '' }));
+  console.log('PASS protected-preview CDP self-test: pinned origin, scoped credential, mutation-denial policy');
+}
+async function cdpConnect(port, cfg, WS) {
+  let target;
+  for (let i = 0; i < 80; i++) {
+    try {
+      const tabs = await (await fetch('http://127.0.0.1:' + port + '/json/list')).json();
+      target = tabs.find(t => t.type === 'page' && t.webSocketDebuggerUrl);
+      if (target) break;
+    } catch {}
+    await sleep(100);
+  }
+  assert.ok(target, 'Chromium page target unavailable');
+  const socket = new WS(target.webSocketDebuggerUrl);
+  await new Promise((resolve, reject) => { socket.once('open', resolve); socket.once('error', reject); });
+  let seq = 0;
+  const pending = new Map(), pendingRequests = new Map();
+  const problems = { exceptions: [], console: [], network: [], writes: [], routing: [] };
+  const documents = [];
+  function send(method, params = {}) {
+    return new Promise((resolve, reject) => {
+      const id = ++seq;
+      const timer = setTimeout(() => { pending.delete(id); reject(new Error('CDP timeout: ' + method)); }, 20000);
+      pending.set(id, { ok: v => { clearTimeout(timer); resolve(v); },
+        bad: e => { clearTimeout(timer); reject(e); } });
+      socket.send(JSON.stringify({ id, method, params }));
+    });
+  }
+  async function route(p) {
+    const req = p.request || {};
+    const action = decision(req.url || '', req.method || '', cfg.origin);
+    if (action.block) {
+      problems.writes.push({ method: req.method, path: safePath(req.url) });
+      await send('Fetch.failRequest', { requestId: p.requestId, errorReason: 'BlockedByClient' });
+    } else if (action.scoped) {
+      await send('Fetch.continueRequest', { requestId: p.requestId,
+        headers: headerEntries(req.headers, cfg.token) });
+    } else {
+      await send('Fetch.continueRequest', { requestId: p.requestId });
+    }
+  }
+  socket.on('message', buffer => {
+    let msg;
+    try { msg = JSON.parse(buffer.toString()); } catch { return; }
+    if (msg.id && pending.has(msg.id)) {
+      const p = pending.get(msg.id); pending.delete(msg.id);
+      if (msg.error) p.bad(new Error('CDP response error (request details redacted)'));
+      else p.ok(msg.result);
+      return;
+    }
+    const p = msg.params || {};
+    if (msg.method === 'Fetch.requestPaused') {
+      void route(p).catch(async () => {
+        problems.routing.push('Request interception failed');
+        try { await send('Fetch.failRequest', { requestId: p.requestId, errorReason: 'Failed' }); }
+        catch {}
+      });
+    } else if (msg.method === 'Runtime.exceptionThrown') {
+      problems.exceptions.push(String(p.exceptionDetails?.text || 'Uncaught JS exception').slice(0, 120));
+    } else if (msg.method === 'Runtime.consoleAPICalled' && p.type === 'error') {
+      problems.console.push('console.error recorded');
+    } else if (msg.method === 'Network.requestWillBeSent') {
+      pendingRequests.set(p.requestId, safePath(p.request?.url || ''));
+    } else if (msg.method === 'Network.responseReceived') {
+      const response = p.response || {}, url = safePath(response.url || '');
+      if (url.startsWith(cfg.origin + '/')) {
+        if (p.type === 'Document') documents.push({ status: response.status, url });
+        if (['Script', 'Stylesheet'].includes(p.type) && response.status >= 400)
+          problems.network.push({ status: response.status, url });
+      }
+    } else if (msg.method === 'Network.loadingFailed' && !p.canceled) {
+      const url = pendingRequests.get(p.requestId);
+      if (url && url.startsWith(cfg.origin + '/'))
+        problems.network.push({ url, error: String(p.errorText || 'failed').slice(0, 100) });
+    }
+  });
+  async function evaluate(expression) {
+    const result = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
+    if (result.exceptionDetails) throw new Error('Browser DOM evaluation failed');
+    return result.result?.value;
+  }
+  await send('Page.enable');
+  await send('Runtime.enable');
+  await send('Network.enable');
+  await send('Fetch.enable', { patterns: [{ urlPattern: '*', requestStage: 'Request' }] });
+  return { socket, send, evaluate, problems, documents };
+}
+async function until(evaluate, expression, stage) {
+  for (let i = 0; i < 140; i++) {
+    if (await evaluate(expression)) return;
+    await sleep(160);
+  }
+  throw new Error('Protected Preview browser timeout: ' + stage);
+}
+async function setWeight(cdp, selector, value) {
+  const query = 'document.querySelector(' + JSON.stringify(selector) + ')';
+  const focused = await cdp.evaluate('(() => {const e=' + query + ';if(!e)return false;' +
+    'e.scrollIntoView({block:"center"});e.focus();return document.activeElement===e;})()');
+  assert.equal(focused, true, 'Weight input cannot receive keyboard focus');
+  await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'a', code: 'KeyA',
+    modifiers: 2, windowsVirtualKeyCode: 65 });
+  await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'a', code: 'KeyA',
+    modifiers: 2, windowsVirtualKeyCode: 65 });
+  await cdp.send('Input.insertText', { text: value });
+  await until(cdp.evaluate, query + '.value === ' + JSON.stringify(value), 'weight field update');
+}
+async function inspect(cdp, cfg, article) {
+  const path = '/wellness-hub/' + article.slug + '/';
+  await cdp.send('Emulation.setDeviceMetricsOverride',
+    { width: 390, height: 844, mobile: true, deviceScaleFactor: 1 });
+  const nav = await cdp.send('Page.navigate', { url: cfg.origin + path });
+  assert.ok(!nav.errorText, 'Navigation failed');
+  await until(cdp.evaluate, 'document.readyState !== "loading" && location.origin === ' +
+    JSON.stringify(cfg.origin) + ' && !!document.querySelector(".wh-embed astro-island")',
+    'authenticated page and calculator embed');
+  await until(cdp.evaluate, '(() => {const i=document.querySelector(".wh-embed astro-island");' +
+    'return !!i && !i.hasAttribute("ssr") && !!document.querySelector(".wh-embed .calc__value");})()',
+    'hydrated Astro island');
+  const data = await cdp.evaluate('(() => {const root=document.querySelector(".wh-embed");' +
+    'const i=root?.querySelector("astro-island");return {' +
+    'url:location.origin+location.pathname,h1:document.querySelector("h1")?.textContent?.trim(),' +
+    'embedCount:document.querySelectorAll(".wh-embed").length,' +
+    'hydrated:!!i&&!i.hasAttribute("ssr"),' +
+    'inputs:Array.from(root?.querySelectorAll("input")||[]).map(e=>({id:e.id,name:e.name})),' +
+    'metrics:{innerWidth:innerWidth,innerHeight:innerHeight,' +
+    'clientWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth}' +
+    '};})()');
+  assert.ok(data.url.endsWith('/' + article.slug) || data.url.endsWith('/' + article.slug + '/'),
+    'Unexpected redirect away from inspected article');
+  assert.ok(data.h1 && data.hydrated && data.embedCount === 1, 'Article embed missing/duplicated');
+  assert.equal(data.metrics.innerWidth, 390, 'Wrong Chromium viewport width');
+  assert.equal(data.metrics.innerHeight, 844, 'Wrong Chromium viewport height');
+  assert.ok(data.metrics.clientWidth > 0 && data.metrics.clientWidth <= 390, 'Invalid client width');
+  assert.ok(data.metrics.scrollWidth <= data.metrics.clientWidth + 1,
+    'Horizontal overflow: ' + JSON.stringify(data.metrics));
+  const weight = data.inputs.find(v => /(^|[-_])weight($|[-_])/i.test(v.id + '-' + v.name));
+  assert.ok(weight?.id, 'Weight input not found');
+  const selector = '#' + weight.id.replace(/([^A-Za-z0-9_-])/g, '\\$1');
+  await setWeight(cdp, selector, article.first);
+  await sleep(900);
+  const before = await cdp.evaluate('document.querySelector(".wh-embed .calc__value")?.textContent?.trim()');
+  await setWeight(cdp, selector, article.second);
+  await until(cdp.evaluate,
+    '(() => {const v=document.querySelector(".wh-embed .calc__value")?.textContent?.trim();return v&&v!==' +
+    JSON.stringify(before) + ';})()', 'calculator response to keyboard input');
+  await sleep(900);
+  const after = await cdp.evaluate('document.querySelector(".wh-embed .calc__value")?.textContent?.trim()');
+  assert.ok(before && after && before !== after, 'Calculator failed to update');
+  const share = await cdp.evaluate('(() => {const r=document.querySelector(".wh-embed");' +
+    'const f=r?.querySelector("a[aria-label=\\"Share result on Facebook\\"]");' +
+    'const x=r?.querySelector("a[aria-label=\\"Share result on X (Twitter)\\"]");' +
+    'if(!f||!x)return false;return new URL(f.href).searchParams.get("u")===location.href' +
+    '&&new URL(x.href).searchParams.get("text")?.includes(location.href)===true;})()');
+  assert.equal(share, true, 'Result-share destinations do not reference this article');
+  await sleep(300);
+  for (const [name, list] of Object.entries(cdp.problems))
+    assert.deepEqual(list, [], 'CDP ' + name + ' failures');
+  assert.ok(cdp.documents.some(v => v.status === 200 &&
+    (v.url.endsWith(path) || v.url.endsWith(path.replace(/\/$/, '')))),
+    'Expected protected article did not return HTTP 200');
+  console.log(JSON.stringify({ result: 'PASS', type: 'protected-preview-cdp',
+    article: article.slug, metrics: data.metrics,
+    actualKeyboardResult: { from: article.first, to: article.second, before, after },
+    hydrated: true, share: true, exceptions: 0, failedFirstPartyAssets: 0, mutationRequests: 0 }));
+}
+async function main() {
+  const cfg = config(process.env);
+  const chromeLauncher = await import('chrome-launcher');
+  const WS = (await import('ws')).default;
+  console.log(JSON.stringify({ type: 'preview-cdp-start', origin: cfg.origin,
+    expectedSha: cfg.sha, expectedDeploymentId: cfg.id,
+    sourceShaIndependentlyVerifiedByRunner: false }));
+  let chrome, cdp;
+  try {
+    chrome = await chromeLauncher.launch({ chromeFlags: [
+      '--headless=new', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage',
+      '--disable-background-networking', '--disable-extensions',
+    ] });
+    cdp = await cdpConnect(chrome.port, cfg, WS);
+    for (const article of CASES) await inspect(cdp, cfg, article);
+    console.log(JSON.stringify({ result: 'PASS', type: 'all-protected-preview-articles',
+      expectedSha: cfg.sha, expectedDeploymentId: cfg.id,
+      requiresExternalVercelShaVerification: true }));
+  } finally {
+    if (cdp) cdp.socket.close();
+    if (chrome) await chrome.kill();
+  }
+}
+if (process.argv.includes('--self-test')) selfTest();
+else await main();
