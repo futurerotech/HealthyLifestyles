@@ -37,10 +37,12 @@ function decision(url, method, origin) {
   try { scoped = new URL(url).origin === origin; } catch {}
   return { block: false, scoped };
 }
-function headerEntries(headers, token) {
+function publicHeaders(headers) {
   return Object.entries(headers || {}).filter(([name]) => name.toLowerCase() !== HEADER)
-    .map(([name, value]) => ({ name, value: String(value) }))
-    .concat([{ name: HEADER, value: token }]);
+    .map(([name, value]) => ({ name, value: String(value) }));
+}
+function headerEntries(headers, token) {
+  return publicHeaders(headers).concat([{ name: HEADER, value: token }]);
 }
 function safePath(raw) {
   try { const u = new URL(raw); return u.origin + u.pathname; }
@@ -55,6 +57,8 @@ function selfTest() {
   assert.deepEqual(decision('https://third-party.example/', 'GET', x.origin), { block: false, scoped: false });
   for (const method of WRITE) assert.equal(decision(x.origin + '/api/lead', method, x.origin).block, true);
   assert.equal(headerEntries({ Accept: '*/*' }, x.token).filter(y => y.name === HEADER).length, 1);
+  assert.equal(publicHeaders({ Accept: '*/*', [HEADER]: x.token })
+    .some(y => y.name.toLowerCase() === HEADER), false, 'Never forward OIDC off-origin');
   for (const wrong of ['https://www.healthylifesstyles.com/', 'https://other.vercel.app/',
     'http://healthy-lifestyles-test-healthy-lifestyles.vercel.app/', x.origin + '/other',
     x.origin + '/?auth=1']) assert.throws(() => config({ ...e, HLS_PREVIEW_URL: wrong }));
@@ -97,7 +101,9 @@ async function cdpConnect(port, cfg, WS) {
       await send('Fetch.continueRequest', { requestId: p.requestId,
         headers: headerEntries(req.headers, cfg.token) });
     } else {
-      await send('Fetch.continueRequest', { requestId: p.requestId });
+      // Explicitly remove inherited OIDC headers on cross-origin redirects.
+      await send('Fetch.continueRequest', { requestId: p.requestId,
+        headers: publicHeaders(req.headers) });
     }
   }
   socket.on('message', buffer => {
