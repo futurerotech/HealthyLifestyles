@@ -14,9 +14,11 @@ import { runInNewContext } from 'node:vm';
 
 const WRITE = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 const HEADER = 'x-vercel-trusted-oidc-idp-token';
+// Preserve the specific embed/field combination proven by real local Chrome.
+// The body-fat article uses the WAIST field; it must not be tested as BMI.
 const CASES = [
-  { slug: 'calories-burned-calculator-guide', first: '72', second: '80' },
-  { slug: 'how-many-calories-to-lose-weight', first: '72', second: '80' },
+  { slug: 'calories-burned-calculator-guide', tool: 'bmi-calculator', field: 'weight', first: '72', second: '80' },
+  { slug: 'how-many-calories-to-lose-weight', tool: 'body-fat-calculator', field: 'waist', first: '90', second: '105' },
 ];
 function config(env) {
   let u;
@@ -199,17 +201,17 @@ async function until(evaluate, expression, stage) {
   }
   throw new Error('Protected Preview browser timeout: ' + stage);
 }
-async function setWeight(cdp, selector, value) {
+async function setField(cdp, selector, value) {
   const query = 'document.querySelector(' + JSON.stringify(selector) + ')';
   const focused = await cdp.evaluate('(() => {const e=' + query + ';if(!e)return false;' +
     'e.scrollIntoView({block:"center"});e.focus();return document.activeElement===e;})()');
-  assert.equal(focused, true, 'Weight input cannot receive keyboard focus');
+  assert.equal(focused, true, 'Calculator field cannot receive keyboard focus');
   await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'a', code: 'KeyA',
     modifiers: 2, windowsVirtualKeyCode: 65 });
   await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'a', code: 'KeyA',
     modifiers: 2, windowsVirtualKeyCode: 65 });
   await cdp.send('Input.insertText', { text: value });
-  await until(cdp.evaluate, query + '.value === ' + JSON.stringify(value), 'weight field update');
+  await until(cdp.evaluate, query + '.value === ' + JSON.stringify(value), 'calculator field update');
 }
 async function inspect(cdp, cfg, article) {
   const path = '/wellness-hub/' + article.slug + '/';
@@ -254,6 +256,7 @@ async function inspect(cdp, cfg, article) {
     'const i=root?.querySelector("astro-island");return {' +
     'url:location.origin+location.pathname,h1:document.querySelector("h1")?.textContent?.trim(),' +
     'embedCount:document.querySelectorAll(".wh-embed").length,' +
+    'embedTool:root?.getAttribute("data-tool"),' +
     'hydrated:!!i&&!i.hasAttribute("ssr"),' +
     'inputs:Array.from(root?.querySelectorAll("input")||[]).map(e=>({id:e.id,name:e.name})),' +
     'metrics:{innerWidth:innerWidth,innerHeight:innerHeight,' +
@@ -262,18 +265,20 @@ async function inspect(cdp, cfg, article) {
   assert.ok(data.url.endsWith('/' + article.slug) || data.url.endsWith('/' + article.slug + '/'),
     'Unexpected redirect away from inspected article');
   assert.ok(data.h1 && data.hydrated && data.embedCount === 1, 'Article embed missing/duplicated');
+  assert.equal(data.embedTool, article.tool, 'Wrong embedded calculator for article');
   assert.equal(data.metrics.innerWidth, 390, 'Wrong Chromium viewport width');
   assert.equal(data.metrics.innerHeight, 844, 'Wrong Chromium viewport height');
   assert.ok(data.metrics.clientWidth > 0 && data.metrics.clientWidth <= 390, 'Invalid client width');
   assert.ok(data.metrics.scrollWidth <= data.metrics.clientWidth + 1,
     'Horizontal overflow: ' + JSON.stringify(data.metrics));
-  const weight = data.inputs.find(v => /(^|[-_])weight($|[-_])/i.test(v.id + '-' + v.name));
-  assert.ok(weight?.id, 'Weight input not found');
-  const selector = '#' + weight.id.replace(/([^A-Za-z0-9_-])/g, '\\$1');
-  await setWeight(cdp, selector, article.first);
+  const expectedFieldId = 'calc-' + article.tool + '-' + article.field;
+  const field = data.inputs.find(v => v.id === expectedFieldId);
+  assert.ok(field?.id, 'Expected calculator field not found: ' + expectedFieldId);
+  const selector = '#' + field.id.replace(/([^A-Za-z0-9_-])/g, '\\$1');
+  await setField(cdp, selector, article.first);
   await sleep(900);
   const before = await cdp.evaluate('document.querySelector(".wh-embed .calc__value")?.textContent?.trim()');
-  await setWeight(cdp, selector, article.second);
+  await setField(cdp, selector, article.second);
   await until(cdp.evaluate,
     '(() => {const v=document.querySelector(".wh-embed .calc__value")?.textContent?.trim();return v&&v!==' +
     JSON.stringify(before) + ';})()', 'calculator response to keyboard input');
@@ -293,7 +298,8 @@ async function inspect(cdp, cfg, article) {
     (v.url.endsWith(path) || v.url.endsWith(path.replace(/\/$/, '')))),
     'Expected protected article did not return HTTP 200');
   console.log(JSON.stringify({ result: 'PASS', type: 'protected-preview-cdp',
-    article: article.slug, metrics: data.metrics,
+    article: article.slug, embeddedTool: article.tool, checkedField: article.field,
+    metrics: data.metrics,
     actualKeyboardResult: { from: article.first, to: article.second, before, after },
     hydrated: true, share: true, exceptions: 0, failedFirstPartyAssets: 0, mutationRequests: 0 }));
 }
