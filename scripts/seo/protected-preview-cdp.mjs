@@ -232,6 +232,9 @@ async function inspect(cdp, cfg, article) {
 }
 async function main() {
   const cfg = config(process.env);
+  // Keep the short-lived OIDC token in this CDP controller only.
+  // Chromium and its child processes must not inherit the token.
+  delete process.env.VERCEL_OIDC_TOKEN;
   const chromeLauncher = await import('chrome-launcher');
   const WS = (await import('ws')).default;
   console.log(JSON.stringify({ type: 'preview-cdp-start', origin: cfg.origin,
