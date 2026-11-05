@@ -23,3 +23,30 @@ test('share endpoint rejects a missing result and oversized rendering input', as
   assert.equal((await request({ value: 'x'.repeat(65) })).status, 400);
   assert.equal((await request({ value: '1', tool: 'x'.repeat(121) })).status, 400);
 });
+
+test('share endpoint rejects XML-invalid control characters without crashing', async () => {
+  for (const field of ['tool', 'value', 'label', 'category']) {
+    const response = await request({ value: '24.5', [field]: 'bad\u0001text' });
+    assert.equal(response.status, 400, `${field} must reject invalid XML characters`);
+  }
+});
+
+test('category text remains within its badge on the rendered PNG', async () => {
+  const category = 'Healthy';
+  const plain = await request({ value: '24.5' });
+  const labelled = await request({ value: '24.5', category });
+  const [a, b] = await Promise.all([plain, labelled].map(async r =>
+    sharp(Buffer.from(await r.arrayBuffer())).removeAlpha().raw().toBuffer()));
+  const width = category.length * 30 * 0.7 + 56;
+  const left = Math.floor((1200 - width) / 2);
+  const right = Math.ceil((1200 + width) / 2);
+  let changedOutsideBadge = 0;
+  for (let y = 495; y < 530; y++) {
+    for (let x = 0; x < 1200; x++) {
+      if (x >= left && x <= right) continue;
+      const i = (y * 1200 + x) * 3;
+      if (a[i] !== b[i] || a[i + 1] !== b[i + 1] || a[i + 2] !== b[i + 2]) changedOutsideBadge++;
+    }
+  }
+  assert.equal(changedOutsideBadge, 0, 'category text must not spill outside its badge');
+});

@@ -1,15 +1,14 @@
 import type { APIRoute } from 'astro';
 import { validSubscriber } from '../../lib/subscription-api';
 import { getLeadDeliveryConfig } from '../../lib/lead-config';
+import { externalWritesAllowed } from '../../lib/external-write-policy';
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ request }) => {
-  // Strict allow-list. Reflecting `origin || '*'` is the reflected-origin
-  // anti-pattern (the CMS subscriberSync endpoint warns about the same thing).
-  // This write-enabled endpoint accepts only the canonical first-party browser Origin.
-  const ALLOWED_ORIGINS = new Set<string>(['https://www.healthylifesstyles.com']);
-  const cors = (origin: string): Record<string, string> => {
+// Strict allow-list; never reflect arbitrary request origins.
+// This write-enabled endpoint serves the canonical first-party form only.
+const ALLOWED_ORIGINS = new Set<string>(['https://www.healthylifesstyles.com']);
+const cors = (origin: string): Record<string, string> => {
     const h: Record<string, string> = {
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
@@ -19,21 +18,22 @@ export const POST: APIRoute = async ({ request }) => {
     return h;
   };
 
+export const OPTIONS: APIRoute = ({ request }) =>
+  new Response(null, { status: 204, headers: cors(request.headers.get('origin') || '') });
+
+export const POST: APIRoute = async ({ request }) => {
   const origin = request.headers.get('origin') || '';
-
-  // Handle preflight
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: cors(origin) });
-  }
-
-  // CORS response headers alone never prevent a disallowed POST from saving.
-  // Reject invalid, cross-site, and missing Origins before any CMS or webhook I/O.
+  // CORS response headers alone do not prevent a cross-origin POST from
+  // reaching the CMS. Reject untrusted (and absent) origins before all I/O.
   if (!ALLOWED_ORIGINS.has(origin)) {
     return Response.json({ ok: false, error: 'Origin not allowed.' }, { status: 403, headers: cors(origin) });
   }
+  if (!externalWritesAllowed()) {
+    return Response.json({ ok: false, error: 'This service is unavailable in this environment.' }, { status: 503, headers: cors(origin) });
+  }
 
   if (!import.meta.env.CMS_URL?.trim() || !import.meta.env.INTERNAL_API_KEY?.trim()) {
-    return Response.json({ ok: false, error: 'Subscription service is unavailable.' }, { status: 503 });
+    return Response.json({ ok: false, error: 'Subscription service is unavailable.' }, { status: 503, headers: cors(origin) });
   }
 
   try {

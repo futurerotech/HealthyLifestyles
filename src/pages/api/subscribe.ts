@@ -1,9 +1,11 @@
 import type { APIRoute } from 'astro';
 import { validSubscriber } from '../../lib/subscription-api';
+import { externalWritesAllowed, externalWritesUnavailable } from '../../lib/external-write-policy';
 
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request }) => {
+  if (!externalWritesAllowed()) return externalWritesUnavailable();
   if (!import.meta.env.CMS_URL?.trim() || !import.meta.env.INTERNAL_API_KEY?.trim()) {
     return Response.json({ ok: false, message: 'Subscription service is unavailable.' }, { status: 503 });
   }

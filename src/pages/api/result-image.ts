@@ -87,7 +87,7 @@ function buildSvg(tool: string, value: string, label: string, category?: string,
   ${category ? `
   <g transform="translate(${(W - (escapeXml(category).length * categoryFontSize * 0.7 + 56)) / 2} 490)">
     <rect width="${escapeXml(category).length * categoryFontSize * 0.7 + 56}" height="48" rx="24" fill="${catColorHex}" fill-opacity="0.16"/>
-    <text x="28" y="31" font-family="'Segoe UI', Arial, sans-serif" font-size="${categoryFontSize}" font-weight="700" fill="${catColorHex}" text-anchor="middle">${escapeXml(category)}</text>
+    <text x="${(escapeXml(category).length * categoryFontSize * 0.7 + 56) / 2}" y="31" font-family="'Segoe UI', Arial, sans-serif" font-size="${categoryFontSize}" font-weight="700" fill="${catColorHex}" text-anchor="middle">${escapeXml(category)}</text>
   </g>` : ''}
 
   <!-- URL -->
@@ -111,6 +111,10 @@ export const GET: APIRoute = async ({ url }) => {
 
   if (tool.length > 120 || value.length > 64 || label.length > 180 || (category?.length ?? 0) > 80) {
     return new Response('Result image text exceeds the supported length.', { status: 400 });
+  }
+
+  if ([tool, value, label, category ?? ''].some(text => /[\u0000-\u0008\u000b\u000c\u000e-\u001f\ufffe\uffff]/u.test(text))) {
+    return new Response('Result image text contains invalid characters.', { status: 400 });
   }
 
   const svg = buildSvg(tool, value, label, category, catColor);

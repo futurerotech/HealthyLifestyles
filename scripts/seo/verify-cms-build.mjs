@@ -24,7 +24,7 @@ const catalogue = {
   categories: [...CATEGORIES.map((c) => ({ ...c, name: c.name, kind: 'tool', updatedAt })), category],
   authors: AUTHORS.map((a, i) => ({ ...a, id: i + 1, updatedAt })),
   pages: [{ id: 1, slug: 'custom-guide', title: 'Custom page', _status: 'published', updatedAt, seo: { metaTitle: 'CMS custom title', metaDescription: 'CMS custom description', ogTitle: 'CMS social title', twitterTitle: 'CMS Twitter title' }, layout: [{ blockType: 'text', text: 'CMS page body is rendered.' }] }],
-  tags: [],
+  tags: [{ id: 901, slug: 'nutrition', name: 'Nutrition', updatedAt }, { id: 902, slug: 'empty-archive', name: 'Empty Archive', updatedAt }],
   redirects: [{ id: 1, from: '/old-bmi', to: '/tools/bmi-calculator', type: '301', updatedAt }],
   'pseo-pages': [
     { id: 1, slug: 'generated-guide', headline: 'Generated guide', bodyHtml: '<p>A published generated guide.</p>', status: 'published', updatedAt, ctaUrl: '/tools/bmi-calculator', ctaText: 'Calculate' },
@@ -33,6 +33,9 @@ const catalogue = {
     { id: 4, slug: 'draft-generated-guide', headline: 'Unpublished draft', bodyHtml: '<p>Never public.</p>', status: 'draft', updatedAt },
   ],
 };
+catalogue.articles[0].tags = [catalogue.tags[0]];
+catalogue.articles[0].primaryTool = { slug: 'bmi-calculator' };
+catalogue.articles[1].primaryTool = { slug: 'body-fat-calculator' };
 const cmsEditedTool = catalogue.tools.find((t) => t.slug === 'body-fat-calculator');
 catalogue.articles[0].layout.push(
   { blockType: 'hero', title: 'Inline CMS article hero' },
@@ -94,10 +97,19 @@ try {
   assert.match(renderedArticle, /<h2[^>]*>Inline CMS article hero<\/h2>/);
   assert.match(renderedArticle, /CMS article columns/);
   assert.match(renderedArticle, /CMS article banner/);
+  assert.equal((renderedArticle.match(/data-tool="bmi-calculator"/g) || []).length, 1, 'Authored primary calculator must not be duplicated');
+  const articleWithImplicitPrimary = await html('wellness-hub/how-many-calories-to-lose-weight');
+  assert.match(articleWithImplicitPrimary, /data-tool="body-fat-calculator"/);
+  assert.match(articleWithImplicitPrimary, /<astro-island[^>]*component-url="[^"]*Calculator/);
   assert.doesNotMatch(renderedArticle, /cms\.healthylifesstyles\.com\/embed\//);
   const hub = await html('wellness-hub');
   assert.doesNotMatch(hub, /\[object Promise\]/);
   const xml = await readFile(artifact('dist/client/sitemap-0.xml'), 'utf8');
+  assert.ok(xml.includes('/wellness-hub/tag/nutrition'), 'Published article-backed tag must appear in sitemap');
+  assert.ok(!xml.includes('/wellness-hub/tag/empty-archive'), 'Empty tags must not become sitemap pages');
+  const tagHtml = await html('wellness-hub/tag/nutrition');
+  assert.match(tagHtml, /rel="canonical" href="https:\/\/www\.healthylifesstyles\.com\/wellness-hub\/tag\/nutrition"/);
+  assert.match(tagHtml, /1 article/);
   assert.ok(xml.includes('/tools/pseo/generated-guide'));
   assert.ok(!xml.includes('/tools/pseo/hidden-generated-guide'));
   assert.ok(!xml.includes('/tools/pseo/duplicate-generated-guide'));

@@ -10,6 +10,7 @@ import { readFileSync } from 'node:fs';
 import { loadEnv } from 'vite';
 import { buildRedirects, fetchRedirectSnapshot } from './scripts/seo/redirects.mjs';
 import sitemapPolicy from './scripts/seo/sitemap-policy.mjs';
+import { isExcludedSitemapPath } from './scripts/seo/sitemap-policy.mjs';
 
 // ✅ correct domain
 export const SITE_URL = 'https://www.healthylifesstyles.com';
@@ -32,7 +33,7 @@ export default defineConfig({
     sitemap({
       filter: (page) =>
         !page.includes('/404') &&
-        !/\/(?:api|og|embed|game|games|wp-content|wp-admin|wp-includes|category|tag)(?:\/|$)/.test(new URL(page).pathname) &&
+        !isExcludedSitemapPath(new URL(page).pathname) &&
         !new URL(page).pathname.startsWith('/index.php') &&
         !page.includes('/content-manifest.json') &&
         !localRedirects.some((r) => new URL(page).pathname === r.source) &&
