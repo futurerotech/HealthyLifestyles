@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 
 export const PINS = Object.freeze({
   repository: 'futurerotech/HealthyLifestyles',
-  workflowRef: 'futurerotech/HealthyLifestyles/.github/workflows/protected-preview-cdp.yml@refs/heads/main',
+  workflowRef: 'futurerotech/HealthyLifestyles/.github/workflows/protected-preview-cdp.yml@refs/heads/dev',
   approval: 'RUN_PREVIEW_CDP_READ_ONLY',
   origin: 'https://healthy-lifestyles-6qxe0ldyl-healthy-lifestyles.vercel.app/',
   deploymentId: 'dpl_FkEKMnHXy1gKWpodmS4b7P6imFVb',
@@ -19,7 +19,7 @@ export function validateContext(e) {
   assert.equal(e.GITHUB_ACTIONS, 'true', 'Only an authorized GitHub Actions job may run');
   assert.equal(e.GITHUB_REPOSITORY, PINS.repository, 'Unexpected repository');
   assert.equal(e.GITHUB_EVENT_NAME, 'workflow_dispatch', 'No automatic trigger allowed');
-  assert.equal(e.GITHUB_REF, 'refs/heads/main', 'Dispatch must originate from main workflow');
+  assert.equal(e.GITHUB_REF, 'refs/heads/dev', 'Dispatch must originate from GitHub default dev branch workflow');
   assert.equal(e.GITHUB_WORKFLOW_REF, PINS.workflowRef, 'Unexpected workflow identity');
   assert.equal(e.GITHUB_ACTOR?.toLowerCase(), 'futurerotech', 'Manual dispatch must be the owner');
   assert.equal(e.HLS_APPROVAL, PINS.approval, 'Explicit read-only approval missing');
@@ -42,7 +42,7 @@ export function policySelfTest() {
     GITHUB_ACTIONS: 'true',
     GITHUB_REPOSITORY: PINS.repository,
     GITHUB_EVENT_NAME: 'workflow_dispatch',
-    GITHUB_REF: 'refs/heads/main',
+    GITHUB_REF: 'refs/heads/dev',
     GITHUB_WORKFLOW_REF: PINS.workflowRef,
     GITHUB_ACTOR: 'futurerotech',
     HLS_APPROVAL: PINS.approval,
@@ -57,7 +57,7 @@ export function policySelfTest() {
   for (const [key, bad] of [
     ['GITHUB_REPOSITORY', 'other/repository'],
     ['GITHUB_EVENT_NAME', 'push'],
-    ['GITHUB_REF', 'refs/heads/dev'],
+    ['GITHUB_REF', 'refs/heads/main'],
     ['GITHUB_WORKFLOW_REF', 'other/workflow'],
     ['GITHUB_ACTOR', 'attacker'],
     ['HLS_APPROVAL', 'NO'],
