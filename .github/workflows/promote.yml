@@ -3,6 +3,10 @@ name: Verify repair branches
 on:
   push:
     branches: [dev, 'codex/**']
+    # PR #25: activation marker runs only the dedicated protected-Preview CDP job.
+    # Avoid repeating the full Verify suite on a single, authorization-gated marker push.
+    paths-ignore:
+      - '.github/preview-cdp-activation.txt'
   # P15 close — run the full verify gate on PRs to dev too (Lighthouse blocking,
   # empty-shell, date-integrity, etc.). The promote job stays push-only.
   pull_request:
