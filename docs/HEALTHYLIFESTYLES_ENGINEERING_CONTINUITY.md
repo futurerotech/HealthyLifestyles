@@ -97,3 +97,26 @@ Use concise Arabic for reports; keep commands, code, identifiers and artifacts i
 State: (a) exact verified GitHub SHA; (b) actual operations and files changed; (c) tests/CI run and current status; (d) provider evidence vs owner report vs unknown; (e) safety boundaries respected; (f) each remaining blocker; (g) **GO/NO-GO** and **NEXT STEP** as the final field. Record durable updates on PR #19 and update this file when the verified milestone changes. Do not claim infinite background continuation.
 
 **Next immediate action after the 2026-11-04 checkpoint:** Do NOT repeat Vercel login or secret separation. Assess the legacy PR #18 Preview's historical credential exposure and the external event consumers, verify actual Hobby build/deployment capacity and authorized rollback readiness, and propose ONE clean PR #19 Preview only after separate owner approval.
+
+## 8. SUPERSEDING RELEASE & INTEGRATION CHECKPOINT — 2026-11-05
+
+This section takes priority over older status statements elsewhere in this historical continuity record. Preserve earlier entries as an audit trail, but do NOT treat obsolete statements (for example, “PR #19 Preview does not exist” or “PR #21 still awaiting release”) as current truth.
+
+### Independently released security fix — completed
+
+- The owner explicitly approved the standalone /api/lead security fix. GitHub PR #21 was merged to main at exact merge SHA `57f72ee7935bbe7f76043d36f96b7d25ae14c731`.
+- Vercel Production deployment `dpl_7gu6eaTEhXWNkQui2kpoiut1J34a` reached READY and owns `www.healthylifesstyles.com`. Read-only public smoke tests passed for home, /tools/calorie-calculator, and /wellness-hub/how-many-calories-to-lose-weight. No errors were found in the sampled Vercel runtime-error window. No live subscriber POST was performed.
+- PR #21's known-good security fixes: fail-closed Origin guard in /api/lead before CMS I/O; regression test for malicious/null/missing origins; exact reviewed glob/minimatch dependency upgrades. Existing main production is now protected at the source level.
+- The rollback predecessor `dpl_G7zS66ihLZmC2MGR2v3kMDPYuShc` lacks the new lead guard. Emergency rollback to that code would restore the vulnerability. Temporary POST /api/lead WAF deny is a separately authorized emergency option, not an active rule; NO custom firewall rule has been created. Read-only Vercel UI showed active Firewall, zero custom rules and enabled Add Rule.
+- GitHub review and release receipt: https://github.com/futurerotech/HealthyLifestyles/pull/21#issuecomment-6660684519
+
+### Source reconciliation of pending feature chain
+
+- Historical PRs #17, #18 and #19 are **not** production releases. After the main security hotfix, PR #17 and #18 are currently reported non-mergeable directly into the new main, while #19 is still based on #18 (pinned original head `41e4f8ab935be711033d1a62e727d64cb3b61251` and existing Preview `dpl_GmCSxJcJjaF4vVzrfNhYGR3iE5o5`). Never change this old Preview or falsely claim that it verifies a new commit.
+- Draft PR #20 head `4fcb2febb43d35d23ae0d1a6e4252121b050ca7e` contains the feature chain *plus* the /api/lead origin guard and regression tests. The exact package.json and package-lock.json blob SHAs **match current main**. The lead handler in PR #20 uses explicit 403 on wrong/missing Origin **plus** `externalWritesAllowed()` to prevent nonproduction CMS mutations; main's guard is also preserved semantically. PR #20's tests include the denied-origin, allowed-origin and preflight cases.
+- A new isolated **codex/** integration review branch is being prepared by reconciling PR #20's full source tree with current main as a recorded second merge parent, and adding only this durable documentation note. Do not merge to main; Git integration has `vercel.json git.deploymentEnabled["codex/**"]=false`, which guards against automatic Vercel previews for this branch. GitHub Actions Verify still runs on push. Explicitly re-validate deployment absence and exact-SHA CI after branch creation.
+- Before any integration approval, verify exact changed paths and required tests (including the newly introduced Origin protection), CMS compatibility, site/SEO tests, security audit, browser acceptance, and release sequencing. Production release for the feature stack is still **NO-GO**.
+- The protected Preview's live 390x844 Chrome/CDP browser acceptance remains **BLOCKED by Work local-browser permission**, not a demonstrated website defect. Do not loop on the permission message or repeat an expired OIDC procedure. Continue independent work while keeping its live-browser release gate open.
+- Existing production build emitted two nonblocking runtime warnings: open Node engines range `>=22.22.0` may auto-select Node 26 despite project setting 24.x; Vercel's legacy Edge Middleware is deprecated. Treat separately under a reviewed development fix, never modify Production configuration directly.
+
+**Decision at checkpoint:** PR #21 Production security release **PASS**. New integrated feature chain **DEVELOPMENT ONLY**. Merge and feature release **NO-GO** until independent evidence and separate owner approval. No new Preview, merge or Production mutation authorized for the feature chain.
