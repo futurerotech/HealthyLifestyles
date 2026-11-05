@@ -180,9 +180,28 @@ async function inspect(cdp, cfg, article) {
   await until(cdp.evaluate, 'document.readyState !== "loading" && location.origin === ' +
     JSON.stringify(cfg.origin) + ' && !!document.querySelector(".wh-embed astro-island")',
     'authenticated page and calculator embed');
-  await until(cdp.evaluate, '(() => {const i=document.querySelector(".wh-embed astro-island");' +
-    'return !!i && !i.hasAttribute("ssr") && !!document.querySelector(".wh-embed .calc__value");})()',
-    'hydrated Astro island');
+  // ToolEmbed.astro renders Calculator with client:visible. At 390x844, the
+  // embedded calculator is often below the article introduction; hydration
+  // cannot start until the island enters the actual Chromium viewport.
+  const scrolled = await cdp.evaluate('(() => {const i=document.querySelector(".wh-embed astro-island");' +
+    'if(!i)return false;i.scrollIntoView({block:"center",behavior:"instant"});return true;})()');
+  assert.equal(scrolled, true, 'Calculator island missing before viewport exposure');
+  try {
+    await until(cdp.evaluate, '(() => {const i=document.querySelector(".wh-embed astro-island");' +
+      'return !!i && !i.hasAttribute("ssr") && !!document.querySelector(".wh-embed .calc__value");})()',
+      'hydrated Astro island after client:visible viewport exposure');
+  } catch (error) {
+    const observed = await cdp.evaluate('(() => {const i=document.querySelector(".wh-embed astro-island");' +
+      'const r=i?.getBoundingClientRect();return {present:!!i,ssr:i?.hasAttribute("ssr"),' +
+      'result:!!document.querySelector(".wh-embed .calc__value"),' +
+      'rectTop:r?Math.round(r.top):null,rectBottom:r?Math.round(r.bottom):null,' +
+      'viewportHeight:innerHeight,readyState:document.readyState};})()');
+    console.error(JSON.stringify({type:'safe-hydration-diagnostics',observed,
+      consoleErrors:cdp.problems.console.length,
+      firstPartyNetworkFailures:cdp.problems.network.length,
+      blockedWrites:cdp.problems.writes.length}));
+    throw error;
+  }
   const data = await cdp.evaluate('(() => {const root=document.querySelector(".wh-embed");' +
     'const i=root?.querySelector("astro-island");return {' +
     'url:location.origin+location.pathname,h1:document.querySelector("h1")?.textContent?.trim(),' +

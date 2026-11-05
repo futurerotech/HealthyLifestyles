@@ -1,0 +1,99 @@
+# Authorization-gated live CDP test on ONE existing protected Vercel Preview.
+# Intentionally uses push+branch+path, NOT workflow_dispatch on GitHub's default dev.
+# No activation marker is included in this PR. NEVER write it without owner approval
+# AND a narrowly scoped GitHub Actions Trusted Source for PREVIEW only on Vercel.
+name: Existing protected Preview CDP (owner activation marker)
+on:
+  push:
+    branches:
+      - codex/protected-preview-cdp-trigger-20261105
+    paths:
+      - .github/preview-cdp-activation.txt
+
+permissions:
+  contents: read
+
+concurrency:
+  group: healthy-lifestyles-existing-preview-cdp
+  cancel-in-progress: false
+
+jobs:
+  read-only-protected-preview:
+    if: >-
+      github.repository == 'futurerotech/HealthyLifestyles' &&
+      github.ref == 'refs/heads/codex/protected-preview-cdp-trigger-20261105' &&
+      github.actor == 'futurerotech' &&
+      github.event.head_commit.message == 'activate: HLS protected-preview-cdp'
+    name: Approved exact-SHA read-only CDP
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      HLS_PREVIEW_URL: https://healthy-lifestyles-6qxe0ldyl-healthy-lifestyles.vercel.app/
+      HLS_PREVIEW_DEPLOYMENT_ID: dpl_FkEKMnHXy1gKWpodmS4b7P6imFVb
+      HLS_PREVIEW_SHA: 90fd4d4d880827dd7ea6f7a69164b622e35e449e
+      HLS_RUNNER_REVIEWED_SHA: 19c4a4fa064b4dc57c26c40d7a28356444079189
+      HLS_APPROVAL: RUN_PREVIEW_CDP_READ_ONLY
+
+    steps:
+      - name: Inspect activation commit (no repository scripts run)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Refuse multi-file commits, non-owner activations and wrong target
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-list --parents -n 1 HEAD | wc -w)" -eq 2
+          mapfile -t changed < <(git diff-tree --no-commit-id --name-only -r HEAD)
+          test "${#changed[@]}" -eq 1
+          test "${changed[0]}" = '.github/preview-cdp-activation.txt'
+          expected="$(printf '%s\n' \
+            'EXPLICIT_OWNER_APPROVED_READ_ONLY_CDP_V1' \
+            'DEPLOYMENT=dpl_FkEKMnHXy1gKWpodmS4b7P6imFVb' \
+            'PREVIEW_SHA=90fd4d4d880827dd7ea6f7a69164b622e35e449e' \
+            'RUNNER_SHA=19c4a4fa064b4dc57c26c40d7a28356444079189')"
+          test "$(cat .github/preview-cdp-activation.txt)" = "$expected"
+          echo 'PASS single-file owner activation matches immutable protected Preview pins'
+
+      - name: Checkout exact reviewed controller (not the activation commit)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: 19c4a4fa064b4dc57c26c40d7a28356444079189
+          path: runner
+          persist-credentials: false
+
+      - name: Confirm exact reviewed runner SHA
+        shell: bash
+        working-directory: runner
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$HLS_RUNNER_REVIEWED_SHA"
+          test -f scripts/seo/protected-preview-cdp.mjs
+          test -f scripts/seo/run-protected-preview-gh-oidc.mjs
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: runner/package-lock.json
+
+      - name: Install reviewed frozen deps with no lifecycle scripts
+        working-directory: runner
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Verify offline OIDC and request-isolation policies
+        working-directory: runner
+        run: |
+          node scripts/seo/protected-preview-cdp.mjs --self-test
+          node scripts/seo/run-protected-preview-gh-oidc.mjs --self-test
+
+      - name: Read-only authenticated Chrome/CDP acceptance
+        working-directory: runner
+        run: node scripts/seo/run-protected-preview-gh-oidc.mjs
