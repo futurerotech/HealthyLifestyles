@@ -39,14 +39,14 @@ jobs:
       HLS_PREVIEW_URL: https://healthy-lifestyles-6qxe0ldyl-healthy-lifestyles.vercel.app/
       HLS_PREVIEW_DEPLOYMENT_ID: dpl_FkEKMnHXy1gKWpodmS4b7P6imFVb
       HLS_PREVIEW_SHA: 90fd4d4d880827dd7ea6f7a69164b622e35e449e
-      HLS_RUNNER_REVIEWED_SHA: 9e2dcf933555a494dad1fb07a7fcad8097035848
+      HLS_RUNNER_REVIEWED_SHA: dc85e56e4bfbce64914d07e74e74f7ebfdcb1903
       HLS_APPROVAL: ${{ inputs.approval }}
 
     steps:
       - name: Checkout exact reviewed read-only CDP runner
         uses: actions/checkout@v4
         with:
-          ref: 9e2dcf933555a494dad1fb07a7fcad8097035848
+          ref: dc85e56e4bfbce64914d07e74e74f7ebfdcb1903
           persist-credentials: false
 
       - name: Assert runner commit has not changed
