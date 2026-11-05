@@ -62,6 +62,15 @@ async function cdpConnect(port) {
   const pending = new Map();
   let id = 0;
   const errors = [];
+  const consoleErrors = [];
+  const networkFailures = [];
+  const unsafeRequests = [];
+  const requests = new Map();
+  let allowedOrigin = '';
+  function safeLocation(raw) {
+    try { const u = new URL(raw); return u.origin + u.pathname; }
+    catch { return '[non-http resource]'; }
+  }
   ws.on('message', buffer => {
     const msg = JSON.parse(buffer.toString());
     if (msg.id && pending.has(msg.id)) {
@@ -69,6 +78,26 @@ async function cdpConnect(port) {
       if (msg.error) p.bad(new Error(msg.error.message)); else p.ok(msg.result);
     } else if (msg.method === 'Runtime.exceptionThrown') {
       errors.push((msg.params?.exceptionDetails?.text || 'Unhandled browser exception').slice(0, 120));
+    } else if (msg.method === 'Runtime.consoleAPICalled' && msg.params?.type === 'error') {
+      consoleErrors.push((msg.params.args || []).map(arg => String(arg.value ?? arg.description ?? '')).join(' ').slice(0, 160));
+    } else if (msg.method === 'Network.requestWillBeSent') {
+      const request = msg.params?.request;
+      if (!request) return;
+      requests.set(msg.params.requestId, { url: request.url, method: request.method });
+      if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) {
+        unsafeRequests.push({ method: request.method, url: safeLocation(request.url) });
+      }
+    } else if (msg.method === 'Network.responseReceived') {
+      const { response, type } = msg.params || {};
+      if (!response || !['Script', 'Stylesheet'].includes(type)) return;
+      if (response.status >= 400 && safeLocation(response.url).startsWith(allowedOrigin + '/')) {
+        networkFailures.push({ status: response.status, url: safeLocation(response.url) });
+      }
+    } else if (msg.method === 'Network.loadingFailed' && !msg.params?.canceled) {
+      const request = requests.get(msg.params?.requestId);
+      if (request && safeLocation(request.url).startsWith(allowedOrigin + '/')) {
+        networkFailures.push({ error: String(msg.params.errorText || 'network failure').slice(0, 120), url: safeLocation(request.url) });
+      }
     }
   });
   function send(method, params = {}) {
@@ -84,8 +113,16 @@ async function cdpConnect(port) {
     if (result.exceptionDetails) throw new Error('Browser evaluate error: ' + result.exceptionDetails.text);
     return result.result?.value;
   }
-  await send('Page.enable'); await send('Runtime.enable');
-  return { ws, send, evaluate, errors };
+  await send('Page.enable'); await send('Runtime.enable'); await send('Network.enable');
+  function beginCase(origin) {
+    allowedOrigin = origin;
+    requests.clear();
+    errors.length = 0;
+    consoleErrors.length = 0;
+    networkFailures.length = 0;
+    unsafeRequests.length = 0;
+  }
+  return { ws, send, evaluate, errors, consoleErrors, networkFailures, unsafeRequests, beginCase };
 }
 
 async function until(evaluate, expression, stage) {
@@ -98,6 +135,7 @@ async function until(evaluate, expression, stage) {
 }
 
 async function testCase(cdp, origin, c) {
+  cdp.beginCase(origin);
   await cdp.send('Emulation.setDeviceMetricsOverride', { width:c.width, height:c.height, mobile:c.mobile, deviceScaleFactor: 1 });
   await cdp.send('Page.navigate', { url: origin + '/wellness-hub/' + c.article + '/' });
   const scope = '.wh-embed[data-tool="' + c.slug + '"]';
@@ -105,6 +143,12 @@ async function testCase(cdp, origin, c) {
   const initial = await cdp.evaluate('(() => { const e = document.querySelectorAll(' + JSON.stringify(scope) + '); e[0]?.scrollIntoView({block:"center"}); return { count:e.length, island:!!e[0]?.querySelector("astro-island") }; })()');
   assert.equal(initial.count, 1, c.article + ' must not duplicate calculator');
   assert.equal(initial.island, true, c.article + ' must include real Astro island');
+  const metrics = await cdp.evaluate('(() => ({ innerWidth:window.innerWidth, innerHeight:window.innerHeight, clientWidth:document.documentElement.clientWidth, scrollWidth:document.documentElement.scrollWidth }))()');
+  assert.equal(metrics.innerWidth, c.width, c.article + ' must use the actual CDP viewport width');
+  assert.ok(metrics.clientWidth > 0 && metrics.clientWidth <= metrics.innerWidth, c.article + ' invalid layout viewport');
+  assert.ok(metrics.scrollWidth <= metrics.clientWidth + 1,
+    c.article + ' horizontal overflow: ' + JSON.stringify(metrics));
+  console.log('PASS real Chrome CDP viewport: ' + c.article + ' ' + JSON.stringify(metrics));
   const fieldId = '#calc-' + c.slug + '-' + c.field;
   await until(cdp.evaluate, '(() => { const root=document.querySelector(' + JSON.stringify(scope) + '); const island=root?.querySelector("astro-island"); return island && !island.hasAttribute("ssr") && root.querySelector(".calc__value") && root.querySelector(' + JSON.stringify(fieldId) + ') })()', c.article + ' hydrated');
   await until(cdp.evaluate, '(() => { const root=document.querySelector(' + JSON.stringify(scope) + '); const facebook=root?.querySelector("a[aria-label=\\"Share result on Facebook\\"]"); const x=root?.querySelector("a[aria-label=\\"Share result on X (Twitter)\\"]"); return facebook && x && new URL(facebook.href).searchParams.get("u") === location.href && new URL(x.href).searchParams.get("text")?.includes(location.href); })()', c.article + ' share links include current page');
@@ -119,7 +163,12 @@ async function testCase(cdp, origin, c) {
   await until(cdp.evaluate, '(() => { const root=document.querySelector(' + JSON.stringify(scope) + '); const input=root?.querySelector(' + JSON.stringify(fieldId) + '); const value=root?.querySelector(".calc__value")?.textContent?.trim(); return input?.value===' + JSON.stringify(c.newValue) + ' && value && value!==' + JSON.stringify(before) + '; })()', c.article + ' result updates after keyboard input');
   const after = await cdp.evaluate('document.querySelector(' + JSON.stringify(scope) + ')?.querySelector(".calc__value")?.textContent?.trim()');
   assert.notEqual(after, before);
-  assert.deepEqual(cdp.errors, [], 'Browser JS exceptions');
+  await delay(100); // Allow in-flight browser console and network events to surface.
+  assert.deepEqual(cdp.errors, [], c.article + ' unhandled browser JS exceptions');
+  assert.deepEqual(cdp.consoleErrors, [], c.article + ' browser console errors');
+  assert.deepEqual(cdp.networkFailures, [], c.article + ' local JavaScript/CSS/network failures');
+  assert.deepEqual(cdp.unsafeRequests, [], c.article + ' must never issue external mutation requests');
+  console.log('PASS CDP diagnostics: ' + c.article + ' no exceptions, console errors, failed local assets, or write requests');
   console.log('PASS calculator interaction: ' + c.article + ' ' + c.slug + ' ' + c.width + 'px ' + before + ' -> ' + after);
 }
 
