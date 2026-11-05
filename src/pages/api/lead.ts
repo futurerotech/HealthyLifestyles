@@ -7,13 +7,8 @@ export const prerender = false;
 export const POST: APIRoute = async ({ request }) => {
   // Strict allow-list. Reflecting `origin || '*'` is the reflected-origin
   // anti-pattern (the CMS subscriberSync endpoint warns about the same thing).
-  const ALLOWED_ORIGINS = new Set<string>(
-    [
-      'https://www.healthylifesstyles.com',
-      'http://localhost:4321',
-      'http://localhost:3000',
-    ].filter(Boolean),
-  );
+  // This write-enabled endpoint accepts only the canonical first-party browser Origin.
+  const ALLOWED_ORIGINS = new Set<string>(['https://www.healthylifesstyles.com']);
   const cors = (origin: string): Record<string, string> => {
     const h: Record<string, string> = {
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -29,6 +24,12 @@ export const POST: APIRoute = async ({ request }) => {
   // Handle preflight
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: cors(origin) });
+  }
+
+  // CORS response headers alone never prevent a disallowed POST from saving.
+  // Reject invalid, cross-site, and missing Origins before any CMS or webhook I/O.
+  if (!ALLOWED_ORIGINS.has(origin)) {
+    return Response.json({ ok: false, error: 'Origin not allowed.' }, { status: 403, headers: cors(origin) });
   }
 
   if (!import.meta.env.CMS_URL?.trim() || !import.meta.env.INTERNAL_API_KEY?.trim()) {
