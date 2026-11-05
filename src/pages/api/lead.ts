@@ -6,13 +6,8 @@ import { externalWritesAllowed } from '../../lib/external-write-policy';
 export const prerender = false;
 
 // Strict allow-list; never reflect arbitrary request origins.
-const ALLOWED_ORIGINS = new Set<string>(
-    [
-      'https://www.healthylifesstyles.com',
-      'http://localhost:4321',
-      'http://localhost:3000',
-    ].filter(Boolean),
-  );
+// This write-enabled endpoint serves the canonical first-party form only.
+const ALLOWED_ORIGINS = new Set<string>(['https://www.healthylifesstyles.com']);
 const cors = (origin: string): Record<string, string> => {
     const h: Record<string, string> = {
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -28,6 +23,11 @@ export const OPTIONS: APIRoute = ({ request }) =>
 
 export const POST: APIRoute = async ({ request }) => {
   const origin = request.headers.get('origin') || '';
+  // CORS response headers alone do not prevent a cross-origin POST from
+  // reaching the CMS. Reject untrusted (and absent) origins before all I/O.
+  if (!ALLOWED_ORIGINS.has(origin)) {
+    return Response.json({ ok: false, error: 'Origin not allowed.' }, { status: 403, headers: cors(origin) });
+  }
   if (!externalWritesAllowed()) {
     return Response.json({ ok: false, error: 'This service is unavailable in this environment.' }, { status: 503, headers: cors(origin) });
   }
