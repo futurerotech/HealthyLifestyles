@@ -235,6 +235,10 @@ async function main() {
   // Keep the short-lived OIDC token in this CDP controller only.
   // Chromium and its child processes must not inherit the token.
   delete process.env.VERCEL_OIDC_TOKEN;
+  // GitHub's OIDC request bearer can mint fresh identity tokens. Never let
+  // the Chromium subprocess inherit the issuer credential or its endpoint.
+  delete process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN;
+  delete process.env.ACTIONS_ID_TOKEN_REQUEST_URL;
   const chromeLauncher = await import('chrome-launcher');
   const WS = (await import('ws')).default;
   console.log(JSON.stringify({ type: 'preview-cdp-start', origin: cfg.origin,
