@@ -1,6 +1,6 @@
 /**
  * GitHub Actions OIDC launcher for the already reviewed protected Preview CDP gate.
- * Only executable from a manually approved, main-branch workflow_dispatch.
+ * Only executable from an owner-approved, marker-file push on a dedicated no-deploy branch.
  * NEVER logs or saves the short-lived ID token. This file does NOT add any
  * Vercel Trusted Source and is inert until one is separately authorized.
  */
@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 
 export const PINS = Object.freeze({
   repository: 'futurerotech/HealthyLifestyles',
-  workflowRef: 'futurerotech/HealthyLifestyles/.github/workflows/protected-preview-cdp.yml@refs/heads/dev',
+  workflowRef: 'futurerotech/HealthyLifestyles/.github/workflows/protected-preview-cdp-activation.yml@refs/heads/codex/protected-preview-cdp-trigger-20261105',
   approval: 'RUN_PREVIEW_CDP_READ_ONLY',
   origin: 'https://healthy-lifestyles-6qxe0ldyl-healthy-lifestyles.vercel.app/',
   deploymentId: 'dpl_FkEKMnHXy1gKWpodmS4b7P6imFVb',
@@ -18,8 +18,8 @@ export const PINS = Object.freeze({
 export function validateContext(e) {
   assert.equal(e.GITHUB_ACTIONS, 'true', 'Only an authorized GitHub Actions job may run');
   assert.equal(e.GITHUB_REPOSITORY, PINS.repository, 'Unexpected repository');
-  assert.equal(e.GITHUB_EVENT_NAME, 'workflow_dispatch', 'No automatic trigger allowed');
-  assert.equal(e.GITHUB_REF, 'refs/heads/dev', 'Dispatch must originate from GitHub default dev branch workflow');
+  assert.equal(e.GITHUB_EVENT_NAME, 'push', 'No automatic trigger allowed');
+  assert.equal(e.GITHUB_REF, 'refs/heads/codex/protected-preview-cdp-trigger-20261105', 'Activation must originate from the isolated reviewed branch');
   assert.equal(e.GITHUB_WORKFLOW_REF, PINS.workflowRef, 'Unexpected workflow identity');
   assert.equal(e.GITHUB_ACTOR?.toLowerCase(), 'futurerotech', 'Manual dispatch must be the owner');
   assert.equal(e.HLS_APPROVAL, PINS.approval, 'Explicit read-only approval missing');
@@ -41,8 +41,8 @@ export function policySelfTest() {
   const values = {
     GITHUB_ACTIONS: 'true',
     GITHUB_REPOSITORY: PINS.repository,
-    GITHUB_EVENT_NAME: 'workflow_dispatch',
-    GITHUB_REF: 'refs/heads/dev',
+    GITHUB_EVENT_NAME: 'push',
+    GITHUB_REF: 'refs/heads/codex/protected-preview-cdp-trigger-20261105',
     GITHUB_WORKFLOW_REF: PINS.workflowRef,
     GITHUB_ACTOR: 'futurerotech',
     HLS_APPROVAL: PINS.approval,
@@ -56,8 +56,8 @@ export function policySelfTest() {
   validateContext(values);
   for (const [key, bad] of [
     ['GITHUB_REPOSITORY', 'other/repository'],
-    ['GITHUB_EVENT_NAME', 'push'],
-    ['GITHUB_REF', 'refs/heads/main'],
+    ['GITHUB_EVENT_NAME', 'workflow_dispatch'],
+    ['GITHUB_REF', 'refs/heads/dev'],
     ['GITHUB_WORKFLOW_REF', 'other/workflow'],
     ['GITHUB_ACTOR', 'attacker'],
     ['HLS_APPROVAL', 'NO'],
@@ -68,7 +68,7 @@ export function policySelfTest() {
     ['ACTIONS_ID_TOKEN_REQUEST_URL', 'http://pipelines.actions.githubusercontent.com/'],
     ['ACTIONS_ID_TOKEN_REQUEST_TOKEN', ''],
   ]) assert.throws(() => validateContext({ ...values, [key]: bad }), 'Must reject ' + key);
-  console.log('PASS offline GitHub OIDC dispatch policy: owner, workflow, branch, exact Preview pins, HTTPS issuer');
+  console.log('PASS offline GitHub OIDC activation policy: owner, dedicated branch, exact Preview pins, HTTPS issuer');
 }
 
 async function main() {
