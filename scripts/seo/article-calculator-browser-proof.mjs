@@ -140,11 +140,22 @@ async function testCase(cdp, origin, c) {
   await cdp.send('Page.navigate', { url: origin + '/wellness-hub/' + c.article + '/' });
   const scope = '.wh-embed[data-tool="' + c.slug + '"]';
   await until(cdp.evaluate, 'document.readyState !== "loading" && !!document.querySelector(' + JSON.stringify(scope) + ')', c.article + ' embed present');
-  const initial = await cdp.evaluate('(() => { const e = document.querySelectorAll(' + JSON.stringify(scope) + '); e[0]?.scrollIntoView({block:"center"}); return { count:e.length, island:!!e[0]?.querySelector("astro-island") }; })()');
+  const initial = await cdp.evaluate('(() => { const e=document.querySelectorAll(' + JSON.stringify(scope) + ');' +
+    'const root=e[0],island=root?.querySelector("astro-island");' +
+    'const a=root?.getBoundingClientRect(),b=island?.getBoundingClientRect();' +
+    'root?.scrollIntoView({block:"center"});return {count:e.length,island:!!island,' +
+    'rootBox:a?{width:Math.round(a.width),height:Math.round(a.height)}:null,' +
+    'islandBox:b?{width:Math.round(b.width),height:Math.round(b.height)}:null};})()');
   assert.equal(initial.count, 1, c.article + ' must not duplicate calculator');
   assert.equal(initial.island, true, c.article + ' must include real Astro island');
+  assert.ok(initial.rootBox?.width > 0 && initial.rootBox.height > 0,
+    c.article + ' must scroll a measurable wrapper, even when Astro host has a zero box');
+  // Geometry only; no article content or credentials are printed.
+  console.log('PASS fixture Chrome scroll target geometry: ' + c.article + ' ' +
+    JSON.stringify({root: initial.rootBox, astroIsland: initial.islandBox}));
   const metrics = await cdp.evaluate('(() => ({ innerWidth:window.innerWidth, innerHeight:window.innerHeight, clientWidth:document.documentElement.clientWidth, scrollWidth:document.documentElement.scrollWidth }))()');
   assert.equal(metrics.innerWidth, c.width, c.article + ' must use the actual CDP viewport width');
+  assert.equal(metrics.innerHeight, c.height, c.article + ' must use the exact CDP viewport height');
   assert.ok(metrics.clientWidth > 0 && metrics.clientWidth <= metrics.innerWidth, c.article + ' invalid layout viewport');
   assert.ok(metrics.scrollWidth <= metrics.clientWidth + 1,
     c.article + ' horizontal overflow: ' + JSON.stringify(metrics));
