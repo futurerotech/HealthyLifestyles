@@ -3,8 +3,9 @@
  * table of contents + anchor links), a minimal trusted-markdown inline renderer
  * (bold + internal/external links), and reading-time estimation.
  *
- * `renderInline` is only ever fed author-written strings from `src/data/*`
- * (never user input), so emitting HTML via `set:html` is safe here.
+ * `renderInline` consumes curated editorial text (local articles and CMS-mapped
+ * article blocks), not visitor input. Escape HTML before rendering `set:html`;
+ * preserve URL protocol checks. Ads and paid links use a separate renderer.
  */
 
 import { normalizeInternalHref } from './site-routes';
@@ -25,7 +26,8 @@ const escapeHtml = (s: string): string =>
 /**
  * Render a trusted inline string: escapes HTML, then re-enables `**bold**` and
  * `[label](href)` links. Internal links (starting with `/`) stay followable;
- * external links get `target=_blank rel="noopener nofollow"`.
+ * ordinary editorial external links use `target=_blank rel="noopener noreferrer"`.
+ * Advertising/affiliate links are NOT rendered here; AdSlot keeps `sponsored`.
  */
 export function renderInline(md: string): string {
   let s = escapeHtml(md);
@@ -37,7 +39,7 @@ export function renderInline(md: string): string {
     } catch { return label; }
     href = normalizeInternalHref(href);
     const external = /^https?:\/\//.test(href);
-    const attrs = external ? ' target="_blank" rel="noopener nofollow"' : '';
+    const attrs = external ? ' target="_blank" rel="noopener noreferrer"' : '';
     return `<a href="${href}"${attrs}>${label}</a>`;
   });
   return s;

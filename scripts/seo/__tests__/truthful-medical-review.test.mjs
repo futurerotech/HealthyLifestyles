@@ -151,3 +151,53 @@ test('embeds do not transmit the framing page referrer without consent', () => {
   const embed = source('pages/embed/[slug].astro');
   assert.doesNotMatch(embed, /navigator\.sendBeacon\(endpoint|fetch\(endpoint|document\.referrer/);
 });
+
+
+test('ordinary editorial inline sources are followable, safe, and do not alter sponsored ad links', () => {
+  // Exercise the ACTUAL TypeScript renderInline output. Stub only the unrelated
+  // internal-alias URL mapping so existing protocol and HTML logic executes.
+  const tsSource = source('lib/text.ts');
+  assert.match(source('components/ArticleBody.astro'), /set:html=\{renderInline\(block\.text\)\}/);
+  assert.match(source('components/AdSlot.astro'), /rel="noopener sponsored"/);
+  const compiled = ts.transpileModule(tsSource, {
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      target: ts.ScriptTarget.ES2022,
+    },
+    reportDiagnostics: true,
+  });
+  const diagnostics = (compiled.diagnostics || []).filter(d => d.category === ts.DiagnosticCategory.Error);
+  assert.equal(diagnostics.length, 0, 'editorial renderer transpiles cleanly');
+  const exports = {};
+  runInNewContext(compiled.outputText, {
+    exports,
+    require: (id) => {
+      assert.equal(id, './site-routes');
+      return { normalizeInternalHref: (href) => href };
+    },
+    URL,
+  });
+  const renderInline = exports.renderInline;
+  assert.equal(typeof renderInline, 'function');
+  const citations = [
+    ['ACOG dating methods', 'https://www.acog.org/clinical/clinical-guidance/committee-opinion/articles/2017/05/methods-for-estimating-the-due-date'],
+    ['2025 AHA guideline', 'https://professional.heart.org/en/science-news/2025-high-blood-pressure-guideline/top-things-to-know'],
+  ];
+  for (const [label, href] of citations) {
+    const actual = renderInline('Medical source [' + label + '](' + href + ').');
+    assert.ok(actual.includes('<a href="' + href + '" target="_blank" rel="noopener noreferrer">' + label + '</a>'), actual);
+    assert.doesNotMatch(actual, /\b(?:nofollow|sponsored|ugc)\b/i, 'ordinary editorial citation must not carry ads or nofollow qualification');
+  }
+  assert.equal(
+    renderInline('See [pregnancy weeks](/wellness-hub/pregnancy-week-by-week-guide).'),
+    'See <a href="/wellness-hub/pregnancy-week-by-week-guide">pregnancy weeks</a>.',
+    'existing internal navigation remains same-tab and unqualified'
+  );
+  assert.equal(
+    renderInline('Contact [editor](mailto:editor@example.org).'),
+    'Contact <a href="mailto:editor@example.org">editor</a>.',
+    'mailto behavior is preserved'
+  );
+  assert.doesNotMatch(renderInline('Not allowed [malicious](javascript:evil)'), /href="javascript:/i);
+  assert.match(renderInline('<script>alert(1)</script>'), /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
+});
