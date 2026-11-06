@@ -64,6 +64,13 @@ test('article references are not presented as an unverified review', () => {
   assert.doesNotMatch(source('components/ArticleBody.astro'), /Reviewed\s*&amp;\s*sources/i);
 });
 
+test('ordinary medical source citations retain normal follow behavior and safe new-tab rel', () => {
+  const body = source('components/ArticleBody.astro');
+  assert.match(body, /<h2 id="wh-sources-title">Sources<\/h2>/);
+  assert.match(body, /s\.url \? <a href=\{s\.url\} target="_blank" rel="noopener noreferrer">/);
+  assert.doesNotMatch(body, /<a href=\{s\.url\}[^>]*nofollow/i);
+});
+
 test('withdrawing consent preserves tool storage and reloads without opt-in', () => {
   const script = source('components/CookieConsent.astro').match(/<script>([\s\S]*?)<\/script>/)?.[1];
   assert.ok(script);

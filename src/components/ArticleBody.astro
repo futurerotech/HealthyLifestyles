@@ -206,7 +206,7 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
           <ol>
             {article.sources.map((s) => (
               <li>
-                {s.url ? <a href={s.url} target="_blank" rel="noopener nofollow">{s.citation}</a> : s.citation}
+                {s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer">{s.citation}</a> : s.citation}
               </li>
             ))}
           </ol>
