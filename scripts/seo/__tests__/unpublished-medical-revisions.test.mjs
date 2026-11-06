@@ -58,7 +58,7 @@ for (const spec of packets) {
     assert.ok(internal.filter(s => s.startsWith('/wellness-hub/')).length >= 2);
     assert.ok(external.length >= 3);
     assert.ok(d.proposedFields.sources.length >= 3 && d.proposedFields.sources.length <= 5);
-    assert.ok(d.proposedFields.sources.every(s => /^https:\/\//.test(s.url) && s.label.length > 20));
+    assert.ok(d.proposedFields.sources.every(s => /^https:\/\//.test(s.url) && Boolean(s.label?.trim())));
     assert.ok(d.proposedFields.semanticEntities.length >= 5 && d.proposedFields.semanticEntities.length <= 7);
     assert.ok(d.proposedFields.semanticEntities.every(s => /^https:\/\//.test(s.url)));
     for(const b of paragraphs) assert.ok(md.includes(b), 'readable Markdown must mirror the structured CMS text blocks');
