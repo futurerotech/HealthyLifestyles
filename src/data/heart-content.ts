@@ -30,29 +30,33 @@ const MAYO_HR: Source = {
   citation: 'Mayo Clinic. "What\'s a normal resting heart rate?" (Well-trained athletes may be 40–60 bpm.)',
   url: 'https://www.mayoclinic.org/healthy-lifestyle/fitness/expert-answers/heart-rate/faq-20057979',
 };
+const AHA_HR_URGENT: Source = {
+  citation: 'American Heart Association. "All About Heart Rate (Pulse)." (When to call emergency services.)',
+  url: 'https://www.heart.org/en/health-topics/high-blood-pressure/the-facts-about-high-blood-pressure/all-about-heart-rate-pulse',
+};
 
 export const HEART_CONTENT: Record<string, ToolContent> = {
   // ============================================================
   'resting-heart-rate-checker': {
     seoTitle: 'Resting Heart Rate Checker – Is Yours Healthy?',
     metaDescription:
-      'Check your resting heart rate against age and sex benchmarks — athlete to below-average — with plain-English meaning. Educational, not a diagnosis.',
+      'Compare your resting pulse with the usual adult 60–100 bpm reference and an illustrative age- and sex-adjusted fitness scale. Not a diagnosis.',
     intro:
-      'Enter your resting heart rate with your age and sex to see how it compares with healthy adult benchmarks — from athlete level to below average — and what the number means.',
+      'Enter your resting pulse to see the usual adult clinical reference and an illustrative comparison across age and sex inputs. The fitness-band labels are not validated medical or athletic classifications.',
     notice:
-      'Informational only — this does not diagnose any heart condition. A persistently very low or very high resting heart rate, or symptoms like dizziness, palpitations or breathlessness, should be checked by a doctor.',
+      'For adults 18+. This calculator cannot diagnose heart rhythm or fitness. Its age/sex fitness cutoffs are illustrative, not AHA or Mayo clinical limits. Chest pain, severe trouble breathing or fainting requires emergency services immediately at any pulse; persistent unexplained very low or high readings deserve medical review.',
     sections: [
       {
         h2: 'What is a normal resting heart rate?',
         paragraphs: [
-          'Your resting heart rate (RHR) is how many times your heart beats per minute while you are at rest. For most adults the American Heart Association puts the normal range at 60 to 100 beats per minute. A lower resting rate generally points to better cardiovascular fitness and a more efficient heart — well-trained endurance athletes are often in the 40 to 60 range.',
+          'Your resting heart rate (RHR) is how many times your heart beats per minute while you are at rest. The American Heart Association lists 60 to 100 bpm as the usual adult range; trained endurance athletes can sometimes be in the 40 to 60 range. A low number alone does not establish athletic conditioning or a healthy rhythm; medications and medical conditions may also lower your pulse.',
           'The most accurate time to measure is first thing in the morning, before you get up: count your pulse for 30 seconds and double it, or use a fitness tracker’s resting figure.',
         ],
       },
       {
         h2: 'How to read your benchmark',
         paragraphs: [
-          'This checker places your number into a fitness band — Athlete, Excellent, Good, Average, or Below average — adjusted slightly for sex (women average a few beats higher) and age. The bands are a general fitness guide, not a medical assessment.',
+          'This checker preserves five historical illustrative bands — Athlete, Excellent, Good, Average, and Below average — using internal offsets of 4 bpm for the female input and 1–2 bpm for older adult ages. These exact cutoffs are not validated clinical or fitness thresholds, and they cannot establish athletic status or heart health. An 80-bpm result can display Below average while still falling within the usual adult 60–100 bpm reference range. The tool presents that clinical context separately.',
         ],
         list: {
           intro: 'What can move your resting heart rate:',
@@ -68,17 +72,17 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'When to see a doctor',
         paragraphs: [
-          'A single reading outside the range is rarely a concern on its own. But see a doctor if your resting heart rate is persistently above 100 bpm (tachycardia) or below 60 bpm without being athletic (bradycardia), or if you have symptoms such as dizziness, fainting, palpitations, chest discomfort or shortness of breath. These can have many causes, and only a clinician can assess them.',
+          'Do not use an online pulse label to assess emergency symptoms. Call emergency services immediately for chest pain, severe breathing difficulty, fainting or other serious new symptoms, whether the reading is low, high or within 60–100 bpm. Without those symptoms, discuss persistent values above 100 bpm, repeatedly low values that are new or unexplained, or an irregular pulse with a healthcare professional; only a clinician can assess their cause.',
         ],
       },
     ],
     faq: [
-      { q: 'What is a good resting heart rate by age?', a: 'For most adults of any age, 60–100 bpm is normal, and lower (toward 50–60) tends to indicate better fitness. Benchmarks shift only slightly with age; symptoms matter more than the exact number.' },
-      { q: 'Is a resting heart rate of 50 too low?', a: 'For a fit or athletic person, 50 bpm can be perfectly healthy. For someone who isn’t athletic, or who feels dizzy or faint, a rate that low is worth discussing with a doctor.' },
+      { q: 'What is a good resting heart rate by age?', a: 'For adults, 60–100 bpm is a common reference range; athletes and people taking certain medications may be lower. This site’s age/sex-adjusted bands are illustrations, not validated fitness or medical reference limits. Symptoms and individual trends matter more than an internal label.' },
+      { q: 'Is a resting heart rate of 50 too low?', a: 'A resting rate of 50 bpm can occur in trained athletes or people using heart-rate-lowering medications. It is not automatically safe or unsafe. If the reading is new, repeatedly unexplained or accompanied by symptoms, seek medical advice; call emergency services for chest pain, severe breathlessness or fainting.' },
       { q: 'Why is my resting heart rate high?', a: 'Common causes include low fitness, stress, caffeine, dehydration, poor sleep, illness, or certain medications. A persistently high resting rate (over 100 bpm) should be checked by a doctor.' },
       { q: 'How do I lower my resting heart rate?', a: 'Regular aerobic exercise is the most reliable way, along with good sleep, stress management, hydration, and limiting caffeine and nicotine. Improvements usually show over weeks to months.' },
     ],
-    sources: [AHA_HR, MAYO_HR],
+    sources: [AHA_HR, MAYO_HR, AHA_HR_URGENT],
   },
   // ============================================================
   'target-heart-rate-calculator': {
