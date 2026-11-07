@@ -51,10 +51,50 @@ test('implausibly reversed numbers give a warning without hiding urgent guidance
   assert.equal(severe.callout.tone, 'danger');
   assert.match(severe.callout.text, /systolic.*higher than diastolic/i);
   assert.match(severe.callout.text, /call emergency services immediately/i);
+  assert.ok(
+    severe.callout.text.indexOf('call emergency services immediately') <
+      severe.callout.text.indexOf('Check the numbers entered'),
+    'Emergency advice must appear before a reversed-input warning',
+  );
   const notSevere = evaluate(75, 80);
   assert.equal(notSevere.callout.tone, 'warn');
   assert.match(notSevere.callout.text, /numbers entered/i);
   assert.equal(evaluate(118, 78).callout, undefined);
+});
+
+test('pregnancy and postpartum 160/110 OR thresholds warn urgently without changing adult category', () => {
+  for (const [s, d] of [[160, 70], [159, 110], [160, 110]]) {
+    const result = evaluate(s, d);
+    assert.equal(result.category.label, 'High — Stage 2', s + '/' + d);
+    assert.equal(result.callout.tone, 'danger', s + '/' + d);
+    assert.match(result.callout.text, /Pregnant or within 6 weeks after childbirth/i);
+    assert.match(result.callout.text, /160 or higher OR a diastolic reading of 110 or higher/i);
+    assert.match(result.callout.text, /urgent obstetric or emergency medical assessment/i);
+  }
+  assert.match(evaluate(118, 78).note, /General AHA adult categories.*not a pregnancy\/postpartum risk assessment/i);
+  assert.match(evaluate(118, 78).note, /Severe headache, vision changes/i);
+});
+
+test('pregnancy and postpartum 140/90 OR thresholds prompt obstetric contact', () => {
+  for (const [s, d] of [[140, 70], [139, 90]]) {
+    const { category, callout } = evaluate(s, d);
+    assert.equal(category.label, 'High — Stage 2');
+    assert.equal(callout.tone, 'warn');
+    assert.match(callout.text, /call your obstetric care team right away/i);
+  }
+  assert.doesNotMatch(evaluate(118, 78).primaryValue, /pregnant/i);
+});
+
+test('pregnancy-specific visible page notice, FAQ and authoritative references stay aligned', () => {
+  assert.match(copy, /General adult categories only.*pregnancy or postpartum risk assessment/i);
+  assert.match(copy, /Pregnancy and the first six weeks after childbirth/);
+  assert.match(copy, /systolic blood pressure of 160 mmHg or higher OR diastolic pressure of 110 mmHg or higher/);
+  assert.match(copy, /Postpartum preeclampsia can begin after delivery/);
+  assert.match(copy, /Do these blood pressure categories apply during pregnancy or postpartum\?/);
+  for (const ref of ['ACOG_PREGNANCY_BP', 'ACOG_POSTPARTUM_BP', 'CDC_PREGNANCY_BP']) {
+    assert.ok(copy.includes(ref), ref + ' must be listed as a source');
+    assert.ok(content.includes('const ' + ref + ': Source'), ref + ' must exist');
+  }
 });
 
 test('published copy and sources mirror the safer AHA guidance', () => {

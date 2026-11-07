@@ -22,6 +22,19 @@ const AHA_GUIDELINE: Source = {
   url: 'https://professional.heart.org/en/science-news/2025-high-blood-pressure-guideline/top-things-to-know',
 };
 
+const ACOG_PREGNANCY_BP: Source = {
+  citation: 'American College of Obstetricians and Gynecologists. "Preeclampsia and High Blood Pressure During Pregnancy." (Severe threshold: systolic 160+ or diastolic 110+.)',
+  url: 'https://www.acog.org/womens-health/faqs/preeclampsia-and-high-blood-pressure-during-pregnancy',
+};
+const ACOG_POSTPARTUM_BP: Source = {
+  citation: 'American College of Obstetricians and Gynecologists. "3 Conditions to Watch for After Childbirth." (Postpartum preeclampsia can occur up to six weeks after delivery; call for 140+/90+.)',
+  url: 'https://www.acog.org/womens-health/experts-and-stories/the-latest/3-conditions-to-watch-for-after-childbirth',
+};
+const CDC_PREGNANCY_BP: Source = {
+  citation: 'Centers for Disease Control and Prevention. "High Blood Pressure During Pregnancy." (Updated October 13, 2026.)',
+  url: 'https://www.cdc.gov/high-blood-pressure/about/high-blood-pressure-during-pregnancy.html',
+};
+
 const AHA_HR: Source = {
   citation: 'American Heart Association. "All About Heart Rate (Pulse)" — normal resting heart rate is 60–100 bpm.',
   url: 'https://www.heart.org/en/health-topics/high-blood-pressure/the-facts-about-high-blood-pressure/all-about-heart-rate-pulse',
@@ -192,7 +205,7 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
     intro:
       'Blood pressure is given as two numbers — systolic over diastolic. Enter your reading to see which American Heart Association category it falls into and what it means.',
     notice:
-      'Informational only — not a diagnosis. Only a healthcare professional can diagnose or treat high blood pressure. If your reading is very high or you feel unwell, seek medical care right away.',
+      'General adult categories only — not a pregnancy or postpartum risk assessment. If pregnant or within 6 weeks after childbirth: call your obstetric care team right away at systolic 140+ OR diastolic 90+; systolic 160+ OR diastolic 110+ requires urgent assessment even without symptoms. Severe headache, vision changes, upper-abdominal pain or breathing difficulty need immediate medical attention at any reading. This tool cannot diagnose high blood pressure or preeclampsia.',
     sections: [
       {
         h2: 'Understanding the two numbers',
@@ -213,6 +226,13 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
             'Severe hypertension: systolic higher than 180 and/or diastolic higher than 120 — repeat the measurement and contact a healthcare professional; emergency symptoms require emergency services.',
           ],
         },
+      },
+      {
+        h2: 'Pregnancy and the first six weeks after childbirth',
+        paragraphs: [
+          'These general adult categories are not a pregnancy or postpartum risk assessment. Pregnancy and recent childbirth require closer attention: systolic blood pressure of 160 mmHg or higher OR diastolic pressure of 110 mmHg or higher is severe and requires urgent obstetric or emergency assessment, even without symptoms.',
+          'If you are pregnant or within six weeks after giving birth and record systolic pressure of 140 mmHg or higher OR diastolic pressure of 90 mmHg or higher, call your obstetric care team right away. A severe headache, vision changes, upper-abdominal pain, or shortness of breath needs immediate medical attention even when your measured pressure is below those thresholds. Postpartum preeclampsia can begin after delivery.',
+        ],
       },
       {
         h2: 'What to do about your reading',
@@ -236,11 +256,15 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
         a: 'If you have chest pain, shortness of breath, back pain, numbness, weakness, changes in vision, difficulty speaking, or other new concerning symptoms, call emergency services immediately without waiting. Otherwise, wait at least one minute and measure again. If the reading remains this high, contact your healthcare professional promptly. This checker cannot diagnose a hypertensive emergency.',
       },
       {
+        q: 'Do these blood pressure categories apply during pregnancy or postpartum?',
+        a: 'No. If you are pregnant or within six weeks after childbirth, systolic 160 mmHg or higher OR diastolic 110 mmHg or higher requires urgent obstetric or emergency assessment, even without symptoms. At systolic 140 or higher OR diastolic 90 or higher, call your obstetric care team right away. Seek immediate medical attention for severe headache, vision changes, upper-abdominal pain or trouble breathing regardless of the reading.',
+      },
+      {
         q: 'Can one high reading mean I have hypertension?',
         a: 'No. A diagnosis is based on multiple readings over time, taken correctly at rest. This tool is for information only — your doctor confirms any diagnosis of high blood pressure.',
       },
     ],
-    sources: [AHA_BP, AHA_GUIDELINE],
+    sources: [AHA_BP, AHA_GUIDELINE, ACOG_PREGNANCY_BP, ACOG_POSTPARTUM_BP, CDC_PREGNANCY_BP],
   },
 
   // ============================================================

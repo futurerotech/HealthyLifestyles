@@ -879,9 +879,25 @@ export const DEFS: Record<string, CalcDef> = {
       } else if (key === 'stage2') {
         callout = { tone: 'warn', text: 'Stage 2 high blood pressure usually needs medical treatment. Please see your doctor to discuss these readings.' };
       }
-      if (s <= d) {
-        const warning = 'Check the numbers entered: systolic (top) is normally higher than diastolic (bottom). The values may have been reversed or the measurement may be inaccurate. Repeat the measurement.';
-        callout = { tone: key === 'severe' ? 'danger' : 'warn', text: `${warning} ${callout?.text ?? 'If repeated readings remain unusual, contact your healthcare professional.'}` };
+      // Pregnancy and the first six weeks postpartum have lower urgent-care thresholds.
+      // These are conditional SAFETY advisories, not diagnoses or altered AHA adult categories.
+      const pregnancyWarning = s >= 160 || d >= 110
+        ? 'Pregnant or within 6 weeks after childbirth? A systolic reading of 160 or higher OR a diastolic reading of 110 or higher requires urgent obstetric or emergency medical assessment, even without symptoms. Seek immediate care; this checker cannot assess pregnancy-related emergencies.'
+        : s >= 140 || d >= 90
+          ? 'Pregnant or within 6 weeks after childbirth? A systolic reading of 140 or higher OR a diastolic reading of 90 or higher means you should call your obstetric care team right away, even if you feel well.'
+          : '';
+      const reversedWarning = s <= d
+        ? 'Check the numbers entered: systolic (top) is normally higher than diastolic (bottom). The values may have been reversed or the measurement may be inaccurate. Repeat the measurement.'
+        : '';
+      // With a severe adult reading, emergency-symptom advice MUST precede any
+      // remeasurement/entry-check guidance, including if the input seems reversed.
+      if (key === 'severe') {
+        callout = { tone: 'danger', text: [callout?.text, pregnancyWarning, reversedWarning].filter(Boolean).join(' ') };
+      } else if (pregnancyWarning || reversedWarning) {
+        callout = {
+          tone: s >= 160 || d >= 110 ? 'danger' : 'warn',
+          text: [pregnancyWarning, callout?.text, reversedWarning].filter(Boolean).join(' '),
+        };
       }
       return {
         ok: true,
@@ -890,7 +906,7 @@ export const DEFS: Record<string, CalcDef> = {
         category: { label: cat.label, color: cat.color },
         visual: { kind: 'zones', items },
         callout,
-        note: 'Uses American Heart Association adult blood pressure categories (2025). One reading is not a diagnosis, and this checker cannot determine whether you have a hypertensive emergency. Take repeated readings correctly and discuss concerns with a healthcare professional.',
+        note: 'General AHA adult categories (2025) are not a pregnancy/postpartum risk assessment. If pregnant or within 6 weeks after childbirth, contact your obstetric care team right away for systolic 140+ OR diastolic 90+; systolic 160+ OR diastolic 110+ needs urgent assessment. Severe headache, vision changes, upper-abdominal pain or trouble breathing need immediate medical attention at any reading. One reading is not a diagnosis.',
       };
     },
   },
