@@ -11,7 +11,8 @@ const definitionText = definitions.split("'blood-pressure-checker': {")[1]?.spli
 assert.ok(definitionText, 'Blood Pressure Checker must exist in the original tool definitions');
 const executable = definitionText
   .replace('let key: string;', 'let key;')
-  .replace("let callout: CalcResult['callout'];", 'let callout;');
+  .replace("let callout: CalcResult['callout'];", 'let callout;')
+  .replace('const cat = cats.find((c) => c.key === key)!;', 'const cat = cats.find((c) => c.key === key);');
 const def = vm.runInNewContext(
   "({'blood-pressure-checker': {" + executable + "})['blood-pressure-checker']",
   { fmt: (value, places) => Number(value).toFixed(places) },
