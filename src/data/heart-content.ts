@@ -18,8 +18,8 @@ const AHA_BP: Source = {
 };
 const AHA_GUIDELINE: Source = {
   citation:
-    'Whelton PK, Carey RM, Aronow WS, et al. "2017 ACC/AHA Guideline for the Prevention, Detection, Evaluation, and Management of High Blood Pressure in Adults." Hypertension. 2018;71(6):e13–e115.',
-  url: pubmed('2017 ACC AHA Guideline High Blood Pressure in Adults Whelton'),
+    'American Heart Association / American College of Cardiology. "2025 High Blood Pressure Guideline: Top Things to Know." (Updated adult hypertension guidance.)',
+  url: 'https://professional.heart.org/en/science-news/2025-high-blood-pressure-guideline/top-things-to-know',
 };
 
 const AHA_HR: Source = {
@@ -188,7 +188,7 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
   'blood-pressure-checker': {
     seoTitle: 'Blood Pressure Category Checker (AHA)',
     metaDescription:
-      'Enter your systolic and diastolic numbers to see your American Heart Association blood pressure category, from Normal to Hypertensive Crisis. Free.',
+      'Enter your systolic and diastolic numbers to see your American Heart Association blood pressure category, from Normal to severe hypertension. Free.',
     intro:
       'Blood pressure is given as two numbers — systolic over diastolic. Enter your reading to see which American Heart Association category it falls into and what it means.',
     notice:
@@ -210,7 +210,7 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
             'Elevated: 120–129 and below 80.',
             'High Stage 1: 130–139 or 80–89.',
             'High Stage 2: 140 or higher, or 90 or higher.',
-            'Hypertensive crisis: higher than 180 and/or higher than 120 — seek medical care.',
+            'Severe hypertension: systolic higher than 180 and/or diastolic higher than 120 — repeat the measurement and contact a healthcare professional; emergency symptoms require emergency services.',
           ],
         },
       },
@@ -218,7 +218,7 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
         h2: 'What to do about your reading',
         paragraphs: [
           'A single reading does not diagnose high blood pressure. Levels rise and fall through the day with activity, stress, caffeine and even a full bladder. Take several measurements while seated and rested, on different days, and share the pattern with your doctor.',
-          'If your reading is in the elevated or Stage 1 range, lifestyle changes — less salt, more activity, a healthy weight, less alcohol and not smoking — often help. Stage 2 usually needs medication alongside these changes. A hypertensive crisis (over 180/120) is a medical emergency, especially with symptoms such as chest pain, shortness of breath or trouble speaking.',
+          'If your reading is in the elevated or Stage 1 range, lifestyle changes — less salt, more activity, a healthy weight, less alcohol and not smoking — often help. Stage 2 usually needs medication alongside these changes. A reading higher than 180 systolic or higher than 120 diastolic is in the severe hypertension range. With chest pain, shortness of breath, back pain, numbness, weakness, changes in vision, difficulty speaking, or other new concerning symptoms, call emergency services immediately. Without those symptoms, wait at least one minute and measure again; contact your healthcare professional promptly if it remains this high.',
         ],
       },
     ],
@@ -232,8 +232,8 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
         a: 'Both matter, and your category is set by whichever is higher. Systolic pressure tends to be the stronger predictor of risk in adults over 50, but a high diastolic reading also needs attention.',
       },
       {
-        q: 'What should I do in a hypertensive crisis?',
-        a: 'A reading over 180/120 mmHg is dangerous. Wait five minutes and re-measure; if it is still that high, contact your doctor urgently. If you have chest pain, shortness of breath, weakness or trouble speaking, call emergency services immediately.',
+        q: 'What should I do if my blood pressure is higher than 180 systolic or 120 diastolic?',
+        a: 'If you have chest pain, shortness of breath, back pain, numbness, weakness, changes in vision, difficulty speaking, or other new concerning symptoms, call emergency services immediately without waiting. Otherwise, wait at least one minute and measure again. If the reading remains this high, contact your healthcare professional promptly. This checker cannot diagnose a hypertensive emergency.',
       },
       {
         q: 'Can one high reading mean I have hypertension?',

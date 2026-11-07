@@ -863,10 +863,10 @@ export const DEFS: Record<string, CalcDef> = {
         { key: 'elevated', label: 'Elevated', color: '#f59e0b', detail: '120–129 / below 80 mmHg' },
         { key: 'stage1', label: 'High — Stage 1', color: '#f97316', detail: '130–139 / 80–89 mmHg' },
         { key: 'stage2', label: 'High — Stage 2', color: '#ef4444', detail: '140+ / 90+ mmHg' },
-        { key: 'crisis', label: 'Hypertensive crisis', color: '#b91c1c', detail: 'Over 180 / over 120 mmHg' },
+        { key: 'severe', label: 'Severe hypertension', color: '#b91c1c', detail: 'Above 180 systolic or above 120 diastolic (mmHg)' },
       ];
       let key: string;
-      if (s > 180 || d > 120) key = 'crisis';
+      if (s > 180 || d > 120) key = 'severe';
       else if (s >= 140 || d >= 90) key = 'stage2';
       else if (s >= 130 || d >= 80) key = 'stage1';
       else if (s >= 120) key = 'elevated';
@@ -874,10 +874,14 @@ export const DEFS: Record<string, CalcDef> = {
       const cat = cats.find((c) => c.key === key)!;
       const items = cats.map((c) => ({ label: c.label, detail: c.detail, color: c.color, active: c.key === key }));
       let callout: CalcResult['callout'];
-      if (key === 'crisis') {
-        callout = { tone: 'danger', text: 'A reading this high may be a hypertensive crisis. If you also have chest pain, shortness of breath, weakness, or trouble speaking, call emergency services now. Otherwise, wait 5 minutes, take it again, and contact your doctor urgently.' };
+      if (key === 'severe') {
+        callout = { tone: 'danger', text: 'This is in the severe hypertension range. If you have chest pain, shortness of breath, back pain, numbness, weakness, changes in vision, difficulty speaking, or other new concerning symptoms, call emergency services immediately; do not wait to recheck. Without emergency symptoms, wait at least 1 minute, measure again, and contact your healthcare professional promptly if the reading remains this high.' };
       } else if (key === 'stage2') {
         callout = { tone: 'warn', text: 'Stage 2 high blood pressure usually needs medical treatment. Please see your doctor to discuss these readings.' };
+      }
+      if (s <= d) {
+        const warning = 'Check the numbers entered: systolic (top) is normally higher than diastolic (bottom). The values may have been reversed or the measurement may be inaccurate. Repeat the measurement.';
+        callout = { tone: key === 'severe' ? 'danger' : 'warn', text: `${warning} ${callout?.text ?? 'If repeated readings remain unusual, contact your healthcare professional.'}` };
       }
       return {
         ok: true,
@@ -886,7 +890,7 @@ export const DEFS: Record<string, CalcDef> = {
         category: { label: cat.label, color: cat.color },
         visual: { kind: 'zones', items },
         callout,
-        note: 'Categories follow American Heart Association guidelines. A single reading is not a diagnosis — blood pressure varies through the day, so take several readings while seated and at rest.',
+        note: 'Uses American Heart Association adult blood pressure categories (2025). One reading is not a diagnosis, and this checker cannot determine whether you have a hypertensive emergency. Take repeated readings correctly and discuss concerns with a healthcare professional.',
       };
     },
   },
