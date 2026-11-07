@@ -761,8 +761,8 @@ export const DEFS: Record<string, CalcDef> = {
     heading: 'Find your heart rate zones',
     hasSex: false,
     fields: [
-      F.age(30),
-      { key: 'rest', label: 'Resting heart rate', type: 'number', metricDefault: 65, min: 30, max: 120, suffix: 'bpm', help: 'Your pulse at rest, ideally measured first thing in the morning.' },
+      { ...F.age(30), min: 18, help: 'For adults 18+. An age-predicted maximum is an estimate, not an exercise safety clearance.' },
+      { key: 'rest', label: 'Resting heart rate', type: 'number', metricDefault: 65, min: 30, max: 120, suffix: 'bpm', help: 'Use a calm waking reading. Very low or high resting values may need medical assessment before training.' },
       {
         key: 'formula', label: 'Max HR formula', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '220',
@@ -778,13 +778,37 @@ export const DEFS: Record<string, CalcDef> = {
       const formula = selects.formula || '220';
       const hrMax = formula === 'tanaka' ? 208 - 0.7 * age : 220 - age;
       const reserve = hrMax - rest;
+      const emergency = 'Stop exercise and call emergency services immediately for chest pain, severe shortness of breath, fainting, or other serious new symptoms, regardless of the calculated heart-rate zone.';
+      // Each of the five displayed zones spans 10% of reserve. With fewer
+      // than 10 bpm in reserve, whole-bpm rounding cannot show five
+      // distinguishable zones. This is a display/math check, NOT a diagnosis.
+      if (!Number.isFinite(reserve) || reserve < 10) {
+        const reason = reserve <= 0
+          ? 'The resting pulse must be lower than the estimated maximum heart rate.'
+          : 'The calculated reserve is under 10 bpm and cannot display five distinct whole-bpm zones.';
+        return {
+          ok: false,
+          error: `${emergency} ${reason} Please verify your age and resting pulse. If an unexpectedly high or low resting rate persists, ask a healthcare professional before using training targets.`,
+          primaryLabel: 'Heart-rate zones unavailable',
+          primaryValue: '—',
+          visual: { kind: 'none' },
+        };
+      }
+      let callout: CalcResult['callout'];
+      if (rest < 40) {
+        callout = { tone: 'danger', text: `${emergency} A waking resting pulse below 40 bpm is markedly low. If it is new or unexplained, seek prompt medical advice even if you are an athlete; do not rely on predicted training zones to judge safety.` };
+      } else if (rest > 100) {
+        callout = { tone: 'warn', text: `${emergency} A resting pulse above 100 bpm deserves a medical review if persistent or unexplained. Do not use this estimate as clearance for vigorous exercise.` };
+      } else if (rest < 60) {
+        callout = { tone: 'info', text: 'Resting rates below 60 bpm can occur in trained people or with certain medicines, but are not automatically safe. Discuss a new or unexplained low rate with a clinician.' };
+      }
       const Z = ['#3b82f6', '#14b8a6', '#16a34a', '#f59e0b', '#ef4444'];
       const bands = [
         { lo: 0.5, hi: 0.6, name: 'Zone 1 · Very light', desc: 'Warm-up & recovery' },
-        { lo: 0.6, hi: 0.7, name: 'Zone 2 · Light', desc: 'Fat burning' },
+        { lo: 0.6, hi: 0.7, name: 'Zone 2 · Light', desc: 'Easy steady effort, not a unique fat-loss threshold' },
         { lo: 0.7, hi: 0.8, name: 'Zone 3 · Moderate', desc: 'Aerobic endurance' },
         { lo: 0.8, hi: 0.9, name: 'Zone 4 · Hard', desc: 'Anaerobic threshold' },
-        { lo: 0.9, hi: 1.0, name: 'Zone 5 · Maximum', desc: 'Peak effort' },
+        { lo: 0.9, hi: 1.0, name: 'Zone 5 · Maximum', desc: 'Near estimated peak; not a recommended target' },
       ];
       const items = bands.map((b, i) => {
         const lo = Math.round(reserve * b.lo + rest);
@@ -797,15 +821,16 @@ export const DEFS: Record<string, CalcDef> = {
       });
       return {
         ok: true,
-        primaryLabel: 'Maximum heart rate',
+        primaryLabel: 'Estimated maximum heart rate',
         primaryValue: `${fmt(hrMax, 0)} bpm`,
         visual: { kind: 'zones', items },
+        callout,
         rows: [
           { label: 'Resting heart rate', value: `${fmt(rest, 0)} bpm` },
           { label: 'Heart-rate reserve', value: `${fmt(reserve, 0)} bpm` },
           { label: 'Method', value: formula === 'tanaka' ? 'Tanaka (208 − 0.7 × age)' : '220 − age' },
         ],
-        note: 'Zones use the Karvonen method: target = ((max − resting) × intensity) + resting. These are estimates; your true maximum can vary by 10–12 bpm.',
+        note: `Karvonen: target = resting + ((estimated max − resting) × intensity). These five bands are estimates, not measured physiological thresholds, a safe exercise ceiling or a prescription; age-predicted maximum heart rate varies by individual. Zone 5 is near an estimated peak and is not a goal for unprepared exercisers. ${emergency} If you have a heart condition or take heart-rate-altering medicine, discuss suitable training targets with your clinician.`,
       };
     },
   },
