@@ -19,16 +19,18 @@ assert.ok(fStart >= 0 && fEnd > fStart, 'real compute function can be extracted'
 const computeSource = block.slice(fStart, fEnd) + '\n}';
 const fmtMass = (kg, units, digits = 1) => {
   const display = units === 'metric' ? kg : kg * 2.20462262185;
-  return display.toFixed(digits) + (units === 'metric' ? ' kg' : ' lb');
+  // Mirror src/lib/units.ts: the public UI trims trailing zeros.
+  const formatted = Number(display.toFixed(digits)).toLocaleString('en-US', { maximumFractionDigits: digits });
+  return formatted + (units === 'metric' ? ' kg' : ' lb');
 };
 const compute = runInNewContext('(' + computeSource + ')', { fmtMass, Math });
 
 test('one completed rep records its actual lifted weight, not 103.33% Epley', () => {
   const result = compute({ vals: { weight: 80, reps: 1 }, units: 'metric' });
   assert.equal(result.primaryLabel, 'Weight lifted for one rep');
-  assert.equal(result.primaryValue, '80.0 kg');
-  assert.equal(result.rows[0].value, '80.0 kg');
-  assert.equal(result.rows[1].value, '80.0 kg');
+  assert.equal(result.primaryValue, '80 kg');
+  assert.equal(result.rows[0].value, '80 kg');
+  assert.equal(result.rows[1].value, '80 kg');
   assert.match(result.rows[1].label, /100% of recorded one-rep load/);
   assert.match(result.note, /not proof of your true maximum/i);
 });
@@ -36,7 +38,7 @@ test('one completed rep records its actual lifted weight, not 103.33% Epley', ()
 test('unchanged Epley and Brzycki estimates for multiple reps, percentages and pounds', () => {
   const five = compute({ vals: { weight: 80, reps: 5 }, units: 'metric' });
   assert.equal(five.primaryValue, '93.3 kg');
-  assert.equal(five.rows[0].value, '90.0 kg');
+  assert.equal(five.rows[0].value, '90 kg');
   assert.equal(five.rows[1].label, '100% of 1RM');
   assert.equal(five.rows[1].value, five.primaryValue);
   const ten = compute({ vals: { weight: 80, reps: 10 }, units: 'metric' });
