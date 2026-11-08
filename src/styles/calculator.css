@@ -888,7 +888,8 @@
 
 @media (max-width: 760px) {
   .calc {
-    grid-template-columns: 1fr;
+    /* Explicit zero minimum: long result rows must wrap, not widen the mobile viewport. */
+    grid-template-columns: minmax(0, 1fr);
   }
   .calc__result {
     position: static;
