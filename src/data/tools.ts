@@ -359,7 +359,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'push-up-test-calculator',
     title: 'Push-Up Test Calculator',
-    blurb: 'Score your push-up test against ACSM age and sex norms — see your percentile band and how to improve.',
+    blurb: 'Compare your push-up count with ACSM adult age- and protocol-specific categories. Different tests for men and women; no diagnostic score.',
     category: 'fitness',
     icon: 'person-standing',
     gradient: 'green',
