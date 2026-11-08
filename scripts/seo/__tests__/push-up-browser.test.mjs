@@ -86,7 +86,7 @@ test('real Astro Push-Up page: interactive inputs, sex reference, desktop and 39
     assert.ok(!nav.errorText,'local Chrome navigation '+nav.errorText);
     await until(()=>js("location.pathname==='/tools/push-up-test-calculator'&&!!document.querySelector('.tool__calc')"),'tool DOM');
     await js("document.querySelector('.tool__calc').scrollIntoView({block:'center'})");
-    await until(()=>js("!!document.getElementById('calc-push-up-test-calculator-pushups')"),'client:visible hydration',65000);
+    await until(()=>js("(()=>{const island=document.querySelector('.tool__calc astro-island');return !!island&&!island.hasAttribute('ssr')&&!!document.getElementById('calc-push-up-test-calculator-pushups');})()"),'actual client:visible hydration (Astro ssr attribute removed)',65000);
     const snapshot=()=>js("(()=>{const r=document.querySelector('.tool__calc .calc');const b=r.getBoundingClientRect();return {badge:r.querySelector('.calc__badge')?.textContent?.trim()??'',error:r.querySelector('.calc__error')?.textContent?.trim()??'',text:r.textContent.replace(/\\s+/g,' ').trim().slice(0,1600),w:innerWidth,client:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth,left:b.left,right:b.right};})()");
     const input=async(key,value)=>{
       const id='calc-push-up-test-calculator-'+key;
@@ -96,8 +96,9 @@ test('real Astro Push-Up page: interactive inputs, sex reference, desktop and 39
       assert.equal(await js(exp),true,'field '+key);
     };
     const hasBadge=b=>until(async()=>(await snapshot()).badge===b,'badge '+b,8000);
-    await input('age',30);await input('pushups',20);
-    await hasBadge('Good');
+    await input('age',30);await input('pushups',22);
+    await hasBadge('Very good');
+    await input('pushups',20);await hasBadge('Good');
     assert.match((await snapshot()).text,/standard push-ups \(toes\)/);
     assert.equal(await js("(()=>{const b=[...document.querySelectorAll('.tool__calc .seg[aria-label=\"Sex\"] button')].find(x=>x.textContent.trim()==='Female');if(!b)return false;b.click();return true;})()"),true);
     await hasBadge('Very good');
