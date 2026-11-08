@@ -1,15 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
-import { mkdtempSync, existsSync } from 'node:fs';
+import { mkdtempSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 import { createServer } from 'node:net';
 
 // Local source browser QA only. No deployed Preview, CMS writes, external browser service or paid API.
 const host = '127.0.0.1';
-const source = resolve('node_modules/astro/astro.js');
 const delay = ms => new Promise(ok => setTimeout(ok, ms));
 const freePort = () => new Promise((ok,fail) => {
   const s = createServer(); s.on('error',fail);
@@ -29,7 +28,7 @@ function findChrome() {
     if(!name)continue;
     const r=spawnSync('which',[name],{encoding:'utf8'});
     if(r.status===0)return r.stdout.trim();
-    if(name.startsWith('/')&&existsSync(name))return name;
+    if(name.startsWith('/'))return name;
   }
   throw Error('Chrome/Chromium not installed on CI');
 }
@@ -48,11 +47,10 @@ function connect(wsUrl) {
   },close(){ws.close();}};
 }
 test('real Astro Push-Up page: interactive inputs, sex reference, desktop and 390px mobile', {timeout:185000}, async()=>{
-  assert.ok(existsSync(source),'npm ci must install Astro');
   const port=await freePort(),chromePort=await freePort(),profile=mkdtempSync(join(tmpdir(),'hls-push-up-qa-'));
   const log=[];let astro,chrome,cdp;
   try {
-    astro=spawn(process.execPath,[source,'dev','--host',host,'--port',String(port)],{
+    astro=spawn('npm',['run','dev','--','--host',host,'--port',String(port)],{
       env:{...process.env,CMS_DISABLE:'1',CMS_URL:'http://127.0.0.1:9',INDEXNOW_DISABLE:'true',VERCEL_ENV:'development'},
       stdio:['ignore','pipe','pipe'],detached:true
     });
