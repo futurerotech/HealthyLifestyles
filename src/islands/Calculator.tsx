@@ -707,7 +707,7 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
               onChange={setSex}
               options={[{ value: 'male', label: 'Male' }, { value: 'female', label: 'Female' }]}
             />
-            <p class="calc__help">Used because the formula differs for men and women.</p>
+            <p class="calc__help">{slug === 'push-up-test-calculator' ? 'For the ACSM comparison: men use standard push-ups from the toes; women use modified push-ups from the knees. These are different test protocols.' : 'Used because the formula differs for men and women.'}</p>
           </div>
         )}
 
