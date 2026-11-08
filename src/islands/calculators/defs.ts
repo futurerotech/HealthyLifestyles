@@ -2295,42 +2295,71 @@ export const DEFS: Record<string, CalcDef> = {
     heading: 'Estimate your VO₂ max',
     hasSex: false,
     fields: [
-      F.age(30),
-      { key: 'rest', label: 'Resting heart rate', type: 'number', metricDefault: 60, min: 30, max: 120, suffix: 'bpm', help: 'Measure your pulse at rest, ideally just after waking.' },
+      { ...F.age(30), min: 18, help: 'For adults 18+. This estimate is extrapolated from research in well-trained men aged 21–51; its validity for other ages and sexes is not established.' },
+      { key: 'rest', label: 'Resting heart rate', type: 'number', metricDefault: 60, min: 30, max: 120, suffix: 'bpm', help: 'Measure a calm waking pulse. A new, repeatedly unusual or irregular resting pulse needs medical context; this number alone cannot verify fitness.' },
     ],
     compute: ({ vals }) => {
       const hrMax = 220 - vals.age;
+      const urgent = 'If you have chest pain, severe breathing difficulty, fainting, or other serious new symptoms, call emergency services immediately regardless of this calculator result.';
+      // A predicted exercise maximum is not a measured safety ceiling. A resting
+      // pulse equal to (or above) it cannot support a meaningful HR ratio.
+      if (!Number.isFinite(hrMax) || !Number.isFinite(vals.rest) || vals.rest <= 0 || vals.rest >= hrMax) {
+        return {
+          ok: false,
+          error: `${urgent} Resting heart rate must be below the estimated maximum for this ratio. Recheck the entries and seek professional advice if your resting pulse is persistently unusual or unexplained.`,
+          primaryLabel: 'VO2 max estimate unavailable',
+          primaryValue: '—',
+          visual: { kind: 'none' },
+        };
+      }
+      // Preserve the historical Uth–Sørensen 15.3 ratio and the original
+      // illustrative score-age calculation; neither is a clinical normogram.
       const vo2 = 15.3 * (hrMax / vals.rest);
       const fitnessAge = Math.max(18, Math.min(90, Math.round(0.5 * vals.age + 50 - vo2)));
       const segments: Segment[] = [
-        { upTo: 30, label: 'Below average', color: C.red },
-        { upTo: 40, label: 'Fair', color: C.amber },
-        { upTo: 50, label: 'Good', color: C.teal },
-        { upTo: 60, label: 'Excellent', color: C.green },
-        { upTo: 80, label: 'Superior', color: C.blue },
+        { upTo: 30, label: 'Below average', color: C.slate },
+        { upTo: 40, label: 'Fair', color: C.slate },
+        { upTo: 50, label: 'Good', color: C.slate },
+        { upTo: 60, label: 'Excellent', color: C.slate },
+        { upTo: 80, label: 'Superior', color: C.slate },
       ];
       const band = bandFor(vo2, segments);
+      const unusuallyLow = vals.rest < 40;
+      const unusuallyHigh = vals.rest > 100;
+      const interpretBands = !unusuallyLow && !unusuallyHigh;
+      // Keep the entire output on the scale; the old hard-coded 20–70 range
+      // visually clipped both low and high predicted values.
+      const gaugeMin = Math.min(20, Math.floor(vo2 / 10) * 10);
+      const gaugeMax = Math.max(70, Math.ceil(vo2 / 10) * 10);
+      const displaySegments = gaugeMax > 80
+        ? [...segments, { upTo: gaugeMax, label: 'Beyond illustrative bands', color: C.slate }]
+        : segments;
+      const outsideStudyAge = vals.age < 21 || vals.age > 51;
+      const pulseWarning = unusuallyLow
+        ? `${urgent} A waking resting pulse under 40 bpm warrants clinical context, even in endurance-trained adults. If new or unexplained, arrange a prompt medical review rather than treating a high estimate as proof of health.`
+        : unusuallyHigh
+          ? `${urgent} A resting pulse over 100 bpm should be discussed with a healthcare professional if persistent or unexplained. Do not infer poor aerobic fitness from this ratio alone.`
+          : vals.rest < 60
+            ? 'A resting rate below 60 bpm can occur with athletic training or certain medications, but does not by itself establish fitness or safety. Discuss a new or unexplained low pulse with a clinician.'
+            : 'This is a population-derived estimate, not a direct test of oxygen uptake or a diagnosis. Symptoms or heart-rate-altering medication can change how the result should be interpreted.';
       return {
         ok: true,
-        primaryLabel: 'Estimated VO2 max',
+        primaryLabel: 'Estimated VO2 max (HR ratio)',
         primaryValue: `${fmt(vo2, 1)} ml/kg/min`,
-        category: { label: band.label, color: band.color },
-        visual: { kind: 'gauge', value: vo2, min: 20, max: 70, segments },
+        category: { label: interpretBands ? `${band.label} (illustrative)` : 'Not graded (unusual resting pulse)', color: C.slate },
+        visual: { kind: 'gauge', value: vo2, min: gaugeMin, max: gaugeMax, segments: displaySegments },
+        callout: { tone: unusuallyLow ? 'danger' : unusuallyHigh ? 'warn' : 'info', text: pulseWarning },
         rows: [
-          { label: 'Fitness age', value: `${fmt(fitnessAge, 0)} years`, strong: true },
+          {
+            label: 'Illustrative fitness-age index (not biological age)',
+            value: interpretBands ? `${fmt(fitnessAge, 0)} years (unvalidated index)` : 'Not interpreted for this resting pulse',
+            strong: false,
+          },
           { label: 'Chronological age', value: `${fmt(vals.age, 0)} years` },
           { label: 'Estimated max heart rate', value: `${fmt(hrMax, 0)} bpm` },
           { label: 'Resting heart rate', value: `${fmt(vals.rest, 0)} bpm` },
         ],
-        callout: {
-          tone: 'info',
-          text: fitnessAge < vals.age
-            ? `Your VO2 max is typical of someone about ${fitnessAge} years old — ${vals.age - fitnessAge} years younger than your actual age. This suggests above-average cardio fitness for your age.`
-            : fitnessAge > vals.age
-              ? `Your VO2 max is typical of someone about ${fitnessAge} years old — ${fitnessAge - vals.age} years older than your actual age. This suggests room to improve cardio fitness.`
-              : `Your VO2 max is typical for your actual age (${vals.age}).`,
-        },
-        note: 'Uses the Uth-Sorensen estimate: VO2 max ~ 15.3 x (max HR / resting HR). Fitness age compares your VO2 max to age-normative averages (approx 50 - 0.5 x age). Both are rough estimates — healthy ranges depend on age and sex. Educational only.',
+        note: `Uth–Sørensen: 15.3 × ((220 − age) ÷ resting pulse). This was studied in well-trained men aged 21–51; it is NOT validated equally for other ages, women, or all health conditions.${outsideStudyAge ? ' Your age is outside the original sample range.' : ''} The five bands are not sex- or age-adjusted clinical norms. The historical fitness-age index is an unvalidated illustration, not a biological age or prediction of lifespan. ${urgent} Beta-blockers, other medicines and rhythm conditions can change resting pulse without an equivalent change in measured VO2 max.`,
       };
     },
   },

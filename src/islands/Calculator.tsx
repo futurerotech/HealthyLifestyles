@@ -744,6 +744,11 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
               )}
             </div>
 
+            {slug === 'vo2-max-calculator' && result.callout && (
+              <p class={`calc__callout calc__callout--${result.callout.tone}`}>
+                {result.callout.text}
+              </p>
+            )}
             {result.visual.kind === 'gauge' && <Gauge v={result.visual} />}
             {result.visual.kind === 'range' && <Range v={result.visual} />}
             {result.visual.kind === 'split' && <Split v={result.visual} />}
@@ -762,7 +767,7 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
               </div>
             )}
 
-            {result.callout && (
+            {slug !== 'vo2-max-calculator' && result.callout && (
               <p class={`calc__callout calc__callout--${result.callout.tone}`}>
                 {result.callout.text}
               </p>
