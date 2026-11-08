@@ -112,7 +112,7 @@ test('real Astro Push-Up page: interactive inputs, sex reference, desktop and 39
     assert.match((await snapshot()).text,/Optional plank hold \(not graded\).*60 sec/);
     const mobile=await snapshot();
     if(mobile.scroll>mobile.client+1) {
-      const offenders=await js("(()=>{const w=document.documentElement.clientWidth;return [...document.body.querySelectorAll('*')].map(e=>{const r=e.getBoundingClientRect();const cs=getComputedStyle(e);return {tag:e.tagName.toLowerCase(),className:String(e.className||'').slice(0,110),left:Math.round(r.left),right:Math.round(r.right),width:Math.round(r.width),scrollWidth:e.scrollWidth,overflowX:cs.overflowX,position:cs.position};}).filter(e=>e.right>w+1&&e.width>0).sort((a,b)=>b.right-a.right).slice(0,20);})()");
+      const offenders=await js("(()=>{const w=document.documentElement.clientWidth;return [...document.body.querySelectorAll('*')].filter(e=>!e.closest('.mobile-panel,.mobile-overlay,.mega')).map(e=>{const r=e.getBoundingClientRect();const cs=getComputedStyle(e);return {tag:e.tagName.toLowerCase(),className:String(e.className||'').slice(0,110),left:Math.round(r.left),right:Math.round(r.right),width:Math.round(r.width),scrollWidth:e.scrollWidth,overflowX:cs.overflowX,position:cs.position};}).filter(e=>e.right>w+1&&e.width>0).sort((a,b)=>b.right-a.right).slice(0,20);})()");
       console.error('[PUSHUP_MOBILE_OFFENDERS] '+JSON.stringify(offenders));
     }
     assert.ok(mobile.scroll<=mobile.client+1,'390px page overflow '+JSON.stringify(mobile));
