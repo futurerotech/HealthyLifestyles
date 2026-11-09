@@ -25,38 +25,48 @@ const ONERM_VALIDITY: Source = {
 export const FITNESS_CONTENT: Record<string, ToolContent> = {
   // ============================================================
   'walk-it-off-calculator': {
-    seoTitle: 'Walk It Off Calculator — Food to Exercise Time',
+    seoTitle: 'Walk It Off Calculator — Gross Exercise Energy Comparison',
     metaDescription:
-      'How long to walk off that food? Enter a food or calories and your weight to see the minutes of walking, running, or cycling to burn it. Free.',
+      'Compare example food calories with illustrative gross-energy walking, running and cycling durations at fixed METs. No meal needs compensating for.',
     intro:
-      'Ever wondered how long you’d have to move to burn off a treat? Pick a food (or enter calories) and your weight to see the minutes of walking, running, or cycling it takes.',
+      'Compare an illustrative food serving or custom calorie amount with estimated gross activity-energy time at three fixed intensities. This explains MET arithmetic, not how long you should exercise after eating.',
     sections: [
       {
         h2: 'How it works',
         paragraphs: [
-          'The calculator takes the calories in your chosen food and works out how long each activity would take to burn that many calories for someone your weight, using standard MET (metabolic equivalent) values. Heavier people burn a little more per minute, so the time is personalized to you.',
-          'It’s a fun, eye-opening way to picture energy balance — not a rule that you must "earn" every bite.',
+          'The tool compares an illustrative food example or a 0–3,000 kcal custom input against estimated gross activity-energy time at fixed 3.8 MET walking, 9.8 MET running and 7.5 MET cycling. Gross includes the energy that would also be spent at rest. It is not additional calories above rest, a metabolic measurement or a required exercise duration.',
+          'A meal cannot be precisely canceled by a calculated exercise session. Food is never something you must earn through movement; the example calorie amounts are not exact measures of your food.',
         ],
       },
       {
         h2: 'Walking vs running vs cycling',
         paragraphs: [
-          'Running burns the most calories per minute, then cycling, then walking — so the same food takes far longer to walk off than to run off. But the best activity is the one you’ll actually do: a longer walk you enjoy beats a hard run you dread and skip.',
+          'With this tool’s fixed MET assumptions, running has the highest modeled energy demand, then cycling, then walking. Actual pace, hills, effort, equipment and individual physiology can change energy use. These times are mathematical comparisons, not recommended workout sessions.',
         ],
       },
       {
         h2: 'A healthier way to think about it',
         paragraphs: [
-          'Exercise has huge benefits beyond burning calories, and food is about more than fuel. Use this as motivation to move, not as punishment for eating. If you’re managing weight, your overall daily calories and activity matter far more than offsetting any single food.',
+          'Movement can support well-being independently of eating. Avoid treating exercise as a food debt or punishment, and do not use long calculated durations as exercise prescriptions. What matters most is a sustainable pattern of eating, activity, rest and other health behaviors.',
         ],
       },
     ],
     faq: [
-      { q: 'How long does it take to walk off a slice of pizza?', a: 'A ~285-calorie slice takes most people roughly 60–75 minutes of brisk walking, or about 30 minutes of running — the exact time depends on your weight and pace.' },
-      { q: 'Is it accurate?', a: 'It’s a solid estimate based on MET values and your body weight. Real burn varies with intensity, fitness, and terrain, so treat the numbers as a ballpark.' },
-      { q: 'Should I exercise to “burn off” food?', a: 'It’s fine as motivation, but try not to treat exercise as punishment. Movement is valuable on its own, and overall habits matter more than any single food.' },
+      { q: 'How long does it take to walk off a slice of pizza?', a: 'At this tool’s fixed assumptions and 70 kg, the 285-kcal food example corresponds to about 64 minutes walking, 25 minutes running, or 33 minutes cycling in gross energy. It is not a required workout, and actual costs vary.' },
+      { q: 'Is it accurate?', a: 'It is a rough standardized MET comparison of gross energy. It is not a measured personal energy expenditure; activity intensity, terrain, efficiency and the resting-energy component matter.' },
+      { q: 'Should I exercise to “burn off” food?', a: 'No. Food does not need to be earned, canceled or compensated for. Exercise can benefit health and enjoyment independently of food; the tool illustrates only a numerical energy comparison.' },
     ],
-    sources: [COMPENDIUM],
+    sources: [
+      COMPENDIUM,
+      {
+        citation: 'Herrmann SD, Willis EA, Ainsworth BE, et al. The 2024 Adult Compendium of Physical Activities: A third update of the energy costs of human activities. J Sport Health Sci. 2024.',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/38242596/',
+      },
+      {
+        citation: 'CDC. How to Measure Physical Activity Intensity. Updated December 4, 2025.',
+        url: 'https://www.cdc.gov/physical-activity-basics/measuring/',
+      },
+    ],
   },
   // ============================================================
   'sitting-disease-reversal-calculator': {
