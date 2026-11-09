@@ -1,7 +1,8 @@
 /**
  * "Walk It Off" food → exercise — pure logic + food list (UI-free).
- * minutes = calories / (MET × weightKg) × 60. MET values from the Compendium
- * of Physical Activities. Estimates only.
+ * gross activity minutes = kcal * 60 / (MET * weightKg). The values include
+ * the standardized resting energy component and do NOT represent calories
+ * additionally burned above rest, a food debt, or required exercise.
  */
 
 export interface Food {
@@ -53,8 +54,18 @@ export const ACTIVITIES: Activity[] = [
   { key: 'cycle', label: 'Cycling', met: 7.5, emoji: '🚴' }, // moderate
 ];
 
-/** Minutes of an activity (by MET) to burn `kcal` for a person of `weightKg`. */
+/** Gross-energy equivalent duration. Invalid inputs are NOT zero-minute exercise. */
 export function minutesToBurn(kcal: number, met: number, weightKg: number): number {
-  if (met <= 0 || weightKg <= 0) return 0;
-  return (kcal / (met * weightKg)) * 60;
+  if (![kcal, met, weightKg].every(Number.isFinite) ||
+      kcal < 0 || met <= 0 || weightKg <= 0) return NaN;
+  const minutes = (kcal * 60) / (met * weightKg);
+  return Number.isFinite(minutes) ? minutes : NaN;
+}
+
+/** Decimal form input. Null is intentional for empty or out-of-range values. */
+export function parseAmount(raw: string, min: number, max = Infinity): number | null {
+  const s = raw.trim();
+  if (!/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(s)) return null;
+  const v = Number(s);
+  return Number.isFinite(v) && v >= min && v <= max ? v : null;
 }
