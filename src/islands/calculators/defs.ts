@@ -2255,36 +2255,52 @@ export const DEFS: Record<string, CalcDef> = {
     heading: 'Convert your steps',
     hasSex: true,
     fields: [
-      { key: 'steps', label: 'Steps taken', type: 'number', metricDefault: 8000, min: 100, max: 60000, suffix: 'steps' },
+      { key: 'steps', label: 'Steps taken', type: 'number', metricDefault: 8000, min: 0, max: 60000, allowZero: true, suffix: 'steps', help: 'Enter whole steps. Daily activity bands apply only to a full-day step total.' },
       F.height(170),
       F.weight(72),
     ],
     compute: ({ vals, sex, units }) => {
+      // Step counts are nonnegative integers; the public input limit is 60,000.
+      if (!Number.isInteger(vals.steps) || vals.steps < 0 || vals.steps > 60000) {
+        return { ok: false, error: 'Enter a whole-number step count from 0 to 60,000.', primaryLabel: '', primaryValue: '', visual: { kind: 'none' } };
+      }
       const strideCm = vals.height * (sex === 'female' ? 0.413 : 0.415);
       const distanceKm = (vals.steps * (strideCm / 100)) / 1000;
       const hours = distanceKm / 4.8; // assume ~moderate walking pace
+      // Gross MET kcal include a 1-MET resting component; this site-defined
+      // comparison is not measured active energy or an added food allowance.
       const cal = 3.5 * vals.weight * hours;
-      const distStr = units === 'metric' ? `${fmt(distanceKm, 2)} km` : `${fmt(distanceKm * 0.621371, 2)} mi`;
+      const aboveRestCal = (3.5 - 1) * vals.weight * hours;
+      const gaugeMax = Math.max(15000, Math.ceil(vals.steps / 1000) * 1000);
+      // Round only the displayed distance through micro-km precision before
+      // two-decimal formatting to avoid binary half-step artifacts (7.055 km
+      // must display as 7.06 km). Keep the full distance for calorie math.
+      const displayKm = Math.round(distanceKm * 1e6) / 1e6;
+      const distStr = units === 'metric' ? `${fmt(displayKm, 2)} km` : `${fmt(displayKm * 0.621371, 2)} mi`;
       const strideStr = units === 'metric' ? `${fmt(strideCm, 0)} cm` : `${fmt(strideCm / 2.54, 1)} in`;
+      // Adult pedometer bands are defined for FULL-DAY steps, not one walk.
       const segments: Segment[] = [
-        { upTo: 5000, label: 'Sedentary', color: C.red },
-        { upTo: 7500, label: 'Low active', color: C.amber },
-        { upTo: 10000, label: 'Somewhat active', color: C.teal },
-        { upTo: 12000, label: 'Active', color: C.green },
+        { upTo: 4999, label: 'Sedentary', color: C.red },
+        { upTo: 7499, label: 'Low active', color: C.amber },
+        { upTo: 9999, label: 'Somewhat active', color: C.teal },
+        { upTo: 12499, label: 'Active', color: C.green },
+        { upTo: gaugeMax, label: 'Highly active', color: C.blue },
       ];
       const band = bandFor(vals.steps, segments);
       return {
         ok: true,
-        primaryLabel: 'Calories burned',
+        primaryLabel: 'Estimated gross walking calories',
         primaryValue: `${fmt(cal, 0)} kcal`,
-        category: { label: band.label, color: band.color },
-        visual: { kind: 'gauge', value: vals.steps, min: 0, max: 12000, segments },
+        category: { label: 'If full-day total: ' + band.label, color: band.color },
+        visual: { kind: 'gauge', value: vals.steps, min: 0, max: gaugeMax, segments },
         rows: [
           { label: 'Distance walked', value: distStr, strong: true },
-          { label: 'Your stride length', value: strideStr },
-          { label: 'Daily goal', value: '10,000 steps' },
+          { label: 'Estimated step length', value: strideStr },
+          { label: 'Assumed walking time', value: fmt(hours * 60, 0) + ' min' },
+          { label: 'Approx. above-rest walking energy', value: fmt(aboveRestCal, 0) + ' kcal' },
+          { label: 'Optional daily goal', value: '10,000 steps' },
         ],
-        note: 'Stride length is estimated as height × 0.413 (women) or 0.415 (men). Calories assume a moderate walking pace and will vary with speed and terrain.',
+        note: 'Gross calories include estimated resting energy during this assumed walk. Above-rest energy uses (3.5 - 1) MET as an illustrative difference, not measured active calories or extra calories to eat. The model estimates step length as height × 0.413 (women) or 0.415 (men) and assumes every step was taken at 4.8 km/h (3 mph) on level ground at 3.5 MET. Actual pace, stride, hills, stops and terrain affect energy use. Adult daily activity-band labels apply only if these steps represent your FULL-day total, never a single walk or a health diagnosis.',
       };
     },
   },
