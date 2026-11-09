@@ -192,9 +192,9 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
   'running-pace-calculator': {
     seoTitle: 'Running Pace Calculator (with Splits)',
     metaDescription:
-      'Calculate running pace, finish time, or distance from the other two — with a full split table. Free pace calculator in km or miles, no signup.',
+      'Calculate running pace, finish time, or distance from the other two, with cumulative split checkpoints. Converts km and miles without relabeling the run.',
     intro:
-      'Whatever you know — your distance and pace, or a goal time — this calculator works out the missing piece and shows your splits. Choose what to solve for and enter the other two values.',
+      'Enter two known quantities to calculate running pace, time or distance. Switching kilometers and miles converts the same physical run; split times assume a constant pace and are estimates, not race predictions.',
     sections: [
       {
         h2: 'How the pace calculator works',
@@ -206,7 +206,7 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'Using your splits',
         paragraphs: [
-          'The split table shows the cumulative time you should reach at each kilometre or mile if you hold a steady pace. Runners use splits to pace races: glance at your watch at each marker and you’ll know instantly whether you’re ahead of or behind schedule.',
+          'The table shows cumulative times at whole kilometers or miles at a steady pace. For distances longer than 60 units it shows the first 60 checkpoints plus the actual finish marker; the finish is never omitted. The times are mathematical pacing targets, not forecasts of an individual athlete’s race readiness.',
           'A classic strategy is the "even split" — running the second half at the same pace as the first — or a slight "negative split," finishing faster than you started. Going out too fast and fading is the most common pacing mistake, and a split sheet helps you avoid it.',
         ],
       },
@@ -229,7 +229,7 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       },
       {
         q: 'Can I switch between kilometres and miles?',
-        a: 'Yes. Use the km/mi toggle at the top of the calculator; pace, distance, and splits all update to your chosen unit.',
+        a: 'Yes. The km/mi toggle converts distance and minutes-per-unit pace while keeping the same physical run and projected total time. Inputs show rounded seconds; the model uses full conversion precision until you edit an input.',
       },
     ],
     sources: [
