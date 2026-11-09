@@ -19,7 +19,9 @@ const js = ts.transpileModule('const compute = ' + expression + ';', {
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None },
 }).outputText;
 const C = { red:'#ef4444', amber:'#f59e0b', teal:'#14b8a6', green:'#16a34a', blue:'#3b82f6' };
-const fmt = (v,d=0) => String(Number(Number(v).toFixed(d)));
+// Match the production src/lib/units.ts round()/fmt() semantics.
+const round = (n,dp=1) => Math.round((n + Number.EPSILON) * (10 ** dp)) / (10 ** dp);
+const fmt = (n,dp=1) => round(n,dp).toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:dp});
 const bandFor = (v,segs) => segs.find(s=>v<=s.upTo) ?? segs.at(-1);
 const compute = runInNewContext(js + '\ncompute;', { C, fmt, bandFor, Number, Math });
 const run = (steps=8000, sex='male', units='metric', height=170, weight=72) =>

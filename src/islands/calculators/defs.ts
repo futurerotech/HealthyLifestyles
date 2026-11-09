@@ -2272,7 +2272,11 @@ export const DEFS: Record<string, CalcDef> = {
       const cal = 3.5 * vals.weight * hours;
       const aboveRestCal = (3.5 - 1) * vals.weight * hours;
       const gaugeMax = Math.max(15000, Math.ceil(vals.steps / 1000) * 1000);
-      const distStr = units === 'metric' ? `${fmt(distanceKm, 2)} km` : `${fmt(distanceKm * 0.621371, 2)} mi`;
+      // Round only the displayed distance through micro-km precision before
+      // two-decimal formatting to avoid binary half-step artifacts (7.055 km
+      // must display as 7.06 km). Keep the full distance for calorie math.
+      const displayKm = Math.round(distanceKm * 1e6) / 1e6;
+      const distStr = units === 'metric' ? `${fmt(displayKm, 2)} km` : `${fmt(displayKm * 0.621371, 2)} mi`;
       const strideStr = units === 'metric' ? `${fmt(strideCm, 0)} cm` : `${fmt(strideCm / 2.54, 1)} in`;
       // Adult pedometer bands are defined for FULL-DAY steps, not one walk.
       const segments: Segment[] = [
