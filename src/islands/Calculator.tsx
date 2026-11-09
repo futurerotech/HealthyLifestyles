@@ -420,14 +420,23 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
   const [units, setUnits] = useState<UnitSystem>('metric');
   const [sex, setSex] = useState<Sex>('male');
   const [disp, setDisp] = useState<Disp>(() => (def ? initialDisplay(def, 'metric') : {}));
+  // Calories Burned only: preserve exact physical kg and the user-entered
+  // original weight string across rounded metric/imperial display toggles.
+  const [caloriesWeightOrigin, setCaloriesWeightOrigin] = useState<{
+    kg: number; unit: UnitSystem; text: string;
+  } | null>(null);
   const [selects, setSelects] = useState<Record<string, string>>(() => (def ? initialSelects(def) : {}));
 
   if (!def) return null;
 
-  const ctx = useMemo(
-    () => ({ vals: toMetric(def, disp, units), selects, sex, units }),
-    [def, disp, units, sex, selects]
-  );
+  const ctx = useMemo(() => {
+    const vals = toMetric(def, disp, units);
+    if (slug === 'calories-burned-calculator' && caloriesWeightOrigin &&
+        disp.weight !== '' && Number.isFinite(vals.weight) && vals.weight > 0) {
+      vals.weight = caloriesWeightOrigin.kg;
+    }
+    return { vals, selects, sex, units };
+  }, [def, disp, units, sex, selects, slug, caloriesWeightOrigin]);
   const visible = def.fields.filter((f) => !f.showIf || f.showIf(ctx));
   // Only show the metric/imperial toggle if some field actually converts.
   const showUnits = def.fields.some((f) => f.type === 'mass' || f.type === 'length' || f.type === 'height');
@@ -589,11 +598,36 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
     !!(result && result.ok),
   );
 
-  const setField = (key: string, val: string) => setDisp((d) => ({ ...d, [key]: val }));
+  const setField = (key: string, val: string) => {
+    setDisp((d) => ({ ...d, [key]: val }));
+    if (slug === 'calories-burned-calculator' && key === 'weight') {
+      // Direct edits become the new physical measurement.
+      setCaloriesWeightOrigin(null);
+    }
+  };
   const setSelect = (key: string, val: string) => setSelects((s) => ({ ...s, [key]: val }));
   const switchUnits = (to: UnitSystem) => {
     if (to === units) return;
-    setDisp((d) => convertDisplay(def, d, to));
+    if (slug === 'calories-burned-calculator') {
+      const preserved = caloriesWeightOrigin ?? {
+        kg: ctx.vals.weight,
+        unit: units,
+        text: disp.weight ?? '',
+      };
+      const valid = Number.isFinite(preserved.kg) && preserved.kg > 0;
+      setCaloriesWeightOrigin(valid ? preserved : null);
+      setDisp((d) => {
+        const converted = convertDisplay(def, d, to);
+        if (valid) {
+          converted.weight = to === preserved.unit
+            ? preserved.text
+            : String(round(to === 'metric' ? preserved.kg : kgToLb(preserved.kg), 1));
+        }
+        return converted;
+      });
+    } else {
+      setDisp((d) => convertDisplay(def, d, to));
+    }
     setUnits(to);
   };
 
