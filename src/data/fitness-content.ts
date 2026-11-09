@@ -412,17 +412,17 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
   'recovery-time-calculator': {
     seoTitle: 'Recovery Time Calculator — Rest Between Workouts',
     metaDescription:
-      'Estimate how long to rest before training the same muscle group again. A transparent heuristic from sports-science recovery principles. Free, no signup.',
+      'Explore a site-defined recovery planning estimate for hard workouts. Understand limits, effort, sleep and soreness; not a validated healing timer.',
     intro:
-      'Enter your workout type, effort, and how your body feels to get a suggested recovery window. This is general guidance from sports-science principles — not a medical prescription.',
+      'Compare workouts, perceived effort, sleep and soreness using an illustrative recovery-planning range. This site-defined formula does not measure muscle repair or determine when an injury has healed.',
     notice:
-      'General fitness guidance, not medical advice. Sharp pain, joint pain, or pain that worsens with activity is not normal soreness — stop and consult a qualified professional.',
+      'Do not rely on a numeric recovery time if soreness limits normal movement. Stop hard training for severe or worsening pain and seek medical evaluation; marked swelling, significant weakness or dark urine after intense exertion requires urgent assessment. This tool cannot diagnose injuries.',
     sections: [
       {
         h2: 'How recovery time is estimated',
         paragraphs: [
-          'This calculator uses a transparent heuristic built on well-known recovery principles. Heavy resistance training typically needs 48–72 hours of recovery per muscle group before it is trained hard again. HIIT and endurance work usually need a little less, and light sessions recover quickly.',
-          'We start from a base recovery time for your workout type, then adjust it up or down for five factors: how hard you pushed (RPE), how long the session lasted, your training age, your sleep quality, and how sore you currently feel. The result is a range, not a single number, because individual recovery varies.',
+          'This calculator starts with site-defined example times (48 hours for heavy resistance, 36 for HIIT, 30 for steady endurance, and 18 for light activity). Those category numbers are modeling assumptions, not trial-derived measurements of when an individual has fully recovered. A common training guideline is to separate hard sessions for the same muscle group by about 48 hours, but demanding endurance events and unusual loads can require more rest.',
+          'The estimator applies fixed adjustments for perceived effort (RPE), session duration, training experience, sleep and mild/moderate soreness. Its plus-or-minus 15 percent margin is a display rule chosen by the site, not a statistically measured prediction interval. It does not issue numeric estimates when soreness severely affects normal movement.',
         ],
       },
       {
@@ -430,11 +430,11 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
         list: {
           intro: 'The five factors and how they move the estimate:',
           items: [
-            'Intensity (RPE): higher effort means more muscle damage and central nervous system fatigue, so more recovery time.',
-            'Duration: a 2-hour session needs more recovery than a 30-minute one, all else equal.',
-            'Training age: beginners generally need more recovery — their muscles are less conditioned to repeated hard work. Advanced athletes recover faster for the same stimulus.',
-            'Sleep: most muscle repair and adaptation happens during deep sleep. Poor sleep is one of the biggest recovery killers.',
-            'Soreness (DOMS): if you are still sore from a previous session, your body is telling you it is not finished repairing yet.',
+            'Intensity (RPE): hard exercise can increase fatigue, but a reported effort score does not directly quantify muscle injury or time to heal.',
+            'Duration: longer sessions may add fatigue, but duration and difficulty must be considered together rather than mapping every extra minute to a known recovery requirement.',
+            'Training age: unfamiliar training often produces greater soreness; experienced athletes may still need substantial recovery after demanding or high-volume sessions.',
+            'Sleep: inadequate or disrupted sleep can impair performance and perceived readiness; the calculator cannot measure how much muscle repair happened during any sleep stage.',
+            'Soreness (DOMS): soreness alone cannot establish tissue damage or full recovery. Severe pain that limits movement needs assessment instead of a clock-based estimate.',
           ],
         },
       },
@@ -443,7 +443,7 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
         list: {
           intro: 'Recovery is not just waiting — you can actively improve it:',
           items: [
-            'Prioritize 7–9 hours of quality sleep — it is the single most impactful recovery tool. Use the Sleep Debt Calculator to track shortfalls.',
+            'Prioritize adequate sleep and a consistent schedule; many adults need about 7–9 hours. The Sleep Debt Calculator helps review sleep patterns, not biological repair time.',
             'Eat enough protein spread across the day — aim for 0.25 g per kg per meal, 3–4 meals. Use the Protein Intake Calculator to find your target.',
             'Stay hydrated — even mild dehydration increases perceived effort and slows recovery. Use the Water Intake Calculator for your daily target.',
             'Use active recovery — light walking, cycling, or mobility work on rest days increases blood flow without adding damage.',
@@ -462,19 +462,19 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
     faq: [
       {
         q: 'How many rest days between training the same muscle group?',
-        a: 'For heavy resistance training, the general guideline is 48–72 hours before hitting the same muscle group hard again. This calculator personalises that starting point based on your effort, duration, training age, sleep, and soreness.',
+        a: 'About 48 hours between demanding sessions of the same muscle group is a useful starting guideline, not a guarantee of readiness. The calculator adjusts a site-defined planning number using self-reported inputs; it does not measure muscle healing or prescribe an exact return date.',
       },
       {
         q: 'Can I train while still sore?',
-        a: 'Mild soreness is usually fine for a different muscle group or a lighter session. Moderate or severe soreness means you should either rest, train a different muscle group, or do active recovery. Training the same hard session on a severely sore muscle increases injury risk.',
+        a: 'Mild soreness may allow easier movement or work for a different muscle group. If soreness is severe enough to limit normal movement, the calculator deliberately withholds a time estimate: avoid hard exercise of the affected area and seek professional advice for severe or worsening pain, swelling or weakness.',
       },
       {
         q: 'Does sleep really affect muscle recovery?',
-        a: 'Yes — significantly. Most muscle repair, protein synthesis, and anabolic hormone release happen during deep sleep. Consistently sleeping less than 7 hours demonstrably slows recovery and reduces strength and muscle gains over time.',
+        a: 'Sleep matters for energy, performance and recovery, but an individual night of sleep does not map to a proven number of muscle-repair hours. The tool uses a transparent, unvalidated sleep adjustment and should not be treated as a physiological measurement.',
       },
       {
         q: 'Why do beginners need more recovery?',
-        a: 'Beginners experience more muscle damage and soreness (DOMS) from a given workout because their muscles are not yet adapted to the stress. As training age increases, the body becomes more efficient at repairing and adapting, so recovery times shorten for the same relative effort.',
+        a: 'A new or unfamiliar exercise may cause more soreness before you adapt (the repeated-bout effect). Training experience alone cannot predict recovery time: high volume, intensity, illness and sleep disruption can affect experienced athletes too.',
       },
     ],
     sources: [
@@ -491,6 +491,14 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
         citation: 'Dattilo M, Antunes HK, Medeiros A, et al. ' +
           '"Sleep and muscle recovery: endocrinological and behavioral basis." Med Hypotheses. 2011.',
         url: pubmed('Sleep muscle recovery endocrinological behavioral basis Dattilo'),
+      },
+      {
+        citation: 'Cleveland Clinic. Delayed Onset Muscle Soreness (DOMS): What It Is & Treatment. Updated December 19, 2025.',
+        url: 'https://my.clevelandclinic.org/health/diseases/delayed-onset-muscle-soreness',
+      },
+      {
+        citation: 'CDC/NIOSH. Signs and Symptoms of Rhabdomyolysis. Updated October 28, 2026.',
+        url: 'https://www.cdc.gov/niosh/rhabdo/signs-symptoms/',
       },
     ],
   },

@@ -425,6 +425,8 @@ const medicalLd = {
             <strong>Medical disclaimer:</strong>{' '}
             {tool.slug === 'vitamin-d-sun-calculator'
               ? 'This tool summarizes your inputs and provides general sun-safety information. It does not calculate vitamin D production, diagnose deficiency, or prescribe a safe UV dose. Consult a qualified healthcare professional about your health.'
+              : tool.slug === 'recovery-time-calculator'
+              ? 'This site-defined recovery planning model does not measure muscle healing or provide a validated return-to-training time. Severe pain that limits normal movement needs professional assessment; seek urgent care for serious symptoms.'
               : 'This calculator is for general information and education only and is not medical advice, diagnosis, or treatment. Results are estimates based on population formulas. Always consult a qualified healthcare professional about your health.'}
           </p>
         </aside>
@@ -443,7 +445,9 @@ const medicalLd = {
         <strong>Not medical advice.</strong>{' '}
         {tool.slug === 'vitamin-d-sun-calculator'
           ? 'This printed summary does not measure vitamin D or prescribe a safe UV dose. Consult a qualified healthcare professional about your health.'
-          : `This result is an educational estimate from ${SITE.name} (${SITE.tagline}), based on population formulas — not a diagnosis or treatment. Always consult a qualified healthcare professional about your health.`}
+          : tool.slug === 'recovery-time-calculator'
+          ? `This printed summary from ${SITE.name} (${SITE.tagline}) is based on a site-defined recovery-planning heuristic, not population norms, a validated healing timeline or medical clearance.`
+          : `This result is an educational estimate from ${SITE.name} (${SITE.tagline}), based on population formulas — not a diagnosis or treatment. Always consult a qualified healthcare professional about your health.`
       </p>
       <p class="print-sheet-foot__url">{pageUrl}</p>
     </div>
