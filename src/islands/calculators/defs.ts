@@ -965,7 +965,7 @@ export const DEFS: Record<string, CalcDef> = {
   // ---- Metabolic Age (illustrative, BMR-based) ----
   'metabolic-age-calculator': {
     slug: 'metabolic-age-calculator',
-    heading: 'Estimate your metabolic age',
+    heading: 'Explore an illustrative BMR-based age',
     hasSex: true,
     fields: [F.weight(72), F.height(175), F.age(30)],
     compute: ({ vals, sex }) => {
@@ -976,23 +976,19 @@ export const DEFS: Record<string, CalcDef> = {
       let metAge = Math.round(vals.age - diff / 40);
       metAge = Math.max(vals.age - 12, Math.min(vals.age + 12, metAge));
       metAge = Math.max(16, Math.min(90, metAge));
-      const delta = metAge - vals.age;
-      const cat = delta <= -3 ? { label: 'Younger than your age', color: C.green }
-        : delta >= 3 ? { label: 'Older than your age', color: C.amber }
-        : { label: 'About your age', color: C.teal };
+
       return {
         ok: true,
-        primaryLabel: 'Estimated metabolic age',
+        primaryLabel: 'Illustrative BMR-age index (not health)',
         primaryValue: `${metAge} years`,
-        category: cat,
-        visual: { kind: 'split', aLabel: 'Real age', aValue: vals.age, bLabel: 'Metabolic age', bValue: metAge, aColor: C.slate, bColor: delta <= 0 ? C.green : C.amber, unit: 'yrs' },
+        visual: { kind: 'none' },
         rows: [
           { label: 'Your BMR (Mifflin-St Jeor)', value: `${fmt(userBMR, 0)} kcal/day`, strong: true },
-          { label: `Typical BMR around age ${fmt(vals.age, 0)}`, value: `${fmt(avgForAge, 0)} kcal/day` },
+          { label: `Custom illustrative reference for age ${fmt(vals.age, 0)}`, value: `${fmt(avgForAge, 0)} kcal/day` },
           { label: 'Difference', value: `${diff >= 0 ? '+' : ''}${fmt(diff, 0)} kcal/day` },
         ],
-        callout: { tone: 'info', text: 'This is a simplified, illustrative estimate — not a medical measurement. It compares your BMR with a rough average for your age: a higher BMR maps to a "younger" number. Muscle and activity raise BMR, but body size also influences it, so read this as a fun motivator, not a diagnosis.' },
-        note: 'Method: we calculate your Basal Metabolic Rate with the Mifflin-St Jeor equation, then compare it to a typical BMR for your age and sex and map the gap onto an illustrative age (capped at ±12 years). Building muscle and staying active raise your BMR — see the BMR and Calorie calculators for the underlying numbers.',
+        callout: { tone: 'info', text: 'This fictional age index is not a validated measurement of biological age, metabolic health or fitness. Increasing body weight alone can yield a younger-looking result without improving health. Do not use the age number to guide weight, food or treatment decisions.' },
+        note: 'Mifflin-St Jeor predicts resting energy needs from weight, height, age and sex. Male reference 1700 - 6 × (age - 25), female reference 1400 - 5 × (age - 25), and 40 kcal per model year are custom illustrative constants, not validated age-specific population norms. Body size itself changes predicted BMR; a lower displayed age is not better health.',
       };
     },
   },

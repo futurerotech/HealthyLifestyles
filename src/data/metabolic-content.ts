@@ -22,47 +22,47 @@ const DGA_ALCOHOL: Source = {
 export const METABOLIC_CONTENT: Record<string, ToolContent> = {
   // ============================================================
   'metabolic-age-calculator': {
-    seoTitle: 'Metabolic Age Calculator (Free Estimate)',
+    seoTitle: 'Metabolic Age Calculator (BMR Illustration)',
     metaDescription:
-      'Estimate your metabolic age from your BMR versus the average for your age — an illustrative fitness estimate, not a medical measurement. Free.',
+      'See a fictional BMR-based age index with transparent assumptions. It does not measure metabolic health or biological age.',
     intro:
-      'Curious how your metabolism compares to your real age? This tool estimates a "metabolic age" from your Basal Metabolic Rate (BMR). It’s a fun, illustrative number — not a medical measurement.',
+      'This tool converts predicted resting energy use into an illustrative age index. A lower number does not prove better health or fitness, and it is not a medical measurement.',
     notice:
-      'A simplified, illustrative estimate popularized by the fitness industry — not a medical measurement. It is based only on BMR and body size, so read it as motivation, not a diagnosis.',
+      'An unvalidated consumer-fitness index only. Increasing weight by itself can lower the number without improving health. Never treat it as a diagnosis or a goal for weight changes.',
     sections: [
       {
         h2: 'What is "metabolic age"?',
         paragraphs: [
-          'Metabolic age is a consumer-fitness concept (you’ll see it on smart scales) that compares your metabolism to the average for different ages. The idea: if your body burns more energy at rest than is typical for your age, your "metabolic age" is younger than your real age — and if it burns less, it’s older.',
-          'It is not a clinical measurement and has no formal medical definition. Treat it as a friendly motivator, not a health verdict.',
+          'Metabolic age is a consumer-fitness term used by some smart scales. There is no universal clinical scale that turns resting energy expenditure into biological age or cardiometabolic risk.',
+          'A favorable-looking result is not evidence of better metabolic health; use proven clinical measurements and lifestyle goals instead.',
         ],
       },
       {
         h2: 'How we estimate it (transparently)',
         paragraphs: [
-          'We calculate your Basal Metabolic Rate using the well-validated Mifflin-St Jeor equation from your height, weight, age and sex. We then compare that BMR to a typical BMR for your age and sex, and map the gap onto an age — a higher BMR points to a younger estimate. To keep it honest and non-alarmist, the result is capped to within ±12 years of your real age.',
-          'An important caveat: because BMR rises with body size, simply being larger can lower the estimate. Real metabolic health is driven much more by muscle mass, activity and overall fitness than by a single number.',
+          'We predict resting energy expenditure with the Mifflin-St Jeor equation and compare it with custom age-and-sex reference constants. An arbitrary 40 kcal/day difference becomes one model year, with the age result capped near your actual age. These reference values and the age mapping are not validated clinical or population age standards.',
+          'Increasing body weight can mechanically increase predicted BMR and make this age index look younger, without proving improved metabolic health. The [Obesity Medicine Association review](https://pmc.ncbi.nlm.nih.gov/articles/PMC10661987/) documents the effects of body mass and composition on resting energy expenditure.',
         ],
       },
       {
-        h2: 'How to actually improve your metabolism',
+        h2: 'What matters more than an age index',
         list: {
           items: [
-            'Build muscle with resistance training — muscle is more metabolically active than fat.',
-            'Stay active daily (NEAT) — steps, standing, and moving all add up.',
-            'Eat enough protein to support and maintain muscle.',
-            'Prioritize sleep and manage stress, which influence appetite and energy.',
+            'Maintain functional strength with resistance training appropriate to your abilities; do not aim to change a fictional age value.',
+            'Stay active regularly as your health permits, independent of the age number displayed above.',
+            'Get adequate nutrition and protein for your needs, with clinical guidance when necessary.',
+            'Prioritize sleep, stress management and overall health rather than a model output.',
           ],
         },
       },
     ],
     faq: [
-      { q: 'Is metabolic age a real medical measurement?', a: 'No. It’s a consumer-fitness concept with no formal clinical definition. This tool gives an illustrative estimate from your BMR — useful as motivation, not as a diagnosis.' },
-      { q: 'How is metabolic age calculated here?', a: 'We compute your BMR with the Mifflin-St Jeor equation, compare it to a typical BMR for your age and sex, and map the difference onto an age (capped at ±12 years of your real age).' },
-      { q: 'How can I lower my metabolic age?', a: 'Build and keep muscle through resistance training, stay active throughout the day, eat enough protein, and sleep well. These raise or protect your BMR over time.' },
-      { q: 'Why is my metabolic age younger when I weigh more?', a: 'BMR rises with body size, so a larger body can produce a higher BMR and a "younger" estimate. This is a known limitation of BMR-based metabolic age — it doesn’t measure body composition.' },
+      { q: 'Is metabolic age a real medical measurement?', a: 'No. This is an unvalidated index derived from predicted BMR and custom comparison constants, not a clinical age or metabolic health measurement.' },
+      { q: 'How is metabolic age calculated here?', a: 'We estimate BMR, compare it with custom sex/age constants, then divide the difference by 40 kcal/day per model year. This is not a validated age standard.' },
+      { q: 'Should I try to lower my metabolic age?', a: 'No health benefit is established from lowering this unvalidated number. Focus on appropriate activity, nutrition, sleep and individual health measurements instead.' },
+      { q: 'Why is my metabolic age younger when I weigh more?', a: 'Body size affects predicted BMR; added weight can produce a younger-looking result without better metabolic health. This index does not measure body composition or disease risk.' },
     ],
-    sources: [MIFFLIN],
+    sources: [MIFFLIN, { citation: 'Obesity Medicine Association. Clinical Practice Statement: Energy Expenditure (2022).', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10661987/' }, { citation: 'National Academies. Dietary Reference Intakes for Energy (2023), factors affecting resting energy expenditure.', url: 'https://www.ncbi.nlm.nih.gov/books/NBK591031/' }],
   },
   // ============================================================
   'alcohol-calorie-calculator': {

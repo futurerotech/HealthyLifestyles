@@ -478,7 +478,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'metabolic-age-calculator',
     title: 'Metabolic Age Calculator',
-    blurb: 'Estimate your metabolic age from your BMR vs the average for your age (illustrative).',
+    blurb: 'Explore an illustrative BMR-age index, not a measure of metabolic health.',
     category: 'metabolic',
     icon: 'gauge',
     gradient: 'teal',
