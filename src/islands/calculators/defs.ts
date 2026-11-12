@@ -2343,45 +2343,38 @@ export const DEFS: Record<string, CalcDef> = {
   // ---- Waist-based Health Risk ----
   'waist-health-risk-calculator': {
     slug: 'waist-health-risk-calculator',
-    heading: 'Check your waist-based risk',
+    heading: 'Review BMI and waist-to-height ratio',
     hasSex: false,
     fields: [F.weight(78), F.height(172), F.waist(92)],
     compute: ({ vals, units }) => {
       const m = vals.height / 100;
       const bmi = vals.weight / (m * m);
       const whtr = vals.waist / vals.height;
-      const bmiScore = bmi < 25 ? 0 : bmi < 30 ? 1 : bmi < 35 ? 2 : 3;
-      const whtrScore = whtr < 0.5 ? 0 : whtr < 0.6 ? 1 : 2;
-      const total = bmiScore + whtrScore;
-      const bands = [
-        { label: 'Low', color: C.green },
-        { label: 'Increased', color: C.amber },
-        { label: 'High', color: C.red },
-        { label: 'Very high', color: '#b91c1c' },
-      ];
-      const idx = total === 0 ? 0 : total <= 2 ? 1 : total <= 4 ? 2 : 3;
-      const band = bands[idx];
       const lowKg = 18.5 * m * m;
       const highKg = 24.9 * m * m;
       const waistTarget = units === 'metric' ? `${fmt(vals.height / 2, 0)} cm` : `${fmt(vals.height / 2 / 2.54, 0)} in`;
+      // NICE waist-to-height classifications apply to adults with BMI below 35.
+      // They are not a validated combined BMI/waist disease-risk score.
+      const waistGuidance = bmi >= 35
+        ? 'NICE waist-to-height categories are not recommended as a standalone classification at BMI 35 or above; seek individualized assessment.'
+        : whtr >= 0.6
+          ? 'NICE guidance: high central adiposity (ratio 0.6 or above); consider professional health assessment.'
+          : whtr >= 0.5
+            ? 'NICE guidance: increased central adiposity (ratio 0.5–0.59); consider professional health assessment.'
+            : 'Ratio under 0.5 meets the usual waist-under-half-height advice, but cannot rule out health risks.';
       return {
         ok: true,
-        primaryLabel: 'Your BMI',
+        primaryLabel: 'Your BMI (kg/m²)',
         primaryValue: fmt(bmi, 1),
-        category: { label: `${band.label} risk`, color: band.color },
-        visual: {
-          kind: 'zones',
-          items: bands.map((b, i) => ({ label: `${b.label} risk`, detail: '', color: b.color, active: i === idx })),
-        },
-        callout: idx >= 2
-          ? { tone: 'warn', text: 'Your combined measurements suggest higher health risk. This is not a diagnosis — please talk to your doctor about your weight and waist.' }
-          : undefined,
+        visual: { kind: 'none' },
+        callout: { tone: 'info', text: 'BMI and waist-to-height ratio are screening measurements, not a diagnosis or a validated combined disease-risk score. A lower value does not rule out cardiovascular or metabolic conditions. BMI is limited in muscular adults and some age and ancestry groups; ask a healthcare professional if you have concerns.' },
         rows: [
           { label: 'Waist-to-height ratio', value: fmt(whtr, 2), strong: true },
-          { label: 'Healthy weight for height', value: `${fmtMass(lowKg, units, 0)} – ${fmtMass(highKg, units, 0)}` },
-          { label: 'Keep waist under', value: waistTarget },
+          { label: 'Waist-to-height interpretation', value: waistGuidance },
+          { label: 'BMI reference weight range (18.5–24.9)', value: `${fmtMass(lowKg, units, 0)} – ${fmtMass(highKg, units, 0)}` },
+          { label: 'Waist under half your height', value: waistTarget },
         ],
-        note: 'Combines BMI with waist-to-height ratio. This is an educational estimate, not a diagnosis — see a doctor for a proper assessment.',
+        note: 'This tool displays BMI and waist-to-height ratio individually. It does not use a validated four-level combined health-risk model. NICE recommends assessing the ratio alongside BMI in adults with BMI below 35; a clinician must consider the full health picture.',
       };
     },
   },

@@ -661,7 +661,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'waist-health-risk-calculator',
     title: 'Waist-Based Health Risk',
-    blurb: 'Combine your BMI and waist-to-height ratio into a risk-level explainer.',
+    blurb: 'Calculate BMI and waist-to-height ratio separately, with evidence-based measurement guidance.',
     category: 'health-risk',
     icon: 'ruler',
     gradient: 'amber',

@@ -195,55 +195,59 @@ export const RISK_CONTENT: Record<string, ToolContent> = {
   },
   // ============================================================
   'waist-health-risk-calculator': {
-    seoTitle: 'Waist-Based Health Risk Calculator',
+    seoTitle: 'BMI and Waist-to-Height Ratio Calculator',
     metaDescription:
-      'Combine your BMI and waist-to-height ratio into a clear, educational health-risk level. Free, metric or imperial — not a medical diagnosis.',
+      'Calculate BMI and waist-to-height ratio side by side. Learn what each measure means and its limits, without an unvalidated combined risk score.',
     intro:
-      'BMI and waist size each tell part of the story; together they paint a fuller picture. Enter your measurements to see a combined, educational risk level — and what it means.',
-    notice: NOTICE,
+      'BMI and waist-to-height ratio describe different aspects of body size. Compare both measurements and learn when a healthcare professional can help interpret them; this calculator does not predict your personal disease risk.',
+    notice:
+      'Educational body measurements only, not a medical diagnosis or a validated heart-disease/diabetes risk score. A lower BMI or waist-to-height ratio cannot rule out health conditions.',
     sections: [
       {
-        h2: 'Why combine BMI and waist?',
+        h2: 'Why look at both BMI and waist-to-height ratio?',
         paragraphs: [
-          'BMI compares your weight to your height, but it can’t tell muscle from fat or show where fat is stored. Waist-to-height ratio fills that gap by flagging abdominal (visceral) fat — the type most strongly linked to heart disease and type 2 diabetes.',
-          'Using both is more informative than either alone. Someone with a "normal" BMI but a large waist can still carry elevated risk, while a muscular person with a high BMI but a trim waist may not. This tool blends the two into a single, easy-to-read level.',
+          'BMI compares body weight with height, but it does not measure body fat or distinguish muscle from fat. Waist-to-height ratio gives another practical measurement related to central adiposity; it does not directly measure visceral fat or determine your medical risk.',
+          'The [NICE overweight and obesity guideline](https://www.nice.org.uk/guidance/ng246/chapter/Identifying-and-assessing-overweight-obesity-and-central-adiposity) recommends using waist-to-height ratio alongside BMI in adults with BMI below 35. These are separate measures, not a validated combined four-level risk score.',
         ],
       },
       {
-        h2: 'Reading your risk level',
+        h2: 'Understanding the measurements',
         list: {
-          intro: 'Your level reflects how far your BMI and waist-to-height ratio each sit above the healthy range:',
+          intro: 'Interpret both values in context, rather than treating a custom combined band as a clinical prediction:',
           items: [
-            'Low — BMI under 25 and waist under half your height.',
-            'Increased — one measure is moderately raised.',
-            'High — both measures are raised, or one is substantially so.',
-            'Very high — both BMI and waist are well above healthy levels.',
+            'BMI is a weight-for-height measure, not a direct measurement of fat distribution or a diagnosis.',
+            'For adults with BMI below 35, NICE describes waist-to-height ratio 0.4–0.49 as healthy central adiposity, 0.5–0.59 as increased, and 0.6 or above as high central adiposity.',
+            'The simple waist guidance is to keep waist circumference below half of height, but a low ratio does not rule out all cardiometabolic risk.',
+            'The NICE ratio classifications are not intended as a stand-alone classification when adult BMI is 35 or above; seek individualized clinical assessment.',
           ],
         },
       },
       {
-        h2: 'What to do with the result',
+        h2: 'What to do with your results',
         paragraphs: [
-          'A higher level is a prompt to look at habits, not a verdict on your health. Even modest changes help: losing 5–10% of body weight, trimming your waist, moving more and improving diet quality all lower risk meaningfully.',
-          'Crucially, this is a screening-style estimate, not a diagnosis. Many things this tool can’t see — blood pressure, cholesterol, blood sugar, family history and fitness — shape your true risk. Share any concerns with your doctor, who can run the right checks.',
+          'Changes to physical activity, nutrition and other behaviors may support cardiovascular and metabolic health. Health goals should fit your medical history and circumstances rather than a single body measurement.',
+          'Blood pressure, glucose, cholesterol, family history and other factors affect health independently of these measurements. A clinician can interpret your waist measurement, BMI and individual risks; do not treat these results as a diagnosis or a guaranteed safe range.',
         ],
       },
     ],
     faq: [
       {
-        q: 'Is a high risk level a diagnosis?',
-        a: 'No. This is an educational estimate based on two body measurements. It cannot diagnose any condition. Only a healthcare professional can assess your real health risk.',
+        q: 'Does this calculator measure my heart-disease or diabetes risk?',
+        a: 'No. It calculates BMI and waist-to-height ratio, not a validated combined risk probability. A medical assessment needs additional individual health information.',
       },
       {
-        q: 'Why use waist-to-height instead of waist alone?',
-        a: 'Scaling waist to height makes the measure fairer across different body sizes. The simple guide is to keep your waist under half your height.',
+        q: 'Why measure waist-to-height ratio as well as BMI?',
+        a: 'Waist-to-height ratio adds information about central adiposity that BMI alone cannot directly show. For adults with BMI below 35, NICE recommends assessing both.',
       },
       {
-        q: 'My BMI is fine but my waist is large — should I worry?',
-        a: 'A large waist can signal raised risk even at a normal BMI, because abdominal fat is metabolically harmful. It’s worth discussing with your doctor.',
+        q: 'What if my BMI is lower but my waist-to-height ratio is high?',
+        a: 'Waist-to-height ratio can indicate increased central adiposity even when BMI alone seems reassuring. Discuss concerns and appropriate screening with a healthcare professional.',
       },
     ],
-    sources: [WHO_OBESITY, { citation: 'Ashwell M, Hsieh SD. "Six reasons why the waist-to-height ratio is a rapid and effective global indicator for health risks of obesity." Int J Food Sci Nutr. 2005;56(5):303–307.', url: pubmed('Six reasons waist-to-height ratio rapid effective global indicator') }],
+    sources: [WHO_OBESITY, {
+      citation: 'NICE NG246 (2025; updated 2026), identifying and assessing overweight, obesity and central adiposity.',
+      url: 'https://www.nice.org.uk/guidance/ng246/chapter/Identifying-and-assessing-overweight-obesity-and-central-adiposity',
+    }],
   },
 
   // ============================================================
