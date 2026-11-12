@@ -2430,7 +2430,7 @@ export const DEFS: Record<string, CalcDef> = {
   // ---- Type 2 Diabetes Risk (educational) ----
   'diabetes-risk-calculator': {
     slug: 'diabetes-risk-calculator',
-    heading: 'Estimate your type 2 diabetes risk',
+    heading: 'Review factors linked to type 2 diabetes',
     hasSex: false,
     fields: [
       F.age(50), F.weight(85), F.height(172), F.waist(96),
@@ -2449,16 +2449,12 @@ export const DEFS: Record<string, CalcDef> = {
       const famP = parseInt(selects.family) || 0;
       const actP = parseInt(selects.activity) || 0;
       const score = ageP + bmiP + waistP + famP + actP;
-      const bands = [{ label: 'Low', color: C.green }, { label: 'Moderate', color: C.amber }, { label: 'High', color: C.red }];
-      const idx = score <= 6 ? 0 : score <= 11 ? 1 : 2;
-      const band = bands[idx];
       return {
         ok: true,
-        primaryLabel: 'Educational risk score',
+        primaryLabel: 'Illustrative diabetes factor points (not screening)',
         primaryValue: `${score} / 18`,
-        category: { label: `${band.label} risk`, color: band.color },
-        visual: { kind: 'zones', items: bands.map((b, i) => ({ label: `${b.label} risk`, detail: '', color: b.color, active: i === idx })) },
-        callout: { tone: 'warn', text: 'This does not diagnose diabetes. Please ask your doctor about a simple blood-sugar screening test (such as HbA1c or fasting glucose) — strongly recommended if your score is moderate or high, or if you have any symptoms.' },
+        visual: { kind: 'none' },
+        callout: { tone: 'info', text: 'These custom points are NOT a validated CDC/ADA prediabetes risk test and cannot diagnose diabetes. Even 0 points cannot rule out elevated blood glucose. Ask your healthcare professional whether A1C or plasma-glucose testing is appropriate, regardless of this total.' },
         rows: [
           { label: 'Age', value: `+${ageP}` },
           { label: 'BMI', value: `+${bmiP} (${fmt(bmi, 1)})` },
@@ -2466,7 +2462,7 @@ export const DEFS: Record<string, CalcDef> = {
           { label: 'Family history', value: `+${famP}` },
           { label: 'Inactivity', value: `+${actP}` },
         ],
-        note: 'An educational, non-diagnostic estimate inspired by tools like FINDRISC. Only a blood test can detect prediabetes or diabetes. Sources: CDC and American Diabetes Association.',
+        note: 'An illustrative checklist, not FINDRISC or the validated CDC/ADA risk test. Its point weights and cutoffs have not been validated for predicting disease. A1C and plasma-glucose testing assess glycemic status; a low tally does not exclude prediabetes or diabetes.',
       };
     },
   },

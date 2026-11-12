@@ -296,50 +296,54 @@ export const RISK_CONTENT: Record<string, ToolContent> = {
 
   // ============================================================
   'diabetes-risk-calculator': {
-    seoTitle: 'Type 2 Diabetes Risk Calculator (Educational)',
+    seoTitle: 'Type 2 Diabetes Factors Checklist (Educational)',
     metaDescription:
-      'An educational type 2 diabetes risk band from age, BMI, waist, family history and activity. Non-diagnostic — get a blood test from your doctor.',
+      'Explore factors linked to type 2 diabetes with illustrative points, not a validated screening risk score. Learn about laboratory testing.',
     intro:
-      'Type 2 diabetes often develops silently over years. This educational tool flags your risk level from a few key factors and points you toward proper screening — it cannot diagnose diabetes.',
-    notice: NOTICE,
+      'Diabetes and prediabetes may have no symptoms. Review five relevant factors as a discussion aid, not a validated disease-risk category or a substitute for laboratory testing.',
+    notice:
+      'Illustrative points only — not the validated CDC/ADA risk test and not a diagnosis. A tally of 0 does not rule out prediabetes or diabetes. Ask a healthcare professional about screening based on your health, symptoms and risk factors.',
     sections: [
       {
-        h2: 'How the estimate works',
+        h2: 'How the illustrative checklist works',
         paragraphs: [
-          'It scores five factors strongly linked to type 2 diabetes: age, BMI, waist-to-height ratio, family history, and physical activity. The total places you in a low, moderate or high band, and the breakdown shows each factor’s contribution.',
-          'The approach is inspired by validated screening questionnaires such as FINDRISC, but it is simplified for education and is not the official test. It does not measure blood sugar — and only a blood test can.',
+          'This checklist adds custom points for age, BMI, waist-to-height ratio, family history and activity. The weights and total are illustrative only; they do not correspond to validated low, moderate or high risk categories. Review each factor rather than relying on the tally.',
+          'The [CDC/ADA validated prediabetes risk test](https://www.cdc.gov/diabetes/widgets/risktest/how-your-test-is-scored.html) uses different questions, points and thresholds. This checklist is not that test, does not measure blood glucose and cannot establish disease probability. A1C or plasma-glucose testing evaluates glycemic status.',
         ],
       },
       {
         h2: 'Why screening matters',
         paragraphs: [
-          'Up to a third of people with type 2 diabetes don’t know they have it, and many more have prediabetes — higher-than-normal blood sugar that often has no symptoms. Caught early, prediabetes can frequently be reversed through diet, activity and weight loss.',
-          'If your band is moderate or high, we strongly recommend asking your doctor for a simple blood test such as HbA1c or fasting glucose. It’s quick, and knowing early gives you the best chance to act.',
+          'Prediabetes often has no clear symptoms; a reassuring checklist total cannot exclude it. The [CDC](https://www.cdc.gov/prediabetes/risktest/about-the-test.html) recommends appropriate screening, while evidence-based lifestyle programs can help prevent or delay type 2 diabetes.',
+          'Ask a healthcare professional about A1C or fasting-plasma-glucose testing when recommended for your age, history, symptoms or clinical risk factors, regardless of this checklist total.',
         ],
       },
       {
         h2: 'Lowering your risk',
         paragraphs: [
-          'Risk factors like age and family history can’t be changed, but the most powerful ones can. Losing even 5–7% of body weight, being active for about 150 minutes a week, and eating more fibre and fewer refined carbohydrates substantially cut the risk of developing type 2 diabetes.',
-          'This tool is a nudge toward those habits and toward a conversation with your doctor — not a diagnosis. Whatever your score, a professional screening is the only way to know your actual blood-sugar status.',
+          'Age and family history cannot be changed, but prevention can still help. For adults with excess weight and elevated diabetes risk, evidence-based programs often target 5–7% sustained weight reduction and at least 150 minutes per week of moderate physical activity, adjusted to individual needs.',
+          'This checklist is a conversation aid, not a diagnosis or a validated screening result. Laboratory testing may be needed even if its tally is low; follow clinical screening recommendations.',
         ],
       },
     ],
     faq: [
       {
         q: 'Can this calculator diagnose diabetes?',
-        a: 'No. It is an educational risk estimate only. Diabetes and prediabetes can only be detected with a blood test ordered by a healthcare professional.',
+        a: 'No. These are illustrative points, not the validated CDC/ADA risk test. Diabetes and prediabetes are assessed using laboratory A1C or plasma-glucose criteria.',
       },
       {
         q: 'What blood test should I ask for?',
-        a: 'Common screening tests are HbA1c (average blood sugar) and fasting plasma glucose. Your doctor will advise which is right for you, especially if your risk band is moderate or high.',
+        a: 'Common screening tests are A1C and fasting plasma glucose. Your clinician can advise which is appropriate based on your health and screening guidance; a low checklist tally cannot exclude the need for testing.',
       },
       {
         q: 'Can type 2 diabetes risk be reduced?',
-        a: 'Yes. Modest weight loss, regular activity and a higher-fibre, lower-refined-carb diet markedly reduce risk, and can even reverse prediabetes when caught early.',
+        a: 'Evidence-based lifestyle changes, including physical activity and weight management when indicated, can prevent or delay type 2 diabetes in people at elevated risk. Ask a clinician about screening and individual prevention options.',
       },
     ],
-    sources: [CDC_DIABETES, ADA],
+    sources: [CDC_DIABETES, ADA,
+      { citation: 'CDC. How Your Prediabetes Risk Test Is Scored.', url: 'https://www.cdc.gov/diabetes/widgets/risktest/how-your-test-is-scored.html' },
+      { citation: 'ADA. Standards of Care in Diabetes—2026: Diagnosis and Classification.', url: 'https://doi.org/10.2337/dc26-s002' },
+    ],
   },
 
   // ============================================================

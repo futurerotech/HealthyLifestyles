@@ -681,7 +681,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'diabetes-risk-calculator',
     title: 'Type 2 Diabetes Risk (Educational)',
-    blurb: 'A non-diagnostic diabetes risk band — and why to get screened.',
+    blurb: 'An educational diabetes-factor checklist, not a validated clinical risk category.',
     category: 'health-risk',
     icon: 'droplet',
     gradient: 'amber',
