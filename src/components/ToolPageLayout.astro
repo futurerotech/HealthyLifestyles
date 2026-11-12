@@ -40,6 +40,7 @@ import { getArticlesForTool, resolveAuthor } from '../lib/cms';
 import type { Tool } from '../data/tools';
 import { getAffiliates } from '../data/affiliates';
 import type { ToolContent } from '../data/content-types';
+import { renderInline } from '../lib/text';
 
 interface Props {
   tool: Tool;
@@ -68,7 +69,17 @@ const RESULT_AUTHORITY: Record<string, string> = {
   'heart-vitals': ' Categories follow the American Heart Association (AHA).',
   'health-risk': ' Based on CDC and World Health Organization (WHO) guidance — only a clinician can assess your real risk.',
 };
-const resultAuthority = RESULT_AUTHORITY[tool.category] ?? '';
+const customEducationalIndexTools = new Set([
+  'waist-health-risk-calculator',
+  'heart-disease-risk-calculator',
+  'diabetes-risk-calculator',
+  'metabolic-age-calculator',
+]);
+// These custom calculations are not validated clinical scores, regardless of
+// whether individual underlying measurements appear in CDC/WHO guidance.
+const resultAuthority = customEducationalIndexTools.has(tool.slug)
+  ? ' The result is an illustrative index, not a CDC/WHO-endorsed clinical risk classification.'
+  : RESULT_AUTHORITY[tool.category] ?? '';
 
 // Which calculator island powers this tool — the ONE shared mapping in
 // lib/toolEngine.ts (this used to be a duplicated inline ternary chain, and
@@ -338,7 +349,7 @@ const medicalLd = {
           content.sections.map((s) => (
             <section class="prose">
               <h2>{s.h2}</h2>
-              {s.paragraphs?.map((p) => <p>{p}</p>)}
+              {s.paragraphs?.map((p) => <p set:html={renderInline(p)} />)}
               {s.list && (
                 <>
                   {s.list.intro && <p>{s.list.intro}</p>}

@@ -25,7 +25,8 @@ const escapeHtml = (s: string): string =>
 /**
  * Render a trusted inline string: escapes HTML, then re-enables `**bold**` and
  * `[label](href)` links. Internal links (starting with `/`) stay followable;
- * external links get `target=_blank rel="noopener nofollow"`.
+ * ordinary editorial external links get `target=_blank rel="noopener noreferrer"`.
+ * Affiliate/sponsored links are rendered separately with their required rel.
  */
 export function renderInline(md: string): string {
   let s = escapeHtml(md);
@@ -37,7 +38,7 @@ export function renderInline(md: string): string {
     } catch { return label; }
     href = normalizeInternalHref(href);
     const external = /^https?:\/\//.test(href);
-    const attrs = external ? ' target="_blank" rel="noopener nofollow"' : '';
+    const attrs = external ? ' target="_blank" rel="noopener noreferrer"' : '';
     return `<a href="${href}"${attrs}>${label}</a>`;
   });
   return s;
