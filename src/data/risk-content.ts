@@ -248,18 +248,18 @@ export const RISK_CONTENT: Record<string, ToolContent> = {
 
   // ============================================================
   'heart-disease-risk-calculator': {
-    seoTitle: 'Heart Disease Risk Calculator (Educational)',
+    seoTitle: 'Heart Disease Risk Factors Checklist (Educational)',
     metaDescription:
-      'An educational, lifestyle-based heart disease risk estimate from age, smoking, activity, BMI and blood pressure. Not a diagnosis — see your doctor.',
+      'Review five heart-health factors using illustrative points, not a validated heart disease risk score. Ask your clinician about AHA PREVENT.',
     intro:
-      'Several everyday factors shape your heart health. This educational tool turns them into a simple risk band, with guidance on what helps — it is not a clinical risk score or a diagnosis.',
-    notice: NOTICE,
+      'Explore five factors associated with cardiovascular health using an illustrative point tally. It does not classify your personal heart disease risk or predict cardiovascular events.',
+    notice: 'Educational factor checklist only. The point total does NOT measure personal risk of heart disease, stroke or heart failure. A low tally cannot rule out cardiovascular disease or replace clinical assessment.',
     sections: [
       {
         h2: 'What this tool does',
         paragraphs: [
-          'It adds up points from five well-established lifestyle factors — age, smoking, physical activity, BMI and blood pressure — to place you in a low, moderate or elevated band. The breakdown shows how each factor contributes, so you can see what’s driving the result.',
-          'This is deliberately simple and for education only. It is not the Framingham Risk Score, the ASCVD estimator, or any validated clinical tool — those also use cholesterol, diabetes status and other data, and should be run by a clinician.',
+          'This checklist adds illustrative points for age, smoking, physical activity, BMI and a broad blood-pressure category. The weights and total are not validated cardiovascular predictions, and no point cutoff can classify medical risk. Review the individual factors rather than interpreting the tally as a diagnosis or percentage.',
+          'The [American Heart Association PREVENT calculator](https://professional.heart.org/en/guidelines-and-statements/prevent-calculator) uses clinical measurements including sex, measured systolic blood pressure, cholesterol, kidney function, BMI, diabetes, smoking and medication status. This checklist lacks these inputs and cannot substitute for a validated risk estimate.',
         ],
       },
       {
@@ -272,26 +272,26 @@ export const RISK_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'Lowering your risk',
         paragraphs: [
-          'If your band is moderate or elevated, the good news is that most heart disease risk is modifiable. Not smoking, moving more, eating more whole foods and less salt, and keeping blood pressure in range can dramatically cut your real risk over time.',
-          'Because this estimate leaves out key clinical data, treat it as a conversation-starter. Ask your doctor for a proper cardiovascular risk assessment, including a blood-pressure check and a cholesterol (lipid) test.',
+          'Regardless of checklist points, avoiding tobacco, being active, choosing nutritious foods and managing blood pressure are useful preventive steps. A low tally is not proof that no further assessment is needed.',
+          'This checklist cannot estimate 10-year or 30-year risk. Ask your clinician whether a formal cardiovascular assessment is appropriate, especially with personal risk factors, a family history or symptoms.',
         ],
       },
     ],
     faq: [
       {
         q: 'Is this a real heart disease risk score?',
-        a: 'No. It’s an educational, simplified estimate. Clinical scores such as Framingham or ASCVD also use cholesterol and other data and must be run by a healthcare professional.',
+        a: 'No. The checklist points are neither a probability nor validated clinical categories. AHA PREVENT requires additional clinical measurements and supports conversations with healthcare professionals.',
       },
       {
         q: 'What’s the single best thing I can do for my heart?',
         a: 'If you smoke, quitting has the biggest impact. Otherwise, regular activity, a healthy weight, good diet and controlled blood pressure all strongly protect your heart.',
       },
       {
-        q: 'Should I see a doctor if my result is elevated?',
-        a: 'Yes. An elevated educational band is a good reason to ask your doctor for a full cardiovascular check, including blood pressure and cholesterol testing.',
+        q: 'Can a low point tally rule out heart disease risk?'
+        a: 'No. Even a tally of 0 out of 12 cannot rule out cardiovascular disease. Discuss individual assessment with your clinician; the checklist omits important factors and measurements.',
       },
     ],
-    sources: [CDC_HEART, AHA_LE8],
+    sources: [CDC_HEART, AHA_LE8, { citation: 'American Heart Association. PREVENT Equations and required clinical inputs.', url: 'https://professional.heart.org/en/guidelines-and-statements/prevent-calculator' }],
   },
 
   // ============================================================

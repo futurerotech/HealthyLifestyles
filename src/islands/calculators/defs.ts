@@ -2389,7 +2389,7 @@ export const DEFS: Record<string, CalcDef> = {
   // ---- Heart Disease Risk (educational) ----
   'heart-disease-risk-calculator': {
     slug: 'heart-disease-risk-calculator',
-    heading: 'Estimate your heart disease risk',
+    heading: 'Review heart-health factors',
     hasSex: false,
     fields: [
       F.age(50), F.weight(82), F.height(172),
@@ -2409,16 +2409,12 @@ export const DEFS: Record<string, CalcDef> = {
       const bmiP = bmi < 25 ? 0 : bmi < 30 ? 1 : 2;
       const bpP = parseInt(selects.bp) || 0;
       const score = ageP + smokeP + actP + bmiP + bpP;
-      const bands = [{ label: 'Lower', color: C.green }, { label: 'Moderate', color: C.amber }, { label: 'Elevated', color: C.red }];
-      const idx = score <= 3 ? 0 : score <= 7 ? 1 : 2;
-      const band = bands[idx];
       return {
         ok: true,
-        primaryLabel: 'Educational risk score',
+        primaryLabel: 'Illustrative checklist points (not clinical risk)',
         primaryValue: `${score} / 12`,
-        category: { label: `${band.label} risk`, color: band.color },
-        visual: { kind: 'zones', items: bands.map((b, i) => ({ label: `${b.label} risk`, detail: '', color: b.color, active: i === idx })) },
-        callout: { tone: idx === 2 ? 'warn' : 'info', text: 'This is an educational estimate, not a diagnosis or a clinical risk score. Talk to your doctor, who can assess your real heart disease risk and check your cholesterol and blood pressure.' },
+        visual: { kind: 'none' },
+        callout: { tone: 'info', text: 'These are unvalidated checklist points, NOT your chance of developing heart disease. Even 0 points cannot rule out cardiovascular disease. This tool omits cholesterol, diabetes, kidney function, blood-pressure medication use and other clinical inputs. Ask your healthcare professional about a validated cardiovascular risk assessment.' },
         rows: [
           { label: 'Age', value: `+${ageP}` },
           { label: 'Smoking', value: `+${smokeP}` },
@@ -2426,7 +2422,7 @@ export const DEFS: Record<string, CalcDef> = {
           { label: 'BMI', value: `+${bmiP} (${fmt(bmi, 1)})` },
           { label: 'Blood pressure', value: `+${bpP}` },
         ],
-        note: 'A simple lifestyle-based estimate for education only — it is not the Framingham or any clinical score. Not smoking, staying active, and managing blood pressure and weight all lower real risk. Sources: CDC and American Heart Association.',
+        note: 'Point weights are for self-reflection, not a validated cardiovascular risk model, percentage, low-risk clearance or AHA PREVENT estimate. Clinical assessment requires more measured information. Not smoking, physical activity and healthy blood pressure support cardiovascular health.',
       };
     },
   },

@@ -671,7 +671,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'heart-disease-risk-calculator',
     title: 'Heart Disease Risk (Educational)',
-    blurb: 'An educational lifestyle-based heart risk estimate — not a diagnosis.',
+    blurb: 'Review five heart-health factors using illustrative points, not a validated clinical risk estimate.',
     category: 'health-risk',
     icon: 'heart',
     gradient: 'amber',
