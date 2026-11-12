@@ -43,5 +43,20 @@ test('custom risk and metabolic index tools cannot claim external validation', (
     assert.ok(layout.includes("'"+slug+"'"), slug);
   }
   assert.match(layout, /not a CDC\/WHO-endorsed clinical risk classification/);
-  assert.match(layout, /customEducationalIndexTools\.has\(tool\.slug\)/);
+  assert.match(layout, /medicalSafetyOverrideSlugs\.has\(tool\.slug\)/);
+});
+
+test('four safety-reviewed tools use corrected source SEO while other tools keep CMS precedence', () => {
+  const layout = source('src/components/ToolPageLayout.astro');
+  assert.match(layout, /const medicalSafetyOverrideSlugs = new Set\(\[/);
+  assert.match(layout, /seoTitle: medicalSafetyOverrideSlugs\.has\(tool\.slug\)/);
+  assert.match(layout, /metaDescription: medicalSafetyOverrideSlugs\.has\(tool\.slug\)/);
+  assert.match(layout, /tool\.seo\?\.metaTitle \|\| Astro\.props\.content\.seoTitle/);
+  assert.match(layout, /tool\.seo\?\.metaDescription \|\| Astro\.props\.content\.metaDescription/);
+});
+
+test('the clinical disclaimer and SEO override use one identical audited slug set', () => {
+  const layout = source('src/components/ToolPageLayout.astro');
+  assert.match(layout, /const resultAuthority = medicalSafetyOverrideSlugs\.has\(tool\.slug\)/);
+  assert.equal((layout.match(/medicalSafetyOverrideSlugs = new Set/g) ?? []).length, 1);
 });

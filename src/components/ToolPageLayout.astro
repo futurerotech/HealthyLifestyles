@@ -49,7 +49,27 @@ interface Props {
 }
 
 const { tool, stylesheet } = Astro.props;
-const content = { ...Astro.props.content, ...tool.cmsContent, ...(tool.cmsContent?.sections ? { directAnswer: undefined } : {}), seoTitle: tool.seo?.metaTitle || Astro.props.content.seoTitle, metaDescription: tool.seo?.metaDescription || Astro.props.content.metaDescription };
+// The four medically sensitive custom indices are under a draft correction.
+// Their current public CMS SEO titles/descriptions predate the corrected
+// source copy; use the authored safe strings until separately approved CMS
+// records can be reviewed. Preserve normal CMS SEO precedence for all others.
+const medicalSafetyOverrideSlugs = new Set([
+  'waist-health-risk-calculator',
+  'heart-disease-risk-calculator',
+  'diabetes-risk-calculator',
+  'metabolic-age-calculator',
+]);
+const content = {
+  ...Astro.props.content,
+  ...tool.cmsContent,
+  ...(tool.cmsContent?.sections ? { directAnswer: undefined } : {}),
+  seoTitle: medicalSafetyOverrideSlugs.has(tool.slug)
+    ? Astro.props.content.seoTitle
+    : tool.seo?.metaTitle || Astro.props.content.seoTitle,
+  metaDescription: medicalSafetyOverrideSlugs.has(tool.slug)
+    ? Astro.props.content.metaDescription
+    : tool.seo?.metaDescription || Astro.props.content.metaDescription,
+};
 const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
 const orgId = `${origin.href}#org`;
 
@@ -69,15 +89,9 @@ const RESULT_AUTHORITY: Record<string, string> = {
   'heart-vitals': ' Categories follow the American Heart Association (AHA).',
   'health-risk': ' Based on CDC and World Health Organization (WHO) guidance — only a clinician can assess your real risk.',
 };
-const customEducationalIndexTools = new Set([
-  'waist-health-risk-calculator',
-  'heart-disease-risk-calculator',
-  'diabetes-risk-calculator',
-  'metabolic-age-calculator',
-]);
 // These custom calculations are not validated clinical scores, regardless of
 // whether individual underlying measurements appear in CDC/WHO guidance.
-const resultAuthority = customEducationalIndexTools.has(tool.slug)
+const resultAuthority = medicalSafetyOverrideSlugs.has(tool.slug)
   ? ' The result is an illustrative index, not a CDC/WHO-endorsed clinical risk classification.'
   : RESULT_AUTHORITY[tool.category] ?? '';
 
