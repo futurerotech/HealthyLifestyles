@@ -254,6 +254,21 @@ export const DEFS: Record<string, CalcDef> = {
     hasSex: true,
     fields: [F.weight(72), F.height(175), F.age(30)],
     compute: ({ vals, sex }) => {
+      // The compute function also validates direct/non-UI callers, not just the form.
+      if (
+        !Number.isFinite(vals.weight) || vals.weight < 25 || vals.weight > 300 ||
+        !Number.isFinite(vals.height) || vals.height < 120 || vals.height > 230 ||
+        !Number.isFinite(vals.age) || vals.age < 15 || vals.age > 100 ||
+        (sex !== 'male' && sex !== 'female')
+      ) {
+        return {
+          ok: false,
+          error: 'Enter a valid weight, height, age, and sex to estimate BMR.',
+          primaryLabel: 'Your BMR',
+          primaryValue: '',
+          visual: { kind: 'none' },
+        };
+      }
       const base = 10 * vals.weight + 6.25 * vals.height - 5 * vals.age;
       const bmr = sex === 'male' ? base + 5 : base - 161;
       const levels: [string, number][] = [

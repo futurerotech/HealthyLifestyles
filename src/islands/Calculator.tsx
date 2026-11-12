@@ -13,6 +13,7 @@ import {
 } from '../lib/units';
 import { getDef, type CalcDef, type CalcField, type Segment, type Visual } from './calculators/defs';
 import ShareResult from '../components/ShareResult';
+import { editBmrCanonical, displayBmrCanonical } from './calculators/bmr-inputs';
 
 type Disp = Record<string, string>;
 
@@ -419,14 +420,30 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
   const def = getDef(slug);
   const [units, setUnits] = useState<UnitSystem>('metric');
   const [sex, setSex] = useState<Sex>('male');
-  const [disp, setDisp] = useState<Disp>(() => (def ? initialDisplay(def, 'metric') : {}));
+  const isBmr = slug === 'bmr-calculator';
+  const [ordinaryDisp, setOrdinaryDisp] = useState<Disp>(() => (def ? initialDisplay(def, 'metric') : {}));
+  // Keep canonical kg/cm/years separate from rounded BMR display fields.
+  const [bmrState, setBmrState] = useState(() => {
+    const bmrDef = isBmr ? def : undefined;
+    const display = bmrDef ? initialDisplay(bmrDef, 'metric') : {};
+    const vals = bmrDef ? toMetric(bmrDef, display, 'metric') : {};
+    return {
+      display,
+      canonical: {
+        weight: vals.weight ?? Number.NaN,
+        height: vals.height ?? Number.NaN,
+        age: vals.age ?? Number.NaN,
+      },
+    };
+  });
+  const disp = isBmr ? bmrState.display : ordinaryDisp;
   const [selects, setSelects] = useState<Record<string, string>>(() => (def ? initialSelects(def) : {}));
 
   if (!def) return null;
 
   const ctx = useMemo(
-    () => ({ vals: toMetric(def, disp, units), selects, sex, units }),
-    [def, disp, units, sex, selects]
+    () => ({ vals: isBmr ? bmrState.canonical : toMetric(def, disp, units), selects, sex, units }),
+    [def, disp, units, sex, selects, isBmr, bmrState.canonical]
   );
   const visible = def.fields.filter((f) => !f.showIf || f.showIf(ctx));
   // Only show the metric/imperial toggle if some field actually converts.
@@ -589,11 +606,30 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
     !!(result && result.ok),
   );
 
-  const setField = (key: string, val: string) => setDisp((d) => ({ ...d, [key]: val }));
+  const setField = (key: string, val: string) => {
+    if (isBmr) {
+      setBmrState((previous) => {
+        const display = { ...previous.display, [key]: val };
+        return {
+          display,
+          canonical: editBmrCanonical(previous.canonical, display, key, units),
+        };
+      });
+    } else {
+      setOrdinaryDisp((d) => ({ ...d, [key]: val }));
+    }
+  };
   const setSelect = (key: string, val: string) => setSelects((s) => ({ ...s, [key]: val }));
   const switchUnits = (to: UnitSystem) => {
     if (to === units) return;
-    setDisp((d) => convertDisplay(def, d, to));
+    if (isBmr) {
+      setBmrState((previous) => ({
+        ...previous,
+        display: displayBmrCanonical(previous.display, previous.canonical, to),
+      }));
+    } else {
+      setOrdinaryDisp((d) => convertDisplay(def, d, to));
+    }
     setUnits(to);
   };
 
