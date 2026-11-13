@@ -49,15 +49,16 @@ interface Props {
 }
 
 const { tool, stylesheet } = Astro.props;
-// The four medically sensitive custom indices are under a draft correction.
-// Their current public CMS SEO titles/descriptions predate the corrected
-// source copy; use the authored safe strings until separately approved CMS
-// records can be reviewed. Preserve normal CMS SEO precedence for all others.
+// These five educational health scores/indices have updated draft source
+// copy, while their published CMS SEO fields still contain older descriptions.
+// Use source metadata for ONLY these verified slugs, preserving normal CMS
+// precedence for all other tools. No CMS record is edited here.
 const medicalSafetyOverrideSlugs = new Set([
   'waist-health-risk-calculator',
   'heart-disease-risk-calculator',
   'diabetes-risk-calculator',
   'metabolic-age-calculator',
+  'healthspan-score',
 ]);
 const content = {
   ...Astro.props.content,
@@ -92,7 +93,7 @@ const RESULT_AUTHORITY: Record<string, string> = {
 // These custom calculations are not validated clinical scores, regardless of
 // whether individual underlying measurements appear in CDC/WHO guidance.
 const resultAuthority = medicalSafetyOverrideSlugs.has(tool.slug)
-  ? ' The result is an illustrative index, not a CDC/WHO-endorsed clinical risk classification.'
+  ? ' The result is a tool-defined educational score or index, not a CDC/WHO-endorsed clinical risk classification.'
   : RESULT_AUTHORITY[tool.category] ?? '';
 
 // Which calculator island powers this tool — the ONE shared mapping in
