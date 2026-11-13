@@ -158,7 +158,7 @@ export default function HealthspanScore() {
               <option value="female">Female</option>
               <option value="male">Male</option>
             </select>
-            <span class="hs__help">Used only for the alcohol guideline.</span>
+            <span class="hs__help">Used only for illustrative alcohol points, not an official weekly drinking guideline.</span>
           </label>
 
           <label class="hs__field">
@@ -280,7 +280,7 @@ export default function HealthspanScore() {
 
           {result.improvements.length > 0 && (
             <>
-              <h3 class="hs__h3">Your highest-impact next steps</h3>
+              <h3 class="hs__h3">Where this model has the most remaining points</h3>
               <ol class="hs__improve">
                 {result.improvements.map((f) => (
                   <li key={f.key}>

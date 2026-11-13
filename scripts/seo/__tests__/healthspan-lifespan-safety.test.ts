@@ -83,3 +83,26 @@ test('waist and height inputs use stable centimeter storage and readable display
   assert.match(island, /lengthForDisplay\(form\.height, units\)/);
   assert.match(island, /lengthToCm\(num\(\(e\.target as HTMLInputElement\)\.value\), units\)/);
 });
+
+test('healthspan alcohol point rules are not presented as current US drinking guidelines', () => {
+  const content = RISK_CONTENT['healthspan-score'];
+  const explanatoryText = content.sections?.find(s => s.h2 === 'How the score is calculated')?.paragraphs?.join(' ') ?? '';
+  assert.match(explanatoryText, /not official Dietary Guidelines limits/i);
+  assert.match(content.sources?.find(s => s.citation.includes('2025–2030'))?.url ?? '', /current-dietary-guidelines/);
+  const island = readFileSync(new URL('../../../src/islands/HealthspanScore.tsx', import.meta.url), 'utf8');
+  assert.match(island, /not an official weekly drinking guideline/);
+  // Preserve the existing editorial point calculation pending medical review.
+  const female = computeHealthspan({ ...baseline, sex: 'female', drinksPerWeek: 10 });
+  const male = computeHealthspan({ ...baseline, sex: 'male', drinksPerWeek: 10 });
+  assert.equal(female.factors.find(f => f.key === 'alcohol')?.earned, 2);
+  assert.equal(male.factors.find(f => f.key === 'alcohol')?.earned, 5);
+});
+
+test('healthspan next steps describe available model points, not medical impact rankings', () => {
+  const content = RISK_CONTENT['healthspan-score'];
+  const island = readFileSync(new URL('../../../src/islands/HealthspanScore.tsx', import.meta.url), 'utf8');
+  assert.match(island, /Where this model has the most remaining points/);
+  assert.doesNotMatch(island, /Your highest-impact next steps/);
+  assert.doesNotMatch(content.intro ?? '', /highest-impact/);
+  assert.match(content.sections?.find(s => s.h2 === 'A worked example')?.paragraphs?.join(' ') ?? '', /do not rank expected medical benefits/i);
+});

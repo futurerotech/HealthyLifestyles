@@ -8,8 +8,8 @@
  *   - WHO physical activity fact sheet (150–300 min moderate activity/week)
  *   - WHO healthy diet fact sheet (≥400 g ≈ 5 servings fruit & veg/day)
  *   - CDC physical activity guidelines for adults
- *   - Dietary Guidelines for Americans (alcohol: ≤1 drink/day women, ≤2 men;
- *     less is better)
+ *   - Dietary Guidelines for Americans 2025–2030 (consume less alcohol;
+ *     no sex-specific weekly point thresholds are specified)
  *   - CDC sleep guidance (adults need 7+ hours)
  *
  * The model is deliberately explainable: each factor contributes a visible
@@ -116,18 +116,19 @@ export function computeHealthspan(input: HealthspanInput): HealthspanResult {
     earned: input.smoking === 'never' ? 15 : input.smoking === 'former' ? 10 : 0,
     tip:
       input.smoking === 'current'
-        ? 'Quitting smoking is the single highest-impact change on this list — support doubles your odds.'
+        ? 'Quitting smoking reduces health risks; ask about counseling or medications if you want support.'
         : 'Stay smoke-free.',
   });
 
-  // Alcohol — 10 pts. DGA: ≤1/day women, ≤2/day men; drinking less is better.
+  // Alcohol — 10 illustrative pts. The weekly bands and sex differences below
+  // are this tool's editorial heuristics, NOT current Dietary Guidelines limits.
   const d = Math.max(input.drinksPerWeek, 0);
   factors.push({
     key: 'alcohol',
     label: 'Alcohol',
     max: 10,
     earned: d === 0 ? 10 : d <= 7 ? 8 : d <= 14 ? (input.sex === 'male' ? 5 : 2) : 0,
-    tip: 'Trim weekly drinks — for health, less alcohol is always the better direction.',
+    tip: 'If you drink, cutting back can help health; some people should avoid alcohol entirely.',
   });
 
   // Sleep — 15 pts. 7–9 h is the adult sweet spot (CDC: 7+).
@@ -167,7 +168,7 @@ export function computeHealthspan(input: HealthspanInput): HealthspanResult {
       label: 'Waist-to-height',
       max: 10,
       earned: r < 0.5 ? 10 : r <= 0.6 ? 5 : 0,
-      tip: 'Aim for a waist below half your height — central fat is the strongest body-shape signal.',
+      tip: 'Waist below half your height is a useful screening guide, not a medical diagnosis.',
     });
   }
 

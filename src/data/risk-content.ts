@@ -31,13 +31,13 @@ export const RISK_CONTENT: Record<string, ToolContent> = {
     directAnswer: {
       question: 'What is a healthspan score?',
       answer:
-        'It’s a 0–100 summary of the everyday habits — physical activity, diet, sleep, smoking, alcohol, stress, and social connection — that public-health guidance links with more healthy, disease-free years. On this tool, 80+ is excellent, 50–79 good, and under 50 needs attention. It reflects habits only, never a medical prediction.',
+        'It’s a 0–100 summary of the everyday habits — physical activity, diet, sleep, smoking, alcohol, stress, and social connection — that public-health guidance links with more healthy, disease-free years. The point bands are labels defined by this tool, not validated clinical grades. The score is not a medical prediction.',
     },
     seoTitle: 'Healthspan Score – Free Healthy-Habits Calculator',
     metaDescription:
-      'Score your everyday habits (0–100) against WHO and CDC lifestyle guidance and see your 2–3 highest-impact next steps. Educational — not a lifespan prediction.',
+      'Score your everyday habits (0–100) against WHO and CDC lifestyle guidance and see which habits have the most remaining model points. Educational — not a lifespan prediction.',
     intro:
-      'Answer ten quick questions about your everyday habits and get a transparent 0–100 healthspan-habits score — with a bar for every factor and your highest-impact next steps. It reflects habits linked with more healthy years, not a prediction of your lifespan.',
+      'Answer ten quick questions about your everyday habits and get a transparent 0–100 healthspan-habits score — with a bar for every factor and your largest remaining point gaps. It reflects habits linked with more healthy years, not a prediction of your lifespan.',
     notice:
       'Educational habits score only. It is NOT a lifespan prediction, biological-age measurement, or medical diagnosis — it summarizes everyday habits that public-health guidance links with more healthy, disease-free years. Talk to a qualified professional about your health.',
     sections: [
@@ -51,18 +51,18 @@ export const RISK_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'How the score is calculated',
         paragraphs: [
-          'The score is a transparent points model over nine habit factors, anchored to public guidance on modifiable risk: physical activity (20 points, full credit at the WHO’s 150 minutes of moderate activity a week), fruit & vegetables (12 points, full credit at 5 servings — roughly the WHO’s 400 g a day), ultra-processed food (8), smoking (15), alcohol (10, using the Dietary Guidelines’ moderation thresholds by sex), sleep (15, full credit for 7–9 hours), self-rated stress (6), social connection (4), and — optionally — waist-to-height ratio (10, full credit under 0.5).',
-          'The weights sum to exactly 100, so with every factor answered the visible points literally add up to your score. If you skip the optional waist-to-height factor the score is rescaled from 90, so skipping never counts against you. Age and sex are context only: sex sets the alcohol guideline, and age doesn’t change the score at all — good habits count at every age.',
+          'The score is a transparent points model over nine habit factors, anchored to public guidance on modifiable risk: physical activity (20 points, full credit at the WHO’s 150 minutes of moderate activity a week), fruit & vegetables (12 points, full credit at 5 servings — roughly the WHO’s 400 g a day), ultra-processed food (8), smoking (15), alcohol (10 illustrative points using weekly bands that are not official Dietary Guidelines limits), sleep (15, full credit for 7–9 hours), self-rated stress (6), social connection (4), and — optionally — waist-to-height ratio (10, full credit under 0.5).',
+          'The weights sum to exactly 100, so with every factor answered the visible points literally add up to your score. If you skip the optional waist-to-height factor the score is rescaled from 90, so skipping never counts against you. Age does not change the score. Sex affects only this tool’s illustrative alcohol points, not any official weekly drinking limit. All points and overall bands are editorial heuristics, not health-risk predictions.',
         ],
       },
       {
         h2: 'How to read your result',
         list: {
-          intro: 'Three bands, always shown as color plus text:',
+          intro: 'Three descriptive point bands defined by this tool, not clinical risk categories:',
           items: [
-            '80–100 · Excellent — your habits strongly match healthy-aging guidance; protect them.',
-            '50–79 · Good — a solid base with clear room to gain points; check your top next steps.',
-            '0–49 · Needs attention — the good news: these are the habits with the biggest, best-evidenced payoff for change.',
+            '80–100 · Excellent (tool-defined) — reflects more earned model points, not a medical clearance.',
+            '50–79 · Good (tool-defined) — use factor details to see how these points were assigned.',
+            '0–49 · Needs attention (tool-defined) — this label does not classify clinical risk or determine which changes matter most for your health.',
           ],
         },
       },
@@ -70,7 +70,7 @@ export const RISK_CONTENT: Record<string, ToolContent> = {
         h2: 'A worked example',
         paragraphs: [
           'Sam, 42: 60 minutes of activity a week (8/20), 3 servings of fruit & veg (7/12), ultra-processed food some days (4/8), never smoked (15/15), 5 drinks a week (8/10), 6.5 hours of sleep (9/15), high stress (0/6), some social connection (2/4), waist-to-height 0.54 (5/10). Total: 58/100 — Good.',
-          'Sam’s top next steps, straight from the biggest point gaps: physical activity (+12 available), stress (+6), and sleep (+6). That’s the point of the tool — not the number, but knowing which two or three habits pay off most.',
+          'Sam’s largest unearned model points are physical activity (+12), sleep (+6), and stress (+6). These gaps do not rank expected medical benefits or substitute for personalized advice.',
         ],
       },
     ],
@@ -81,7 +81,7 @@ export const RISK_CONTENT: Record<string, ToolContent> = {
       },
       {
         q: 'Why doesn’t my age change the score?',
-        a: 'Because the score reflects habits, not biology — and the evidence says improving these habits pays off at every age. Age is collected only as context; sex is used solely to apply the correct alcohol guideline.',
+        a: 'Because the score reflects habits, not biology — and the evidence says improving these habits pays off at every age. Age is collected only as context; sex affects only the illustrative alcohol points in this tool; its weekly bands are not current official guidelines.',
       },
       {
         q: 'What counts as a "standard drink" and a "serving" of fruit or veg?',
@@ -93,7 +93,7 @@ export const RISK_CONTENT: Record<string, ToolContent> = {
       },
       {
         q: 'Where do the point values come from?',
-        a: 'Each factor is anchored to public guidance: the WHO physical-activity and healthy-diet fact sheets, CDC activity and sleep guidance, and the Dietary Guidelines for Americans for alcohol. The weights themselves are editorial simplifications so the score stays transparent — they are documented on this page, not hidden.',
+        a: 'Public guidance informs the physical activity, diet and sleep examples. The 2025–2030 Dietary Guidelines for Americans advise consuming less alcohol but do not set the weekly point bands shown here. All weights, score bands and alcohol point thresholds are this tool’s editorial choices, not validated health outcomes.',
       },
     ],
     sources: [
@@ -110,8 +110,8 @@ export const RISK_CONTENT: Record<string, ToolContent> = {
         url: 'https://www.cdc.gov/physical-activity-basics/guidelines/adults.html',
       },
       {
-        citation: 'U.S. Dietary Guidelines for Americans — including moderation guidance on alcoholic beverages.',
-        url: 'https://odphp.health.gov/our-work/nutrition-physical-activity/dietary-guidelines',
+        citation: 'U.S. Dietary Guidelines for Americans, 2025–2030 — consume less alcohol for better overall health.',
+        url: 'https://odphp.health.gov/our-work/nutrition-physical-activity/dietary-guidelines/current-dietary-guidelines',
       },
     ],
   },
