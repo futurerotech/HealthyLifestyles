@@ -162,21 +162,21 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
     metaDescription:
       'Estimate your maximum heart rate from your age using the 220 − age and Tanaka formulas. Free, instant max heart rate calculator — no signup.',
     intro:
-      'Your maximum heart rate is the highest your heart can beat during all-out effort, and it sets the ceiling for your training zones. Enter your age to estimate it with two trusted formulas.',
+      'Estimate an age-predicted maximum exercise heart rate with two population equations. This estimate is not a measured maximum, a safe upper limit, or a target you need to reach during exercise.',
     notice:
-      'Informational only — not a diagnosis. Estimated maximum heart rate is a general guide, not a medical assessment. See a doctor before starting intense exercise, especially if you have any heart concerns.',
+      'For adults 18+. This age-based result is not an exercise clearance or a safe heart-rate ceiling. Stop exercising and call emergency services for chest pain or pressure, severe trouble breathing, fainting or other serious new symptoms. If you have a heart condition or take medicines such as beta-blockers, ask a clinician for individualized exercise guidance.',
     sections: [
       {
         h2: 'How maximum heart rate is estimated',
         paragraphs: [
-          'The best-known formula is simply 220 minus your age. It is easy to remember and widely used, which is why most gym equipment relies on it. However, research has shown it can be off by 10–12 beats per minute for any individual.',
-          'The Tanaka equation — 208 − (0.7 × age) — was developed from a large review of studies and tends to be more accurate, particularly for people over 40, where 220 − age increasingly underestimates the true maximum. This calculator shows both so you can compare.',
+          'The best-known formula is 220 minus age. It is simple but was not validated as a precise individual limit; the difference between predicted and measured maximum heart rate varies and can exceed 10–12 beats per minute. Population averages should not be treated as a hard limit or a personal exercise prescription.',
+          'The Tanaka equation — 208 − (0.7 × age) — comes from research on healthy adults and often improves age-based average predictions, especially in older groups. It is not validated as an exact result for every individual, especially for people with conditions or medicines that alter exercise heart-rate response. This adult calculator displays both estimates for comparison.',
         ],
       },
       {
         h2: 'Why it matters',
         paragraphs: [
-          'Maximum heart rate is the anchor for heart-rate training. Your zones — from easy recovery to all-out effort — are all calculated as percentages of this number, so a more accurate estimate gives you more useful zones.',
+          'Age-predicted maximum heart rate is one starting input for estimating exercise-intensity zones. Neither equation measures your actual maximum, and the estimated number does not define a safe ceiling, physiological threshold or target to pursue at all-out effort.',
           'It is not a measure of fitness: a higher or lower maximum heart rate does not mean you are fitter. Maximum heart rate is largely determined by age and genetics and naturally declines as you get older, which is normal and expected.',
         ],
       },
@@ -184,14 +184,14 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
         h2: 'Measuring it accurately',
         paragraphs: [
           'Formulas are estimates. The only way to find your true maximum is a monitored maximal effort test — and that should only be done when you are healthy and, ideally, under professional supervision, as it pushes your heart to its limit.',
-          'For everyday training, the formula estimate is perfectly adequate. If you are returning to exercise after a break, are over 40, or have any cardiovascular risk factors, check with your doctor before attempting high-intensity work near your maximum.',
+          'For general activity, age-predicted estimates can offer rough context, but perceived exertion and symptoms remain important. If you have a heart condition, take rate-limiting medications or are returning to exercise with medical risk factors, discuss suitable intensity with a healthcare professional. Stop activity and call emergency services for chest pain, severe breathing difficulty or fainting.',
         ],
       },
     ],
     faq: [
       {
         q: 'Is 220 minus age accurate?',
-        a: 'It is a useful rule of thumb but can be off by 10–12 bpm for any individual. The Tanaka formula (208 − 0.7 × age) is generally more accurate, especially for people over 40.',
+        a: 'It is a population-level rule of thumb, not an individual safe limit. Errors vary and can exceed 10–12 bpm. Tanaka (208 − 0.7 × age) may be closer on average for healthy older adults, but neither equation predicts a personal maximum exactly.',
       },
       {
         q: 'Does a higher maximum heart rate mean I am fitter?',
@@ -202,7 +202,7 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
         a: 'Age-related changes in the heart’s electrical system gradually lower the maximum rate it can reach. This decline is normal and is why both formulas subtract from a baseline using your age.',
       },
     ],
-    sources: [TANAKA, KARVONEN],
+    sources: [TANAKA, KARVONEN, AHA_TARGET_HR, AHA_HR],
   },
 
   // ============================================================
