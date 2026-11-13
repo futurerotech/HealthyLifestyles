@@ -34,7 +34,7 @@ test('zero points not falsely reassuring',()=>{
 });
 test('patient copy distinguishes custom points from validated tests',()=>{
   assert.ok(content);
-  assert.match(content.notice,/not the validated CDC\/ADA risk test/i);
+  assert.match(content.notice ?? '',/not the validated CDC\/ADA risk test/i);
   const text=content.sections.flatMap(s=>s.paragraphs??[]).join(' ');
   assert.match(text,/different questions, points and thresholds/i);
   assert.match(text,/not a diagnosis or a validated screening result/i);
@@ -44,5 +44,5 @@ test('catalog retains original tool identity and avoids validated-risk claims',(
   const tool=getTool('diabetes-risk-calculator')!;
   assert.ok(tool);
   assert.equal(tool.slug,'diabetes-risk-calculator');
-  assert.match(tool.blurb,/not a validated clinical risk category/i);
+  assert.match(tool.blurb ?? '',/not a validated clinical risk category/i);
 });

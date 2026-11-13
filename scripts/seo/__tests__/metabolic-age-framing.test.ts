@@ -23,10 +23,10 @@ test('higher body weight yields younger number, not false positive health label'
 });
 test('reference is explicitly custom and nonvalidated',()=>{
   const r=calc.compute(ctx(72)); assert.ok(r.rows!.some(x=>/Custom illustrative reference/.test(x.label)));
-  assert.match(r.note,/custom illustrative constants/i); assert.match(r.note,/40 kcal per model year/i);
+  assert.match(r.note ?? '',/custom illustrative constants/i); assert.match(r.note ?? '',/40 kcal per model year/i);
 });
 test('source copy discloses body-size confounding and scientific evidence',()=>{
-  assert.match(copy.notice,/Increasing weight by itself/i);
+  assert.match(copy.notice ?? '',/Increasing weight by itself/i);
   const body=copy.sections.flatMap(x=>x.paragraphs??[]).join(' ');
   assert.match(body,/not validated clinical or population age standards/i);
   assert.match(body,/mechanically increase predicted BMR/i);
@@ -35,6 +35,6 @@ test('source copy discloses body-size confounding and scientific evidence',()=>{
 test('catalog preserves canonical original slug without clinical implication',()=>{
   const tool=getTool('metabolic-age-calculator')!; assert.ok(tool);
   assert.equal(tool.slug,'metabolic-age-calculator');
-  assert.match(tool.blurb,/not a measure of metabolic health/i);
+  assert.match(tool.blurb ?? '',/not a measure of metabolic health/i);
   assert.match(copy.faq.find(q=>q.q==='Should I try to lower my metabolic age?')!.a,/No health benefit/i);
 });
