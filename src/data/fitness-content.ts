@@ -10,6 +10,10 @@ const COMPENDIUM_2024: Source = {
   citation: 'Herrmann SD, Willis EA, Ainsworth BE, et al. "2024 Adult Compendium of Physical Activities: A third update of the energy costs of human activities." J Sport Health Sci. 2024;13(1):6–12.',
   url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10818145/',
 };
+const WHO_SEDENTARY: Source = {
+  citation: 'World Health Organization. WHO guidelines on physical activity and sedentary behaviour. 2020 — adult sedentary behaviour recommendations.',
+  url: 'https://www.ncbi.nlm.nih.gov/books/NBK566046/',
+};
 const UTH: Source = {
   citation:
     'Uth N, Sørensen H, Overgaard K, Pedersen PK. "Estimation of VO2max from the ratio between HRmax and HRrest — the Heart Rate Ratio Method." Eur J Appl Physiol. 2004;91(1):111–115.',
@@ -64,33 +68,33 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
   },
   // ============================================================
   'sitting-disease-reversal-calculator': {
-    seoTitle: 'Sitting Disease Calculator – Offset Sitting (NEAT)',
+    seoTitle: 'Sitting & Movement Break Planner — Optional Steps and NEAT',
     metaDescription:
-      'Sitting too much? Get a personalized movement recipe — micro-breaks and extra daily steps (NEAT) to offset desk time, plus calories reclaimed. Free.',
+      'Explore optional breaks and step ideas for a sitting day. No step count can guarantee reversal of sitting-related health effects; calorie numbers are approximate.',
     intro:
-      'Long days at a desk add up. Enter your sitting hours, weight, and step count to get a personalized "movement recipe" — how often to break, how many extra steps to add, and the calories you’d reclaim.',
+      'Enter your sitting hours, weight, and usual steps to explore optional movement ideas. The step increments and break cadence are illustrative heuristics, not evidence-based prescriptions, clinical categories, or a way to undo sedentary-health risk.',
     notice:
-      'General wellness education, not medical advice. Calorie figures are rough estimates that assume an average walking pace. If you have a health condition, check with a professional before changing your activity.',
+      'Educational planning only, not a validated health-risk score. Displayed calories use gross MET approximations (including rest) and can overlap when walking occurs during breaks. They are not additional calories to eat or proof of reduced disease risk.',
     sections: [
       {
         h2: 'What is “sitting disease”?',
         paragraphs: [
           '"Sitting disease" is a popular term for the health risks tied to too much sedentary time. Research links long uninterrupted sitting with higher cardiometabolic risk — and, importantly, some of that risk is independent of whether you exercise. You can be an "active couch potato": a daily workout is great, but it doesn’t fully cancel out 9+ hours of sitting the rest of the day.',
-          'The encouraging part is that how you sit matters as much as how long. Breaking sitting into shorter chunks, and adding everyday movement, meaningfully changes the picture.',
+          'Moving more and sitting less can benefit health. The [WHO sedentary behaviour guidance](https://www.ncbi.nlm.nih.gov/books/NBK566046/) does not set an exact safe sitting-hour threshold or prescribe a specific break duration; make movement choices that fit your abilities and circumstances.',
         ],
       },
       {
         h2: 'How micro-breaks help',
         paragraphs: [
           'Studies that interrupt prolonged sitting every 30–60 minutes with just 2–5 minutes of light movement show improvements in things like post-meal blood sugar and blood pressure compared with sitting straight through. The muscle contractions from simply standing and walking switch on processes that idle when you’re seated.',
-          'This calculator turns that into a simple cadence: a target number of short breaks across your sitting hours, and how many minutes that puts you on your feet each day.',
+          'This tool illustrates one optional break cadence. It is not a validated schedule or a guarantee of improved blood sugar, blood pressure, or long-term outcomes.',
         ],
       },
       {
         h2: 'NEAT: how steps offset sitting',
         paragraphs: [
           'NEAT — non-exercise activity thermogenesis — is all the energy you burn from everyday movement that isn’t formal exercise: walking, fidgeting, taking the stairs, chores. It can vary by hundreds of calories a day between people, and it’s the easiest lever for desk workers to pull.',
-          'A practical way to offset a sedentary day is to add roughly 3,000–4,000 steps beyond your current count, outside of any structured workout. The tool scales that to your sitting hours and estimates the calories those added steps and breaks reclaim — modest day to day, but it compounds over a week and a year.',
+          'The tool suggests roughly 3,000–4,500 steps for positive sitting-hour inputs as a planning example, not an official step target. The exact number of steps needed to reduce health risk cannot be calculated from sitting hours alone. Its calorie estimates are gross energy and may double-count walking done during movement breaks.',
         ],
       },
       {
@@ -107,10 +111,10 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       },
     ],
     faq: [
-      { q: 'How many steps offset a day of sitting?', a: 'A common target is an extra 3,000–4,000 steps beyond your current daily count, taken as everyday movement outside structured exercise. The more you sit, the more it helps — this tool scales it to your hours.' },
-      { q: 'How often should I take a break from sitting?', a: 'Aim to stand and move for about 2–5 minutes roughly every 30–60 minutes of sitting. Frequent short breaks appear to matter more than one long one.' },
-      { q: 'What is NEAT?', a: 'NEAT is non-exercise activity thermogenesis — the calories you burn through everyday movement like walking, fidgeting, and chores. Increasing it is one of the most practical ways to offset a desk job.' },
-      { q: 'Can extra steps undo the harm of too much sitting?', a: 'Movement clearly lowers the risks linked to sedentary time, but it’s best to both add activity and reduce total sitting where you can. Think "move more and sit less," not one or the other.' },
+      { q: 'How many steps offset a day of sitting?', a: 'There is no validated number of steps that cancels out a day of sitting. WHO does not specify a universal sedentary-time cutoff or precise break cadence. This calculator offers optional planning ideas, not a formula for reversing health risk.' },
+      { q: 'How often should I take a break from sitting?', a: 'Short, comfortable movement breaks may be useful. This tool illustrates 3 minutes about every 45 minutes, but WHO has not established an exact medically required interval or duration; adapt your routine to your abilities and needs.' },
+      { q: 'What is NEAT?', a: 'NEAT means non-exercise activity thermogenesis: energy used in everyday movement such as walking and chores. It is not a measure of how much disease risk is reversed by activity.' },
+      { q: 'Can extra steps undo the harm of too much sitting?', a: 'No number of steps guarantees that sitting-related health effects are reversed. Activity is beneficial, and reducing sedentary time where possible can help; think "move more and sit less," not "erase" a measured number of sitting hours.' },
       { q: 'Is a standing desk enough?', a: 'Standing is better than sitting still, but the bigger wins come from actually moving — breaks, steps, and light activity. Use a standing desk as a prompt to move, not a substitute for it.' },
     ],
     sources: [
@@ -118,6 +122,7 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       { citation: 'Diaz KM, et al. "Patterns of sedentary behavior and mortality in US adults." Ann Intern Med. 2017.', url: pubmed('Patterns of sedentary behavior and mortality US adults Diaz') },
       { citation: 'Levine JA. "Non-exercise activity thermogenesis (NEAT)." Best Pract Res Clin Endocrinol Metab. 2002.', url: pubmed('Non-exercise activity thermogenesis NEAT Levine') },
       { citation: 'Ekelund U, et al. "Does physical activity attenuate the association between sitting time and mortality? A harmonised meta-analysis." Lancet. 2016.', url: pubmed('physical activity attenuate sitting time mortality harmonised meta-analysis Ekelund') },
+      WHO_SEDENTARY,
     ],
   },
   // ============================================================

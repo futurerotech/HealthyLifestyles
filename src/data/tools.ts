@@ -314,7 +314,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'sitting-disease-reversal-calculator',
     title: 'Sitting Disease Reversal Calculator',
-    blurb: 'Offset desk time with micro-breaks and extra NEAT steps — get a personalized movement recipe.',
+    blurb: 'Explore optional movement breaks and daily steps; this is not a validated way to reverse health risks from sitting.',
     category: 'fitness',
     icon: 'armchair',
     gradient: 'green',

@@ -53,11 +53,11 @@ export default function SittingReversal() {
       ctx.fillText(`+${res.addedSteps.toLocaleString('en-US')} steps/day`, 60, 240);
       ctx.fillStyle = '#cbd5e1';
       ctx.font = `600 30px ${sans}`;
-      ctx.fillText(`to offset ${res.sittingHours} h of sitting`, 64, 288);
+      ctx.fillText(`for a day with ${res.sittingHours} h of sitting`, 64, 288);
       const rows = [
         `Move every ${res.breakIntervalMin} min  ·  ${res.breaksPerDay} breaks/day`,
         `${res.movementMinutes} min on your feet`,
-        `~${res.caloriesReclaimed} kcal reclaimed daily  (~${res.caloriesWeekly.toLocaleString('en-US')}/week)`,
+        `~${res.caloriesReclaimed} gross kcal estimate/day (may overlap)`,
         `New step goal: ${res.newDailySteps.toLocaleString('en-US')}/day`,
       ];
       ctx.font = `500 30px ${sans}`;
@@ -90,7 +90,7 @@ export default function SittingReversal() {
     const nav = navigator as Navigator & { canShare?: (d: any) => boolean };
     if (nav.share && nav.canShare && nav.canShare({ files: [file] })) {
       try {
-        await nav.share({ files: [file], title: 'My Movement Recipe', text: `My plan to offset ${r.sittingHours}h of sitting: +${r.addedSteps} steps/day and a break every ${r.breakIntervalMin} min.` });
+        await nav.share({ files: [file], title: 'My Movement Recipe', text: `Optional movement ideas for ${r.sittingHours}h of sitting: +${r.addedSteps} steps and a break about every ${r.breakIntervalMin} min. Not a risk-reversal prediction.` });
         return;
       } catch { /* cancelled */ }
     }
@@ -140,7 +140,7 @@ export default function SittingReversal() {
       </div>
 
       <p class="sr-only" role="status" aria-live="polite">
-        {r.breaksPerDay} micro-breaks and {r.addedSteps.toLocaleString('en-US')} extra steps a day; about {r.caloriesReclaimed} calories reclaimed.
+        {r.breaksPerDay} optional movement breaks and {r.addedSteps.toLocaleString('en-US')} suggested steps daily. Gross activity-energy estimate, possibly overlapping: {r.caloriesReclaimed} kcal. No health-risk reversal is calculated.
       </p>
 
       {/* ---------------- Movement recipe ---------------- */}
@@ -155,18 +155,18 @@ export default function SittingReversal() {
           <div class="sr__stat sr__stat--accent">
             <span class="sr__stat-num">+{r.addedSteps.toLocaleString('en-US')}</span>
             <span class="sr__stat-label">steps/day (NEAT)</span>
-            <span class="sr__stat-sub">new goal ~{r.newDailySteps.toLocaleString('en-US')}/day</span>
+            <span class="sr__stat-sub">illustrative total ~{r.newDailySteps.toLocaleString('en-US')}/day</span>
           </div>
           <div class="sr__stat">
             <span class="sr__stat-num">~{r.caloriesReclaimed}</span>
-            <span class="sr__stat-label">kcal reclaimed/day</span>
+            <span class="sr__stat-label">gross kcal illustration/day</span>
             <span class="sr__stat-sub">≈ {r.caloriesWeekly.toLocaleString('en-US')} kcal/week</span>
           </div>
         </div>
         <p class="sr__recipe-line">
           Aim to stand and move for about <strong>{r.breakDurationMin} minutes</strong> every <strong>30–60 minutes</strong>
           ({r.breaksPerDay} breaks across your day = <strong>{r.movementMinutes} minutes</strong> on your feet), and add
-          roughly <strong>{r.addedSteps.toLocaleString('en-US')} steps</strong> of everyday movement outside structured exercise.
+          consider roughly <strong>{r.addedSteps.toLocaleString('en-US')} optional steps</strong> of everyday movement outside structured exercise.
         </p>
       </section>
 
@@ -183,11 +183,11 @@ export default function SittingReversal() {
       {/* ---------------- Calories detail ---------------- */}
       <section class="sr__cal card">
         <h2 class="sr__h">Where the calories come from</h2>
-        <p class="sr__cal-sub">A rough, MET-based estimate of the extra energy you’d burn — small per day, but it adds up.</p>
+        <p class="sr__cal-sub">These are rough GROSS MET energy estimates (including rest), not extra calories earned. Added steps may include walking during breaks, so the summed number can double-count activity.</p>
         <div class="sr__cal-rows">
           <div><span>Added steps ({r.addedSteps.toLocaleString('en-US')} ≈ {r.walkMinutes} min walking)</span><strong>~{r.kcalSteps} kcal</strong></div>
           <div><span>Movement breaks ({r.movementMinutes} min on your feet)</span><strong>~{r.kcalBreaks} kcal</strong></div>
-          <div class="sr__cal-total"><span>Reclaimed per day</span><strong>~{r.caloriesReclaimed} kcal</strong></div>
+          <div class="sr__cal-total"><span>Illustrative sum (may overlap)</span><strong>~{r.caloriesReclaimed} kcal</strong></div>
         </div>
       </section>
 
@@ -204,8 +204,7 @@ export default function SittingReversal() {
       </section>
 
       <p class="sr__note">
-        General wellness education, not medical advice. Calorie figures are rough MET-based estimates that assume an
-        average walking pace. If you have a health condition, check with a professional before changing your activity.
+        Optional general movement suggestions, not a clinical risk score or a method for reversing sitting-related health effects. Gross calorie estimates may overlap and should not be added to daily calorie targets. Choose accessible activity that works for you; ask a qualified professional about individual restrictions.
       </p>
     </div>
   );
