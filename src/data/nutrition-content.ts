@@ -417,7 +417,7 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
         h2: 'How your water target is calculated',
         paragraphs: [
           'This tool uses a widely used clinical guide of about 35 ml of fluid per kilogram of body weight as a baseline, then adds an allowance for activity — exercise increases losses through sweat and breathing, so more active people need more.',
-          'For example, a 70 kg person has a baseline of roughly 2.45 litres, rising with training. The result is shown in litres and fluid ounces so it works wherever you live. Remember this is total fluid: drinks of all kinds count, and food (especially fruit and vegetables) provides around 20% of it.',
+          'For example, a 70 kg person has a baseline of roughly 2.45 litres, rising with training. Because fluid needs do not keep climbing in step with body weight, the weight-based baseline is capped at 3.7 litres a day, the U.S. National Academies reference intake for total water in adult men. The result is shown in litres and fluid ounces so it works wherever you live. Remember this is total fluid: drinks of all kinds count, and food (especially fruit and vegetables) provides around 20% of it.',
         ],
       },
       {

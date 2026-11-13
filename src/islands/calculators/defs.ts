@@ -653,22 +653,35 @@ export const DEFS: Record<string, CalcDef> = {
       },
     ],
     compute: ({ vals, selects }) => {
-      const baselineMl = 35 * vals.weight;
+      // 35 ml/kg is a guide for typical adult body sizes. Applied linearly to very
+      // high body weights it produced targets of 6–12 L/day, far above population
+      // reference intakes, so the weight-based baseline is capped at the National
+      // Academies adequate intake for total water in adult men (3.7 L/day).
+      const BASELINE_CAP_ML = 3700;
+      const rawBaselineMl = 35 * vals.weight;
+      const capped = rawBaselineMl > BASELINE_CAP_ML;
+      const baselineMl = Math.min(rawBaselineMl, BASELINE_CAP_ML);
       const extraMl = parseFloat(selects.activity) || 0;
       const totalMl = baselineMl + extraMl;
       const liters = totalMl / 1000;
       const oz = totalMl / 29.5735;
       return {
         ok: true,
-        primaryLabel: 'Recommended water intake',
+        primaryLabel: 'Estimated daily fluid target',
         primaryValue: `${fmt(liters, 1)} L/day`,
         visual: { kind: 'none' },
+        callout: capped
+          ? {
+              tone: 'info',
+              text: 'Fluid needs do not keep rising in step with body weight, so the weight-based part of this estimate is capped at 3.7 L/day — the U.S. National Academies reference intake for total water in adult men. Ask your doctor if you think you need more.',
+            }
+          : undefined,
         rows: [
           { label: 'In fluid ounces', value: `${fmt(oz, 0)} oz`, strong: true },
           { label: 'Roughly in cups (8 oz)', value: `${fmt(oz / 8, 0)} cups` },
-          { label: 'Baseline (35 ml/kg)', value: `${fmt(baselineMl / 1000, 1)} L` },
+          { label: capped ? 'Baseline (35 ml/kg, capped)' : 'Baseline (35 ml/kg)', value: `${fmt(baselineMl / 1000, 1)} L` },
         ],
-        note: 'Based on ~35 ml per kg of body weight plus an activity adjustment. Drink more in heat, illness or pregnancy; food provides roughly 20% of your fluids.',
+        note: 'A general estimate of total fluid (all drinks, plus roughly 20% from food) based on ~35 ml per kg of body weight plus an activity adjustment. You may need more in heat, illness, pregnancy or breastfeeding. If you have a heart, kidney or liver condition or have been told to limit fluids, follow your doctor’s advice instead. Spread fluids through the day — drinking very large amounts quickly can be dangerous.',
       };
     },
   },
@@ -1070,8 +1083,10 @@ export const DEFS: Record<string, CalcDef> = {
       else { cat = 'Obese'; loLb = 11; hiLb = 20; rLo = 0.4; rHi = 0.6; color = '#ef4444'; }
       const w = Math.max(1, Math.min(42, vals.week));
       const firstLo = 1.1; const firstHi = 4.4;
-      const byLoLb = w <= 13 ? firstLo * (w / 13) : firstLo + rLo * (w - 13);
-      const byHiLb = w <= 13 ? firstHi * (w / 13) : firstHi + rHi * (w - 13);
+      // Never let the by-week target exceed the IOM total-gain range for the category
+      // (the weekly-rate extrapolation overshot it late in pregnancy for some BMI groups).
+      const byLoLb = Math.min(loLb, w <= 13 ? firstLo * (w / 13) : firstLo + rLo * (w - 13));
+      const byHiLb = Math.min(hiLb, w <= 13 ? firstHi * (w / 13) : firstHi + rHi * (w - 13));
       const toDisp = (lb: number) => (units === 'metric' ? lb * 0.45359237 : lb);
       const gainKg = vals.current - vals.weight;
       const gainDisp = units === 'metric' ? gainKg : kgToLb(gainKg);
