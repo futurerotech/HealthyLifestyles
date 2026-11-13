@@ -1374,11 +1374,22 @@ export const DEFS: Record<string, CalcDef> = {
       const trainingAge = selects.trainingAge || 'intermediate';
       const sleep = selects.sleep || 'good';
       const soreness = selects.soreness || 'mild';
+      // Significant pain that impairs ordinary movement is not a validated
+      // recovery-clock input. Never imply a numeric return-to-training clearance.
+      if (soreness === 'severe') {
+        return {
+          ok: false,
+          error: 'Severe soreness affecting normal movement is outside this time estimator. Avoid another hard workout of the affected area. Get medical advice for severe or worsening pain, marked swelling, weakness, or trouble moving normally. Dark (tea- or cola-colored) urine after intense exercise needs urgent medical care.',
+          primaryLabel: 'Recovery time cannot be estimated',
+          primaryValue: '',
+          visual: { kind: 'none' },
+        };
+      }
       const rpe = vals.rpe;
       const duration = vals.duration;
 
-      // Base recovery (hours) by workout type — general sports-science guidance:
-      // heavy resistance needs ~48-72h per muscle group; HIIT/endurance less.
+      // These starting values are site-defined planning assumptions, not
+      // measured biological recovery times or validated by workout category.
       const BASE: Record<string, number> = {
         strength: 48,
         hiit: 36,
@@ -1397,7 +1408,7 @@ export const DEFS: Record<string, CalcDef> = {
       else if (duration <= 90) durMult = 1.15;
       else durMult = 1.3;
 
-      // Training age: beginners need more recovery; advanced recover faster.
+      // Training history adjustment is illustrative; people of every level vary.
       const AGE_MULT: Record<string, number> = {
         beginner: 1.3,
         intermediate: 1.0,
@@ -1405,7 +1416,7 @@ export const DEFS: Record<string, CalcDef> = {
       };
       const ageMult = AGE_MULT[trainingAge] ?? 1.0;
 
-      // Sleep quality: poor sleep impairs muscle repair and recovery.
+      // Sleep-related adjustment is heuristic, not a measured tissue-repair rate.
       const SLEEP_MULT: Record<string, number> = {
         poor: 1.25,
         fair: 1.1,
@@ -1414,7 +1425,7 @@ export const DEFS: Record<string, CalcDef> = {
       };
       const sleepMult = SLEEP_MULT[sleep] ?? 1.0;
 
-      // Soreness (DOMS): more soreness = more recovery needed.
+      // Mild/moderate soreness is a planning input, not a tissue-healing assay.
       const SORENESS_MULT: Record<string, number> = {
         none: 0.9,
         mild: 1.0,
@@ -1433,7 +1444,7 @@ export const DEFS: Record<string, CalcDef> = {
 
       return {
         ok: true,
-        primaryLabel: 'Suggested recovery window',
+        primaryLabel: 'Illustrative recovery planning window',
         primaryValue: `${fmtWindow(low)} – ${fmtWindow(high)}`,
         visual: { kind: 'none' },
         rows: [
@@ -1446,13 +1457,13 @@ export const DEFS: Record<string, CalcDef> = {
         ],
         callout: {
           tone: 'info',
-          text: 'Listen to your body. These are general guidance ranges from sports-science principles, not a prescription. If you\'re still sore, fatigued, or your performance is down, rest longer. Sharp or joint pain is never normal — stop and see a qualified professional.',
+          text: 'This hour range is an illustrative planning aid, not medical clearance or proof that muscles have healed. Check your movement and performance before training hard again. Stop for sharp or joint pain; seek medical advice if symptoms persist or worsen.',
         },
         cta: {
           label: 'Check your protein target for recovery →',
           href: '/tools/protein-intake-calculator',
         },
-        note: 'Method: a transparent heuristic. We start from a base recovery time for your workout type (e.g. ~48h for heavy resistance training, per the general 48–72h guideline), then adjust it up or down for intensity (RPE), duration, training age, sleep quality, and current soreness. The ±15% window reflects individual variation. This is general fitness guidance, not medical advice.',
+        note: 'Method: this site uses illustrative starting hours and fixed multipliers for session type, RPE, duration, training history, sleep, and mild/moderate soreness. The ±15% display margin is chosen by the model, NOT a measured confidence interval, validated biological recovery time, or a guarantee that hard exercise is safe on that day.',
       };
     },
   },
