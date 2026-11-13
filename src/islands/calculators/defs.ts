@@ -1222,19 +1222,24 @@ export const DEFS: Record<string, CalcDef> = {
     compute: ({ vals, units }) => {
       const w = vals.weight;
       const reps = Math.max(1, Math.min(15, vals.reps));
-      const epley = w * (1 + reps / 30);
+      // A completed single already records that load; do not extrapolate
+      // Epley by 3.33% when reps === 1. It may not be a true maximal lift.
+      const isSingle = reps === 1;
+      const epley = isSingle ? w : w * (1 + reps / 30);
       const brzycki = w * 36 / (37 - reps);
       const pcts = [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50];
       return {
         ok: true,
-        primaryLabel: 'Estimated 1-rep max (Epley)',
+        primaryLabel: isSingle ? 'Weight lifted for one rep' : 'Estimated 1-rep max (Epley)',
         primaryValue: fmtMass(epley, units, 1),
         visual: { kind: 'none' },
         rows: [
           { label: 'Brzycki estimate', value: fmtMass(brzycki, units, 1) },
-          ...pcts.map((p) => ({ label: `${p}% of 1RM`, value: fmtMass(epley * (p / 100), units, 1), strong: p === 100 })),
+          ...pcts.map((p) => ({ label: `${p}% of ${isSingle ? 'recorded one-rep load' : '1RM'}`, value: fmtMass(epley * (p / 100), units, 1), strong: p === 100 })),
         ],
-        note: 'Epley: weight × (1 + reps ÷ 30). Brzycki: weight × 36 ÷ (37 − reps). Most accurate at 10 reps or fewer.',
+        note: isSingle
+          ? 'One repetition: the result equals the weight you lifted. It is a recorded single-rep load, not proof of your true maximum unless the attempt was maximal. The percentage table is relative to this recorded load.'
+          : 'For 2 or more repetitions, Epley: weight × (1 + reps ÷ 30); Brzycki: weight × 36 ÷ (37 − reps). Both are estimates, most useful at 10 reps or fewer.',
       };
     },
   },
