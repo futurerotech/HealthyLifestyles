@@ -327,21 +327,20 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
     metaDescription:
       'Estimate your one-rep max from a set with the Epley and Brzycki formulas, plus a 50–100% training table. Free 1RM calculator, no signup.',
     intro:
-      'Your one-rep max (1RM) is the most weight you can lift once. Instead of attempting a risky maximal lift, estimate it from a lighter set — enter the weight and reps to get your 1RM and a full percentage table.',
+      'Estimate a one-rep maximum from a completed multi-repetition set without attempting a risky true max. Enter the load and whole reps; for a single completed rep, this tool shows the lifted load, which is not necessarily a true maximum. Percentage loads are planning examples, not a training prescription.',
     sections: [
       {
         h2: 'How your 1RM is estimated',
         paragraphs: [
-          'For sets of 2 or more repetitions, this calculator applies two widely used prediction equations: Epley 1RM = weight × (1 + reps ÷ 30), and Brzycki 1RM = weight × 36 ÷ (37 − reps). These estimate a one-rep maximum from a challenging multi-rep set, not a verified maximal lift.',
-          'For exactly one completed repetition, the calculator reports the load you actually lifted rather than inflating it with the Epley equation. A single lift is not necessarily your true maximum unless it was a maximal attempt; the displayed percentages then reference your recorded lift, not a proven 1RM.',
-          'The two formulas agree closely at low reps and diverge a little as reps climb. Accuracy is best when your set is 10 reps or fewer — beyond that, factors like muscular endurance muddy the estimate. For the most reliable number, use a hard set of 3–6 reps.',
+          'The tool uses two widely studied prediction formulas for sets of 2–15 reps: Epley = lifted weight × (1 + reps / 30); Brzycki = lifted weight × 36 / (37 − reps). These were developed for challenging sets near repetition failure. For one completed repetition, no extrapolation is made, because a successful single does not prove it was maximal.',
+          'Estimates become more uncertain as repetition counts increase. A study of bench-press and leg-press prediction found that linear equations should not use more than 10 reps in those movements. The calculator still allows 11–15 whole reps for comparison but displays a caution. Controlled low-rep working sets can be informative; do not train to failure or attempt a true maximum solely for a calculator.',
         ],
       },
       {
         h2: 'Training with percentages of your 1RM',
         paragraphs: [
-          'Most strength programs prescribe loads as a percentage of 1RM, which is why the table above matters. As a rough guide: 85–100% builds maximal strength (1–5 reps), 70–85% builds muscle (6–12 reps), and 50–70% develops muscular endurance (12+ reps).',
-          'Knowing your 1RM lets you pick the right weight for the goal of each session and progress in a structured way, rather than guessing. Recalculate every few weeks as you get stronger.',
+          'Some strength programs organize loads by percentage of an estimated 1RM. Actual repetition capacity and adaptation vary by exercise and individual; the displayed 50–100% table is an arithmetic planning reference, not a guarantee of how many reps you can complete or an instruction to lift a particular weight.',
+          'Record which exercise, equipment and load produced the estimate. A percentage table cannot determine an individually safe working weight; use appropriate technique, gradual progression and conservative loads instead of chasing the highest calculated figure.',
         ],
       },
       {
@@ -359,14 +358,21 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       },
       {
         q: 'Which is better, Epley or Brzycki?',
-        a: 'Both are well validated and agree closely at low reps. Epley tends to read slightly higher at higher reps. Using a set of 5 reps or fewer makes both more accurate.',
+        a: 'Both are commonly studied but can differ by rep count and exercise. For 80 kg × 5, Epley predicts 93.3 kg while Brzycki predicts 90 kg; they coincide mathematically at 10 reps, and Brzycki rises above Epley for some longer sets. Neither provides a guaranteed true maximum.',
       },
       {
         q: 'How often should I recalculate my 1RM?',
-        a: 'Every four to six weeks, or whenever your working weights climb noticeably. Re-estimating keeps your training percentages accurate as you get stronger.',
+        a: 'About every four to six weeks is a practical, optional training-log interval, not a medical schedule. Recalculate only when you have a comparable recent set with sound technique; neither estimate should determine a mandatory heavy lift.',
       },
     ],
-    sources: [BRZYCKI, ONERM_VALIDITY],
+    sources: [
+      BRZYCKI,
+      ONERM_VALIDITY,
+      {
+        citation: 'Reynolds JM, Gordon TJ, Robergs RA. Prediction of one repetition maximum strength from multiple repetition maximum testing and anthropometry. J Strength Cond Res. 2006.',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/16937972/',
+      },
+    ],
   },
 
   // ============================================================
