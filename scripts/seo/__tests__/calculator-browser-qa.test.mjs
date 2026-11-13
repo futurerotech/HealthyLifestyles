@@ -114,20 +114,34 @@ const FOCUSED = `(() => {
   return { tag: e.tagName, id: e.id, label: (e.getAttribute('aria-label') || e.textContent || e.id || '').trim().slice(0, 40), ring };
 })()`;
 
-// Change the first enabled number input and report whether the visible text changed.
-const NUDGE = `(() => {
+// Number inputs in the calculator (index-addressed), and a setter that also
+// presses the calculator's submit button when it has one.
+const NUMBER_INPUTS = `(() => [...document.querySelector('.tool__calc').querySelectorAll('input[type=number], input:not([type])')]
+  .filter((e) => !e.disabled && e.getClientRects().length)
+  .map((e) => ({ id: e.id, value: e.value, min: e.min, max: e.max })))()`;
+const SET_INPUT = (i, v) => `(() => {
   const root = document.querySelector('.tool__calc');
-  const inputs = [...root.querySelectorAll('input[type=number], input:not([type])')].filter((e) => !e.disabled && e.getClientRects().length);
-  if (!inputs.length) return { skipped: true };
-  const e = inputs[0];
-  const before = root.innerText;
-  const cur = Number(e.value);
-  const nextVal = Number.isFinite(cur) && cur > 0 ? String(Math.max(1, Math.round(cur * 1.25))) : '30';
-  Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(e, nextVal);
+  const e = [...root.querySelectorAll('input[type=number], input:not([type])')].filter((x) => !x.disabled && x.getClientRects().length)[${i}];
+  Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(e, ${JSON.stringify(String(v))});
   e.dispatchEvent(new Event('input', { bubbles: true }));
   e.dispatchEvent(new Event('change', { bubbles: true }));
-  return { before, id: e.id, nextVal };
+  const submit = root.querySelector('button[type=submit]');
+  if (submit) submit.click();
+  return true;
 })()`;
+const candidates = ({ value, min, max }) => {
+  const cur = Number(value), out = [];
+  if (Number.isFinite(cur) && cur > 0) out.push(cur * 2, Math.max(1, Math.round(cur / 2)));
+  if (min !== '' && Number.isFinite(Number(min))) out.push(Number(min));
+  if (max !== '' && Number.isFinite(Number(max))) out.push(Number(max));
+  out.push(30, 5);
+  return [...new Set(out.map(String))].filter((v) => v !== value);
+};
+// Elements wider than the viewport, for diagnosing overflow.
+const OFFENDERS = `(() => { const w = document.documentElement.clientWidth;
+  return [...document.querySelectorAll('.tool__calc *')].map((e) => { const r = e.getBoundingClientRect();
+    return { tag: e.tagName.toLowerCase(), cls: String(e.className).slice(0, 40), right: Math.round(r.right), width: Math.round(r.width) }; })
+    .filter((x) => x.right > w + 1).sort((a, b) => a.width - b.width).slice(0, 5); })()`;
 
 test('changed calculators: hydration, interaction, 390px and desktop fit, accessible names, keyboard focus', { timeout: 900000 }, async () => {
   const port = await freePort(), chromePort = await freePort();
@@ -194,7 +208,7 @@ test('changed calculators: hydration, interaction, 390px and desktop fit, access
       if (mobile.missing) { fail('calculator container missing'); continue; }
       if (mobile.count === 0) fail('no interactive controls');
       if (mobile.unnamed.length) fail('controls without accessible name: ' + JSON.stringify(mobile.unnamed));
-      if (mobile.scroll > mobile.client + 1) fail(`390px horizontal overflow (${mobile.scroll} > ${mobile.client})`);
+      if (mobile.scroll > mobile.client + 1) fail(`390px horizontal overflow (${mobile.scroll} > ${mobile.client}) ` + JSON.stringify(await js(OFFENDERS)));
       if (mobile.left < -1 || mobile.right > mobile.w + 1) fail(`390px calculator outside viewport (${Math.round(mobile.left)}..${Math.round(mobile.right)} of ${mobile.w})`);
 
       // Keyboard: Tab from just before the calculator through all of its controls.
@@ -212,13 +226,20 @@ test('changed calculators: hydration, interaction, 390px and desktop fit, access
       const noRing = [...reached.values()].filter((f) => !f.ring).map((f) => f.tag + ' ' + (f.id || f.label));
       if (noRing.length) fail('no visible focus indicator: ' + JSON.stringify(noRing));
 
-      // Interaction: changing an input changes the visible result.
-      const n = await js(NUDGE);
-      if (!n.skipped) {
-        try {
-          await until(async () => (await js("document.querySelector('.tool__calc').innerText")) !== n.before, 'result changes after editing ' + n.id, 6000);
-        } catch (e) { fail(String(e)); }
+      // Interaction: some input change must change the visible result.
+      const inputs = await js(NUMBER_INPUTS);
+      let interaction = inputs.length ? 'none' : 'n/a';
+      outer: for (let i = 0; i < inputs.length; i++) {
+        for (const v of candidates(inputs[i])) {
+          const before = await js("document.querySelector('.tool__calc').innerText");
+          await js(SET_INPUT(i, v));
+          try {
+            await until(async () => (await js("document.querySelector('.tool__calc').innerText")) !== before, 'change', 1500);
+            interaction = 'ok'; break outer;
+          } catch { /* try the next value or input */ }
+        }
       }
+      if (interaction === 'none') fail('no input change altered the visible result');
 
       await viewport(1440, 900, false);
       await delay(250);
@@ -227,7 +248,7 @@ test('changed calculators: hydration, interaction, 390px and desktop fit, access
       if (desk.right > desk.w + 1) fail('desktop calculator outside viewport');
 
       if (exceptions.length) fail('uncaught exceptions: ' + JSON.stringify(exceptions.slice(0, 3)));
-      report.push(`${slug}: controls=${mobile.count} tab=${reachedCount} interaction=${n.skipped ? 'n/a' : 'ok'}`);
+      report.push(`${slug}: controls=${mobile.count} tab=${reachedCount} interaction=${interaction}`);
     }
     console.log('[CALC_BROWSER_QA] ' + report.join(' | '));
     if (failures.length) console.error('[CALC_BROWSER_QA] FAILURES\n' + failures.join('\n'));

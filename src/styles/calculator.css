@@ -38,10 +38,14 @@
 
 .calc__fields {
   display: grid;
+  /* Zero minimum: a <select> otherwise sizes the column to its longest option
+     and widens the page on narrow screens (recovery-time at 390px). */
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
 }
 .calc__field {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.4rem;
 }
 .calc__label {
@@ -386,6 +390,8 @@
 }
 .calc__select select {
   width: 100%;
+  min-width: 0;
+  text-overflow: ellipsis;
   border: none;
   outline: none;
   background: transparent;
