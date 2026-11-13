@@ -1,6 +1,6 @@
 /** @jsxImportSource preact */
 import { useState } from 'preact/hooks';
-import { computeSitting, validSittingInputs, type JobType, type SittingResult } from '../lib/sitting';
+import { computeSitting, validSittingInputs, type SittingResult } from '../lib/sitting';
 import { kgToLb, lbToKg, round } from '../lib/units';
 
 type Units = 'kg' | 'lb';
@@ -15,7 +15,6 @@ export default function SittingReversal() {
   // Canonical kg storage: toggling display units never changes the result.
   const [weightKg, setWeightKg] = useState(75);
   const [steps, setSteps] = useState(5000);
-  const [job, setJob] = useState<JobType>('desk');
   const [shareMsg, setShareMsg] = useState('');
 
   const switchUnits = (next: Units) => {
@@ -24,8 +23,11 @@ export default function SittingReversal() {
   };
 
   const displayedWeight = round(units === 'kg' ? weightKg : kgToLb(weightKg), 2);
-  const validInputs = validSittingInputs({ sittingHours, weightKg, currentSteps: steps, job });
-  const r = computeSitting({ sittingHours, weightKg, currentSteps: steps, job });
+  // The historical job category was not used by the formula; do not present
+  // an inert personalization control. Preserve the pure function's input shape.
+  const calculationInput = { sittingHours, weightKg, currentSteps: steps, job: 'desk' as const };
+  const validInputs = validSittingInputs(calculationInput);
+  const r = computeSitting(calculationInput);
 
   // ---- Shareable card ----
   const makeCardBlob = (res: SittingResult): Promise<Blob | null> =>
@@ -132,14 +134,6 @@ export default function SittingReversal() {
             <span>Current daily steps</span>
             <input type="number" min="0" max="100000" step="500" value={steps}
               onInput={(e) => setSteps(num((e.target as HTMLInputElement).value, 0))} />
-          </label>
-          <label class="sr__field">
-            <span>Job type (optional)</span>
-            <select value={job} onChange={(e) => setJob((e.target as HTMLSelectElement).value as JobType)}>
-              <option value="desk">Desk / office</option>
-              <option value="mixed">Mixed (some moving)</option>
-              <option value="active">On my feet a lot</option>
-            </select>
           </label>
         </div>
         {validInputs ? <p class={`sr__level sr__level--${r.sittingLevel.replace(' ', '-')}`}>{r.sittingNote}</p> :

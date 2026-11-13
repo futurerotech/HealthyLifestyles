@@ -14,6 +14,7 @@ export interface SittingInputs {
   sittingHours: number;
   weightKg: number;
   currentSteps: number;
+  /** Kept only for API compatibility; this heuristic does not use job type. */
   job: JobType;
 }
 
