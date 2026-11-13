@@ -1,0 +1,27 @@
+# TEMPORARY — throwaway branch only, never merge. Regenerates the lockfile with
+# npm audit fix and prints the diff so it can be reviewed and committed on a PR.
+name: tmp lockfile regen
+on:
+  push:
+    branches: ['chore/tmp-lockfile-regen-20261114']
+permissions:
+  contents: read
+jobs:
+  regen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm audit --json > /tmp/before.json || true
+      - run: node -e "const r=require('/tmp/before.json');for(const[k,v]of Object.entries(r.vulnerabilities))console.log('BEFORE',k,v.severity,v.range,JSON.stringify(v.via.map(x=>x.source||x)),JSON.stringify(v.fixAvailable))"
+      - run: npm audit fix --package-lock-only
+      - run: npm audit --json > /tmp/after.json || true
+      - run: node -e "const r=require('/tmp/after.json');console.log('AFTER_TOTALS',JSON.stringify(r.metadata.vulnerabilities))"
+      - run: git diff --stat
+      - run: |
+          echo "-----BEGIN LOCKDIFF B64-----"
+          git diff package-lock.json | gzip -9 | base64 -w 0
+          echo
+          echo "-----END LOCKDIFF B64-----"
