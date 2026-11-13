@@ -106,3 +106,16 @@ test('healthspan next steps describe available model points, not medical impact 
   assert.doesNotMatch(content.intro ?? '', /highest-impact/);
   assert.match(content.sections?.find(s => s.h2 === 'A worked example')?.paragraphs?.join(' ') ?? '', /do not rank expected medical benefits/i);
 });
+
+
+test('omitting optional waist can raise or lower the numerical score; it is not a guaranteed bonus', () => {
+  const noWaist = computeHealthspan({ ...baseline, waistToHeight: null });
+  const idealWaist = computeHealthspan({ ...baseline, waistToHeight: 0.4 });
+  const higherWaist = computeHealthspan({ ...baseline, waistToHeight: 0.7 });
+  assert.ok(idealWaist.score > noWaist.score);
+  assert.ok(noWaist.score > higherWaist.score);
+  assert.equal(noWaist.usedWaist, false);
+  const island = readFileSync(new URL('../../../src/islands/HealthspanScore.tsx', import.meta.url), 'utf8');
+  assert.doesNotMatch(island, /skipping never penalizes you/i);
+  assert.match(RISK_CONTENT['healthspan-score'].sections?.[1]?.paragraphs?.join(' ') ?? '', /not directly comparable/i);
+});
