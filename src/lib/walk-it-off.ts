@@ -4,6 +4,15 @@
  * of Physical Activities. Estimates only.
  */
 
+
+/** Keep calculator mass in kg; displayed unit toggles must not change the math. */
+export type WeightUnits = 'kg' | 'lb';
+const LB_PER_KG = 2.20462;
+export const weightToKg = (value: number, units: WeightUnits): number =>
+  units === 'lb' ? value / LB_PER_KG : value;
+export const weightForDisplay = (kg: number, units: WeightUnits): number =>
+  Math.round((units === 'lb' ? kg * LB_PER_KG : kg) * 100) / 100;
+
 export interface Food {
   name: string;
   kcal: number;
