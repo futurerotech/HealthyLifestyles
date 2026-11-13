@@ -24,8 +24,9 @@ test('original FFMI calculation remains numeric and height normalization uses pu
 });
 
 test('study-specific FFMI cannot assign drug status or universal health band', () => {
-  for (const input of [[72,175,15],[72,150,15],[115,180,8]]) {
-    const out = r(...input);
+  const cases: [number, number, number][] = [[72,175,15],[72,150,15],[115,180,8]];
+  for (const [weight,height,bodyfat] of cases) {
+    const out = r(weight,height,bodyfat);
     assert.equal(out.visual.kind, 'none');
     assert.equal(out.category, undefined);
     assert.match(out.note ?? '', /neither raw nor normalized FFMI is a clinical diagnosis/i);
