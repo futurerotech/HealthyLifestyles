@@ -42,6 +42,16 @@ export interface SittingResult {
   ideas: string[];
 }
 
+/** Validate user-entered values before showing or sharing movement estimates. */
+export function validSittingInputs(input: SittingInputs): boolean {
+  return Number.isFinite(input.sittingHours) &&
+    input.sittingHours >= 0 && input.sittingHours <= 18 &&
+    Number.isFinite(input.weightKg) &&
+    input.weightKg >= 1 && input.weightKg <= 300 &&
+    Number.isFinite(input.currentSteps) &&
+    input.currentSteps >= 0 && input.currentSteps <= 100000;
+}
+
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 
 const BREAK_INTERVAL_MIN = 45; // move roughly every 30–60 min (use the midpoint)

@@ -1,6 +1,6 @@
 /** @jsxImportSource preact */
 import { useState } from 'preact/hooks';
-import { computeSitting, type JobType, type SittingResult } from '../lib/sitting';
+import { computeSitting, validSittingInputs, type JobType, type SittingResult } from '../lib/sitting';
 import { kgToLb, lbToKg, round } from '../lib/units';
 
 type Units = 'kg' | 'lb';
@@ -24,6 +24,7 @@ export default function SittingReversal() {
   };
 
   const displayedWeight = round(units === 'kg' ? weightKg : kgToLb(weightKg), 2);
+  const validInputs = validSittingInputs({ sittingHours, weightKg, currentSteps: steps, job });
   const r = computeSitting({ sittingHours, weightKg, currentSteps: steps, job });
 
   // ---- Shareable card ----
@@ -83,6 +84,7 @@ export default function SittingReversal() {
   }
 
   const shareCard = async () => {
+    if (!validInputs) return;
     setShareMsg('');
     const blob = await makeCardBlob(r);
     if (!blob) return;
@@ -118,7 +120,7 @@ export default function SittingReversal() {
           <label class="sr__field">
             <span>Body weight</span>
             <div class="sr__input-unit">
-              <input type="number" min={units === 'kg' ? 1 : 2.2} step="any" value={displayedWeight}
+              <input type="number" min={units === 'kg' ? 1 : 2.2} max={units === 'kg' ? 300 : 661.4} step="any" value={displayedWeight}
                 onInput={(e) => {
                   const entered = num((e.target as HTMLInputElement).value, 0);
                   setWeightKg(units === 'kg' ? entered : lbToKg(entered));
@@ -128,7 +130,7 @@ export default function SittingReversal() {
           </label>
           <label class="sr__field">
             <span>Current daily steps</span>
-            <input type="number" min="0" step="500" value={steps}
+            <input type="number" min="0" max="100000" step="500" value={steps}
               onInput={(e) => setSteps(num((e.target as HTMLInputElement).value, 0))} />
           </label>
           <label class="sr__field">
@@ -140,13 +142,16 @@ export default function SittingReversal() {
             </select>
           </label>
         </div>
-        <p class={`sr__level sr__level--${r.sittingLevel.replace(' ', '-')}`}>{r.sittingNote}</p>
+        {validInputs ? <p class={`sr__level sr__level--${r.sittingLevel.replace(' ', '-')}`}>{r.sittingNote}</p> :
+          <p class="sr__level" role="alert">Enter 0–18 sitting hours, a weight of 1–300 kg (2.2–661.4 lb), and 0–100,000 daily steps to see a movement illustration.</p>}
       </div>
 
       <p class="sr-only" role="status" aria-live="polite">
-        {r.breaksPerDay} optional movement breaks and {r.addedSteps.toLocaleString('en-US')} suggested steps daily. Gross activity-energy estimate, possibly overlapping: {r.caloriesReclaimed} kcal. No health-risk reversal is calculated.
+        {validInputs ? `${r.breaksPerDay} optional movement breaks and ${r.addedSteps.toLocaleString('en-US')} suggested steps daily. Gross activity-energy estimate, possibly overlapping: ${r.caloriesReclaimed} kcal. No health-risk reversal is calculated.` : 'Enter valid sitting hours, body weight and daily steps to view or share an estimate.'}
       </p>
 
+      {validInputs && (
+        <>
       {/* ---------------- Movement recipe ---------------- */}
       <section class="sr__recipe card">
         <h2 class="sr__h">Your movement recipe</h2>
@@ -168,9 +173,9 @@ export default function SittingReversal() {
           </div>
         </div>
         <p class="sr__recipe-line">
-          Aim to stand and move for about <strong>{r.breakDurationMin} minutes</strong> every <strong>30–60 minutes</strong>
+          One optional plan is to stand and move for <strong>{r.breakDurationMin} minutes</strong> about every <strong>30–60 minutes</strong>
           ({r.breaksPerDay} breaks across your day = <strong>{r.movementMinutes} minutes</strong> on your feet), and add
-          consider roughly <strong>{r.addedSteps.toLocaleString('en-US')} optional steps</strong> of everyday movement outside structured exercise.
+          consider adding roughly <strong>{r.addedSteps.toLocaleString('en-US')} steps</strong> of everyday movement outside structured exercise.
         </p>
       </section>
 
@@ -202,10 +207,12 @@ export default function SittingReversal() {
           <p class="sr__share-sub">Post your movement plan — or send it to a desk-bound friend.</p>
         </div>
         <div class="sr__share-btns">
-          <button type="button" class="btn btn-primary" onClick={shareCard}>Share my recipe</button>
+          <button type="button" class="btn btn-primary" onClick={shareCard} disabled={!validInputs}>Share my recipe</button>
         </div>
         {shareMsg && <p class="sr__share-msg">{shareMsg}</p>}
       </section>
+        </>
+      )}
 
       <p class="sr__note">
         Optional general movement suggestions, not a clinical risk score or a method for reversing sitting-related health effects. Gross calorie estimates may overlap and should not be added to daily calorie targets. Choose accessible activity that works for you; ask a qualified professional about individual restrictions.
