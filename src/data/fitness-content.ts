@@ -525,24 +525,24 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
   'push-up-test-calculator': {
     seoTitle: 'Push-Up Test Calculator — Score by Age & Sex Norms',
     metaDescription:
-      'Score your push-up test against ACSM age and sex normative tables. See your percentile band, how to improve, and when to retest. Free fitness self-assessment.',
+      'Compare whole-repetition push-up scores with ACSM age- and protocol-specific reference categories for adults 20–69. Learn how to test, train, and retest safely.',
     intro:
-      'The push-up test measures upper-body muscular endurance. Enter your age, sex, and the number of strict push-ups you completed to see where you rank against published norms.',
+      'The push-up test measures upper-body muscular endurance. To compare your result with the ACSM adult reference categories, men perform standard toe-supported push-ups and women perform modified knee-supported push-ups. Those are different testing protocols, not equivalent physical workloads. Enter whole repetitions; ages outside 20–69 receive a raw score without an age-based rating.',
     notice:
-      'Fitness self-assessment, not a medical test. Stop immediately if you feel chest pain, dizziness, or severe shortness of breath — these are red flags that need medical care.',
+      'Educational fitness self-assessment, not a medical test. Stop for chest pain, faintness, unusual severe breathlessness, palpitations, or sharp joint pain; call emergency services for persistent chest pain or suspected heart attack symptoms. Do not attempt a maximal test against medical advice.',
     sections: [
       {
         h2: 'How to do the test properly',
         paragraphs: [
-          'Form matters more than the number. A rep only counts if you lower your body until your chest is about fist height above the floor, keep your body in a straight line from head to heels, and push back up to full arm extension. If your hips sag, your chin leads, or you half-rep, the number is not comparable to the norms.',
-          'Do the test after a short warm-up (arm circles, a few easy reps). Pace yourself — most people do better with a steady rhythm than an explosive start that burns them out early. Rest between reps in the plank position, not on the floor.',
+          'Follow the exact protocol for the reference category you select. The ACSM method starts men in a standard toe-supported push-up and women in a modified knee-supported push-up. Keep the back aligned, lower until the chin reaches the mat without resting the abdomen on it, and press to fully straightened elbows. Count only complete repetitions; do not compare knee-supported and toe-supported scores as equivalent.',
+          'Warm up gently with shoulder movement and a few comfortable practice repetitions. The ACSM test counts consecutive proper repetitions without rest; stop if you cannot maintain correct technique. If you have shoulder or wrist pain, recent surgery, known cardiovascular disease, or exercise restrictions, ask a qualified clinician whether maximal testing is appropriate.',
         ],
       },
       {
-        h2: 'Reading your percentile band',
+        h2: 'Reading your reference category (not a percentile)',
         paragraphs: [
-          'Your result is compared to the ACSM push-up test norms for your age and sex, which are based on population data collected from thousands of adults. The bands run from "Below average" through "Average," "Above average," and "Good" to "Excellent" (roughly the 90th percentile or higher).',
-          'If you land in "Below average" or "Average," that is common — most adults do not train push-ups regularly. The good news is that push-up capacity responds quickly to consistent training; most people see measurable improvement in 4–6 weeks.',
+          'The ACSM 10th-edition Table 4.11 groups adults ages 20–69 into Poor, Fair, Good, Very good, and Excellent based on their age and the correct test protocol. These descriptive categories are not exact percentiles and do not establish medical risk, overall fitness, or a specific health benefit. For ages 15–19 or 70 and older, the calculator preserves your repetition count but does not invent a category.',
+          'An age-reference category is only meaningful when the test is performed in the same way as its source. A female user who performs full toe-supported push-ups can track that achievement, but should not interpret those repetitions using this modified-knee reference table. Focus on pain-free, repeatable technique and progress over time rather than using a label as a judgment of health.',
         ],
       },
       {
@@ -562,18 +562,18 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
         h2: 'When to retest',
         paragraphs: [
           'Retest every 4–6 weeks under the same conditions: same time of day, same warm-up, same surface. Progress in muscular endurance is real but gradual — testing too often just measures daily variation.',
-          'A 3–5 rep improvement in a month is solid progress. If your score stalls for two consecutive tests, change your training stimulus: add volume, increase frequency, or address weak points like core or triceps strength.',
+          'Progress depends on practice, sleep, recovery, body mass, and how consistently you repeat the test. If your score stalls, review form and recovery before adding workload; avoid increasing intensity when joint pain persists.',
         ],
       },
     ],
     faq: [
       {
         q: 'What counts as a proper push-up rep?',
-        a: 'Your body must stay in a straight line from head to heels, your chest must lower to about fist height above the floor, and you must push back to full arm extension. Hips sagging, knees touching, or half-range reps do not count toward the normative comparison.',
+        a: 'Keep the back aligned, lower until the chin reaches the mat without resting the abdomen, and press to full elbow extension. ACSM reference testing uses toe-supported reps for men and modified knee-supported reps for women. Do not count half-range reps or rest between repetitions.',
       },
       {
         q: 'Can women do the standard push-up test?',
-        a: 'Yes. The norms here use the standard (knees-off-the-floor) push-up position for both men and women. If you are not yet strong enough for standard push-ups, start with knee push-ups or incline push-ups and work toward the full version before comparing to these norms.',
+        a: 'Yes, women may train and perform full standard push-ups. But the ACSM female comparison in this calculator is based on modified push-ups from the knees. Full and modified repetitions are not interchangeable; for this reference result, use the test protocol shown for the selected sex, or simply track the full repetition count separately without treating its category as validated.',
       },
       {
         q: 'Why does the norm change with age?',
@@ -585,6 +585,8 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       },
     ],
     sources: [
+      { citation: 'ACSM Guidelines for Exercise Testing and Prescription, 10th ed., Table 4.11 (2018), adult age- and protocol-specific reference categories.', url: 'https://www.exercisescienceacademy.online/_files/ugd/86c999_6c889a821c004e86bd71c8e3debfab50.pdf' },
+      { citation: 'Development of a Standard Push-up Scale for College-Aged Females (2022), discussion of standard vs modified push-up protocols.', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC9362895/' },
       {
         citation: 'American College of Sports Medicine. "ACSM\'s Health-Related Physical Fitness Assessment Manual." 5th ed. Lippincott Williams & Wilkins; 2021.',
         url: pubmed('ACSM Health-Related Physical Fitness Assessment Manual push-up test norms'),

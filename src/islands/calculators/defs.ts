@@ -1475,89 +1475,103 @@ export const DEFS: Record<string, CalcDef> = {
     },
   },
 
-  // ---- Push-Up Test (muscular endurance norms) ----
+  // ---- Push-Up Test (ACSM Guidelines, 10th ed., Table 4.11; separate protocols) ----
   'push-up-test-calculator': {
     slug: 'push-up-test-calculator',
     heading: 'Score your push-up test',
     hasSex: true,
     fields: [
       F.age(30),
-      { key: 'pushups', label: 'Push-ups completed', type: 'number', metricDefault: 20, min: 0, max: 200, suffix: 'reps', allowZero: true, help: 'Count strict reps: chest to fist height, body straight, full extension at the top.' },
-      { key: 'plank', label: 'Plank hold (optional)', type: 'number', metricDefault: 0, min: 0, max: 600, suffix: 'sec', allowZero: true, help: 'If you also held a forearm plank, enter your time in seconds.' },
+      { key: 'pushups', label: 'Push-ups completed', type: 'number', metricDefault: 20, min: 0, max: 200, step: 1, suffix: 'reps', allowZero: true, help: 'Count whole, consecutive repetitions without rest. Men: standard from toes; women: modified from knees for the ACSM comparison. Stop if your form breaks.' },
+      { key: 'plank', label: 'Plank hold (optional)', type: 'number', metricDefault: 0, min: 0, max: 600, step: 1, suffix: 'sec', allowZero: true, help: 'Optional whole seconds for a separate forearm plank; no normative fitness grade is calculated.' },
     ],
     compute: ({ vals, sex }) => {
       const age = vals.age;
       const pushups = vals.pushups;
+      const invalid = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Push-up score', primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (!Number.isInteger(age) || age < 15 || age > 100) return invalid('Enter your age as a whole number from 15 to 100 years.');
+      if (!Number.isInteger(pushups) || pushups < 0 || pushups > 200) return invalid('Enter a whole number of completed push-ups from 0 to 200.');
+      if (!Number.isInteger(vals.plank) || vals.plank < 0 || vals.plank > 600) return invalid('Enter a whole number of plank seconds from 0 to 600.');
 
-      // Normative thresholds (inclusive max per band) by sex and age bracket.
-      // Source: ACSM push-up test norms. bands = [belowAvg, avg, aboveAvg, good] upTo values.
+      // ACSM Guidelines for Exercise Testing and Prescription, 10th ed., Table 4.11.
+      // Five age-specific categories; men's standard/toes and women's modified/knees
+      // are DIFFERENT test protocols, and cannot be compared interchangeably.
+      // Each tuple gives the inclusive max for Poor, Fair, Good and Very good.
       const NORMS: Record<Sex, Array<{ ageMax: number; bands: [number, number, number, number] }>> = {
         male: [
-          { ageMax: 29, bands: [21, 28, 36, 44] },
-          { ageMax: 39, bands: [16, 23, 29, 38] },
-          { ageMax: 49, bands: [12, 18, 24, 30] },
-          { ageMax: 59, bands: [9, 13, 18, 24] },
-          { ageMax: 200, bands: [7, 10, 14, 20] },
+          { ageMax: 29, bands: [16, 21, 28, 35] },
+          { ageMax: 39, bands: [11, 16, 21, 29] },
+          { ageMax: 49, bands: [9, 12, 16, 24] },
+          { ageMax: 59, bands: [6, 9, 12, 20] },
+          { ageMax: 69, bands: [4, 7, 10, 17] },
         ],
         female: [
-          { ageMax: 29, bands: [9, 14, 20, 25] },
-          { ageMax: 39, bands: [7, 12, 16, 21] },
-          { ageMax: 49, bands: [5, 10, 13, 17] },
-          { ageMax: 59, bands: [4, 7, 10, 13] },
-          { ageMax: 200, bands: [3, 5, 8, 12] },
+          { ageMax: 29, bands: [9, 14, 20, 29] },
+          { ageMax: 39, bands: [7, 12, 19, 26] },
+          { ageMax: 49, bands: [4, 10, 14, 23] },
+          { ageMax: 59, bands: [1, 6, 10, 20] },
+          { ageMax: 69, bands: [1, 4, 11, 16] },
         ],
       };
+      const protocol = sex === 'male' ? 'standard push-ups (toes)' : 'modified push-ups (knees)';
+      const rows: ResultRow[] = [{ label: 'Test protocol', value: protocol }];
+      const isReferenceAge = age >= 20 && age <= 69;
+      let category: CalcResult['category'];
+      let visual: Visual = { kind: 'none' };
+      let note: string;
 
-      const norms = NORMS[sex];
-      const bracket = norms.find((b) => age <= b.ageMax) ?? norms[norms.length - 1];
-      const [below, avg, above, good] = bracket.bands;
-
-      const segments: Segment[] = [
-        { upTo: below, label: 'Below average', color: C.red },
-        { upTo: avg, label: 'Average', color: C.amber },
-        { upTo: above, label: 'Above average', color: C.teal },
-        { upTo: good, label: 'Good', color: C.green },
-        { upTo: 200, label: 'Excellent', color: C.blue },
-      ];
-      const band = bandFor(pushups, segments);
-      const gaugeMax = Math.max(good + 15, pushups + 5);
-
-      const ageBracketLabel = age <= 29 ? '20–29' : age <= 39 ? '30–39' : age <= 49 ? '40–49' : age <= 59 ? '50–59' : '60+';
-
-      const rows: ResultRow[] = [
-        { label: 'Percentile band', value: band.label, strong: true },
-        { label: `Norm for ${sex === 'male' ? 'men' : 'women'} aged ${ageBracketLabel}`, value: `Excellent ≥ ${good + 1} reps` },
-        { label: 'Average starts at', value: `${below + 1} reps` },
-      ];
-
-      // Optional plank assessment (general guidance, no formal age/sex norms).
-      if (vals.plank > 0) {
-        const plankBands: Array<{ upTo: number; label: string }> = [
-          { upTo: 30, label: 'Needs improvement' },
-          { upTo: 45, label: 'Average' },
-          { upTo: 60, label: 'Good' },
-          { upTo: 90, label: 'Very good' },
+      if (isReferenceAge) {
+        const ageIndex = Math.min(4, Math.floor((age - 20) / 10));
+        const [poor, fair, good, veryGood] = NORMS[sex][ageIndex].bands;
+        const ageBracket = ['20–29', '30–39', '40–49', '50–59', '60–69'][ageIndex];
+        const gaugeMax = Math.max(veryGood + 15, pushups + 5);
+        const segments: Segment[] = [
+          { upTo: poor, label: 'Poor', color: C.red },
+          { upTo: fair, label: 'Fair', color: C.amber },
+          { upTo: good, label: 'Good', color: C.teal },
+          { upTo: veryGood, label: 'Very good', color: C.green },
+          { upTo: gaugeMax, label: 'Excellent', color: C.blue },
         ];
-        const plankBand = plankBands.find((b) => vals.plank <= b.upTo) ?? { label: 'Excellent' };
-        rows.push({ label: 'Plank hold', value: `${fmt(vals.plank, 0)} sec — ${plankBand.label}`, strong: true });
+        const band = bandFor(pushups, segments);
+        category = { label: band.label, color: band.color };
+        visual = { kind: 'gauge', value: pushups, min: 0, max: gaugeMax, segments };
+        rows.push(
+          { label: 'ACSM reference category (not a percentile)', value: band.label, strong: true },
+          { label: 'Reference age group', value: ageBracket },
+          { label: 'Excellent starts at', value: String(veryGood + 1) + ' reps' },
+        );
+        note = 'ACSM 10th ed., Table 4.11, adult ages 20–69. ' +
+          'The male comparison uses toe-supported push-ups and the female comparison uses knee-supported push-ups. ' +
+          'These are separate reference tests, not equivalent workloads. Count consecutive complete reps without resting; stop when form fails. ' +
+          'The category is not an exact percentile, diagnosis, or personal health prediction. Repeat the same protocol to follow your own progress.';
+      } else {
+        rows.push({ label: 'ACSM reference category', value: 'Not available for ages outside 20–69', strong: true });
+        category = { label: 'Not graded for this age', color: C.slate };
+        note = 'Your completed repetitions are recorded, but the ACSM 10th ed. Table 4.11 adult norms cover ages 20–69 only. ' +
+          'No category or percentile can be assigned for this age. Continue tracking your own repeated tests using the same technique, if exercise is appropriate for you.';
       }
+      if (vals.plank > 0) rows.push({ label: 'Optional plank hold (not graded)', value: fmt(vals.plank, 0) + ' sec' });
 
       return {
         ok: true,
-        primaryLabel: 'Push-up score',
-        primaryValue: `${fmt(pushups, 0)} reps`,
-        category: { label: band.label, color: band.color },
-        visual: { kind: 'gauge', value: pushups, min: 0, max: gaugeMax, segments },
+        primaryLabel: 'Push-up repetitions',
+        primaryValue: fmt(pushups, 0) + ' reps',
+        category,
+        visual,
         rows,
         callout: {
-          tone: 'info',
-          text: 'Stop immediately if you feel chest pain, dizziness, or severe shortness of breath. These are red flags — seek medical care, not another rep.',
+          tone: 'warn',
+          text: 'Stop testing for chest pain, faintness, unusual severe breathlessness, palpitations, or sharp shoulder/wrist pain. ' +
+            'Call emergency services for persistent chest pain or possible heart attack symptoms. ' +
+            'If you have a known heart condition, a recent injury or surgery, or exercise restrictions, seek qualified clinical advice before maximal-effort testing.',
         },
         cta: {
           label: 'Build a strength program to improve →',
           href: '/tools/strength-program-builder',
         },
-        note: `Norms are from the ACSM push-up test (reps to failure with proper form) for ${sex === 'male' ? 'men' : 'women'} in the ${ageBracketLabel} age bracket. Retest every 4–6 weeks under the same conditions to track progress. To improve: train push-ups or bench press 2–3× per week at 8–15 reps, progress with the Strength Program Builder, and manage recovery with the Recovery Time Calculator.`,
+        note,
       };
     },
   },
