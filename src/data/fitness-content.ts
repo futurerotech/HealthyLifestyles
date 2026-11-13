@@ -304,7 +304,8 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'How your 1RM is estimated',
         paragraphs: [
-          'This calculator uses two of the most validated formulas. Epley: 1RM = weight × (1 + reps ÷ 30). Brzycki: 1RM = weight × 36 ÷ (37 − reps). Both convert a "reps to failure" set into an estimated single-rep maximum.',
+          'For sets of 2 or more repetitions, this calculator applies two widely used prediction equations: Epley 1RM = weight × (1 + reps ÷ 30), and Brzycki 1RM = weight × 36 ÷ (37 − reps). These estimate a one-rep maximum from a challenging multi-rep set, not a verified maximal lift.',
+          'For exactly one completed repetition, the calculator reports the load you actually lifted rather than inflating it with the Epley equation. A single lift is not necessarily your true maximum unless it was a maximal attempt; the displayed percentages then reference your recorded lift, not a proven 1RM.',
           'The two formulas agree closely at low reps and diverge a little as reps climb. Accuracy is best when your set is 10 reps or fewer — beyond that, factors like muscular endurance muddy the estimate. For the most reliable number, use a hard set of 3–6 reps.',
         ],
       },
