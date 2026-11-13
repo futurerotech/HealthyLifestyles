@@ -8,8 +8,8 @@
  *   - WHO physical activity fact sheet (150–300 min moderate activity/week)
  *   - WHO healthy diet fact sheet (≥400 g ≈ 5 servings fruit & veg/day)
  *   - CDC physical activity guidelines for adults
- *   - Dietary Guidelines for Americans (alcohol: ≤1 drink/day women, ≤2 men;
- *     less is better)
+ *   - Dietary Guidelines for Americans 2025–2030 (consume less alcohol;
+ *     no sex-specific weekly point thresholds are specified)
  *   - CDC sleep guidance (adults need 7+ hours)
  *
  * The model is deliberately explainable: each factor contributes a visible
@@ -18,6 +18,7 @@
  */
 
 export type Sex = 'female' | 'male';
+export type LengthUnits = 'metric' | 'imperial';
 export type Smoking = 'never' | 'former' | 'current';
 export type Stress = 'low' | 'moderate' | 'high';
 export type Social = 'strong' | 'some' | 'limited';
@@ -62,13 +63,20 @@ export interface HealthspanResult {
   /** The 2–3 factors with the most points left on the table. */
   improvements: Factor[];
   usedWaist: boolean;
-  /** Rough life-expectancy estimate if current habits continued (years). */
-  lifeEstimate?: number;
-  /** Careful framing text for the life-expectancy number. */
-  lifeNote?: string;
 }
 
 const round = (n: number) => Math.round(n);
+
+/** Store optional waist and height in cm; changing display units must not
+ * change their ratio or the points awarded by this educational score. */
+export function lengthToCm(value: number, units: LengthUnits): number {
+  return units === 'imperial' ? value * 2.54 : value;
+}
+
+export function lengthForDisplay(cm: number, units: LengthUnits): number {
+  const displayed = units === 'imperial' ? cm / 2.54 : cm;
+  return Math.round(displayed * 100) / 100;
+}
 
 export function computeHealthspan(input: HealthspanInput): HealthspanResult {
   const factors: Factor[] = [];
@@ -108,18 +116,19 @@ export function computeHealthspan(input: HealthspanInput): HealthspanResult {
     earned: input.smoking === 'never' ? 15 : input.smoking === 'former' ? 10 : 0,
     tip:
       input.smoking === 'current'
-        ? 'Quitting smoking is the single highest-impact change on this list — support doubles your odds.'
+        ? 'Quitting smoking reduces health risks; ask about counseling or medications if you want support.'
         : 'Stay smoke-free.',
   });
 
-  // Alcohol — 10 pts. DGA: ≤1/day women, ≤2/day men; drinking less is better.
+  // Alcohol — 10 illustrative pts. The weekly bands and sex differences below
+  // are this tool's editorial heuristics, NOT current Dietary Guidelines limits.
   const d = Math.max(input.drinksPerWeek, 0);
   factors.push({
     key: 'alcohol',
     label: 'Alcohol',
     max: 10,
     earned: d === 0 ? 10 : d <= 7 ? 8 : d <= 14 ? (input.sex === 'male' ? 5 : 2) : 0,
-    tip: 'Trim weekly drinks — for health, less alcohol is always the better direction.',
+    tip: 'If you drink, cutting back can help health; some people should avoid alcohol entirely.',
   });
 
   // Sleep — 15 pts. 7–9 h is the adult sweet spot (CDC: 7+).
@@ -159,7 +168,7 @@ export function computeHealthspan(input: HealthspanInput): HealthspanResult {
       label: 'Waist-to-height',
       max: 10,
       earned: r < 0.5 ? 10 : r <= 0.6 ? 5 : 0,
-      tip: 'Aim for a waist below half your height — central fat is the strongest body-shape signal.',
+      tip: 'Waist below half your height is a useful screening guide, not a medical diagnosis.',
     });
   }
 
@@ -178,16 +187,7 @@ export function computeHealthspan(input: HealthspanInput): HealthspanResult {
     .sort((a, b) => b.max - b.earned - (a.max - a.earned))
     .slice(0, 3);
 
-  // Rough life-expectancy estimate: base average +/- score adjustment.
-  // Framed as a statistical estimate, never a personal prediction.
-  const baseLE = input.sex === 'male' ? 77 : 82;
-  const adj = Math.round((score - 50) * 0.12); // +-6 years at extremes
-  const lifeEstimate = Math.max(45, Math.min(95, baseLE + adj));
-  const lifeNote =
-    `If your current habits stayed the same, your healthspan score is consistent with an estimated life expectancy of roughly ${lifeEstimate} years. `
-    + `This is a statistical estimate based on general population data, not a personal prediction. `
-    + `Genetics, access to healthcare, and many other factors influence actual lifespan. `
-    + `Changing any single habit does not guarantee a specific outcome.`;
-
-  return { score, band, bandLabel, factors, improvements, usedWaist, lifeEstimate, lifeNote };
+  // The habit weights are editorial heuristics, not a calibrated survival model.
+  // Never convert this score into estimated years of life or life expectancy.
+  return { score, band, bandLabel, factors, improvements, usedWaist };
 }
