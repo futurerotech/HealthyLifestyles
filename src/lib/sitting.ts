@@ -70,7 +70,9 @@ export function computeSitting(input: SittingInputs): SittingResult {
   const movementMinutes = breaksPerDay * BREAK_DURATION_MIN;
 
   // Extra NEAT steps: scales with sitting time, bounded to the ~3,000–4,500 range.
-  const addedSteps = Math.round(clamp(2500 + sittingHours * 200, 3000, 4500) / 100) * 100;
+  // No sitting time entered means no sitting-related target is warranted.
+  // Preserve the original optional planning heuristic for positive inputs.
+  const addedSteps = sittingHours === 0 ? 0 : Math.round(clamp(2500 + sittingHours * 200, 3000, 4500) / 100) * 100;
   const newDailySteps = currentSteps + addedSteps;
 
   // Calories reclaimed (MET-based estimates).
@@ -83,7 +85,10 @@ export function computeSitting(input: SittingInputs): SittingResult {
   // Sitting level (qualitative, non-alarmist).
   let sittingLevel: SittingResult['sittingLevel'];
   let sittingNote: string;
-  if (sittingHours < 6) {
+  if (sittingHours === 0) {
+    sittingLevel = 'moderate';
+    sittingNote = 'No sitting hours entered, so no added-step or movement-break target is calculated. This tool is not a health-risk score.';
+  } else if (sittingHours < 6) {
     sittingLevel = 'moderate';
     sittingNote = `About ${sittingHours} hours sitting is moderate — these habits keep you in a good place.`;
   } else if (sittingHours < 9) {
