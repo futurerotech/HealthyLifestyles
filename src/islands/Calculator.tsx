@@ -428,6 +428,11 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
   const [caloriesWeightOrigin, setCaloriesWeightOrigin] = useState<{
     kg: number; unit: UnitSystem; text: string;
   } | null>(null);
+  // One-Rep Max only: retain exact physical load and the original entered
+  // text across unit changes. The generic converter rounds to 0.1 lb/kg.
+  const [oneRepLoad, setOneRepLoad] = useState<{
+    kg: number; enteredUnit: UnitSystem; enteredText: string;
+  } | null>(null);
   const [selects, setSelects] = useState<Record<string, string>>(() => (def ? initialSelects(def) : {}));
 
   if (!def) return null;
@@ -442,8 +447,11 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
         disp.weight !== '' && Number.isFinite(vals.weight) && vals.weight > 0) {
       vals.weight = caloriesWeightOrigin.kg;
     }
+    if (slug === 'one-rep-max-calculator' && oneRepLoad && disp.weight !== '') {
+      vals.weight = oneRepLoad.kg;
+    }
     return { vals, selects, sex, units };
-  }, [def, disp, units, sex, selects, slug, ffmiExact, caloriesWeightOrigin]);
+  }, [def, disp, units, sex, selects, slug, ffmiExact, caloriesWeightOrigin, oneRepLoad]);
   const visible = def.fields.filter((f) => !f.showIf || f.showIf(ctx));
   // Only show the metric/imperial toggle if some field actually converts.
   const showUnits = def.fields.some((f) => f.type === 'mass' || f.type === 'length' || f.type === 'height');
@@ -620,6 +628,12 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
       // Direct edits become the new physical measurement.
       setCaloriesWeightOrigin(null);
     }
+    if (slug === 'one-rep-max-calculator' && key === 'weight') {
+      const entered = Number(val);
+      setOneRepLoad(val.trim() !== '' && Number.isFinite(entered)
+        ? { kg: units === 'metric' ? entered : lbToKg(entered), enteredUnit: units, enteredText: val }
+        : null);
+    }
   };
   const setSelect = (key: string, val: string) => setSelects((s) => ({ ...s, [key]: val }));
   const switchUnits = (to: UnitSystem) => {
@@ -643,6 +657,18 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
             : String(round(to === 'metric' ? preserved.kg : kgToLb(preserved.kg), 1));
         }
         return converted;
+      });
+    } else if (slug === 'one-rep-max-calculator') {
+      const load = oneRepLoad ?? {
+        kg: ctx.vals.weight, enteredUnit: units, enteredText: disp.weight ?? '',
+      };
+      setOneRepLoad(load);
+      setDisp((d) => {
+        const next = convertDisplay(def, d, to);
+        next.weight = to === load.enteredUnit
+          ? load.enteredText
+          : String(round(to === 'metric' ? load.kg : kgToLb(load.kg), 1));
+        return next;
       });
     } else {
       setDisp((d) => convertDisplay(def, d, to));

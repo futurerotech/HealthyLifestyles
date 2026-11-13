@@ -1278,30 +1278,56 @@ export const DEFS: Record<string, CalcDef> = {
     heading: 'Estimate your one-rep max',
     hasSex: false,
     fields: [
-      { key: 'weight', label: 'Weight lifted', type: 'mass', metricDefault: 80, min: 1, max: 500 },
-      { key: 'reps', label: 'Reps performed', type: 'number', metricDefault: 5, min: 1, max: 15, suffix: 'reps' },
+      { key: 'weight', label: 'Weight lifted', type: 'mass', metricDefault: 80, min: 1, max: 500, help: 'Enter the actual load moved for one exercise. Record whether dumbbell weight is per hand or combined.' },
+      { key: 'reps', label: 'Reps performed', type: 'number', metricDefault: 5, min: 1, max: 15, suffix: 'reps', help: 'Whole completed reps, not reps left in reserve. Above 10 reps the estimate is less reliable.' },
     ],
     compute: ({ vals, units }) => {
       const w = vals.weight;
-      const reps = Math.max(1, Math.min(15, vals.reps));
-      // A completed single already records that load; do not extrapolate
-      // Epley by 3.33% when reps === 1. It may not be a true maximal lift.
+      const reps = vals.reps;
+      // The form already specifies 1–500 kg and 1–15 whole repetitions.
+      // The compute boundary must reject invalid direct calls as well,
+      // never clamp a bogus value into an apparently credible estimate.
+      if (!Number.isFinite(w) || w < 1 || w > 500 ||
+          !Number.isInteger(reps) || reps < 1 || reps > 15) {
+        return {
+          ok: false,
+          error: 'Enter a finite load from 1 to 500 kg (or equivalent in lb) and a whole-number rep count from 1 to 15. These are form limits, not safe lifting recommendations.',
+          primaryLabel: 'Estimated one-rep max',
+          primaryValue: '',
+          visual: { kind: 'none' },
+        };
+      }
+      // A single completed repetition is a recorded load, not a prediction.
+      // Epley's algebraic expression is not applicable to 1 rep; applying
+      // it there would spuriously add 3.33% to the weight actually lifted.
+      // One completed rep is NOT proof that the attempt was truly maximal.
       const isSingle = reps === 1;
       const epley = isSingle ? w : w * (1 + reps / 30);
-      const brzycki = w * 36 / (37 - reps);
+      const brzycki = isSingle ? w : w * 36 / (37 - reps);
       const pcts = [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50];
       return {
         ok: true,
-        primaryLabel: isSingle ? 'Weight lifted for one rep' : 'Estimated 1-rep max (Epley)',
+        primaryLabel: isSingle ? 'Completed single-rep load (not verified 1RM)' : 'Estimated 1-rep max (Epley)',
         primaryValue: fmtMass(epley, units, 1),
         visual: { kind: 'none' },
         rows: [
-          { label: 'Brzycki estimate', value: fmtMass(brzycki, units, 1) },
-          ...pcts.map((p) => ({ label: `${p}% of ${isSingle ? 'recorded one-rep load' : '1RM'}`, value: fmtMass(epley * (p / 100), units, 1), strong: p === 100 })),
+          { label: isSingle ? 'Recorded one-rep load (Brzycki boundary)' : 'Brzycki estimate', value: fmtMass(brzycki, units, 1) },
+          ...pcts.map((p) => ({ label: isSingle ? p + '% of completed single-rep load' : p + '% of estimated 1RM', value: fmtMass(epley * (p / 100), units, 1), strong: p === 100 })),
         ],
+        callout: isSingle
+          ? {
+              tone: 'info',
+              text: 'One completed repetition records the load you lifted. It is not a verified maximum unless the effort really was maximal with controlled technique. The table uses percentages of that completed load, not an approved max-lift target.',
+            }
+          : reps > 10
+            ? {
+                tone: 'warn',
+                text: '11–15 repetitions lie beyond the lower-rep range where these simple prediction equations are most dependable. Treat both estimates and the percentage table as low-confidence planning examples, not permission to attempt the predicted weight.',
+              }
+            : undefined,
         note: isSingle
-          ? 'One repetition: the result equals the weight you lifted. It is a recorded single-rep load, not proof of your true maximum unless the attempt was maximal. The percentage table is relative to this recorded load.'
-          : 'For 2 or more repetitions, Epley: weight × (1 + reps ÷ 30); Brzycki: weight × 36 ÷ (37 − reps). Both are estimates, most useful at 10 reps or fewer.',
+          ? 'For one completed rep, the tool displays the lifted weight instead of extrapolating Epley, which would otherwise overstate that load by 3.33%. A nonmaximal single is not a measured 1RM. Do not attempt a maximal lift just to use this tool.'
+          : 'For 2–15 whole reps: Epley = weight × (1 + reps / 30); Brzycki = weight × 36 / (37 − reps). These are submaximal-set predictions, usually more useful after relatively low-rep sets close to technical failure. Formula accuracy depends on exercise, technique, and effort; all percentage loads are illustrative, not a prescription.',
       };
     },
   },
