@@ -1,7 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { getDef } from '../../../src/islands/calculators/defs.ts';
-import { FITNESS_CONTENT } from '../../../src/data/fitness-content.ts';
+import { registerHooks } from 'node:module';
+registerHooks({ resolve(specifier, context, next) {
+  if (specifier.startsWith('.') && !/\.[a-z]+$/i.test(specifier)) specifier += '.ts';
+  return next(specifier, context);
+} });
+const { getDef } = await import('../../../src/islands/calculators/defs.ts');
+const { FITNESS_CONTENT } = await import('../../../src/data/fitness-content.ts');
 
 const calculator = () => {
   const def = getDef('calories-burned-calculator');
