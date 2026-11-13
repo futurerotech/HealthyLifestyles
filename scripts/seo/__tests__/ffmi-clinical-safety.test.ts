@@ -28,7 +28,7 @@ test('study-specific FFMI cannot assign drug status or universal health band', (
     const out = r(...input);
     assert.equal(out.visual.kind, 'none');
     assert.equal(out.category, undefined);
-    assert.match(out.note ?? '', /cannot diagnose health or determine/i);
+    assert.match(out.note ?? '', /neither raw nor normalized FFMI is a clinical diagnosis/i);
   }
 });
 
