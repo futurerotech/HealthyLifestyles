@@ -424,6 +424,11 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
   // FFMI only: preserve the true metric weight/height despite rounded imperial
   // display fields. Editing a field removes that field's precision override.
   const [ffmiExact, setFfmiExact] = useState<{ weight?: number; height?: number } | null>(null);
+  // Calories Burned only: preserve exact physical kg and the user-entered
+  // original weight string across rounded metric/imperial display toggles.
+  const [caloriesWeightOrigin, setCaloriesWeightOrigin] = useState<{
+    kg: number; unit: UnitSystem; text: string;
+  } | null>(null);
   const [selects, setSelects] = useState<Record<string, string>>(() => (def ? initialSelects(def) : {}));
 
   const pregnancy = slug === 'pregnancy-weight-gain-calculator';
@@ -439,8 +444,12 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
       if (ffmiExact.weight !== undefined) vals.weight = ffmiExact.weight;
       if (ffmiExact.height !== undefined) vals.height = ffmiExact.height;
     }
+    if (slug === 'calories-burned-calculator' && caloriesWeightOrigin &&
+        disp.weight !== '' && Number.isFinite(vals.weight) && vals.weight > 0) {
+      vals.weight = caloriesWeightOrigin.kg;
+    }
     return { vals, selects, sex, units };
-  }, [def, disp, units, sex, selects, slug, ffmiExact, pregnancyValues]);
+  }, [def, disp, units, sex, selects, slug, ffmiExact, caloriesWeightOrigin, pregnancyValues]);
   const visible = def.fields.filter((f) => !f.showIf || f.showIf(ctx));
   // Only show the metric/imperial toggle if some field actually converts.
   const showUnits = def.fields.some((f) => f.type === 'mass' || f.type === 'length' || f.type === 'height');
@@ -614,6 +623,10 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
         return Object.keys(next).length ? next : null;
       });
     }
+    if (slug === 'calories-burned-calculator' && key === 'weight') {
+      // Direct edits become the new physical measurement.
+      setCaloriesWeightOrigin(null);
+    }
   };
   const setSelect = (key: string, val: string) => setSelects((s) => ({ ...s, [key]: val }));
   const switchUnits = (to: UnitSystem) => {
@@ -625,7 +638,26 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
       if (slug === 'ffmi-calculator') {
         setFfmiExact({ weight: ctx.vals.weight, height: ctx.vals.height });
       }
-      setDisp((d) => convertDisplay(def, d, to));
+      if (slug === 'calories-burned-calculator') {
+        const preserved = caloriesWeightOrigin ?? {
+          kg: ctx.vals.weight,
+          unit: units,
+          text: disp.weight ?? '',
+        };
+        const valid = Number.isFinite(preserved.kg) && preserved.kg > 0;
+        setCaloriesWeightOrigin(valid ? preserved : null);
+        setDisp((d) => {
+          const converted = convertDisplay(def, d, to);
+          if (valid) {
+            converted.weight = to === preserved.unit
+              ? preserved.text
+              : String(round(to === 'metric' ? preserved.kg : kgToLb(preserved.kg), 1));
+          }
+          return converted;
+        });
+      } else {
+        setDisp((d) => convertDisplay(def, d, to));
+      }
     }
     setUnits(to);
   };
