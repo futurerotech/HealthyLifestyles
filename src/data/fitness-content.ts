@@ -9,7 +9,15 @@ const COMPENDIUM: Source = {
 const UTH: Source = {
   citation:
     'Uth N, Sørensen H, Overgaard K, Pedersen PK. "Estimation of VO2max from the ratio between HRmax and HRrest — the Heart Rate Ratio Method." Eur J Appl Physiol. 2004;91(1):111–115.',
-  url: pubmed('Estimation of VO2max ratio HRmax HRrest Heart Rate Ratio Method Uth'),
+  url: 'https://pubmed.ncbi.nlm.nih.gov/14624296/',
+};
+const AHA_PULSE_VO2: Source = {
+  citation: 'American Heart Association. "All About Heart Rate (Pulse)." (Resting heart rate, beta blockers, and urgent symptoms.)',
+  url: 'https://www.heart.org/en/health-topics/high-blood-pressure/the-facts-about-high-blood-pressure/all-about-heart-rate-pulse',
+};
+const HR_RATIO_LIMITS: Source = {
+  citation: 'Viik et al. "Estimating Maximal Oxygen Uptake from the Ratio of Heart Rate at Maximal Exercise to Heart Rate at Rest in Middle-Aged Men." 2021. (Other populations require recalibration.)',
+  url: 'https://pubmed.ncbi.nlm.nih.gov/32777866/',
 };
 const BRZYCKI: Source = {
   citation:
@@ -736,44 +744,46 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
     metaDescription:
       'Estimate your VO₂ max from your resting and maximum heart rate using the Uth–Sørensen method. Free cardio fitness calculator, no test required.',
     intro:
-      'VO₂ max is the gold-standard measure of aerobic fitness — how much oxygen your body can use during hard exercise. Estimate it without a lab test using just your age and resting heart rate.',
+      'VO₂ max is a measure of maximal oxygen uptake. This calculator estimates it indirectly from age and resting pulse, not from a laboratory test; its fitness bands and fitness-age index are illustrative, not clinical assessments.',
+    notice:
+      'For adults 18+. The underlying HR-ratio estimate was studied in well-trained men aged 21–51 and is not equally validated for other ages, sexes or conditions. A very low or high resting pulse, medications or an irregular rhythm can distort the estimate. Call emergency services for chest pain, severe breathlessness, fainting or other serious new symptoms.',
     sections: [
       {
         h2: 'How this estimate works',
         paragraphs: [
-          'This tool uses the Uth–Sørensen "Heart Rate Ratio Method": VO₂ max ≈ 15.3 × (maximum heart rate ÷ resting heart rate). Maximum heart rate is estimated as 220 − age, and a lower resting heart rate — a hallmark of good fitness — produces a higher VO₂ max.',
-          'The result is expressed in millilitres of oxygen per kilogram of body weight per minute (ml/kg/min). It’s a convenient estimate that needs no exercise test, which makes it easy to track over time.',
+          'This tool uses the Uth–Sørensen heart-rate ratio: VO₂ max ≈ 15.3 × (estimated maximum heart rate ÷ resting heart rate), with maximum heart rate approximated as 220 − age. This study examined well-trained men aged 21–51, so accuracy for other ages, sexes, fitness levels and medication use is uncertain. A lower resting pulse may reflect training, medicines or a medical condition; it does not automatically prove better fitness.',
+          'The result is expressed in milliliters of oxygen per kilogram per minute (mL/kg/min). It is a rough numerical estimate rather than a direct metabolic measurement. Resting pulse near or above age-predicted maximum cannot support a meaningful ratio, so that input combination is not graded.',
         ],
       },
       {
         h2: 'What your number means',
         paragraphs: [
-          'Higher VO₂ max means your heart, lungs and muscles deliver and use oxygen more efficiently. As a general guide for adults, under 30 is below average, 40–50 is good, and above 60 is found in well-trained endurance athletes. Healthy ranges shift with age and differ between men and women, so compare yourself mainly to your own trend.',
-          'VO₂ max is strongly linked to long-term health: higher cardiorespiratory fitness is associated with lower risk of heart disease and death from all causes.',
+          'Laboratory-measured VO₂ max describes aerobic oxygen uptake. This page’s five colored-band labels are historical, broad illustrations, not sex- or age-adjusted reference values and not diagnoses. A predicted VO₂ max must not be treated as a validated norm for an individual; it can change simply because resting pulse changes.',
+          'Measured cardiorespiratory fitness has been associated with long-term outcomes in research, but this two-input estimate does not independently predict an individual person’s lifespan, disease status or biological age.',
         ],
       },
       {
         h2: 'Improving your VO₂ max',
         paragraphs: [
-          'The most effective way to raise VO₂ max is regular aerobic training, especially interval work that pushes you close to your maximum heart rate, balanced with longer steady sessions. Consistency over months is what moves the number.',
-          'Because this method relies on an accurate resting heart rate, measure your pulse first thing in the morning before getting up, ideally averaged over a few days. As your fitness improves and your resting heart rate falls, your estimated VO₂ max will rise.',
+          'Aerobic activity can improve cardiovascular fitness over time. Very demanding intervals are not necessary for every person and should not be treated as a prescription based on a calculated VO₂ max or a predicted maximum heart rate.',
+          'For consistent tracking, measure resting pulse after waking under similar conditions over several mornings. Changes in medication, illness, hydration and rhythm can change the computed score independently of measured oxygen uptake; if your pulse is repeatedly unusually low, high or irregular, seek professional guidance.',
         ],
       },
     ],
     faq: [
       {
         q: 'What is a good VO₂ max?',
-        a: 'It varies with age and sex, but as a general guide for adults, 40–50 ml/kg/min is good and above 60 is excellent. Compare your result mainly against your own progress over time.',
+        a: 'Reference values for measured VO₂ max vary with age, sex and testing methods. This two-input calculator does not apply validated age- and sex-specific norms; its five labels are illustrative only.',
       },
       {
         q: 'How accurate is the heart-rate VO₂ max estimate?',
-        a: 'The Uth–Sørensen method is a useful, non-exercise estimate but less precise than a lab test. Its accuracy depends heavily on an accurate resting heart rate measurement.',
+        a: 'It uses a heart-rate ratio originally tested in well-trained men aged 21–51. Replacing measured maximum pulse with 220 minus age and applying the same factor to other populations adds uncertainty; laboratory gas-analysis testing is a different level of evidence.',
       },
       {
         q: 'How can I improve my VO₂ max?',
-        a: 'Regular aerobic exercise — particularly interval training near your maximum heart rate, combined with steady endurance work — raises VO₂ max over weeks and months of consistent training.',
+        a: 'Regular appropriately paced aerobic activity can help improve capacity; build progressively. High-intensity intervals are not necessary for everyone, and exertional symptoms or heart conditions require individualized advice.',
       },
     ],
-    sources: [UTH],
+    sources: [UTH, HR_RATIO_LIMITS, AHA_PULSE_VO2],
   },
 };
