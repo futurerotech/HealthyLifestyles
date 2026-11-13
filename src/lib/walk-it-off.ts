@@ -29,7 +29,7 @@ export const FOODS: Food[] = [
   { name: 'Chocolate bar', kcal: 230, emoji: '🍫' },
   { name: 'Croissant', kcal: 270, emoji: '🥐' },
   { name: 'Bagel (plain)', kcal: 250, emoji: '🥯' },
-  { name: 'Banana', kcal: 105, emoji: '🍓' },
+  { name: 'Banana', kcal: 105, emoji: '🍌' },
   { name: 'Apple', kcal: 95, emoji: '🍎' },
   { name: 'Can of cola', kcal: 140, emoji: '🥤' },
   { name: 'Pint of beer', kcal: 208, emoji: '🍺' },
