@@ -1293,30 +1293,35 @@ export const DEFS: Record<string, CalcDef> = {
       { key: 'bodyfat', label: 'Body fat', type: 'number', metricDefault: 15, min: 2, max: 60, suffix: '%', help: 'Not sure? Estimate it with the Body Fat Calculator.' },
     ],
     compute: ({ vals, units }) => {
-      const heightM = vals.height / 100;
-      const lbm = vals.weight * (1 - vals.bodyfat / 100);
+      // Keep existing FORM bounds. They are not medical reference ranges.
+      const { weight, height, bodyfat } = vals;
+      if (![weight, height, bodyfat].every(Number.isFinite) ||
+          weight < 25 || weight > 300 || height < 120 || height > 230 ||
+          bodyfat < 2 || bodyfat > 60) {
+        return { ok: false, error: 'Check weight (25–300 kg), height (120–230 cm), and body fat (2–60%). These are calculator input limits, not healthy reference ranges.', primaryLabel: 'Estimated FFMI', primaryValue: '', visual: { kind: 'none' } };
+      }
+      const heightM = height / 100;
+      const lbm = weight * (1 - bodyfat / 100);
       const ffmi = lbm / (heightM * heightM);
+      // Original site/Article 43 explicitly use 6.1; Kouri's study used 6.3.
       const normalized = ffmi + 6.1 * (1.8 - heightM);
-      const segments: Segment[] = [
-        { upTo: 18, label: 'Below average', color: C.blue },
-        { upTo: 20, label: 'Average', color: C.green },
-        { upTo: 22, label: 'Above average', color: C.teal },
-        { upTo: 25, label: 'High', color: C.amber },
-        { upTo: 30, label: 'Very high', color: C.red },
-      ];
-      const band = bandFor(ffmi, segments);
       return {
         ok: true,
-        primaryLabel: 'Your FFMI',
+        primaryLabel: 'Estimated FFMI (raw)',
         primaryValue: fmt(ffmi, 1),
-        category: { label: band.label, color: band.color },
-        visual: { kind: 'gauge', value: ffmi, min: 14, max: 30, segments },
+        // Previous bands falsely graded all ages/sexes and clipped results
+        // outside the hard-coded 14–30 scale. Keep raw values, not false grades.
+        visual: { kind: 'none' },
         rows: [
-          { label: 'Normalized FFMI (height-adjusted)', value: fmt(normalized, 1), strong: true },
-          { label: 'Lean body mass (LBM)', value: fmtMass(lbm, units, 1) },
-          { label: 'Body fat mass', value: fmtMass(vals.weight - lbm, units, 1) },
+          { label: 'Normalized FFMI (site formula, height-adjusted)', value: fmt(normalized, 1), strong: true },
+          { label: 'Estimated fat-free mass (includes water, bone, organs)', value: fmtMass(lbm, units, 1) },
+          { label: 'Estimated fat mass', value: fmtMass(weight - lbm, units, 1) },
         ],
-        note: 'FFMI = lean body mass ÷ height². Normalized FFMI adds a height correction so shorter and taller lifters can be compared fairly. Values above ~25 are uncommon for natural athletes and often point to a body-fat measurement error — treat extreme numbers as a prompt to re-check your input, not as a judgment.',
+        callout: {
+          tone: 'info',
+          text: 'No population grade is assigned: FFMI reference distributions vary by sex, age, population, and measurement method. Neither a high nor a low score diagnoses health or muscle mass, or proves use of anabolic steroids.',
+        },
+        note: 'FFMI = estimated fat-free mass ÷ height². This site preserves its published +6.1 × (1.80 − height in meters) adjustment; the original small male-athlete study used 6.3. The often-quoted value of 25 concerns normalized FFMI in that study, not a universal raw FFMI limit or a steroid test. Body-fat measurement and hydration uncertainty affect both values.',
       };
     },
   },
