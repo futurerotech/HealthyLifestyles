@@ -27,15 +27,15 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
   'walk-it-off-calculator': {
     seoTitle: 'Walk It Off Calculator — Food to Exercise Time',
     metaDescription:
-      'How long to walk off that food? Enter a food or calories and your weight to see the minutes of walking, running, or cycling to burn it. Free.',
+      'Explore illustrative walking, running, and cycling time using estimated extra activity energy above rest. Food is not something you must earn or burn off.',
     intro:
-      'Ever wondered how long you’d have to move to burn off a treat? Pick a food (or enter calories) and your weight to see the minutes of walking, running, or cycling it takes.',
+      'Explore approximate activity-time equivalents for a food calorie amount, calculated using energy above rest. These estimates are educational comparisons, not prescriptions for how much you need to exercise after eating.',
     sections: [
       {
         h2: 'How it works',
         paragraphs: [
-          'The calculator takes the calories in your chosen food and works out how long each activity would take to burn that many calories for someone your weight, using standard MET (metabolic equivalent) values. Heavier people burn a little more per minute, so the time is personalized to you.',
-          'It’s a fun, eye-opening way to picture energy balance — not a rule that you must "earn" every bite.',
+          'The calculator estimates how long it could take to expend a similar number of calories above resting energy at a selected activity intensity. The formula is minutes = calories ÷ [(MET − 1) × body weight in kilograms] × 60. The resting 1 MET is subtracted so this illustration does not count energy you would have used while resting. MET values are averages from the 2024 Compendium of Physical Activities (https://pmc.ncbi.nlm.nih.gov/articles/PMC10818145/), not individual measurements.',
+          'Do not interpret this as an exercise requirement or a promise that movement cancels out eating. Food intake and energy expenditure interact across days, not as a direct one-meal transaction.',
         ],
       },
       {
@@ -52,9 +52,9 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       },
     ],
     faq: [
-      { q: 'How long does it take to walk off a slice of pizza?', a: 'A ~285-calorie slice takes most people roughly 60–75 minutes of brisk walking, or about 30 minutes of running — the exact time depends on your weight and pace.' },
-      { q: 'Is it accurate?', a: 'It’s a solid estimate based on MET values and your body weight. Real burn varies with intensity, fitness, and terrain, so treat the numbers as a ballpark.' },
-      { q: 'Should I exercise to “burn off” food?', a: 'It’s fine as motivation, but try not to treat exercise as punishment. Movement is valuable on its own, and overall habits matter more than any single food.' },
+      { q: 'How long does it take to walk off a slice of pizza?', a: 'For a 70-kg adult, a 285-kcal slice corresponds mathematically to about 87 minutes of walking at 3.8 METs or 28 minutes of running at 9.8 METs above rest. These are illustrative estimates, not instructions to exercise after eating.' },
+      { q: 'Is it accurate?', a: 'It is a rough activity-time comparison based on standard MET values and body weight, not a personalized measurement. Resting metabolism, movement efficiency, intensity, terrain and many other factors vary.' },
+      { q: 'Should I exercise to “burn off” food?', a: 'No. Eating never creates an obligation to exercise, and activity should not be used as punishment or as a promised way to cancel out a meal. Movement has benefits unrelated to calorie balance.' },
     ],
     sources: [COMPENDIUM],
   },
