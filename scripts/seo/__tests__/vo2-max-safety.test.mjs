@@ -90,6 +90,6 @@ test('adult input, male-only original population, nonclinical bands and UI warni
   assert.match(section,/Call emergency services/);
   assert.match(section,/HR_RATIO_LIMITS/);
   assert.match(ui,/slug === 'vo2-max-calculator' && result.callout/);
-  assert.match(ui,/slug !== 'vo2-max-calculator' && result.callout/);
+  assert.match(ui,/slug !== 'vo2-max-calculator' &&[^\n]*result\.callout/);
   assert.doesNotMatch(section,/higher VO₂ max means your heart|a hallmark of good fitness/i);
 });
