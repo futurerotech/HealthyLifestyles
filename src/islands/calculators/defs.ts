@@ -935,7 +935,7 @@ export const DEFS: Record<string, CalcDef> = {
     hasSex: true,
     fields: [
       { key: 'rhr', label: 'Resting heart rate', type: 'number', metricDefault: 65, min: 30, max: 130, suffix: 'bpm', help: 'Measure at rest, ideally first thing in the morning before getting up.' },
-      F.age(30),
+      { ...F.age(30), min: 18, help: 'For adults 18+. Age adjusts only this tool’s illustrative comparison; the usual adult pulse reference is 60–100 bpm.' },
       {
         key: 'fitness', label: 'Fitness level (optional)', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'unknown',
@@ -949,6 +949,9 @@ export const DEFS: Record<string, CalcDef> = {
     ],
     compute: ({ vals, sex, selects }) => {
       const rhr = vals.rhr;
+      // Preserve the site’s documented age/sex illustration for consistency
+      // with the existing article. These offsets are NOT validated medical
+      // reference limits, measures of fitness, or AHA clinical thresholds.
       const sexAdj = sex === 'female' ? 4 : 0;
       const ageAdj = vals.age >= 65 ? 2 : vals.age >= 45 ? 1 : 0;
       const t = (b: number) => b + sexAdj + ageAdj;
@@ -957,40 +960,50 @@ export const DEFS: Record<string, CalcDef> = {
         { upTo: t(61), label: 'Excellent', color: C.green },
         { upTo: t(65), label: 'Good', color: C.teal },
         { upTo: t(73), label: 'Average', color: C.amber },
-        { upTo: 110, label: 'Below average', color: C.red },
+        { upTo: 130, label: 'Below average', color: C.slate },
       ];
       let cat: { label: string; color: string };
       if (rhr <= t(55)) cat = { label: 'Athlete', color: C.blue };
       else if (rhr <= t(61)) cat = { label: 'Excellent', color: C.green };
       else if (rhr <= t(65)) cat = { label: 'Good', color: C.teal };
       else if (rhr <= t(73)) cat = { label: 'Average', color: C.amber };
-      else cat = { label: 'Below average', color: C.red };
+      else cat = { label: 'Below average', color: C.slate };
       const meanings: Record<string, string> = {
-        Athlete: 'Typical of well-trained endurance athletes — a very efficient heart.',
-        Excellent: 'Excellent cardiovascular fitness.',
-        Good: 'Good fitness — better than the average adult.',
-        Average: 'Within the normal adult range (60–100 bpm).',
-        'Below average': 'Higher than ideal; regular aerobic exercise usually brings it down over time.',
+        Athlete: 'An illustrative low-pulse band; this label does not establish athletic conditioning or a healthy heart.',
+        Excellent: 'An illustrative comparison band, not a validated cardiovascular fitness rating.',
+        Good: 'An illustrative comparison band, not proof of better cardiovascular health.',
+        Average: 'An illustrative comparison band; compare your reading with the usual 60–100 bpm adult reference.',
+        'Below average': 'This illustrative band can include readings within the usual 60–100 bpm adult range; it does not diagnose poor health or fitness.',
       };
+      const emergency = 'If you have chest pain, severe difficulty breathing, fainting, or other serious new symptoms, call emergency services immediately regardless of the number shown.';
       let callout: CalcResult['callout'];
-      if (rhr < 40) callout = { tone: 'warn', text: 'A resting heart rate under 40 bpm is unusual unless you are a trained athlete. If you also feel dizzy, faint or breathless, see a doctor.' };
-      else if (rhr > 100) callout = { tone: 'warn', text: 'A resting rate persistently above 100 bpm (tachycardia) is worth checking with a doctor — especially alongside palpitations, dizziness or chest discomfort.' };
+      if (rhr < 40) {
+        callout = { tone: 'danger', text: `${emergency} A waking resting pulse under 40 bpm is markedly slow; contact a healthcare professional promptly if it is new or unexplained, even if you are a trained athlete.` };
+      } else if (rhr > 100) {
+        callout = { tone: 'warn', text: `${emergency} If your resting pulse stays above 100 bpm, arrange a medical assessment; temporary causes and medications may affect the reading.` };
+      } else if (rhr < 60) {
+        callout = { tone: 'info', text: 'A resting pulse below 60 bpm can occur in athletes or with certain medications, but it is not automatically healthy. If this is new, unexplained, or repeatedly low, discuss it with a healthcare professional.' };
+      }
       const fit = selects.fitness;
-      const fitNote = fit === 'athlete' ? ' As a highly trained athlete, a low resting rate is expected and healthy.'
-        : fit === 'sedentary' ? ' Building regular cardio is the most reliable way to lower a resting heart rate.' : '';
+      const fitNote = fit === 'athlete'
+        ? ' Athletic training can lower resting pulse, but does not guarantee that a low reading is safe or that symptoms can be ignored.'
+        : fit === 'sedentary'
+          ? ' Fitness and other factors can influence pulse, but one reading cannot measure your fitness.'
+          : '';
       return {
         ok: true,
         primaryLabel: 'Your resting heart rate',
         primaryValue: `${fmt(rhr, 0)} bpm`,
-        category: cat,
-        visual: { kind: 'gauge', value: Math.min(rhr, 110), min: 40, max: 110, segments },
+        category: { label: `${cat.label} (illustrative)`, color: rhr < 40 || rhr > 100 ? C.red : cat.color },
+        visual: { kind: 'gauge', value: rhr, min: 30, max: 130, segments },
         callout,
         rows: [
-          { label: 'General normal adult range', value: '60–100 bpm', strong: true },
-          { label: 'Well-trained athletes', value: '~40–60 bpm' },
-          { label: `Your benchmark (${sex === 'female' ? 'women' : 'men'}${vals.age >= 45 ? `, ${vals.age >= 65 ? '65+' : '45–64'}` : ''})`, value: `Athlete ≤${t(55)} · Average ${t(66)}–${t(73)}` },
+          { label: 'General adult reference range', value: '60–100 bpm', strong: true },
+          { label: 'Your reading vs. this adult reference', value: rhr < 60 ? 'Below the usual adult range' : rhr > 100 ? 'Above the usual adult range' : 'Within the usual adult range', strong: true },
+          { label: 'Well-trained athletes', value: '~40–60 bpm (not a guarantee of health)' },
+          { label: `Illustrative band (${sex === 'female' ? 'women' : 'men'}${vals.age >= 45 ? `, ${vals.age >= 65 ? '65+' : '45–64'}` : ''})`, value: `Athlete ≤${t(55)} · Average ${t(66)}–${t(73)}` },
         ],
-        note: `${meanings[cat.label] ?? ''}${fitNote} Resting heart rate is informational only — a persistently very low or high rate, or symptoms such as dizziness or palpitations, means see a doctor. Ranges per the American Heart Association and Mayo Clinic.`,
+        note: `${meanings[cat.label] ?? ''}${fitNote} The sex/age offsets and five fitness bands are this site's unvalidated illustrations, NOT American Heart Association or Mayo Clinic clinical cutoffs. The adult reference is 60–100 bpm, but even a reading in that range does not rule out a rhythm problem. ${emergency} Discuss persistently unusual readings or a new change with a healthcare professional.`,
       };
     },
   },
