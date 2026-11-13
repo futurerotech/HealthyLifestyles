@@ -417,7 +417,7 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
         h2: 'How your water target is calculated',
         paragraphs: [
           'This tool uses a widely used clinical guide of about 35 ml of fluid per kilogram of body weight as a baseline, then adds an allowance for activity — exercise increases losses through sweat and breathing, so more active people need more.',
-          'For example, a 70 kg person has a baseline of roughly 2.45 litres, rising with training. The result is shown in litres and fluid ounces so it works wherever you live. Remember this is total fluid: drinks of all kinds count, and food (especially fruit and vegetables) provides around 20% of it.',
+          'For example, a 70 kg person has a baseline of roughly 2.45 litres, rising with training. The per-kilogram rule was built around typical adult body sizes and is not reliable at higher body weights, so the calculator stops scaling it above 100 kg (220 lb); that is a limit of the formula, not a maximum intake. The result is shown in litres and fluid ounces so it works wherever you live. Remember this is total fluid: drinks of all kinds count, and food (especially fruit and vegetables) provides around 20% of it.',
         ],
       },
       {
@@ -431,6 +431,7 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
         h2: 'When you need more — or less',
         paragraphs: [
           'Increase your intake in hot or humid weather, at altitude, during illness with fever, and during pregnancy or breastfeeding. Endurance athletes lose significant fluid and electrolytes in sweat and should plan their drinking around training.',
+          'For comparison, the U.S. National Academies set adequate intakes for total water — drinks and food together — of about 3.7 litres a day for men and 2.7 litres for women. These describe what healthy adults in temperate climates typically take in; they are not upper limits, and no upper limit has been set for water. Very active people in hot conditions can need considerably more.',
           'A small number of people — for example those with certain heart or kidney conditions — need to limit fluids, and should follow their doctor’s advice rather than a general formula. Drinking extreme amounts very quickly can dilute blood sodium dangerously, so aim for steady, sensible hydration.',
         ],
       },
