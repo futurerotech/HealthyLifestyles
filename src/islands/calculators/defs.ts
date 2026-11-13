@@ -1210,7 +1210,7 @@ export const DEFS: Record<string, CalcDef> = {
         key: 'activity', label: 'Activity', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'running',
         options: [
-          { value: 'walking', label: 'Walking, 3.5 mph (MET 3.5)' },
+          { value: 'walking', label: 'Walking for pleasure (MET 3.5)' },
           { value: 'running', label: 'Running, 6 mph (MET 9.8)' },
           { value: 'cycling', label: 'Cycling, moderate (MET 7.5)' },
           { value: 'swimming', label: 'Swimming (MET 8.0)' },
@@ -1232,20 +1232,42 @@ export const DEFS: Record<string, CalcDef> = {
         walking: 3.5, running: 9.8, cycling: 7.5, swimming: 8.0, hiit: 8.0, yoga: 3.0,
         weights: 5.0, hiking: 6.0, rowing: 7.0, dancing: 7.8, tennis: 7.3, jumprope: 12.3,
       };
-      const met = METS[selects.activity] ?? 9.8;
-      const hours = vals.minutes / 60;
-      const cal = met * vals.weight * hours;
+      const met = METS[selects.activity];
+      const { weight, minutes } = vals;
+      // The published input bounds are 25–300 kg and 1–600 minutes.
+      // Do not silently relabel an unknown activity as 9.8-MET running.
+      if (!Number.isFinite(met) || !Number.isFinite(weight) ||
+          !Number.isFinite(minutes) || weight < 25 || weight > 300 ||
+          minutes < 1 || minutes > 600) {
+        return {
+          ok: false,
+          error: 'Select a listed activity, enter a body weight between 25 and 300 kg (or the equivalent in lb), and an activity duration from 1 to 600 minutes. These are calculator input limits, not exercise recommendations.',
+          primaryLabel: 'Estimated activity energy',
+          primaryValue: '',
+          visual: { kind: 'none' },
+        };
+      }
+      const hours = minutes / 60;
+      const gross = met * weight * hours;
+      // Approximate energy above standardized 1-MET rest, NOT a measured
+      // personal net expenditure or an exercise/food compensation rule.
+      const aboveRest = Math.max(0, met - 1) * weight * hours;
       return {
         ok: true,
-        primaryLabel: `Calories burned in ${fmt(vals.minutes, 0)} min`,
-        primaryValue: `${fmt(cal, 0)} kcal`,
+        primaryLabel: `Estimated gross activity energy in ${fmt(minutes, 1)} min`,
+        primaryValue: `${fmt(gross, 0)} kcal`,
         visual: { kind: 'none' },
         rows: [
-          { label: 'Per hour', value: `${fmt(met * vals.weight, 0)} kcal`, strong: true },
-          { label: 'Per 30 minutes', value: `${fmt(met * vals.weight * 0.5, 0)} kcal` },
-          { label: 'MET value', value: `${met}` },
+          { label: 'Gross per hour', value: `${fmt(met * weight, 0)} kcal`, strong: true },
+          { label: 'Gross per 30 minutes', value: `${fmt(met * weight * 0.5, 0)} kcal` },
+          { label: 'Approx. above-rest energy for this duration', value: `${fmt(aboveRest, 0)} kcal` },
+          { label: 'Selected MET value', value: `${met}` },
         ],
-        note: 'Calories = METs × weight (kg) × hours. MET values are population averages; your real burn varies with intensity, fitness and terrain.',
+        callout: {
+          tone: 'info',
+          text: 'Gross energy includes estimated resting expenditure during the activity. Above-rest energy subtracts a standardized 1 MET for the same duration; neither figure measures your metabolism or predicts food-calorie compensation.',
+        },
+        note: 'Gross kcal = MET × kg × hours; approximate above-rest kcal = (MET − 1) × kg × hours. These are standardized activity examples, not additional calories that must be eaten or earned. Actual intensity, fitness, age, terrain and resting metabolism vary.',
       };
     },
   },

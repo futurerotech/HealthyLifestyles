@@ -260,26 +260,26 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
 
   // ============================================================
   'calories-burned-calculator': {
-    seoTitle: 'Calories Burned Calculator (METs)',
+    seoTitle: 'Calories Burned Calculator — Gross vs Above-Rest METs',
     metaDescription:
-      'Estimate calories burned for running, cycling, swimming, HIIT and more using MET values and your body weight. Free, metric or imperial.',
+      'Estimate gross activity energy and illustrative above-rest calories for exercise using MET values, weight and duration. Includes metric/imperial inputs.',
     intro:
-      'See how many calories an activity burns for your body weight. Pick what you did and how long for, and the calculator uses scientific MET values to estimate your energy use.',
+      'Choose an activity, weight and duration to compare estimated gross energy used during exercise with an approximate amount above standardized resting expenditure. These are population-based MET estimates, not measured personal calorie burn or a weight-loss target.',
     sections: [
       {
         h2: 'How calories burned are calculated',
         paragraphs: [
-          'The calculation uses MET (Metabolic Equivalent of Task) values: calories burned = METs × weight in kilograms × time in hours. One MET is roughly the energy you use sitting quietly, so an activity rated at 8 METs burns about eight times that.',
-          'MET values come from the Compendium of Physical Activities, a research database used by exercise scientists worldwide. Because heavier bodies use more energy to move, your weight is a key part of the equation.',
+          'The original model estimates gross activity energy as MET × body mass (kg) × hours. Gross includes energy your body would expend at rest over the same period. A separately labeled, approximate above-rest figure uses (MET − 1) × kg × hours, subtracting standardized 1-MET rest; it is not an individualized net expenditure measurement.',
+          'METs are standardized activity-intensity estimates from Compendium research, not a precise measurement of your metabolism. The example coefficients are retained from the original tool; observed costs vary with pace, terrain, technique and individual physiology. The 2024 Adult Compendium lists walking at 3.5–3.9 mph as approximately 4.8 MET, so the unchanged tool’s 3.5-MET walking preset is labeled walking for pleasure rather than a precise 3.5-mph pace.',
         ],
       },
       {
         h2: 'MET values for common activities',
         list: {
-          intro: 'A few examples from the Compendium (higher means more intense):',
+          intro: 'Illustrative fixed values used in this tool (not individualized pace or work-rate measurements):',
           items: [
-            'Yoga ≈ 3.0, walking (3.5 mph) ≈ 3.5',
-            'Weightlifting ≈ 5.0, hiking ≈ 6.0',
+            'Yoga ≈ 3.0, walking for pleasure ≈ 3.5',
+            'Weightlifting (example intensity) ≈ 5.0, hiking ≈ 6.0',
             'Cycling (moderate) ≈ 7.5, tennis ≈ 7.3, dancing ≈ 7.8',
             'Swimming ≈ 8.0, HIIT ≈ 8.0, running (6 mph) ≈ 9.8',
             'Jumping rope ≈ 12.3 — one of the most demanding common activities',
@@ -289,26 +289,36 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'Why it’s an estimate',
         paragraphs: [
-          'MET values are population averages measured in labs, so your real burn depends on intensity, fitness, age, body composition, and even the weather. Two people doing "moderate cycling" can burn quite different amounts.',
-          'Use the result to compare activities and plan rather than to count calories to the last unit. If you’re tracking energy for weight management, pair this with your daily calorie needs and adjust based on real-world results over a few weeks.',
+          'MET values summarize activity categories rather than measuring your metabolism. Gross energy includes rest; above-rest energy subtracts a standard resting reference, not your actual resting metabolic rate. The estimates vary with age, activity intensity, fitness, body composition, terrain and weather, and a long exercise duration is not a recommendation.',
+          'Use the results to understand relative activity-energy demand, not as a prescription to compensate for food, an exercise-clearance test, or a guaranteed weight-loss prediction. The existing article on daily energy expenditure provides broader context; avoid double-counting resting energy when combining activity calories with daily totals.',
         ],
       },
     ],
     faq: [
       {
         q: 'What is a MET?',
-        a: 'A MET (Metabolic Equivalent of Task) is a unit of energy expenditure. One MET equals your energy use at rest; an activity of 8 METs uses about eight times as much energy as sitting quietly.',
+        a: 'A MET expresses the estimated metabolic demand of an activity relative to a standardized 1-MET resting reference. The calculator’s 8-MET example gives gross activity energy of roughly eight times that reference, not eight times each individual’s measured resting rate.',
       },
       {
         q: 'Does body weight affect calories burned?',
-        a: 'Yes. Heavier bodies use more energy to perform the same activity, which is why the formula multiplies the MET value by your weight in kilograms.',
+        a: 'Body weight is part of the original MET estimate, so two different entered weights give different gross and approximate above-rest calculations. This is a simplified model, not an individual measurement of walking efficiency or body composition.',
       },
       {
         q: 'How accurate is the calorie estimate?',
-        a: 'It’s a solid estimate based on average MET values, but your true burn varies with intensity, fitness and body composition. Treat it as a guide for comparing and planning activities.',
+        a: 'The values are illustrative, not measured personal calories. Gross includes estimated energy at rest; the above-rest figure subtracts a standardized 1 MET and is still approximate. Use both only to compare activity assumptions, not to prescribe exercise or offset a meal.',
       },
     ],
-    sources: [COMPENDIUM],
+    sources: [
+      COMPENDIUM,
+      {
+        citation: 'Herrmann SD, et al. The 2024 Adult Compendium of Physical Activities: A third update of the energy costs of human activities. J Sport Health Sci. 2024.',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/38242596/',
+      },
+      {
+        citation: '2024 Compendium of Physical Activities. Walking activity codes and MET values.',
+        url: 'https://pacompendium.com/walking/',
+      },
+    ],
   },
 
   // ============================================================
