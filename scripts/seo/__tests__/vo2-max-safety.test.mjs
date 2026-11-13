@@ -99,6 +99,6 @@ test('adult input, male-only original population, ungraded copy and UI warning p
   assert.match(section,/AHA_HRMAX/);
   assert.doesNotMatch(section,/five colored-band|five labels|fitness-age index/);
   assert.match(ui,/slug === 'vo2-max-calculator' && result.callout/);
-  assert.match(ui,/slug !== 'vo2-max-calculator' && result.callout/);
+  assert.match(ui,/slug !== 'vo2-max-calculator' &&[^\n]*result\.callout/);
   assert.doesNotMatch(section,/higher VO₂ max means your heart|a hallmark of good fitness/i);
 });

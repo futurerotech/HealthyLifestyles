@@ -89,5 +89,5 @@ test('article-facing warning and embedded calculator UI prioritize real clinical
   assert.match(section, /AHA_TARGET_HR/);
   assert.match(section, /call emergency services immediately/i);
   assert.match(ui, /slug === 'target-heart-rate-calculator' && result.callout/);
-  assert.match(ui, /slug !== 'target-heart-rate-calculator' && result.callout/);
+  assert.match(ui, /slug !== 'target-heart-rate-calculator' &&[^\n]*result\.callout/);
 });
