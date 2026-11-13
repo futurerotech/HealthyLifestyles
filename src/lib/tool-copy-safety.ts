@@ -20,6 +20,7 @@ export const EDUCATIONAL_ACTIVITY_SLUGS = new Set([
   'walk-it-off-calculator',
   'calories-burned-calculator',
   'steps-to-calories-calculator',
+  'vo2-max-calculator',
 ]);
 
 export function resolveToolPagePresentation(

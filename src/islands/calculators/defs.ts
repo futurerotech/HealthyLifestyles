@@ -2297,38 +2297,26 @@ export const DEFS: Record<string, CalcDef> = {
       { key: 'rest', label: 'Resting heart rate', type: 'number', metricDefault: 60, min: 30, max: 120, suffix: 'bpm', help: 'Measure your pulse at rest, ideally just after waking.' },
     ],
     compute: ({ vals }) => {
+      // The 15.3 coefficient comes from a small study in well-trained men;
+      // replacing measured HRmax with 220 - age adds prediction uncertainty.
       const hrMax = 220 - vals.age;
       const vo2 = 15.3 * (hrMax / vals.rest);
-      const fitnessAge = Math.max(18, Math.min(90, Math.round(0.5 * vals.age + 50 - vo2)));
-      const segments: Segment[] = [
-        { upTo: 30, label: 'Below average', color: C.red },
-        { upTo: 40, label: 'Fair', color: C.amber },
-        { upTo: 50, label: 'Good', color: C.teal },
-        { upTo: 60, label: 'Excellent', color: C.green },
-        { upTo: 80, label: 'Superior', color: C.blue },
-      ];
-      const band = bandFor(vo2, segments);
       return {
         ok: true,
-        primaryLabel: 'Estimated VO2 max',
+        primaryLabel: 'Rough VO₂ max estimate (heart-rate ratio)',
         primaryValue: `${fmt(vo2, 1)} ml/kg/min`,
-        category: { label: band.label, color: band.color },
-        visual: { kind: 'gauge', value: vo2, min: 20, max: 70, segments },
+        // Avoid fabricating "fitness age" or age/sex-independent diagnostic bands.
+        visual: { kind: 'none' },
         rows: [
-          { label: 'Fitness age', value: `${fmt(fitnessAge, 0)} years`, strong: true },
-          { label: 'Chronological age', value: `${fmt(vals.age, 0)} years` },
-          { label: 'Estimated max heart rate', value: `${fmt(hrMax, 0)} bpm` },
-          { label: 'Resting heart rate', value: `${fmt(vals.rest, 0)} bpm` },
+          { label: 'Assumed max heart rate (220 − age)', value: `${fmt(hrMax, 0)} bpm` },
+          { label: 'Entered resting heart rate', value: `${fmt(vals.rest, 0)} bpm` },
+          { label: 'Heart-rate ratio (assumed max ÷ resting)', value: fmt(hrMax / vals.rest, 2) },
         ],
         callout: {
           tone: 'info',
-          text: fitnessAge < vals.age
-            ? `Your VO2 max is typical of someone about ${fitnessAge} years old — ${vals.age - fitnessAge} years younger than your actual age. This suggests above-average cardio fitness for your age.`
-            : fitnessAge > vals.age
-              ? `Your VO2 max is typical of someone about ${fitnessAge} years old — ${fitnessAge - vals.age} years older than your actual age. This suggests room to improve cardio fitness.`
-              : `Your VO2 max is typical for your actual age (${vals.age}).`,
+          text: 'This is an indirect numerical illustration, not a laboratory VO₂ max measurement or a validated fitness age. The original heart-rate-ratio method was studied in well-trained adults, and predicting maximum heart rate from age adds uncertainty. Medication, illness and individual heart-rate differences can affect the estimate.',
         },
-        note: 'Uses the Uth-Sorensen estimate: VO2 max ~ 15.3 x (max HR / resting HR). Fitness age compares your VO2 max to age-normative averages (approx 50 - 0.5 x age). Both are rough estimates — healthy ranges depend on age and sex. Educational only.',
+        note: 'Based on Uth et al. (2004): VO₂ max ≈ 15.3 × (estimated HRmax ÷ resting HR), with HRmax approximated as 220 − age. The original validation cohort was well-trained men; the method has not been validated as a universal age-specific or sex-specific fitness classification. For an individual measurement, seek supervised exercise testing.',
       };
     },
   },
