@@ -1143,18 +1143,22 @@ export const DEFS: Record<string, CalcDef> = {
       };
       const met = METS[selects.activity] ?? 9.8;
       const hours = vals.minutes / 60;
+      // Gross expenditure includes the resting 1 MET spent during the session.
+      // Above-rest expenditure removes that baseline; both are approximate.
       const cal = met * vals.weight * hours;
+      const aboveRest = Math.max(0, met - 1) * vals.weight * hours;
       return {
         ok: true,
-        primaryLabel: `Calories burned in ${fmt(vals.minutes, 0)} min`,
+        primaryLabel: `Total calories (including rest) in ${fmt(vals.minutes, 0)} min`,
         primaryValue: `${fmt(cal, 0)} kcal`,
         visual: { kind: 'none' },
         rows: [
-          { label: 'Per hour', value: `${fmt(met * vals.weight, 0)} kcal`, strong: true },
+          { label: 'Additional above-rest calories (approx.)', value: `${fmt(aboveRest, 0)} kcal`, strong: true },
+          { label: 'Total per hour (including rest)', value: `${fmt(met * vals.weight, 0)} kcal` },
           { label: 'Per 30 minutes', value: `${fmt(met * vals.weight * 0.5, 0)} kcal` },
           { label: 'MET value', value: `${met}` },
         ],
-        note: 'Calories = METs × weight (kg) × hours. MET values are population averages; your real burn varies with intensity, fitness and terrain.',
+        note: 'Total (gross) kcal = MET × weight (kg) × hours, including resting energy. Additional above-rest kcal = (MET − 1) × weight × hours; neither is a precise personal measurement. If your daily calorie target already includes activity, adding the total again can double-count it.',
       };
     },
   },
