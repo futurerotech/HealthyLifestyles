@@ -22,6 +22,7 @@ export const EDUCATIONAL_ACTIVITY_SLUGS = new Set([
   'steps-to-calories-calculator',
   'vo2-max-calculator',
   'one-rep-max-calculator',
+  'ffmi-calculator',
 ]);
 
 export function resolveToolPagePresentation(

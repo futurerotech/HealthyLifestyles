@@ -365,67 +365,67 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
   'ffmi-calculator': {
     seoTitle: 'FFMI Calculator — Fat-Free Mass Index for Athletes',
     metaDescription:
-      'Calculate your Fat-Free Mass Index (FFMI) and height-normalized FFMI. A useful fitness metric for lifters and athletes — not a medical diagnosis.',
+      'Calculate fat-free mass index and the height-normalized Kouri variant from estimated body fat, weight and height. No natural-status or clinical diagnosis.'
     intro:
-      'FFMI measures how much lean mass you carry relative to your height. Enter your weight, height and body-fat percentage to see your FFMI, your height-normalized score, and where you sit on the athlete reference scale.',
+      'Estimate your fat-free mass index from weight, height and estimated body-fat percentage. The value is a body-composition calculation, not an age/sex-adjusted medical percentile, health score or indication of steroid use.'
     notice:
-      'Educational fitness metric only — not a health diagnosis. If you are unsure of your body-fat percentage, estimate it first with the Body Fat Calculator.',
+      'Educational calculation only. It depends strongly on estimated body-fat percentage; FFMI cannot diagnose health or determine whether someone uses performance-enhancing drugs.'
     sections: [
       {
         h2: 'What is FFMI?',
         paragraphs: [
-          'Fat-Free Mass Index (FFMI) is your lean body mass divided by your height in metres squared. It is similar in shape to BMI, but instead of comparing total body weight it compares only your fat-free mass — muscle, bone, organs and water. That makes it more meaningful for athletes and lifters, who can be heavy but metabolically healthy because of extra muscle.',
-          'Because taller people have more frame to fill, FFMI also includes a height correction (the “normalized” score) so a 165 cm lifter and a 195 cm lifter can be compared on the same scale.',
+          'Fat-free mass index (FFMI) divides fat-free mass (muscle, organs, bone and water) by height squared. It describes one aspect of estimated body composition; it cannot independently establish that a person is metabolically healthy. Different measurement methods for body-fat percentage can change the result.',
+          'One historical athlete-study method corrects FFMI to a reference height of 1.80 m. The [Kouri et al. 1995 study](https://pubmed.ncbi.nlm.nih.gov/7496846/) used 6.3 × (1.80 − height in metres), but this is a height normalization for that study, not a universal sex- or age-standardized percentile.',
         ],
       },
       {
         h2: 'How the calculation works',
         paragraphs: [
-          'First we subtract your fat mass from your total weight to get lean body mass (LBM). Then we divide LBM by height² to get FFMI. The normalized version adds 6.1 × (1.8 − height in metres) to correct for stature.',
+          'The calculator first estimates fat-free mass from body weight and body-fat percentage, then divides it by height squared. The normalized output uses the 6.3 coefficient in the cited Kouri paper, not a clinical risk-adjustment model. Both values inherit error from the body-fat estimate.',
         ],
         list: {
           intro: 'The formulas are:',
           items: [
             'LBM = weight × (1 − body fat %)',
             'FFMI = LBM ÷ height(m)²',
-            'Normalized FFMI = FFMI + 6.1 × (1.8 − height m)',
+            'Height-normalized FFMI (Kouri) = FFMI + 6.3 × (1.8 − height m)',
           ],
         },
       },
       {
         h2: 'Reading your result',
         paragraphs: [
-          'The reference bands are calibrated to common population and athlete data. Most untrained adults fall in the 17–19 range; trained natural lifters often sit around 20–23. Values above ~25 are very unusual for natural athletes and usually mean the body-fat estimate is too low, so re-check your input before drawing any conclusion.',
-          'FFMI is best used to track your own progress over time, not to compare yourself to outliers online.',
+          'The [Schutz et al. 2002 study](https://pubmed.ncbi.nlm.nih.gov/12080449/) reported body-composition percentiles that differed by sex in a nonrandom sample of 5,635 Swiss adults. Such distributions cannot be replaced by one color-coded universal scale. The Kouri athlete sample was relatively small, included men only, and its preliminary observations must not be used to label an individual as a drug user.',
+          'If you monitor FFMI over time, use consistent measurement methods and consider changes in hydration and body-fat estimation uncertainty. Use appropriately matched reference populations or professional assessment rather than interpreting an isolated number as a diagnosis.',
         ],
       },
     ],
     faq: [
       {
         q: 'What is a good FFMI?',
-        a: 'For most men, 18–20 is average, 20–22 is athletic, and 22–25 is highly muscular. For women, subtract roughly 1.5–2 points because of higher essential body fat. The most useful comparison is your own trend over time.',
+        a: 'There is no universal “good” value for all ages and sexes. Published adult FFMI reference distributions differ by sex and the population studied. This calculator provides a numerical body-composition estimate, not an individualized clinical percentile.',
       },
       {
         q: 'Why normalize FFMI for height?',
-        a: 'Taller people naturally have more bone and muscle mass. The normalized score adds a height correction so FFMI can be compared fairly across short and tall individuals.',
+        a: 'The historical Kouri study adjusted values to a reference height of 1.80 m using 6.3 × (1.80 − height m). This improves comparability within that research method but is not a universal clinical adjustment for age, sex or ancestry.',
       },
       {
         q: 'Can FFMI tell if someone is natural?',
-        a: 'No. Extremely high values are uncommon for natural athletes, but they can also come from an inaccurate body-fat estimate, unusual genetics, or measurement error. FFMI is not a diagnostic or judgment tool.',
+        a: 'No. FFMI cannot determine whether any individual has used anabolic steroids or other performance-enhancing drugs. The often-cited threshold around 25 came from preliminary observations in one male-athlete sample; it is not a proof or test of drug use.',
       },
       {
         q: 'How do I estimate body-fat percentage?',
-        a: 'You can use the Body Fat Calculator here, which estimates body fat from a few tape measurements, or a reliable smart scale, DEXA scan, or skinfold callipers for a more accurate number.',
+        a: 'Tape-measure and impedance-based body-fat estimates vary in precision and can be affected by hydration or technique. More specialized assessments may be appropriate when body composition has clinical implications; use consistent methods for personal tracking.',
       },
     ],
     sources: [
       {
         citation: 'Schutz Y, Kyle UU, Pichard C. "Fat-free mass index and fat mass index percentiles in Caucasians aged 18–98 y." Int J Obes Relat Metab Disord. 2002.',
-        url: pubmed('Fat-free mass index percentiles Caucasians Schutz'),
+        url: 'https://pubmed.ncbi.nlm.nih.gov/12080449/',
       },
       {
         citation: 'Kouri EM, Pope HG Jr, Katz DL, Oliva P. "Fat-free mass index in users and nonusers of anabolic-androgenic steroids." Clin J Sport Med. 1995.',
-        url: pubmed('Fat-free mass index anabolic androgenic steroids Kouri'),
+        url: 'https://pubmed.ncbi.nlm.nih.gov/7496846/',
       },
     ],
   },
