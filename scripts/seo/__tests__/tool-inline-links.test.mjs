@@ -64,9 +64,10 @@ test('the clinical disclaimer and SEO override use one identical audited slug se
 
 test('Healthspan source SEO overrides the older CMS metadata without changing other tool precedence', () => {
   const layout = source('src/components/ToolPageLayout.astro');
-  const set = layout.match(/const medicalSafetyOverrideSlugs = new Set\\(\\[([\\s\\S]*?)\\]\\);/);
-  assert.ok(set, 'single scoped SEO override list must exist');
-  const slugs = [...set[1].matchAll(/'([^']+)'/g)].map(m => m[1]);
+  const start = layout.indexOf('const medicalSafetyOverrideSlugs = new Set([');
+  const end = layout.indexOf(']);', start);
+  assert.ok(start >= 0 && end > start, 'single scoped SEO override list must exist');
+  const slugs = [...layout.slice(start, end).matchAll(/'([^']+)'/g)].map(m => m[1]);
   assert.equal(slugs.length, 5);
   assert.equal(new Set(slugs).size, 5);
   assert.ok(slugs.includes('healthspan-score'));
