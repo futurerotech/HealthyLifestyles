@@ -1548,7 +1548,8 @@ export const DEFS: Record<string, CalcDef> = {
   'flexibility-mobility-score': {
     slug: 'flexibility-mobility-score',
     heading: 'Score your flexibility & mobility',
-    hasSex: true,
+    // These movement checkboxes do not use sex-dependent formulas or norms.
+    hasSex: false,
     fields: [
       F.age(30),
       {
@@ -1593,7 +1594,7 @@ export const DEFS: Record<string, CalcDef> = {
         ],
       },
     ],
-    compute: ({ vals, sex, selects }) => {
+    compute: ({ vals, selects }) => {
       const age = vals.age;
 
       // Points per test.
@@ -1608,11 +1609,13 @@ export const DEFS: Record<string, CalcDef> = {
       const hipPts = HIP[selects.hip] ?? 1;
       const raw = sitPts + shldrPts + anklePts + hipPts;
 
-      // Age bonus — flexibility naturally declines with age, so older adults
-      // get a small upward adjustment (transparent, not a penalty).
+      // This is an educational, site-defined index, NOT standardized age/sex norms.
+      // The four tasks have a raw maximum of 9 points. The age adjustment can
+      // add at most 1 point, so its separate adjusted index has a maximum of 10.
       const ageBonus = age >= 50 ? 1 : age >= 40 ? 0.5 : 0;
-      const adjusted = Math.min(10, raw + ageBonus);
-      const maxScore = 9;
+      const rawMax = 9;
+      const adjustedMax = 10;
+      const adjusted = Math.min(adjustedMax, raw + ageBonus);
 
       const segments: Segment[] = [
         { upTo: 3, label: 'Below average', color: C.red },
@@ -1665,19 +1668,19 @@ export const DEFS: Record<string, CalcDef> = {
 
       return {
         ok: true,
-        primaryLabel: 'Mobility score',
-        primaryValue: `${fmt(adjusted, 1)}/${maxScore}`,
+        primaryLabel: 'Illustrative adjusted mobility index',
+        primaryValue: `${fmt(adjusted, 1)}/${adjustedMax}`,
         category: { label: band.label, color: band.color },
         visual: { kind: 'zones', items: zones },
         rows: [
-          { label: 'Raw score', value: `${raw}/${maxScore}` },
+          { label: 'Four-test raw points', value: `${raw}/${rawMax}` },
           { label: 'Age adjustment', value: ageBonus > 0 ? `+${fmt(ageBonus, 1)} (age ${fmt(age, 0)})` : 'None', strong: ageBonus > 0 },
         ],
         callout: {
           tone: 'info',
           text: 'Never force a range of motion. Stretch to mild tension, not pain. Sharp pain means stop immediately — it signals strain, not progress. Mobility improves with consistent, gentle work, not aggressive forcing.',
         },
-        note: `${suggestionText} Method: each test scores points (sit-reach 0–3, shoulder/ankle/hip 0–2 each, max 9). An age bonus of +0.5 (40–49) or +1 (50+) adjusts for natural flexibility decline. This is a general self-assessment, not a clinical range-of-motion measurement.`,
+        note: `${suggestionText} Method: four tasks total up to 9 raw points (sit-reach 0–3, shoulder/ankle/hip 0–2 each). This site adds an illustrative age adjustment of +0.5 (40–49) or +1 (50+) for a separate adjusted index out of 10. The adjustment and category labels are not validated age- or sex-based population norms and do not estimate injury risk or diagnose a condition. Compare your task-level results using the same technique over time.`,
       };
     },
   },
