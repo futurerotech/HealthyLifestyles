@@ -573,11 +573,11 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
   'flexibility-mobility-score': {
     seoTitle: 'Flexibility & Mobility Score — At-Home Test Battery',
     metaDescription:
-      'Test your flexibility and mobility at home with four simple tests. Get an overall score, per-area breakdown, and targeted stretch suggestions. Free, no equipment.',
+      'Check four at-home movements with a 9-point raw tally and transparent, site-defined adjusted index out of 10. Educational, not clinical norms.',
     intro:
-      'Four quick at-home tests — sit-and-reach, shoulder, ankle, and hip mobility — give you an overall mobility score and targeted suggestions for where to focus.',
+      'Four at-home movement checks — sit-and-reach, shoulder, ankle, and hip mobility — yield up to 9 raw points and an illustrative age-adjusted index out of 10. No sex-dependent formulas, diagnostic claims, or validated population norms are used.',
     notice:
-      'Never force a range of motion. Stretch to mild tension, not pain. Sharp pain means stop — it signals strain, not progress. This is a general self-assessment, not a clinical measurement.',
+      'Never force movement or stretch through pain. Sharp pain means stop. This site-defined educational index and its age bonus are not a clinical assessment, validated age/sex norms, or injury-risk prediction.',
     sections: [
       {
         h2: 'The four tests',
@@ -598,7 +598,7 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
         h2: 'How the score works',
         paragraphs: [
           'Each test earns points: the sit-and-reach is scored 0–3 (can\'t reach toes → palms flat), and the shoulder, ankle, and hip tests are each scored 0–2 (fail → pass). The maximum raw score is 9.',
-          'Because flexibility naturally declines with age, adults 40–49 get a +0.5 adjustment and those 50+ get +1 — this is a transparent age bonus, not a penalty. The adjusted score maps to five bands from "Below average" to "Excellent".',
+          'The four observed tasks total up to 9 raw points. The website then adds an illustrative +0.5 points for ages 40–49 or +1 for ages 50+, making the displayed adjusted index out of 10. This bonus and the five descriptive bands are site-defined heuristics, not validated age- or sex-specific population norms. Use the four task results to track your own comfortable movement over time.',
         ],
       },
       {
