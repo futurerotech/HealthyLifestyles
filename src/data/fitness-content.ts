@@ -320,20 +320,20 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
     metaDescription:
       'Estimate your one-rep max from a set with the Epley and Brzycki formulas, plus a 50–100% training table. Free 1RM calculator, no signup.',
     intro:
-      'Your one-rep max (1RM) is the most weight you can lift once. Instead of attempting a risky maximal lift, estimate it from a lighter set — enter the weight and reps to get your 1RM and a full percentage table.',
+      'A one-rep max (1RM) is the greatest load you can lift once with correct technique. Use a hard, submaximal set to estimate it without a maximal attempt. If you enter just one repetition, the calculator reports the weight lifted — not a proven true maximum.'
     sections: [
       {
         h2: 'How your 1RM is estimated',
         paragraphs: [
-          'This calculator uses two of the most validated formulas. Epley: 1RM = weight × (1 + reps ÷ 30). Brzycki: 1RM = weight × 36 ÷ (37 − reps). Both convert a "reps to failure" set into an estimated single-rep maximum.',
-          'The two formulas agree closely at low reps and diverge a little as reps climb. Accuracy is best when your set is 10 reps or fewer — beyond that, factors like muscular endurance muddy the estimate. For the most reliable number, use a hard set of 3–6 reps.',
+          'For sets of two or more repetitions, the calculator uses the conventional Epley and Brzycki formulas: Epley 1RM ≈ weight × (1 + reps ÷ 30) and Brzycki ≈ weight × 36 ÷ (37 − reps). A single successfully completed repetition is already a known lifted load, so this tool does not extrapolate it above the actual weight. A single repetition does not establish that no heavier lift was possible.',
+          'These formulas extrapolate from a hard set close to muscular failure with correct technique, and results can differ by exercise and training status. For more than 10 repetitions, estimates are more uncertain; the tool flags this rather than suggesting a guaranteed training max. There is no need to test your true maximum to use the calculator.',
         ],
       },
       {
         h2: 'Training with percentages of your 1RM',
         paragraphs: [
-          'Most strength programs prescribe loads as a percentage of 1RM, which is why the table above matters. As a rough guide: 85–100% builds maximal strength (1–5 reps), 70–85% builds muscle (6–12 reps), and 50–70% develops muscular endurance (12+ reps).',
-          'Knowing your 1RM lets you pick the right weight for the goal of each session and progress in a structured way, rather than guessing. Recalculate every few weeks as you get stronger.',
+          'The percentage table provides planning reference loads based on the Epley estimate for sets of two or more repetitions. For one entered rep, those percentages are based only on the recorded single-rep load. Fixed percentages do not guarantee a specific repetition target or a safe training intensity for every exercise or person.',
+          'Use estimates to inform gradual programming, with adjustments for effort, lifting technique, injury history, recovery and your coach or healthcare professional’s guidance. Recalculate when performance changes; avoid treating any computed percentage as an obligation.',
         ],
       },
       {
@@ -351,11 +351,11 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       },
       {
         q: 'Which is better, Epley or Brzycki?',
-        a: 'Both are well validated and agree closely at low reps. Epley tends to read slightly higher at higher reps. Using a set of 5 reps or fewer makes both more accurate.',
+        a: 'Epley and Brzycki are conventional indirect estimates for hard multi-rep sets. They can differ across rep counts and exercises, especially beyond 10 repetitions. For one rep, this calculator returns the actual load lifted, not an extrapolated maximum.',
       },
       {
         q: 'How often should I recalculate my 1RM?',
-        a: 'Every four to six weeks, or whenever your working weights climb noticeably. Re-estimating keeps your training percentages accurate as you get stronger.',
+        a: 'There is no fixed medical schedule. Re-estimate after meaningful changes in training performance, while using consistent exercises, technique and effort; adjust the working weight to how you actually feel and move.',
       },
     ],
     sources: [BRZYCKI, ONERM_VALIDITY],

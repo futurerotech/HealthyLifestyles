@@ -1174,20 +1174,29 @@ export const DEFS: Record<string, CalcDef> = {
     ],
     compute: ({ vals, units }) => {
       const w = vals.weight;
-      const reps = Math.max(1, Math.min(15, vals.reps));
-      const epley = w * (1 + reps / 30);
-      const brzycki = w * 36 / (37 - reps);
+      const reps = Math.max(1, Math.min(15, Math.round(vals.reps)));
+      // One recorded rep is a known load, not a formula-extrapolated max.
+      // It proves the user lifted that load once, not that the load was maximal.
+      const epley = reps === 1 ? w : w * (1 + reps / 30);
+      const brzycki = reps === 1 ? w : w * 36 / (37 - reps);
       const pcts = [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50];
       return {
         ok: true,
-        primaryLabel: 'Estimated 1-rep max (Epley)',
+        primaryLabel: reps === 1 ? 'Recorded single-rep load (not necessarily max)' : 'Estimated 1-rep max (Epley)',
         primaryValue: fmtMass(epley, units, 1),
         visual: { kind: 'none' },
         rows: [
-          { label: 'Brzycki estimate', value: fmtMass(brzycki, units, 1) },
-          ...pcts.map((p) => ({ label: `${p}% of 1RM`, value: fmtMass(epley * (p / 100), units, 1), strong: p === 100 })),
+          { label: reps === 1 ? 'Brzycki: recorded load' : 'Brzycki estimate', value: fmtMass(brzycki, units, 1) },
+          ...pcts.map((p) => ({
+            label: reps === 1 ? `${p}% of recorded single` : `${p}% of estimated 1RM`,
+            value: fmtMass(epley * (p / 100), units, 1),
+            strong: p === 100,
+          })),
         ],
-        note: 'Epley: weight × (1 + reps ÷ 30). Brzycki: weight × 36 ÷ (37 − reps). Most accurate at 10 reps or fewer.',
+        ...(reps > 10 ? { callout: { tone: 'warn' as const, text: 'More than 10 reps makes one-rep-max extrapolation less reliable. This estimate is not a recommended maximum attempt or a guaranteed safe training load.' } } : {}),
+        note: reps === 1
+          ? 'One repetition records the load you lifted once; it does not prove that it was your true maximum. Percentages are based on this recorded single, not on a verified 1RM. Avoid unsupported maximal attempts.'
+          : 'Epley: weight × (1 + reps ÷ 30). Brzycki: weight × 36 ÷ (37 − reps). These estimates assume a hard set with good form and are generally less reliable as reps rise, especially above 10. Training loads should be adjusted for technique, fatigue, and individual readiness.',
       };
     },
   },

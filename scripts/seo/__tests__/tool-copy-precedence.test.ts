@@ -31,7 +31,7 @@ const seo = {
 };
 
 test('three educational activity calculators favor corrected source prose and social SEO', () => {
-  for (const slug of ['sitting-disease-reversal-calculator', 'walk-it-off-calculator', 'calories-burned-calculator', 'steps-to-calories-calculator', 'vo2-max-calculator']) {
+  for (const slug of ['sitting-disease-reversal-calculator', 'walk-it-off-calculator', 'calories-burned-calculator', 'steps-to-calories-calculator', 'vo2-max-calculator', 'one-rep-max-calculator']) {
     const r = resolveToolPagePresentation(slug, authored, staleCms, seo);
     assert.deepEqual(r.content.sections, authored.sections);
     assert.deepEqual(r.content.faq, authored.faq);

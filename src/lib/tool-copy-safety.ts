@@ -21,6 +21,7 @@ export const EDUCATIONAL_ACTIVITY_SLUGS = new Set([
   'calories-burned-calculator',
   'steps-to-calories-calculator',
   'vo2-max-calculator',
+  'one-rep-max-calculator',
 ]);
 
 export function resolveToolPagePresentation(
