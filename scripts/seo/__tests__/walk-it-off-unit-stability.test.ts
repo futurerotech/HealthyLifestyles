@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { minutesToBurn, validWalkInputs, weightForDisplay, weightToKg } from '../../../src/lib/walk-it-off.ts';
+import { FOODS, minutesToBurn, validWalkInputs, weightForDisplay, weightToKg } from '../../../src/lib/walk-it-off.ts';
 
 test('changing displayed weight units does not change canonical weight or estimated minutes', () => {
   const kg = 70;
@@ -57,4 +57,10 @@ test('the visible result and share control fail closed on invalid inputs', () =>
   assert.match(island, /disabled=\{!validInputs\}/);
   assert.match(island, /\{validInputs && <div class="wo__activities">/);
   assert.match(island, /above-rest energy/i);
+});
+
+
+test('food illustrations match their labeled food instead of misleading emoji', () => {
+  const banana = FOODS.find((food) => food.name === 'Banana');
+  assert.equal(banana?.emoji, '🍌');
 });
