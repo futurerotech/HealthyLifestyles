@@ -237,7 +237,7 @@ export default function HealthspanScore() {
               <input type="number" min={0} step={0.01} value={form.height ? lengthForDisplay(form.height, units) : ''} placeholder="skip" onInput={(e) => set('height', lengthToCm(num((e.target as HTMLInputElement).value), units))} />
             </label>
           </div>
-          <p class="hs__help">Leave both empty to skip — the score rescales so skipping never penalizes you.</p>
+          <p class="hs__help">Leave both empty to skip this factor. The remaining points are rescaled to 100, so results with and without waist measurements may differ.</p>
         </fieldset>
 
         {error && <p class="hs__error" role="alert">{error}</p>}
