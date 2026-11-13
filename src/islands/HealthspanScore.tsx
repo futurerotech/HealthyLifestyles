@@ -9,9 +9,12 @@ import {
   type Social,
   type Stress,
   type Upf,
+  type LengthUnits,
+  lengthForDisplay,
+  lengthToCm,
 } from '../lib/healthspan';
 
-type Units = 'metric' | 'imperial';
+type Units = LengthUnits;
 
 interface FormState {
   age: number;
@@ -24,7 +27,7 @@ interface FormState {
   sleepHours: number;
   stress: Stress;
   social: Social;
-  /** Optional — 0 means "not provided". */
+  /** Optional lengths stored in centimeters; 0 means "not provided". */
   waist: number;
   height: number;
 }
@@ -69,15 +72,8 @@ export default function HealthspanScore() {
     setForm((f) => ({ ...f, [key]: value }));
 
   const switchUnits = (next: Units) => {
-    if (next === units) return;
-    const toIn = (cm: number) => Math.round(cm * 0.393701);
-    const toCm = (inch: number) => Math.round(inch / 0.393701);
-    setForm((f) => ({
-      ...f,
-      waist: f.waist ? (next === 'imperial' ? toIn(f.waist) : toCm(f.waist)) : 0,
-      height: f.height ? (next === 'imperial' ? toIn(f.height) : toCm(f.height)) : 0,
-    }));
-    setUnits(next);
+    // Change only the display; preserve the exact centimeter measurements.
+    if (next !== units) setUnits(next);
   };
   const lengthLabel = units === 'metric' ? 'cm' : 'in';
 
@@ -234,11 +230,11 @@ export default function HealthspanScore() {
           <div class="hs__grid">
             <label class="hs__field">
               <span class="hs__label">Waist ({lengthLabel})</span>
-              <input type="number" min={0} value={form.waist || ''} placeholder="skip" onInput={(e) => set('waist', num((e.target as HTMLInputElement).value))} />
+              <input type="number" min={0} step={0.01} value={form.waist ? lengthForDisplay(form.waist, units) : ''} placeholder="skip" onInput={(e) => set('waist', lengthToCm(num((e.target as HTMLInputElement).value), units))} />
             </label>
             <label class="hs__field">
               <span class="hs__label">Height ({lengthLabel})</span>
-              <input type="number" min={0} value={form.height || ''} placeholder="skip" onInput={(e) => set('height', num((e.target as HTMLInputElement).value))} />
+              <input type="number" min={0} step={0.01} value={form.height ? lengthForDisplay(form.height, units) : ''} placeholder="skip" onInput={(e) => set('height', lengthToCm(num((e.target as HTMLInputElement).value), units))} />
             </label>
           </div>
           <p class="hs__help">Leave both empty to skip — the score rescales so skipping never penalizes you.</p>

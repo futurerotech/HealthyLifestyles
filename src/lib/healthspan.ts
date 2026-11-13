@@ -18,6 +18,7 @@
  */
 
 export type Sex = 'female' | 'male';
+export type LengthUnits = 'metric' | 'imperial';
 export type Smoking = 'never' | 'former' | 'current';
 export type Stress = 'low' | 'moderate' | 'high';
 export type Social = 'strong' | 'some' | 'limited';
@@ -65,6 +66,17 @@ export interface HealthspanResult {
 }
 
 const round = (n: number) => Math.round(n);
+
+/** Store optional waist and height in cm; changing display units must not
+ * change their ratio or the points awarded by this educational score. */
+export function lengthToCm(value: number, units: LengthUnits): number {
+  return units === 'imperial' ? value * 2.54 : value;
+}
+
+export function lengthForDisplay(cm: number, units: LengthUnits): number {
+  const displayed = units === 'imperial' ? cm / 2.54 : cm;
+  return Math.round(displayed * 100) / 100;
+}
 
 export function computeHealthspan(input: HealthspanInput): HealthspanResult {
   const factors: Factor[] = [];
