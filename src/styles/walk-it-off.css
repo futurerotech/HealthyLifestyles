@@ -10,7 +10,7 @@
 .wo__field { display: flex; flex-direction: column; gap: 0.3rem; font-weight: 600; font-size: 0.9rem; }
 .wo__field select, .wo__field input { padding: 0.6rem 0.7rem; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font: inherit; font-weight: 600; background: #fff; width: 100%; }
 .wo__wt { display: flex; gap: 0.5rem; }
-.wo__wt input { flex: 1; }
+.wo__wt input { flex: 1; min-width: 0; }
 .wo__units { display: inline-flex; border: 1.5px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
 .wo__units button { border: 0; background: var(--surface-2); padding: 0 0.8rem; font-weight: 700; font-size: 0.82rem; color: var(--muted); }
 .wo__units button.is-on { background: var(--green-primary); color: #fff; }
@@ -28,6 +28,9 @@
 .wo__share-sub { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.9rem; }
 .wo__share-msg { flex-basis: 100%; margin: 0; font-size: 0.85rem; color: var(--green-700); font-weight: 600; }
 .wo__note { margin: 0; font-size: 0.82rem; color: var(--muted); line-height: 1.55; }
+.wo__error { margin: 0; padding: 0.9rem 1rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); color: var(--ink); font-weight: 600; }
+.wo__modes button:focus-visible, .wo__units button:focus-visible, .wo__share button:focus-visible { outline: 3px solid var(--c-fitness); outline-offset: 2px; }
+.wo__share button:disabled { opacity: 0.6; cursor: not-allowed; }
 
 @media (max-width: 560px) { .wo__inputs { grid-template-columns: 1fr; } }
 @media (max-width: 420px) { .wo__activities { grid-template-columns: 1fr; } }
