@@ -52,7 +52,7 @@ export const RISK_CONTENT: Record<string, ToolContent> = {
         h2: 'How the score is calculated',
         paragraphs: [
           'The score is a transparent points model over nine habit factors, anchored to public guidance on modifiable risk: physical activity (20 points, full credit at the WHO’s 150 minutes of moderate activity a week), fruit & vegetables (12 points, full credit at 5 servings — roughly the WHO’s 400 g a day), ultra-processed food (8), smoking (15), alcohol (10 illustrative points using weekly bands that are not official Dietary Guidelines limits), sleep (15, full credit for 7–9 hours), self-rated stress (6), social connection (4), and — optionally — waist-to-height ratio (10, full credit under 0.5).',
-          'The weights sum to exactly 100, so with every factor answered the visible points literally add up to your score. If you skip the optional waist-to-height factor the score is rescaled from 90, so skipping never counts against you. Age does not change the score. Sex affects only this tool’s illustrative alcohol points, not any official weekly drinking limit. All points and overall bands are editorial heuristics, not health-risk predictions.',
+          'The weights sum to exactly 100, so with every factor answered the visible points literally add up to your score. If you skip the optional waist-to-height factor, the remaining 90 possible points are rescaled to 100. Because the denominator changes, scores with and without waist measurements are not directly comparable. Age does not change the score. Sex affects only this tool’s illustrative alcohol points, not any official weekly drinking limit. All points and overall bands are editorial heuristics, not health-risk predictions.',
         ],
       },
       {
@@ -89,7 +89,7 @@ export const RISK_CONTENT: Record<string, ToolContent> = {
       },
       {
         q: 'Is skipping the waist-to-height question a disadvantage?',
-        a: 'No. The score is rescaled to 0–100 without that factor, so skipping it never lowers your result. If you can measure, though, it adds a useful body-shape signal — a waist under half your height is the common healthy guide.',
+        a: 'Skipping is allowed. The score rescales the remaining factors to 100, but the number can be higher or lower than a score that includes your waist-to-height measurement; do not compare the two versions directly. A waist-to-height ratio below 0.5 is a general screening guide, not a diagnosis.',
       },
       {
         q: 'Where do the point values come from?',
