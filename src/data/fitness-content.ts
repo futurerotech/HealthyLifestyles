@@ -6,6 +6,10 @@ const COMPENDIUM: Source = {
     'Ainsworth BE, Haskell WL, Herrmann SD, et al. "2011 Compendium of Physical Activities: a second update of codes and MET values." Med Sci Sports Exerc. 2011;43(8):1575–1581.',
   url: pubmed('2011 Compendium of Physical Activities MET values Ainsworth'),
 };
+const COMPENDIUM_2024: Source = {
+  citation: 'Herrmann SD, Willis EA, Ainsworth BE, et al. "2024 Adult Compendium of Physical Activities: A third update of the energy costs of human activities." J Sport Health Sci. 2024;13(1):6–12.',
+  url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10818145/',
+};
 const UTH: Source = {
   citation:
     'Uth N, Sørensen H, Overgaard K, Pedersen PK. "Estimation of VO2max from the ratio between HRmax and HRrest — the Heart Rate Ratio Method." Eur J Appl Physiol. 2004;91(1):111–115.',
@@ -34,7 +38,7 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'How it works',
         paragraphs: [
-          'The calculator estimates how long it could take to expend a similar number of calories above resting energy at a selected activity intensity. The formula is minutes = calories ÷ [(MET − 1) × body weight in kilograms] × 60. The resting 1 MET is subtracted so this illustration does not count energy you would have used while resting. MET values are averages from the 2024 Compendium of Physical Activities (https://pmc.ncbi.nlm.nih.gov/articles/PMC10818145/), not individual measurements.',
+          'The calculator estimates how long it could take to expend a similar number of calories above resting energy at a selected activity intensity. The formula is minutes = calories ÷ [(MET − 1) × body weight in kilograms] × 60. The resting 1 MET is subtracted so this illustration does not count energy you would have used while resting. The [2024 Adult Compendium of Physical Activities](https://pmc.ncbi.nlm.nih.gov/articles/PMC10818145/) explains the MET framework; the simplified activity values used here are population averages, not measurements of an individual.',
           'Do not interpret this as an exercise requirement or a promise that movement cancels out eating. Food intake and energy expenditure interact across days, not as a direct one-meal transaction.',
         ],
       },
@@ -56,7 +60,7 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       { q: 'Is it accurate?', a: 'It is a rough activity-time comparison based on standard MET values and body weight, not a personalized measurement. Resting metabolism, movement efficiency, intensity, terrain and many other factors vary.' },
       { q: 'Should I exercise to “burn off” food?', a: 'No. Eating never creates an obligation to exercise, and activity should not be used as punishment or as a promised way to cancel out a meal. Movement has benefits unrelated to calorie balance.' },
     ],
-    sources: [COMPENDIUM],
+    sources: [COMPENDIUM, COMPENDIUM_2024],
   },
   // ============================================================
   'sitting-disease-reversal-calculator': {
