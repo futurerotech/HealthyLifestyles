@@ -1,9 +1,8 @@
 /** @jsxImportSource preact */
 import { useState } from 'preact/hooks';
-import { FOODS, ACTIVITIES, minutesToBurn } from '../lib/walk-it-off';
+import { FOODS, ACTIVITIES, minutesToBurn, weightToKg, weightForDisplay, type WeightUnits } from '../lib/walk-it-off';
 
-type Units = 'kg' | 'lb';
-const LB = 2.20462;
+type Units = WeightUnits;
 const num = (v: string, fb: number) => {
   const n = parseFloat(v);
   return Number.isFinite(n) ? n : fb;
@@ -11,7 +10,7 @@ const num = (v: string, fb: number) => {
 
 export default function WalkItOff() {
   const [units, setUnits] = useState<Units>('kg');
-  const [weight, setWeight] = useState(70);
+  const [weightKg, setWeightKg] = useState(70);
   const [mode, setMode] = useState<'food' | 'custom'>('food');
   const [foodIdx, setFoodIdx] = useState(0);
   const [customKcal, setCustomKcal] = useState(300);
@@ -19,11 +18,9 @@ export default function WalkItOff() {
 
   const switchUnits = (next: Units) => {
     if (next === units) return;
-    setWeight((w) => Math.round(w * (next === 'lb' ? LB : 1 / LB)));
     setUnits(next);
   };
 
-  const weightKg = units === 'kg' ? weight : weight / LB;
   const food = FOODS[foodIdx];
   const kcal = mode === 'food' ? food.kcal : Math.max(0, customKcal);
   const label = mode === 'food' ? `${food.emoji} ${food.name}` : `${kcal} kcal`;
@@ -86,7 +83,7 @@ export default function WalkItOff() {
           <label class="wo__field wo__field--weight">
             <span>Your weight</span>
             <div class="wo__wt">
-              <input type="number" min="1" value={weight} onInput={(e) => setWeight(num((e.target as HTMLInputElement).value, 0))} />
+              <input type="number" min="1" value={weightForDisplay(weightKg, units)} onInput={(e) => setWeightKg(weightToKg(num((e.target as HTMLInputElement).value, 0), units))} />
               <div class="wo__units" role="group" aria-label="Units">
                 <button type="button" class={units === 'kg' ? 'is-on' : ''} onClick={() => switchUnits('kg')}>kg</button>
                 <button type="button" class={units === 'lb' ? 'is-on' : ''} onClick={() => switchUnits('lb')}>lb</button>
