@@ -7,16 +7,20 @@ const MIFFLIN: Source = {
   url: pubmed('A new predictive equation for resting energy expenditure in healthy individuals'),
 };
 const CDC_ALCOHOL: Source = {
-  citation: 'Centers for Disease Control and Prevention (CDC). "Dietary Guidelines for Alcohol" — up to 1 drink/day (women) or 2 (men).',
+  citation: 'CDC. About Moderate Alcohol Use (2025). Less alcohol is better; even moderate drinking may increase cancer and other health risks.',
   url: 'https://www.cdc.gov/alcohol/about-alcohol-use/moderate-alcohol-use.html',
+};
+const CDC_ALCOHOL_CANCER: Source = {
+  citation: 'CDC. Alcohol and Cancer (January 2026). Alcohol increases the risk of several cancers, and reducing intake lowers risk.',
+  url: 'https://www.cdc.gov/cancer/risk-factors/alcohol.html',
 };
 const NHS_ALCOHOL: Source = {
   citation: 'UK National Health Service (NHS). "Alcohol units" — keep to 14 units a week or less.',
   url: 'https://www.nhs.uk/live-well/alcohol-advice/calculating-alcohol-units/',
 };
-const DGA_ALCOHOL: Source = {
-  citation: 'U.S. Dietary Guidelines for Americans, 2020–2025 — alcohol provides 7 kcal/g and no nutritional value.',
-  url: 'https://www.dietaryguidelines.gov/',
+const NIAAA_ALCOHOL_CALORIES: Source = {
+  citation: 'National Institute on Alcohol Abuse and Alcoholism (NIAAA). Rethinking Drinking: Alcohol Calorie Calculator.',
+  url: 'https://rethinkingdrinking.niaaa.nih.gov/tools/calculators/alcohol-calorie-calculator',
 };
 
 export const METABOLIC_CONTENT: Record<string, ToolContent> = {
@@ -68,11 +72,11 @@ export const METABOLIC_CONTENT: Record<string, ToolContent> = {
   'alcohol-calorie-calculator': {
     seoTitle: 'Alcohol Calorie Calculator (Weekly & Yearly)',
     metaDescription:
-      'Add up the calories in your weekly drinks — beer, wine, spirits, cocktails — and see the monthly and yearly total, with low-risk guidance. Free.',
+      'Estimate weekly, monthly and yearly beverage calories from alcohol. No predicted fat gain or risk-free drinking threshold.',
     intro:
-      'Alcohol is one of the easiest sources of "hidden" calories to overlook. Enter your weekly drinks to see the calories per week, month and year — plus what that adds up to over time.',
+      'Estimate calories from beer, wine, spirits and cocktails each week, and explore corresponding monthly and yearly totals. These are arithmetic intake estimates, not predictions of fat gain, weight loss or an individual health-risk score.',
     notice:
-      'Educational and non-judgmental — not medical advice. If you find it hard to cut back, your doctor or a support service can help.',
+      'Educational only. Less alcohol generally reduces health risks. The moderate-drinking category does not mean risk-free drinking. Avoid alcohol during pregnancy; talk to a qualified professional or support service if cutting back is difficult.',
     sections: [
       {
         h2: 'Where alcohol calories come from',
@@ -84,22 +88,22 @@ export const METABOLIC_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'How it adds up over a year',
         paragraphs: [
-          'A few drinks a week looks small, but the calories compound. The calculator multiplies your weekly total out to a year and shows a relatable equivalent in body fat (using the rough 3,500-calorie-per-pound rule) — assuming those calories aren’t burned off through activity. It’s a useful gut-check, not a precise prediction.',
+          'The calculator adds estimated beverage calories per week, then multiplies by 52 for a simple yearly intake projection. This does not predict weight or body-fat change: appetite, other intake, energy expenditure and physiological adaptations are not modeled. The [NIAAA alcohol calorie calculator](https://rethinkingdrinking.niaaa.nih.gov/tools/calculators/alcohol-calorie-calculator) likewise focuses on beverage-calorie awareness rather than a guaranteed body-weight outcome.',
         ],
       },
       {
         h2: 'Low-risk drinking guidance',
         paragraphs: [
-          'For calories and health alike, less is better. The U.S. CDC defines moderate drinking as up to 1 drink a day for women and 2 for men, and the UK NHS advises keeping to 14 units a week or less, spread over three or more days with some drink-free days. Cutting back even a little is an easy win for both your waistline and your health.',
+          'The [CDC explains](https://www.cdc.gov/alcohol/about-alcohol-use/moderate-alcohol-use.html) that its moderate-use definition (up to one drink/day for women or two for men) is not a no-risk threshold. Even moderate use may increase health risks compared with not drinking. The [CDC cancer guidance](https://www.cdc.gov/cancer/risk-factors/alcohol.html) explains why drinking less or not drinking lowers cancer risk. Pregnant people and others with contraindications should avoid alcohol; people who do not drink should not begin for health reasons.',
         ],
       },
     ],
     faq: [
       { q: 'How many calories are in alcohol?', a: 'Alcohol provides about 7 calories per gram. A 12-oz beer is ~150 kcal, a 5-oz glass of wine ~125, a 1.5-oz spirit ~97, and a typical cocktail 200–250+.' },
       { q: 'Can alcohol make you gain weight?', a: 'Yes — alcohol calories add to your daily total and are easy to overlook. Regular drinking can contribute meaningful calories over a week, month and year, especially with sugary mixers.' },
-      { q: 'How much alcohol is low-risk?', a: 'The CDC suggests up to 1 drink/day for women and 2 for men; the UK NHS advises ≤14 units per week with several drink-free days. Less is better for both calories and health.' },
-      { q: 'Does the body store alcohol calories as fat?', a: 'Your body prioritizes burning alcohol first, which means other calories from that meal are more likely to be stored. Over time, surplus calories from any source — including alcohol — can be stored as fat.' },
+      { q: 'Is moderate alcohol use risk-free?', a: 'No. CDC moderation levels describe a category of drinking, not a guaranteed safe amount. Even moderate alcohol use may increase certain health risks. Drinking less or not at all lowers risk, and some people should avoid alcohol entirely.' },
+      { q: 'Can I convert alcohol calories to pounds of fat?', a: 'No reliable personal prediction can be made from a fixed 3,500-calorie-per-pound conversion. The estimates here show drink-derived energy intake only; they do not model appetite, total intake, activity or metabolic adaptation.' },
     ],
-    sources: [DGA_ALCOHOL, CDC_ALCOHOL, NHS_ALCOHOL],
+    sources: [NIAAA_ALCOHOL_CALORIES, CDC_ALCOHOL, CDC_ALCOHOL_CANCER, NHS_ALCOHOL],
   },
 };

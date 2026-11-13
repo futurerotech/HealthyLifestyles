@@ -26,6 +26,7 @@ export const EDUCATIONAL_ACTIVITY_SLUGS = new Set([
   'recovery-time-calculator',
   // Safety-reviewed body-composition formula; keep its corrected content visible.
   'lean-body-mass-calculator',
+  'alcohol-calorie-calculator',
 ]);
 
 export function resolveToolPagePresentation(

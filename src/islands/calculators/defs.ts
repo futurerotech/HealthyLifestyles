@@ -1026,7 +1026,6 @@ export const DEFS: Record<string, CalcDef> = {
       const cockK = vals.cocktail * KCAL.cocktail;
       const weekly = beerK + wineK + spiritK + cockK;
       const yearly = weekly * 52;
-      const fatLb = yearly / 3500;
       const totalDrinks = vals.beer + vals.wine + vals.spirits + vals.cocktail;
       const parts = [
         { label: 'Beer', kcal: beerK, color: C.amber },
@@ -1046,11 +1045,10 @@ export const DEFS: Record<string, CalcDef> = {
         rows: [
           { label: 'Per month', value: `${fmt(weekly * 4.345, 0)} kcal` },
           { label: 'Per year', value: `${fmt(yearly, 0)} kcal`, strong: true },
-          { label: '≈ body fat per year, if unburned', value: `${fmt(fatLb, 1)} lb` },
           { label: 'Total drinks per week', value: `${fmt(totalDrinks, 1)}` },
         ],
-        callout: { tone: 'info', text: 'Low-risk guidance: the CDC suggests up to 1 drink/day for women and 2 for men; the UK NHS advises 14 units a week or less, spread over 3+ days with drink-free days. Alcohol carries 7 kcal per gram — "empty" calories with no nutrition, and that\'s before sugary mixers.' },
-        note: 'Calories per drink are typical values (beer 12 oz ≈ 150, wine 5 oz ≈ 125, spirit 1.5 oz ≈ 97, cocktail ≈ 225) and climb with stronger or larger servings and mixers. The body-fat equivalent uses the 3,500 kcal-per-pound rule and assumes the calories are not offset by activity. Educational and non-judgmental — small cutbacks add up.',
+        callout: { tone: 'info', text: 'These are beverage-calorie estimates, not a health-risk score. Even moderate drinking can increase risks, including some cancers; less alcohol is better for health. U.S. moderation limits (up to 1 drink/day for women, 2 for men) are not a risk-free dose. Do not start drinking for health reasons, and avoid alcohol during pregnancy or when contraindicated.' },
+        note: 'Typical calories per drink: beer 12 oz ≈ 150, wine 5 oz ≈ 125, spirits 1.5 oz ≈ 97, cocktail ≈ 225; stronger or larger servings and mixers differ. Weekly, monthly and yearly totals are simple intake projections, not predicted fat gain or weight loss. Real body-weight change cannot be inferred by dividing these calories by 3,500. Educational estimates only.',
       };
     },
   },
