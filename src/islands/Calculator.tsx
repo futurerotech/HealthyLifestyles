@@ -421,6 +421,9 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
   const [units, setUnits] = useState<UnitSystem>('metric');
   const [sex, setSex] = useState<Sex>('male');
   const [disp, setDisp] = useState<Disp>(() => (def ? initialDisplay(def, 'metric') : {}));
+  // FFMI only: preserve the true metric weight/height despite rounded imperial
+  // display fields. Editing a field removes that field's precision override.
+  const [ffmiExact, setFfmiExact] = useState<{ weight?: number; height?: number } | null>(null);
   const [selects, setSelects] = useState<Record<string, string>>(() => (def ? initialSelects(def) : {}));
 
   const pregnancy = slug === 'pregnancy-weight-gain-calculator';
@@ -429,10 +432,15 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
   if (!def) return null;
 
   const pregnancyValues = useMemo(() => pregnancy ? { ...readPregnancyMeasurements(disp, units), ...preservedPregnancy } : null, [pregnancy, disp, units, preservedPregnancy]);
-  const ctx = useMemo(
-    () => ({ vals: (pregnancyValues ?? toMetric(def, disp, units)) as Record<string, number>, selects, sex, units }),
-    [def, disp, units, sex, selects, pregnancyValues]
-  );
+  const ctx = useMemo(() => {
+    if (pregnancyValues) return { vals: pregnancyValues as Record<string, number>, selects, sex, units };
+    const vals = toMetric(def, disp, units);
+    if (slug === 'ffmi-calculator' && ffmiExact) {
+      if (ffmiExact.weight !== undefined) vals.weight = ffmiExact.weight;
+      if (ffmiExact.height !== undefined) vals.height = ffmiExact.height;
+    }
+    return { vals, selects, sex, units };
+  }, [def, disp, units, sex, selects, slug, ffmiExact, pregnancyValues]);
   const visible = def.fields.filter((f) => !f.showIf || f.showIf(ctx));
   // Only show the metric/imperial toggle if some field actually converts.
   const showUnits = def.fields.some((f) => f.type === 'mass' || f.type === 'length' || f.type === 'height');
@@ -597,6 +605,15 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
   const setField = (key: string, val: string) => {
     setDisp((d) => ({ ...d, [key]: val }));
     if (pregnancy) setPreservedPregnancy((p) => forgetPregnancyMeasurement(p, key));
+    if (slug === 'ffmi-calculator' && (key === 'weight' || key === 'height' || key === 'height_ft' || key === 'height_in')) {
+      const edited: 'weight' | 'height' = key === 'weight' ? 'weight' : 'height';
+      setFfmiExact((old) => {
+        if (!old) return null;
+        const next = { ...old };
+        delete next[edited];
+        return Object.keys(next).length ? next : null;
+      });
+    }
   };
   const setSelect = (key: string, val: string) => setSelects((s) => ({ ...s, [key]: val }));
   const switchUnits = (to: UnitSystem) => {
@@ -605,6 +622,9 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
       setPreservedPregnancy(pregnancyValues);
       setDisp(pregnancyDisplay(pregnancyValues, to, disp.week ?? ''));
     } else {
+      if (slug === 'ffmi-calculator') {
+        setFfmiExact({ weight: ctx.vals.weight, height: ctx.vals.height });
+      }
       setDisp((d) => convertDisplay(def, d, to));
     }
     setUnits(to);
