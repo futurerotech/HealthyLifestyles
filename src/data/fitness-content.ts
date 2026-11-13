@@ -14,6 +14,10 @@ const WHO_SEDENTARY: Source = {
   citation: 'World Health Organization. WHO guidelines on physical activity and sedentary behaviour. 2020 — adult sedentary behaviour recommendations.',
   url: 'https://www.ncbi.nlm.nih.gov/books/NBK566046/',
 };
+const STEPS_2025: Source = {
+  citation: 'Ding D, Nguyen B, Nau T, et al. "Daily steps and health outcomes in adults: a systematic review and dose-response meta-analysis." Lancet Public Health. 2025;10:e668–e681.',
+  url: 'https://pubmed.ncbi.nlm.nih.gov/40713949/',
+};
 const UTH: Source = {
   citation:
     'Uth N, Sørensen H, Overgaard K, Pedersen PK. "Estimation of VO2max from the ratio between HRmax and HRrest — the Heart Rate Ratio Method." Eur J Appl Physiol. 2004;91(1):111–115.',
@@ -671,36 +675,36 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
   'steps-to-calories-calculator': {
     seoTitle: 'Steps to Calories & Distance Calculator',
     metaDescription:
-      'Convert your daily steps into distance walked and calories burned, using your height and weight. Free steps calculator in km or miles.',
+      'Estimate walking distance, total calories including rest, and additional above-rest energy from steps, height, and weight. Not a clinical activity score.',
     intro:
-      'Turn a step count into something meaningful. Enter your steps along with your height and weight to estimate how far you walked and how many calories you burned.',
+      'Use your steps, height, and weight for an approximate walking distance plus gross and above-rest calorie estimates. A step count alone cannot classify your health, and no universal 10,000-step goal is required.',
     sections: [
       {
         h2: 'From steps to distance',
         paragraphs: [
-          'Distance depends on your stride length, which scales with your height. This calculator estimates stride as your height × 0.413 for women and × 0.415 for men — a widely used research-based ratio. Multiplying your stride by your step count gives the distance you covered.',
-          'Taller people cover more ground per step, so two people taking 10,000 steps can walk noticeably different distances. Using your own height makes the estimate far more personal than a generic "2,000 steps per mile" rule.',
+          'Distance is estimated as steps multiplied by an assumed stride length. This simplified calculator uses height × 0.413 for women or × 0.415 for men. Individual stride length depends on walking speed, body proportions, and terrain, so the result is an approximation, not a measured distance.',
+          'A fixed steps-per-mile rule can be misleading because stride varies. This estimate assumes all steps were taken while walking near 4.8 km/h (3.0 mph); steps from other activities and speeds can produce a different distance.',
         ],
       },
       {
         h2: 'From steps to calories',
         paragraphs: [
-          'Calories are estimated from the distance you walked and your body weight, using the MET method (about 3.5 METs for a steady walk). Heavier bodies and longer distances burn more, which the calculation reflects.',
-          'This assumes a moderate walking pace. Walking faster, uphill, or carrying weight all increase the burn, so treat the figure as a reasonable estimate rather than an exact count.',
+          'The headline result is total (gross) energy during walking: 3.5 MET × weight in kg × estimated hours. It includes energy your body would have used at rest. Additional above-rest calories use (3.5 − 1) MET × weight × hours. The [2024 Adult Compendium](https://pubmed.ncbi.nlm.nih.gov/38242596/) provides measured and estimated activity METs; this tool uses one simplified pace, not a personal energy measurement.',
+          'Both calorie figures are rough estimates. Pace, walking efficiency, hills, health and body composition influence real expenditure. Do not add the gross value again to a daily calorie target that already includes activity or resting energy.',
         ],
       },
       {
         h2: 'How many steps should you aim for?',
         paragraphs: [
-          'The famous "10,000 steps" target began as a marketing slogan, but research does support more steps meaning better health. Benefits rise steadily from around 7,000–8,000 steps a day for adults, with gains continuing higher, especially for older adults at lower counts.',
-          'Fewer than 5,000 steps a day is generally considered sedentary. If you’re starting low, adding 1,000–2,000 steps a day is a realistic, effective goal — every extra walk counts.',
+          'No universal daily step threshold divides healthy from unhealthy people. A [2025 systematic review and dose-response meta-analysis](https://pubmed.ncbi.nlm.nih.gov/40713949/) linked higher daily steps with several improved health outcomes, but the observational findings do not establish a diagnostic category or a required number for each individual.',
+          'A reasonable goal depends on your baseline, mobility, medical circumstances and preferences. The [CDC adult physical activity guidelines](https://www.cdc.gov/physical-activity-basics/guidelines/adults.html) emphasize weekly moderate or vigorous activity and muscle strengthening rather than a mandatory 10,000 daily steps. Start with comfortable, sustainable activity and increase gradually where appropriate.',
         ],
       },
     ],
     faq: [
       {
         q: 'How many calories does 10,000 steps burn?',
-        a: 'Very roughly 300–500 calories for most adults, depending on your weight, height and walking speed. This calculator personalises the estimate to your own measurements.',
+        a: 'It depends on height, body weight, actual stride and pace. For example, at 170 cm and 72 kg with the calculator’s male stride factor, 8,000 steps correspond to about 5.64 km, 296 gross kcal (including rest) and 212 additional above-rest kcal. Neither is a measured personal energy value.',
       },
       {
         q: 'How is distance from steps calculated?',
@@ -708,10 +712,10 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       },
       {
         q: 'Are 10,000 steps a day necessary?',
-        a: 'No — it’s a popular target, not a medical rule. Health benefits build from around 7,000–8,000 steps a day, and any increase from a low baseline helps.',
+        a: 'No. The 2025 evidence synthesis observed benefits across a range of step counts, but there is no universal medical rule requiring 10,000 steps. Choose an achievable goal and consult an appropriate professional if physical activity must be adapted to your condition.',
       },
     ],
-    sources: [COMPENDIUM],
+    sources: [COMPENDIUM, COMPENDIUM_2024, STEPS_2025],
   },
 
   // ============================================================

@@ -2263,28 +2263,26 @@ export const DEFS: Record<string, CalcDef> = {
       const strideCm = vals.height * (sex === 'female' ? 0.413 : 0.415);
       const distanceKm = (vals.steps * (strideCm / 100)) / 1000;
       const hours = distanceKm / 4.8; // assume ~moderate walking pace
-      const cal = 3.5 * vals.weight * hours;
+      // The MET equation includes resting energy spent during activity.
+      // Show that GROSS total separately from the approximate extra above rest.
+      const grossKcal = 3.5 * vals.weight * hours;
+      const aboveRestKcal = (3.5 - 1) * vals.weight * hours;
       const distStr = units === 'metric' ? `${fmt(distanceKm, 2)} km` : `${fmt(distanceKm * 0.621371, 2)} mi`;
       const strideStr = units === 'metric' ? `${fmt(strideCm, 0)} cm` : `${fmt(strideCm / 2.54, 1)} in`;
-      const segments: Segment[] = [
-        { upTo: 5000, label: 'Sedentary', color: C.red },
-        { upTo: 7500, label: 'Low active', color: C.amber },
-        { upTo: 10000, label: 'Somewhat active', color: C.teal },
-        { upTo: 12000, label: 'Active', color: C.green },
-      ];
-      const band = bandFor(vals.steps, segments);
       return {
         ok: true,
-        primaryLabel: 'Calories burned',
-        primaryValue: `${fmt(cal, 0)} kcal`,
-        category: { label: band.label, color: band.color },
-        visual: { kind: 'gauge', value: vals.steps, min: 0, max: 12000, segments },
+        primaryLabel: 'Total estimated calories (including rest)',
+        primaryValue: `${fmt(grossKcal, 0)} kcal`,
+        // No validated diagnostic "sedentary"/"active" category can be assigned
+        // from one entered step count, without context or clinical evaluation.
+        visual: { kind: 'none' },
         rows: [
-          { label: 'Distance walked', value: distStr, strong: true },
-          { label: 'Your stride length', value: strideStr },
-          { label: 'Daily goal', value: '10,000 steps' },
+          { label: 'Additional above-rest calories (approx.)', value: `${fmt(aboveRestKcal, 0)} kcal`, strong: true },
+          { label: 'Estimated distance walked', value: distStr },
+          { label: 'Estimated stride length', value: strideStr },
+          { label: 'Assumed pace', value: '4.8 km/h (3.0 mph)' },
         ],
-        note: 'Stride length is estimated as height × 0.413 (women) or 0.415 (men). Calories assume a moderate walking pace and will vary with speed and terrain.',
+        note: 'Gross kcal = 3.5 MET × kg × hours; above-rest kcal = (3.5 − 1) MET × kg × hours. Stride length is approximated from height, and walking at 4.8 km/h is assumed throughout. Your actual pace, stride, intensity, and energy use may differ. Steps alone do not diagnose inactivity, and there is no universal 10,000-step requirement.',
       };
     },
   },

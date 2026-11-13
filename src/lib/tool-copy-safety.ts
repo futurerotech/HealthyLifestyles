@@ -19,6 +19,7 @@ export const EDUCATIONAL_ACTIVITY_SLUGS = new Set([
   'sitting-disease-reversal-calculator',
   'walk-it-off-calculator',
   'calories-burned-calculator',
+  'steps-to-calories-calculator',
 ]);
 
 export function resolveToolPagePresentation(
