@@ -31,41 +31,50 @@ const run = (age, rest) => compute({ vals: { age, rest }, selects: {} });
 const pageStart = page.indexOf(anchor);
 const section = page.slice(pageStart, page.indexOf('\n  },', pageStart));
 
+const row = (r, re) => r.rows?.find((x) => re.test(x.label))?.value;
+
 test('existing Uth–Sørensen arithmetic and worked article example are unchanged', () => {
   const r = run(30,60);
   assert.equal(r.ok,true);
   assert.equal(r.primaryValue,'48.5 ml/kg/min');
-  assert.equal(r.rows[2].value,'190 bpm');
-  assert.equal(r.category.label,'Good (illustrative)');
-  assert.equal(r.rows[0].value,'18 years (unvalidated index)');
+  assert.match(r.primaryLabel,/Rough VO₂ max/);
+  assert.equal(row(r,/assumed max/i),'190 bpm');
+  assert.equal(row(r,/entered resting/i),'60 bpm');
+  assert.equal(row(r,/ratio/i),'3.17');
   assert.equal(r.callout.tone,'info');
+  assert.match(r.callout.text,/not a laboratory VO₂ max measurement, a fitness age or a diagnosis/);
+  assert.match(r.callout.text,/predicting maximum heart rate from age adds uncertainty/);
   assert.match(r.note,/not validated equally for other ages, women/i);
-  assert.doesNotMatch(r.callout.text,/12 years younger|above-average cardio fitness/i);
   assert.equal(run(50,60).primaryValue,'43.4 ml/kg/min');
 });
 
-test('very low waking pulse gets emergency-first warning and never a superior-fitness medical rating', () => {
+test('no fitness age and no age- or sex-independent good/bad grading for any input', () => {
+  for (const [age, rest] of [[20,40],[30,60],[35,65],[65,80],[30,30],[30,120],[100,119]]) {
+    const r = run(age, rest);
+    assert.equal(r.ok, true);
+    assert.equal(r.visual.kind, 'none');
+    assert.equal(r.category, undefined);
+    assert.equal(r.rows.some((x) => /fitness.age/i.test(x.label)), false);
+    assert.doesNotMatch(JSON.stringify(r), /Below average|Superior|Excellent|years younger|years older/);
+    assert.match(r.note, /does not produce a fitness age/);
+  }
+  assert.doesNotMatch(block, /fitnessAge|0\.5 \* vals\.age \+ 50/);
+});
+
+test('very low waking pulse gets emergency-first warning', () => {
   const r = run(30,30);
   assert.equal(r.primaryValue,'96.9 ml/kg/min');
-  assert.equal(r.category.label,'Not graded (unusual resting pulse)');
   assert.equal(r.callout.tone,'danger');
   assert.match(r.callout.text,/call emergency services immediately/i);
   assert.match(r.callout.text,/under 40 bpm/i);
-  assert.match(r.rows[0].value,/Not interpreted/i);
-  assert.equal(r.visual.value,96.9);
-  assert.equal(r.visual.max,100);
-  assert.equal(r.visual.segments.at(-1).upTo,100);
 });
 
-test('high waking pulse gets clinical caution, neutral score and no fake biological age', () => {
+test('high waking pulse gets clinical caution', () => {
   const r = run(30,120);
   assert.equal(r.ok,true);
   assert.equal(r.primaryValue,'24.2 ml/kg/min');
-  assert.equal(r.category.label,'Not graded (unusual resting pulse)');
   assert.equal(r.callout.tone,'warn');
   assert.match(r.callout.text,/over 100 bpm/i);
-  assert.match(r.rows[0].value,/Not interpreted/);
-  assert.match(r.note,/not a biological age/i);
   assert.equal(run(30,59).callout.tone,'info');
 });
 
@@ -76,19 +85,19 @@ test('a resting pulse equal to the age-predicted max cannot produce a meaningful
   assert.match(r.error,/call emergency services immediately/i);
   assert.match(r.error,/must be below the estimated maximum/i);
   assert.equal(r.primaryLabel,'VO2 max estimate unavailable');
-  const justBelow = run(100,119);
-  assert.equal(justBelow.ok,true);
-  assert.equal(justBelow.visual.min,10);
-  assert.equal(justBelow.category.label,'Not graded (unusual resting pulse)');
+  assert.equal(run(100,119).ok,true);
 });
 
-test('adult input, male-only original population, nonclinical bands and UI warning placement stay truthful', () => {
+test('adult input, male-only original population, ungraded copy and UI warning placement stay truthful', () => {
   assert.match(block,/\.\.\.F\.age\(30\), min: 18/);
   assert.match(block,/hasSex: false/);
-  assert.match(section,/studied in well-trained men aged 21–51/);
-  assert.match(section,/sex- or age-adjusted reference values/);
+  assert.match(section,/46 well-trained men aged 21–51/);
+  assert.match(section,/does not grade the estimate against sex- or age-adjusted reference values/);
+  assert.match(section,/does not label your result as good or poor/);
   assert.match(section,/Call emergency services/);
   assert.match(section,/HR_RATIO_LIMITS/);
+  assert.match(section,/AHA_HRMAX/);
+  assert.doesNotMatch(section,/five colored-band|five labels|fitness-age index/);
   assert.match(ui,/slug === 'vo2-max-calculator' && result.callout/);
   assert.match(ui,/slug !== 'vo2-max-calculator' &&[^\n]*result\.callout/);
   assert.doesNotMatch(section,/higher VO₂ max means your heart|a hallmark of good fitness/i);

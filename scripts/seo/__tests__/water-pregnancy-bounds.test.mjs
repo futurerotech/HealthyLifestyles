@@ -39,7 +39,7 @@ test('water: typical adult result is unchanged (70 kg, moderate → 2.45 L + 0.5
   assert.equal(r.ok, true);
   assert.equal(r.primaryValue, '3 L/day'); // 2.95 → 3.0, trailing zero trimmed
   assert.equal(row(r, 'Baseline (35 ml/kg)'), '2.5 L');
-  assert.equal(row(r, 'Of which from drinks'), '2.4 L · 80 oz');
+  assert.equal(row(r, 'Of which from drinks'), '2.5 L · 83 oz'); // 0.8 × 2.45 L + 0.5 L activity
   assert.equal(r.callout, undefined);
 });
 
@@ -64,7 +64,7 @@ test('water: output still responds to inputs below the limit and to activity', (
 
 test('water: the held value is never presented as a maximum or as the 3.7 L reference', () => {
   const r = water({ vals: { weight: 150 }, selects: { activity: '0' } });
-  assert.match(r.callout.text, /limit of the formula, not a maximum/);
+  assert.match(r.callout.text, /site choice, not a clinically validated threshold, and not a maximum/);
   assert.match(r.callout.text, /may be higher or lower/);
   assert.doesNotMatch(r.callout.text, /3\.7/);
   assert.doesNotMatch(JSON.stringify(r), /capped at 3\.7/);
@@ -90,6 +90,29 @@ const CATS = [
 ];
 const range = (r) => row(r, 'Estimated range by week').split(' ')[0].split('–').map(Number);
 const run = (height, weight, week, gainKg, units) => preg({ vals: { height, weight, week, current: weight + gainKg }, units });
+
+test('water: totals and drinks-only share stay internally consistent for every input', () => {
+  for (const weight of [40, 70, 100, 150]) {
+    for (const activity of ['0', '500', '1000', '1500']) {
+      const r = water({ vals: { weight }, selects: { activity } });
+      const total = litres(r);
+      const base = parseFloat(row(r, 'Baseline'));
+      const drinks = parseFloat(row(r, 'Of which from drinks'));
+      const extra = Number(activity) / 1000;
+      assert.ok(Math.abs(total - (base + extra)) <= 0.1, `total ${weight}/${activity}`);
+      assert.ok(Math.abs(drinks - (0.8 * Math.min(weight, 100) * 0.035 + extra)) <= 0.051, `drinks ${weight}/${activity}`);
+      assert.ok(drinks < total && drinks >= extra);
+    }
+  }
+});
+
+test('water: the 100 kg cut-off is never described as clinically validated', () => {
+  const src = defs.slice(defs.indexOf("  'water-intake-calculator': {"), defs.indexOf('  // ---- Calorie Deficit ----'));
+  assert.match(src, /NOT a clinically validated threshold/);
+  const content = readFileSync(new URL('../../../src/data/nutrition-content.ts', import.meta.url), 'utf8');
+  assert.match(content, /site design choice, not a clinically validated threshold/);
+  assert.doesNotMatch(src + content, /not reliable at higher body weights/);
+});
 
 test('pregnancy: totals are the published IOM values in both unit systems', () => {
   for (const [h, w, loLb, hiLb, loKg, hiKg] of CATS) {

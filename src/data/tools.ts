@@ -314,7 +314,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'sitting-disease-reversal-calculator',
     title: 'Sitting Disease Reversal Calculator',
-    blurb: 'Offset desk time with micro-breaks and extra NEAT steps — get a personalized movement recipe.',
+    blurb: 'Explore optional movement breaks and daily steps; this is not a validated way to reverse health risks from sitting.',
     category: 'fitness',
     icon: 'armchair',
     gradient: 'green',
@@ -478,7 +478,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'metabolic-age-calculator',
     title: 'Metabolic Age Calculator',
-    blurb: 'Estimate your metabolic age from your BMR vs the average for your age (illustrative).',
+    blurb: 'Explore an illustrative BMR-age index, not a measure of metabolic health.',
     category: 'metabolic',
     icon: 'gauge',
     gradient: 'teal',
@@ -661,7 +661,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'waist-health-risk-calculator',
     title: 'Waist-Based Health Risk',
-    blurb: 'Combine your BMI and waist-to-height ratio into a risk-level explainer.',
+    blurb: 'Calculate BMI and waist-to-height ratio separately, with evidence-based measurement guidance.',
     category: 'health-risk',
     icon: 'ruler',
     gradient: 'amber',
@@ -671,7 +671,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'heart-disease-risk-calculator',
     title: 'Heart Disease Risk (Educational)',
-    blurb: 'An educational lifestyle-based heart risk estimate — not a diagnosis.',
+    blurb: 'Review five heart-health factors using illustrative points, not a validated clinical risk estimate.',
     category: 'health-risk',
     icon: 'heart',
     gradient: 'amber',
@@ -681,7 +681,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'diabetes-risk-calculator',
     title: 'Type 2 Diabetes Risk (Educational)',
-    blurb: 'A non-diagnostic diabetes risk band — and why to get screened.',
+    blurb: 'An educational diabetes-factor checklist, not a validated clinical risk category.',
     category: 'health-risk',
     icon: 'droplet',
     gradient: 'amber',

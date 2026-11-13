@@ -6,6 +6,22 @@ const COMPENDIUM: Source = {
     'Ainsworth BE, Haskell WL, Herrmann SD, et al. "2011 Compendium of Physical Activities: a second update of codes and MET values." Med Sci Sports Exerc. 2011;43(8):1575–1581.',
   url: pubmed('2011 Compendium of Physical Activities MET values Ainsworth'),
 };
+const COMPENDIUM_2024: Source = {
+  citation: 'Herrmann SD, Willis EA, Ainsworth BE, et al. "2024 Adult Compendium of Physical Activities: A third update of the energy costs of human activities." J Sport Health Sci. 2024;13(1):6–12.',
+  url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10818145/',
+};
+const WHO_SEDENTARY: Source = {
+  citation: 'World Health Organization. WHO guidelines on physical activity and sedentary behaviour. 2020 — adult sedentary behaviour recommendations.',
+  url: 'https://www.ncbi.nlm.nih.gov/books/NBK566046/',
+};
+const STEPS_2025: Source = {
+  citation: 'Ding D, Nguyen B, Nau T, et al. "Daily steps and health outcomes in adults: a systematic review and dose-response meta-analysis." Lancet Public Health. 2025;10:e668–e681.',
+  url: 'https://pubmed.ncbi.nlm.nih.gov/40713949/',
+};
+const AHA_HRMAX: Source = {
+  citation: 'American Heart Association. Target Heart Rates Chart. Age-predicted heart rate values are population averages, not individual measured maxima.',
+  url: 'https://www.heart.org/en/healthy-living/exercise-and-physical-activity/fitness-basics/target-heart-rates',
+};
 const UTH: Source = {
   citation:
     'Uth N, Sørensen H, Overgaard K, Pedersen PK. "Estimation of VO2max from the ratio between HRmax and HRrest — the Heart Rate Ratio Method." Eur J Appl Physiol. 2004;91(1):111–115.',
@@ -33,78 +49,68 @@ const ONERM_VALIDITY: Source = {
 export const FITNESS_CONTENT: Record<string, ToolContent> = {
   // ============================================================
   'walk-it-off-calculator': {
-    seoTitle: 'Walk It Off Calculator — Gross Exercise Energy Comparison',
+    seoTitle: 'Walk It Off Calculator — Food to Exercise Time',
     metaDescription:
-      'Compare example food calories with illustrative gross-energy walking, running and cycling durations at fixed METs. No meal needs compensating for.',
+      'Explore illustrative walking, running, and cycling time using estimated extra activity energy above rest. Food is not something you must earn or burn off.',
     intro:
-      'Compare an illustrative food serving or custom calorie amount with estimated gross activity-energy time at three fixed intensities. This explains MET arithmetic, not how long you should exercise after eating.',
+      'Explore approximate activity-time equivalents for a food calorie amount, calculated using energy above rest. These estimates are educational comparisons, not prescriptions for how much you need to exercise after eating.',
     sections: [
       {
         h2: 'How it works',
         paragraphs: [
-          'The tool compares an illustrative food example or a 0–3,000 kcal custom input against estimated gross activity-energy time at fixed 3.8 MET walking, 9.8 MET running and 7.5 MET cycling. Gross includes the energy that would also be spent at rest. It is not additional calories above rest, a metabolic measurement or a required exercise duration.',
-          'A meal cannot be precisely canceled by a calculated exercise session. Food is never something you must earn through movement; the example calorie amounts are not exact measures of your food.',
+          'The calculator estimates how long it could take to expend a similar number of calories above resting energy at a selected activity intensity. The formula is minutes = calories ÷ [(MET − 1) × body weight in kilograms] × 60. The resting 1 MET is subtracted so this illustration does not count energy you would have used while resting. The [2024 Adult Compendium of Physical Activities](https://pmc.ncbi.nlm.nih.gov/articles/PMC10818145/) explains the MET framework; the simplified activity values used here are population averages, not measurements of an individual.',
+          'Do not interpret this as an exercise requirement or a promise that movement cancels out eating. Food intake and energy expenditure interact across days, not as a direct one-meal transaction.',
         ],
       },
       {
         h2: 'Walking vs running vs cycling',
         paragraphs: [
-          'With this tool’s fixed MET assumptions, running has the highest modeled energy demand, then cycling, then walking. Actual pace, hills, effort, equipment and individual physiology can change energy use. These times are mathematical comparisons, not recommended workout sessions.',
+          'Running burns the most calories per minute, then cycling, then walking — so the same food takes far longer to walk off than to run off. But the best activity is the one you’ll actually do: a longer walk you enjoy beats a hard run you dread and skip.',
         ],
       },
       {
         h2: 'A healthier way to think about it',
         paragraphs: [
-          'Movement can support well-being independently of eating. Avoid treating exercise as a food debt or punishment, and do not use long calculated durations as exercise prescriptions. What matters most is a sustainable pattern of eating, activity, rest and other health behaviors.',
+          'Exercise has huge benefits beyond burning calories, and food is about more than fuel. Use this as motivation to move, not as punishment for eating. If you’re managing weight, your overall daily calories and activity matter far more than offsetting any single food.',
         ],
       },
     ],
     faq: [
-      { q: 'How long does it take to walk off a slice of pizza?', a: 'At this tool’s fixed assumptions and 70 kg, the 285-kcal food example corresponds to about 64 minutes walking, 25 minutes running, or 33 minutes cycling in gross energy. It is not a required workout, and actual costs vary.' },
-      { q: 'Is it accurate?', a: 'It is a rough standardized MET comparison of gross energy. It is not a measured personal energy expenditure; activity intensity, terrain, efficiency and the resting-energy component matter.' },
-      { q: 'Should I exercise to “burn off” food?', a: 'No. Food does not need to be earned, canceled or compensated for. Exercise can benefit health and enjoyment independently of food; the tool illustrates only a numerical energy comparison.' },
+      { q: 'How long does it take to walk off a slice of pizza?', a: 'For a 70-kg adult, a 285-kcal slice corresponds mathematically to about 87 minutes of walking at 3.8 METs or 28 minutes of running at 9.8 METs above rest. These are illustrative estimates, not instructions to exercise after eating.' },
+      { q: 'Is it accurate?', a: 'It is a rough activity-time comparison based on standard MET values and body weight, not a personalized measurement. Resting metabolism, movement efficiency, intensity, terrain and many other factors vary.' },
+      { q: 'Should I exercise to “burn off” food?', a: 'No. Eating never creates an obligation to exercise, and activity should not be used as punishment or as a promised way to cancel out a meal. Movement has benefits unrelated to calorie balance.' },
     ],
-    sources: [
-      COMPENDIUM,
-      {
-        citation: 'Herrmann SD, Willis EA, Ainsworth BE, et al. The 2024 Adult Compendium of Physical Activities: A third update of the energy costs of human activities. J Sport Health Sci. 2024.',
-        url: 'https://pubmed.ncbi.nlm.nih.gov/38242596/',
-      },
-      {
-        citation: 'CDC. How to Measure Physical Activity Intensity. Updated December 4, 2025.',
-        url: 'https://www.cdc.gov/physical-activity-basics/measuring/',
-      },
-    ],
+    sources: [COMPENDIUM, COMPENDIUM_2024],
   },
   // ============================================================
   'sitting-disease-reversal-calculator': {
-    seoTitle: 'Sitting Disease Calculator – Offset Sitting (NEAT)',
+    seoTitle: 'Sitting & Movement Break Planner — Optional Steps and NEAT',
     metaDescription:
-      'Sitting too much? Get a personalized movement recipe — micro-breaks and extra daily steps (NEAT) to offset desk time, plus calories reclaimed. Free.',
+      'Explore optional breaks and step ideas for a sitting day. No step count can guarantee reversal of sitting-related health effects; calorie numbers are approximate.',
     intro:
-      'Long days at a desk add up. Enter your sitting hours, weight, and step count to get a personalized "movement recipe" — how often to break, how many extra steps to add, and the calories you’d reclaim.',
+      'Enter your sitting hours, weight, and usual steps to explore optional movement ideas. The step increments and break cadence are illustrative heuristics, not evidence-based prescriptions, clinical categories, or a way to undo sedentary-health risk.',
     notice:
-      'General wellness education, not medical advice. Calorie figures are rough estimates that assume an average walking pace. If you have a health condition, check with a professional before changing your activity.',
+      'Educational planning only, not a validated health-risk score. Displayed calories use gross MET approximations (including rest) and can overlap when walking occurs during breaks. They are not additional calories to eat or proof of reduced disease risk.',
     sections: [
       {
         h2: 'What is “sitting disease”?',
         paragraphs: [
           '"Sitting disease" is a popular term for the health risks tied to too much sedentary time. Research links long uninterrupted sitting with higher cardiometabolic risk — and, importantly, some of that risk is independent of whether you exercise. You can be an "active couch potato": a daily workout is great, but it doesn’t fully cancel out 9+ hours of sitting the rest of the day.',
-          'The encouraging part is that how you sit matters as much as how long. Breaking sitting into shorter chunks, and adding everyday movement, meaningfully changes the picture.',
+          'Moving more and sitting less can benefit health. The [WHO sedentary behaviour guidance](https://www.ncbi.nlm.nih.gov/books/NBK566046/) does not set an exact safe sitting-hour threshold or prescribe a specific break duration; make movement choices that fit your abilities and circumstances.',
         ],
       },
       {
         h2: 'How micro-breaks help',
         paragraphs: [
           'Studies that interrupt prolonged sitting every 30–60 minutes with just 2–5 minutes of light movement show improvements in things like post-meal blood sugar and blood pressure compared with sitting straight through. The muscle contractions from simply standing and walking switch on processes that idle when you’re seated.',
-          'This calculator turns that into a simple cadence: a target number of short breaks across your sitting hours, and how many minutes that puts you on your feet each day.',
+          'This tool illustrates one optional break cadence. It is not a validated schedule or a guarantee of improved blood sugar, blood pressure, or long-term outcomes.',
         ],
       },
       {
         h2: 'NEAT: how steps offset sitting',
         paragraphs: [
           'NEAT — non-exercise activity thermogenesis — is all the energy you burn from everyday movement that isn’t formal exercise: walking, fidgeting, taking the stairs, chores. It can vary by hundreds of calories a day between people, and it’s the easiest lever for desk workers to pull.',
-          'A practical way to offset a sedentary day is to add roughly 3,000–4,000 steps beyond your current count, outside of any structured workout. The tool scales that to your sitting hours and estimates the calories those added steps and breaks reclaim — modest day to day, but it compounds over a week and a year.',
+          'The tool suggests roughly 3,000–4,500 steps for positive sitting-hour inputs as a planning example, not an official step target. The exact number of steps needed to reduce health risk cannot be calculated from sitting hours alone. Its calorie estimates are gross energy and may double-count walking done during movement breaks.',
         ],
       },
       {
@@ -121,10 +127,10 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       },
     ],
     faq: [
-      { q: 'How many steps offset a day of sitting?', a: 'A common target is an extra 3,000–4,000 steps beyond your current daily count, taken as everyday movement outside structured exercise. The more you sit, the more it helps — this tool scales it to your hours.' },
-      { q: 'How often should I take a break from sitting?', a: 'Aim to stand and move for about 2–5 minutes roughly every 30–60 minutes of sitting. Frequent short breaks appear to matter more than one long one.' },
-      { q: 'What is NEAT?', a: 'NEAT is non-exercise activity thermogenesis — the calories you burn through everyday movement like walking, fidgeting, and chores. Increasing it is one of the most practical ways to offset a desk job.' },
-      { q: 'Can extra steps undo the harm of too much sitting?', a: 'Movement clearly lowers the risks linked to sedentary time, but it’s best to both add activity and reduce total sitting where you can. Think "move more and sit less," not one or the other.' },
+      { q: 'How many steps offset a day of sitting?', a: 'There is no validated number of steps that cancels out a day of sitting. WHO does not specify a universal sedentary-time cutoff or precise break cadence. This calculator offers optional planning ideas, not a formula for reversing health risk.' },
+      { q: 'How often should I take a break from sitting?', a: 'Short, comfortable movement breaks may be useful. This tool illustrates 3 minutes about every 45 minutes, but WHO has not established an exact medically required interval or duration; adapt your routine to your abilities and needs.' },
+      { q: 'What is NEAT?', a: 'NEAT means non-exercise activity thermogenesis: energy used in everyday movement such as walking and chores. It is not a measure of how much disease risk is reversed by activity.' },
+      { q: 'Can extra steps undo the harm of too much sitting?', a: 'No number of steps guarantees that sitting-related health effects are reversed. Activity is beneficial, and reducing sedentary time where possible can help; think "move more and sit less," not "erase" a measured number of sitting hours.' },
       { q: 'Is a standing desk enough?', a: 'Standing is better than sitting still, but the bigger wins come from actually moving — breaks, steps, and light activity. Use a standing desk as a prompt to move, not a substitute for it.' },
     ],
     sources: [
@@ -132,6 +138,7 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       { citation: 'Diaz KM, et al. "Patterns of sedentary behavior and mortality in US adults." Ann Intern Med. 2017.', url: pubmed('Patterns of sedentary behavior and mortality US adults Diaz') },
       { citation: 'Levine JA. "Non-exercise activity thermogenesis (NEAT)." Best Pract Res Clin Endocrinol Metab. 2002.', url: pubmed('Non-exercise activity thermogenesis NEAT Levine') },
       { citation: 'Ekelund U, et al. "Does physical activity attenuate the association between sitting time and mortality? A harmonised meta-analysis." Lancet. 2016.', url: pubmed('physical activity attenuate sitting time mortality harmonised meta-analysis Ekelund') },
+      WHO_SEDENTARY,
     ],
   },
   // ============================================================
@@ -760,23 +767,23 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
   'vo2-max-calculator': {
     seoTitle: 'VO₂ Max Calculator (Heart Rate Method)',
     metaDescription:
-      'Estimate your VO₂ max from your resting and maximum heart rate using the Uth–Sørensen method. Free cardio fitness calculator, no test required.',
+      'Get a rough VO₂ max estimate from your age and resting heart rate using the Uth–Sørensen heart-rate ratio. An illustration, not a lab test or fitness grade.',
     intro:
-      'VO₂ max is a measure of maximal oxygen uptake. This calculator estimates it indirectly from age and resting pulse, not from a laboratory test; its fitness bands and fitness-age index are illustrative, not clinical assessments.',
+      'VO₂ max is a measure of maximal oxygen uptake. This calculator estimates it indirectly from age and resting pulse, not from a laboratory test; the result is a number with its inputs shown, not a fitness grade, fitness age or clinical assessment.',
     notice:
       'For adults 18+. The underlying HR-ratio estimate was studied in well-trained men aged 21–51 and is not equally validated for other ages, sexes or conditions. A very low or high resting pulse, medications or an irregular rhythm can distort the estimate. Call emergency services for chest pain, severe breathlessness, fainting or other serious new symptoms.',
     sections: [
       {
         h2: 'How this estimate works',
         paragraphs: [
-          'This tool uses the Uth–Sørensen heart-rate ratio: VO₂ max ≈ 15.3 × (estimated maximum heart rate ÷ resting heart rate), with maximum heart rate approximated as 220 − age. This study examined well-trained men aged 21–51, so accuracy for other ages, sexes, fitness levels and medication use is uncertain. A lower resting pulse may reflect training, medicines or a medical condition; it does not automatically prove better fitness.',
+          'This tool uses the Uth–Sørensen heart-rate ratio: VO₂ max ≈ 15.3 × (estimated maximum heart rate ÷ resting heart rate), with maximum heart rate approximated as 220 − age. The original study examined 46 well-trained men aged 21–51, so accuracy for other ages, sexes, fitness levels and medication use is uncertain. A lower resting pulse may reflect training, medicines or a medical condition; it does not automatically prove better fitness.',
           'The result is expressed in milliliters of oxygen per kilogram per minute (mL/kg/min). It is a rough numerical estimate rather than a direct metabolic measurement. Resting pulse near or above age-predicted maximum cannot support a meaningful ratio, so that input combination is not graded.',
         ],
       },
       {
         h2: 'What your number means',
         paragraphs: [
-          'Laboratory-measured VO₂ max describes aerobic oxygen uptake. This page’s five colored-band labels are historical, broad illustrations, not sex- or age-adjusted reference values and not diagnoses. A predicted VO₂ max must not be treated as a validated norm for an individual; it can change simply because resting pulse changes.',
+          'Laboratory-measured VO₂ max describes aerobic oxygen uptake. This calculator does not grade the estimate against sex- or age-adjusted reference values, and it does not compute a fitness age. A predicted VO₂ max must not be treated as a validated norm for an individual; it can change simply because resting pulse changes.',
           'Measured cardiorespiratory fitness has been associated with long-term outcomes in research, but this two-input estimate does not independently predict an individual person’s lifespan, disease status or biological age.',
         ],
       },
@@ -791,7 +798,7 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
     faq: [
       {
         q: 'What is a good VO₂ max?',
-        a: 'Reference values for measured VO₂ max vary with age, sex and testing methods. This two-input calculator does not apply validated age- and sex-specific norms; its five labels are illustrative only.',
+        a: 'Reference values for measured VO₂ max vary with age, sex and testing methods. This two-input calculator does not apply validated age- and sex-specific norms, so it does not label your result as good or poor.',
       },
       {
         q: 'How accurate is the heart-rate VO₂ max estimate?',
@@ -802,6 +809,6 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
         a: 'Regular appropriately paced aerobic activity can help improve capacity; build progressively. High-intensity intervals are not necessary for everyone, and exertional symptoms or heart conditions require individualized advice.',
       },
     ],
-    sources: [UTH, HR_RATIO_LIMITS, AHA_PULSE_VO2],
+    sources: [UTH, HR_RATIO_LIMITS, AHA_HRMAX, AHA_PULSE_VO2],
   },
 };

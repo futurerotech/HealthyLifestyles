@@ -417,7 +417,7 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
         h2: 'How your water target is calculated',
         paragraphs: [
           'This tool uses a widely used clinical guide of about 35 ml of fluid per kilogram of body weight as a baseline, then adds an allowance for activity — exercise increases losses through sweat and breathing, so more active people need more.',
-          'For example, a 70 kg person has a baseline of roughly 2.45 litres, rising with training. The per-kilogram rule was built around typical adult body sizes and is not reliable at higher body weights, so the calculator stops scaling it above 100 kg (220 lb); that is a limit of the formula, not a maximum intake. The result is shown in litres and fluid ounces so it works wherever you live. Remember this is total fluid: drinks of all kinds count, and food (especially fruit and vegetables) provides around 20% of it.',
+          'For example, a 70 kg person has a baseline of roughly 2.45 litres, rising with training. The per-kilogram rule is a rough guide that has not been established for higher body weights, so the calculator stops scaling it above 100 kg (220 lb). That cut-off is a site design choice, not a clinically validated threshold or a maximum intake. The result is shown in litres and fluid ounces so it works wherever you live. Remember this is total fluid: drinks of all kinds count, and food (especially fruit and vegetables) typically supplies around 20% of everyday fluid. Extra fluid for activity replaces sweat, so the calculator counts that part as drinks.',
         ],
       },
       {
