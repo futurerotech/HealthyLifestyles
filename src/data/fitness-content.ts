@@ -246,12 +246,12 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
     metaDescription:
       'Estimate calories burned for running, cycling, swimming, HIIT and more using MET values and your body weight. Free, metric or imperial.',
     intro:
-      'See how many calories an activity burns for your body weight. Pick what you did and how long for, and the calculator uses scientific MET values to estimate your energy use.',
+      'Estimate total calories used during an activity, including resting energy, plus the additional calories above rest. Choose an activity and duration; these MET-based numbers are approximations, not measured personal energy use.',
     sections: [
       {
         h2: 'How calories burned are calculated',
         paragraphs: [
-          'The calculation uses MET (Metabolic Equivalent of Task) values: calories burned = METs × weight in kilograms × time in hours. One MET is roughly the energy you use sitting quietly, so an activity rated at 8 METs burns about eight times that.',
+          'The headline calculation estimates total (gross) energy use: MET × body weight in kilograms × time in hours. This INCLUDES resting energy that your body would have used anyway. The additional above-rest estimate instead uses (MET − 1) × weight × hours. One MET approximates resting energy expenditure; neither number is a precise measurement.',
           'MET values come from the Compendium of Physical Activities, a research database used by exercise scientists worldwide. Because heavier bodies use more energy to move, your weight is a key part of the equation.',
         ],
       },
@@ -272,7 +272,7 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
         h2: 'Why it’s an estimate',
         paragraphs: [
           'MET values are population averages measured in labs, so your real burn depends on intensity, fitness, age, body composition, and even the weather. Two people doing "moderate cycling" can burn quite different amounts.',
-          'Use the result to compare activities and plan rather than to count calories to the last unit. If you’re tracking energy for weight management, pair this with your daily calorie needs and adjust based on real-world results over a few weeks.',
+          'Use these approximations for context, not to count calories to the last unit. A daily energy target may already include activity; adding the total (gross) session calories again can double-count resting energy. The above-rest value is also only an estimate, not a guaranteed extra calorie allowance.',
         ],
       },
     ],
@@ -284,6 +284,10 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       {
         q: 'Does body weight affect calories burned?',
         a: 'Yes. Heavier bodies use more energy to perform the same activity, which is why the formula multiplies the MET value by your weight in kilograms.',
+      },
+      {
+        q: 'What is the difference between total and additional calories?',
+        a: 'Total (gross) calories include the energy spent at rest during the activity. Additional above-rest calories subtract that approximate resting component using MET minus one. Neither number is an exact measure of your personal calorie expenditure, and the total should not be added to a daily calorie target that already accounts for activity.',
       },
       {
         q: 'How accurate is the calorie estimate?',
