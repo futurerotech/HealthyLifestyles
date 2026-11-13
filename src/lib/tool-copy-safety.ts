@@ -23,6 +23,7 @@ export const EDUCATIONAL_ACTIVITY_SLUGS = new Set([
   'vo2-max-calculator',
   'one-rep-max-calculator',
   'ffmi-calculator',
+  'recovery-time-calculator',
 ]);
 
 export function resolveToolPagePresentation(

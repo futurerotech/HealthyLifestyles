@@ -1290,8 +1290,8 @@ export const DEFS: Record<string, CalcDef> = {
       const rpe = vals.rpe;
       const duration = vals.duration;
 
-      // Base recovery (hours) by workout type — general sports-science guidance:
-      // heavy resistance needs ~48-72h per muscle group; HIIT/endurance less.
+      // UNVALIDATED illustrative base-hour choices. General frequency guidance
+      // does not validate this personalized hour prediction.
       const BASE: Record<string, number> = {
         strength: 48,
         hiit: 36,
@@ -1310,7 +1310,7 @@ export const DEFS: Record<string, CalcDef> = {
       else if (duration <= 90) durMult = 1.15;
       else durMult = 1.3;
 
-      // Training age: beginners need more recovery; advanced recover faster.
+      // Training-age factors are author-defined examples, not validated predictions.
       const AGE_MULT: Record<string, number> = {
         beginner: 1.3,
         intermediate: 1.0,
@@ -1318,7 +1318,7 @@ export const DEFS: Record<string, CalcDef> = {
       };
       const ageMult = AGE_MULT[trainingAge] ?? 1.0;
 
-      // Sleep quality: poor sleep impairs muscle repair and recovery.
+      // Sleep-quality multiplier is heuristic, not measured recovery time.
       const SLEEP_MULT: Record<string, number> = {
         poor: 1.25,
         fair: 1.1,
@@ -1327,7 +1327,7 @@ export const DEFS: Record<string, CalcDef> = {
       };
       const sleepMult = SLEEP_MULT[sleep] ?? 1.0;
 
-      // Soreness (DOMS): more soreness = more recovery needed.
+      // DOMS is not a direct biomarker of structural damage or full readiness.
       const SORENESS_MULT: Record<string, number> = {
         none: 0.9,
         mild: 1.0,
@@ -1346,7 +1346,7 @@ export const DEFS: Record<string, CalcDef> = {
 
       return {
         ok: true,
-        primaryLabel: 'Suggested recovery window',
+        primaryLabel: 'Illustrative rest-planning window (not medical clearance)',
         primaryValue: `${fmtWindow(low)} – ${fmtWindow(high)}`,
         visual: { kind: 'none' },
         rows: [
@@ -1359,13 +1359,13 @@ export const DEFS: Record<string, CalcDef> = {
         ],
         callout: {
           tone: 'info',
-          text: 'Listen to your body. These are general guidance ranges from sports-science principles, not a prescription. If you\'re still sore, fatigued, or your performance is down, rest longer. Sharp or joint pain is never normal — stop and see a qualified professional.',
+          text: 'The hour range comes from unvalidated planning multipliers and does not predict biological recovery or determine when training is safe. Use pain, movement quality, fatigue and your training plan in context. Seek qualified medical advice for sharp, worsening or unusual pain, swelling or other concerning symptoms.',
         },
         cta: {
           label: 'Check your protein target for recovery →',
           href: '/tools/protein-intake-calculator',
         },
-        note: 'Method: a transparent heuristic. We start from a base recovery time for your workout type (e.g. ~48h for heavy resistance training, per the general 48–72h guideline), then adjust it up or down for intensity (RPE), duration, training age, sleep quality, and current soreness. The ±15% window reflects individual variation. This is general fitness guidance, not medical advice.',
+        note: 'This is an unvalidated planning example: author-selected workout base hours and multipliers for effort, duration, training experience, sleep and soreness. The ±15% display band is arbitrary and NOT a calibrated confidence interval or a personalized prediction. Training readiness cannot be established from this number; adjust for symptoms, function and professional guidance when relevant.',
       };
     },
   },
