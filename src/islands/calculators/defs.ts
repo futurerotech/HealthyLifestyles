@@ -858,7 +858,7 @@ export const DEFS: Record<string, CalcDef> = {
     heading: 'Estimate your maximum heart rate',
     hasSex: false,
     fields: [
-      F.age(30),
+      { ...F.age(30), min: 18, help: 'For adults 18+. Age-based equations estimate population averages; they cannot determine a personal safe exercise limit.' },
       {
         key: 'formula', label: 'Formula', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '220',
@@ -874,16 +874,18 @@ export const DEFS: Record<string, CalcDef> = {
       const tanaka = 208 - 0.7 * age;
       const formula = selects.formula || '220';
       const hrMax = formula === 'tanaka' ? tanaka : standard;
+      const safety = 'If you develop chest pain or pressure, severe difficulty breathing, fainting, or other serious new symptoms during exercise, stop and call emergency services immediately. Predicted maximum heart rate is not a personal safe upper limit. Heart conditions, certain medications (including beta-blockers), and individual differences can change your exercise response; ask your clinician for appropriate targets.';
       return {
         ok: true,
         primaryLabel: 'Estimated maximum heart rate',
         primaryValue: `${fmt(hrMax, 0)} bpm`,
         visual: { kind: 'none' },
+        callout: { tone: 'warn', text: safety },
         rows: [
           { label: '220 − age', value: `${fmt(standard, 0)} bpm`, strong: formula !== 'tanaka' },
           { label: 'Tanaka (208 − 0.7 × age)', value: `${fmt(tanaka, 0)} bpm`, strong: formula === 'tanaka' },
         ],
-        note: 'The simple 220 − age formula is widely used but has a wide error margin (±10–12 bpm). The Tanaka equation is often more accurate, especially for older adults.',
+        note: 'These are population-based estimates, not measured maximums or a test of fitness. Individual prediction errors vary and may exceed 10–12 bpm. Tanaka can improve average accuracy in older healthy adults, but neither formula is an exact limit, exercise prescription, or a guarantee of safety.',
       };
     },
   },
