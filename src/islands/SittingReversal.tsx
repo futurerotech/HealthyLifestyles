@@ -1,9 +1,9 @@
 /** @jsxImportSource preact */
 import { useState } from 'preact/hooks';
 import { computeSitting, type JobType, type SittingResult } from '../lib/sitting';
+import { kgToLb, lbToKg, round } from '../lib/units';
 
 type Units = 'kg' | 'lb';
-const LB = 2.20462;
 const num = (v: string, fb: number) => {
   const n = parseFloat(v);
   return Number.isFinite(n) ? n : fb;
@@ -12,18 +12,18 @@ const num = (v: string, fb: number) => {
 export default function SittingReversal() {
   const [units, setUnits] = useState<Units>('kg');
   const [sittingHours, setSittingHours] = useState(8);
-  const [weight, setWeight] = useState(75);
+  // Canonical kg storage: toggling display units never changes the result.
+  const [weightKg, setWeightKg] = useState(75);
   const [steps, setSteps] = useState(5000);
   const [job, setJob] = useState<JobType>('desk');
   const [shareMsg, setShareMsg] = useState('');
 
   const switchUnits = (next: Units) => {
     if (next === units) return;
-    setWeight((w) => Math.round(w * (next === 'lb' ? LB : 1 / LB)));
     setUnits(next);
   };
 
-  const weightKg = units === 'kg' ? weight : weight / LB;
+  const displayedWeight = round(units === 'kg' ? weightKg : kgToLb(weightKg), 2);
   const r = computeSitting({ sittingHours, weightKg, currentSteps: steps, job });
 
   // ---- Shareable card ----
@@ -118,7 +118,11 @@ export default function SittingReversal() {
           <label class="sr__field">
             <span>Body weight</span>
             <div class="sr__input-unit">
-              <input type="number" min="1" value={weight} onInput={(e) => setWeight(num((e.target as HTMLInputElement).value, 0))} />
+              <input type="number" min={units === 'kg' ? 1 : 2.2} step="any" value={displayedWeight}
+                onInput={(e) => {
+                  const entered = num((e.target as HTMLInputElement).value, 0);
+                  setWeightKg(units === 'kg' ? entered : lbToKg(entered));
+                }} />
               <small>{units}</small>
             </div>
           </label>
