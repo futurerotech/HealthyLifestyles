@@ -377,7 +377,21 @@ export const DEFS: Record<string, CalcDef> = {
       const lbm = sex === 'male'
         ? 0.407 * weight + 0.267 * height - 19.2
         : 0.252 * weight + 0.473 * height - 48.3;
-      const fatMass = Math.max(0, weight - lbm);
+      // The empirical Boer regression can exceed actual body weight for some
+      // combinations within our allowed form bounds. Do not conceal this by
+      // clipping negative estimated fat mass to zero or show >100% lean mass.
+      if (!Number.isFinite(weight) || !Number.isFinite(height) ||
+          weight <= 0 || height <= 0 || !Number.isFinite(lbm) ||
+          lbm <= 0 || lbm >= weight) {
+        return {
+          ok: false,
+          error: 'The Boer formula gives a physically implausible lean-mass estimate for these measurements. Recheck height and weight; the model may not fit this body-size combination. No fat-mass result is shown.',
+          primaryLabel: 'Lean body mass',
+          primaryValue: '—',
+          visual: { kind: 'none' },
+        };
+      }
+      const fatMass = weight - lbm;
       const unit = massUnitLabel(units);
       return {
         ok: true,
@@ -397,7 +411,7 @@ export const DEFS: Record<string, CalcDef> = {
           { label: 'Estimated fat mass', value: fmtMass(fatMass, units, 1) },
           { label: 'Lean mass as % of weight', value: `${fmt((lbm / weight) * 100, 1)}%`, strong: true },
         ],
-        note: 'Lean body mass is everything that is not fat — muscle, bone, organs and water. Estimated with the Boer formula.',
+        note: 'Boer (1984) predicts fat-free mass from total weight, height and sex; it does not measure muscle or diagnose health. Predictions outside physical mass bounds are withheld instead of clipped. Even a plausible output may have substantial individual error.',
       };
     },
   },

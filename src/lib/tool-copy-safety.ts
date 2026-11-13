@@ -24,6 +24,8 @@ export const EDUCATIONAL_ACTIVITY_SLUGS = new Set([
   'one-rep-max-calculator',
   'ffmi-calculator',
   'recovery-time-calculator',
+  // Safety-reviewed body-composition formula; keep its corrected content visible.
+  'lean-body-mass-calculator',
 ]);
 
 export function resolveToolPagePresentation(
