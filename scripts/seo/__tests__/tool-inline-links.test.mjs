@@ -46,7 +46,7 @@ test('custom risk and metabolic index tools cannot claim external validation', (
   assert.match(layout, /medicalSafetyOverrideSlugs\.has\(tool\.slug\)/);
 });
 
-test('four safety-reviewed tools use corrected source SEO while other tools keep CMS precedence', () => {
+test('only verified educational-risk tools use source SEO while other tools retain CMS precedence', () => {
   const layout = source('src/components/ToolPageLayout.astro');
   assert.match(layout, /const medicalSafetyOverrideSlugs = new Set\(\[/);
   assert.match(layout, /seoTitle: medicalSafetyOverrideSlugs\.has\(tool\.slug\)/);
@@ -59,4 +59,22 @@ test('the clinical disclaimer and SEO override use one identical audited slug se
   const layout = source('src/components/ToolPageLayout.astro');
   assert.match(layout, /const resultAuthority = medicalSafetyOverrideSlugs\.has\(tool\.slug\)/);
   assert.equal((layout.match(/medicalSafetyOverrideSlugs = new Set/g) ?? []).length, 1);
+});
+
+
+test('Healthspan source SEO overrides the older CMS metadata without changing other tool precedence', () => {
+  const layout = source('src/components/ToolPageLayout.astro');
+  const set = layout.match(/const medicalSafetyOverrideSlugs = new Set\\(\\[([\\s\\S]*?)\\]\\);/);
+  assert.ok(set, 'single scoped SEO override list must exist');
+  const slugs = [...set[1].matchAll(/'([^']+)'/g)].map(m => m[1]);
+  assert.equal(slugs.length, 5);
+  assert.equal(new Set(slugs).size, 5);
+  assert.ok(slugs.includes('healthspan-score'));
+  const content = source('src/data/risk-content.ts');
+  const start = content.indexOf("'healthspan-score': {");
+  const end = content.indexOf("'lifestyle-age-test': {", start);
+  const healthspan = content.slice(start, end);
+  assert.match(healthspan, /not a prediction of your lifespan/i);
+  assert.match(healthspan, /not official Dietary Guidelines limits/i);
+  assert.match(healthspan, /not directly comparable/i);
 });
