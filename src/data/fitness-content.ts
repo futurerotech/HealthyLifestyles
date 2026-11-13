@@ -514,7 +514,7 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
         url: pubmed('Sleep muscle recovery endocrinological behavioral basis Dattilo'),
       },
       {
-        citation: 'Grgic J, et al. Effects of Variations in Resistance Training Frequency on Strength Development in Well-Trained Populations. Systematic review. 2021.',
+        citation: 'Cuthbert M, Haff GG, Arent SM, et al. Effects of Variations in Resistance Training Frequency on Strength Development in Well-Trained Populations and Implications for In-Season Athlete Training. Sports Med. 2021;51:1967–1982.',
         url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC8363540/',
       },
       {
