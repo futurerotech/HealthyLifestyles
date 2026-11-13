@@ -653,35 +653,39 @@ export const DEFS: Record<string, CalcDef> = {
       },
     ],
     compute: ({ vals, selects }) => {
-      // 35 ml/kg is a guide for typical adult body sizes. Applied linearly to very
-      // high body weights it produced targets of 6–12 L/day, far above population
-      // reference intakes, so the weight-based baseline is capped at the National
-      // Academies adequate intake for total water in adult men (3.7 L/day).
-      const BASELINE_CAP_ML = 3700;
-      const rawBaselineMl = 35 * vals.weight;
-      const capped = rawBaselineMl > BASELINE_CAP_ML;
-      const baselineMl = Math.min(rawBaselineMl, BASELINE_CAP_ML);
+      // 35 ml/kg is a rule of thumb built around typical adult body sizes. It is
+      // not validated at high body weights (clinical practice switches to an
+      // adjusted weight there), and scaling it linearly produced 6–12 L/day
+      // "recommendations". We therefore stop scaling above a reference weight.
+      // This is a limit of the formula, NOT a maximum safe or needed intake:
+      // the National Academies set no upper limit for water.
+      const SCALING_LIMIT_KG = 100;
+      const held = vals.weight > SCALING_LIMIT_KG;
+      const baselineMl = 35 * Math.min(vals.weight, SCALING_LIMIT_KG);
       const extraMl = parseFloat(selects.activity) || 0;
       const totalMl = baselineMl + extraMl;
       const liters = totalMl / 1000;
       const oz = totalMl / 29.5735;
+      const drinksMl = totalMl * 0.8;
       return {
         ok: true,
-        primaryLabel: 'Estimated daily fluid target',
+        primaryLabel: 'Estimated total daily fluid (drinks + food)',
         primaryValue: `${fmt(liters, 1)} L/day`,
         visual: { kind: 'none' },
-        callout: capped
+        callout: held
           ? {
               tone: 'info',
-              text: 'Fluid needs do not keep rising in step with body weight, so the weight-based part of this estimate is capped at 3.7 L/day — the U.S. National Academies reference intake for total water in adult men. Ask your doctor if you think you need more.',
+              text: 'The 35 ml/kg rule of thumb is not reliable at higher body weights, so this estimate stops scaling above 100 kg (220 lb). That is a limit of the formula, not a maximum — your needs may be higher or lower. Thirst, urine colour and your doctor’s advice are better guides.',
             }
           : undefined,
         rows: [
           { label: 'In fluid ounces', value: `${fmt(oz, 0)} oz`, strong: true },
           { label: 'Roughly in cups (8 oz)', value: `${fmt(oz / 8, 0)} cups` },
-          { label: capped ? 'Baseline (35 ml/kg, capped)' : 'Baseline (35 ml/kg)', value: `${fmt(baselineMl / 1000, 1)} L` },
+          { label: 'Of which from drinks (about 80%)', value: `${fmt(drinksMl / 1000, 1)} L · ${fmt(drinksMl / 29.5735, 0)} oz` },
+          { label: held ? 'Baseline (35 ml/kg, held at 100 kg)' : 'Baseline (35 ml/kg)', value: `${fmt(baselineMl / 1000, 1)} L` },
+          { label: 'U.S. reference intake, total water', value: '3.7 L men · 2.7 L women' },
         ],
-        note: 'A general estimate of total fluid (all drinks, plus roughly 20% from food) based on ~35 ml per kg of body weight plus an activity adjustment. You may need more in heat, illness, pregnancy or breastfeeding. If you have a heart, kidney or liver condition or have been told to limit fluids, follow your doctor’s advice instead. Spread fluids through the day — drinking very large amounts quickly can be dangerous.',
+        note: 'A rule-of-thumb estimate of total fluid — all drinks plus the roughly 20% that comes from food — not a prescription or a limit. The U.S. reference figures are adequate intakes for healthy adults in temperate climates, also counted from drinks and food together; they are not maximums, and people who are very active or in hot weather can need considerably more. If you have a heart, kidney or liver condition or have been told to limit fluids, follow your doctor’s advice instead. Spread fluids through the day — drinking very large amounts quickly can be dangerous.',
       };
     },
   },
@@ -1076,31 +1080,39 @@ export const DEFS: Record<string, CalcDef> = {
     compute: ({ vals, units }) => {
       const m = vals.height / 100;
       const bmi = vals.weight / (m * m);
-      let cat: string; let loLb: number; let hiLb: number; let rLo: number; let rHi: number; let color: string;
-      if (bmi < 18.5) { cat = 'Underweight'; loLb = 28; hiLb = 40; rLo = 1.0; rHi = 1.3; color = '#3b82f6'; }
-      else if (bmi < 25) { cat = 'Normal weight'; loLb = 25; hiLb = 35; rLo = 0.8; rHi = 1.0; color = '#16a34a'; }
-      else if (bmi < 30) { cat = 'Overweight'; loLb = 15; hiLb = 25; rLo = 0.5; rHi = 0.7; color = '#f59e0b'; }
-      else { cat = 'Obese'; loLb = 11; hiLb = 20; rLo = 0.4; rHi = 0.6; color = '#ef4444'; }
+      // IOM (2009) Table S-1, singleton pregnancy. Both unit columns are the
+      // published values — the kg figures are not conversions of the lb ones.
+      // [total low, total high, weekly rate low, weekly rate high] for trimesters 2–3.
+      const IOM = {
+        under: { cat: 'Underweight', color: '#3b82f6', lb: [28, 40, 1.0, 1.3], kg: [12.5, 18, 0.44, 0.58] },
+        normal: { cat: 'Normal weight', color: '#16a34a', lb: [25, 35, 0.8, 1.0], kg: [11.5, 16, 0.35, 0.5] },
+        over: { cat: 'Overweight', color: '#f59e0b', lb: [15, 25, 0.5, 0.7], kg: [7, 11.5, 0.23, 0.33] },
+        obesity: { cat: 'Obesity', color: '#ef4444', lb: [11, 20, 0.4, 0.6], kg: [5, 9, 0.17, 0.27] },
+      } as const;
+      const row = bmi < 18.5 ? IOM.under : bmi < 25 ? IOM.normal : bmi < 30 ? IOM.over : IOM.obesity;
+      const metric = units === 'metric';
+      const [totalLo, totalHi, rLo, rHi] = metric ? row.kg : row.lb;
+      // First-trimester gain assumed by the IOM: 0.5–2 kg (1.1–4.4 lb).
+      const firstLo = metric ? 0.5 : 1.1;
+      const firstHi = metric ? 2 : 4.4;
+      const cat = row.cat; const color = row.color;
       const w = Math.max(1, Math.min(42, vals.week));
-      const firstLo = 1.1; const firstHi = 4.4;
-      // Never let the by-week target exceed the IOM total-gain range for the category
-      // (the weekly-rate extrapolation overshot it late in pregnancy for some BMI groups).
-      const byLoLb = Math.min(loLb, w <= 13 ? firstLo * (w / 13) : firstLo + rLo * (w - 13));
-      const byHiLb = Math.min(hiLb, w <= 13 ? firstHi * (w / 13) : firstHi + rHi * (w - 13));
-      const toDisp = (lb: number) => (units === 'metric' ? lb * 0.45359237 : lb);
+      // By-week range: our interpolation (linear across the first trimester, then
+      // the IOM weekly rate), never allowed to exceed the IOM total range.
+      const byLo = Math.min(totalLo, w <= 13 ? firstLo * (w / 13) : firstLo + rLo * (w - 13));
+      const byHi = Math.min(totalHi, w <= 13 ? firstHi * (w / 13) : firstHi + rHi * (w - 13));
       const gainKg = vals.current - vals.weight;
-      const gainDisp = units === 'metric' ? gainKg : kgToLb(gainKg);
+      const gainDisp = metric ? gainKg : kgToLb(gainKg);
       const unit = massUnitLabel(units);
-      const totalLo = toDisp(loLb); const totalHi = toDisp(hiLb);
-      const byLo = toDisp(byLoLb); const byHi = toDisp(byHiLb);
       const maxScale = totalHi * 1.3;
       let callout: CalcResult['callout'];
-      if (gainDisp < byLo * 0.9) callout = { tone: 'info', text: `You're tracking below the recommended gain for week ${Math.round(w)}. Week-to-week gain varies — your OB-GYN can confirm whether you're on track.` };
-      else if (gainDisp > byHi * 1.1) callout = { tone: 'warn', text: `You're tracking above the recommended gain for week ${Math.round(w)}. It's worth discussing your weight gain with your OB-GYN.` };
+      if (gainDisp < 0) callout = { tone: 'warn', text: 'Your current weight is below your pre-pregnancy weight. A small loss can happen early on with nausea, but tell your OB-GYN or midwife — especially after the first trimester or if you are struggling to eat or drink.' };
+      else if (gainDisp < byLo * 0.9) callout = { tone: 'info', text: `You're tracking below the estimated range for week ${Math.round(w)}. Week-to-week gain varies — your OB-GYN can confirm whether you're on track.` };
+      else if (gainDisp > byHi * 1.1) callout = { tone: 'warn', text: `You're tracking above the estimated range for week ${Math.round(w)}. It's worth discussing your weight gain with your OB-GYN.` };
       return {
         ok: true,
         primaryLabel: 'Recommended total gain',
-        primaryValue: `${fmt(totalLo, 0)}–${fmt(totalHi, 0)} ${unit}`,
+        primaryValue: `${fmt(totalLo, 1)}–${fmt(totalHi, 1)} ${unit}`,
         category: { label: cat, color },
         visual: {
           kind: 'gauge',
@@ -1116,10 +1128,10 @@ export const DEFS: Record<string, CalcDef> = {
         callout,
         rows: [
           { label: 'Pre-pregnancy BMI', value: `${fmt(bmi, 1)} (${cat})` },
-          { label: `Recommended by week ${Math.round(w)}`, value: `${fmt(byLo, 1)}–${fmt(byHi, 1)} ${unit}`, strong: true },
+          { label: `Estimated range by week ${Math.round(w)}`, value: `${fmt(byLo, 1)}–${fmt(byHi, 1)} ${unit}`, strong: true },
           { label: "You've gained so far", value: `${fmt(gainDisp, 1)} ${unit}` },
         ],
-        note: 'Ranges follow Institute of Medicine (IOM) guidance for single pregnancies and depend on your starting BMI. Always confirm your targets with your OB-GYN.',
+        note: 'Total ranges are the 2009 Institute of Medicine (IOM) recommendations for a single baby, by pre-pregnancy BMI. The by-week range is our estimate from the IOM’s assumed first-trimester gain and weekly rates — it is a guide, not a target for any one week. These ranges do not apply to twins or other multiples, which have different guidance. Always confirm your targets with your OB-GYN.',
       };
     },
   },
