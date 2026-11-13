@@ -1,5 +1,6 @@
 /** @jsxImportSource preact */
 import { useState } from 'preact/hooks';
+import { fromKilometers, toKilometers, fromSecondsPerKm, toSecondsPerKm } from '../lib/pace-units';
 
 type Unit = 'km' | 'mi';
 type Mode = 'time' | 'pace' | 'distance';
@@ -38,16 +39,29 @@ export default function PaceCalculator(_: { slug: string }) {
   const [unit, setUnit] = useState<Unit>('km');
   const [mode, setMode] = useState<Mode>('time');
   const [distance, setDistance] = useState('10');
+  const [distanceKm, setDistanceKm] = useState(10);
   const [tH, setTH] = useState('0');
   const [tM, setTM] = useState('50');
   const [tS, setTS] = useState('0');
   const [pM, setPM] = useState('5');
   const [pS, setPS] = useState('0');
+  const [paceSecondsPerKm, setPaceSecondsPerKm] = useState(300);
 
   const id = (k: string) => `pace-${k}`;
-  const dist = n(distance);
+  // Keep canonical metric values. Toggling unit only changes visible input text,
+  // never the physical scenario or the calculated finish time.
+  const dist = fromKilometers(distanceKm, unit);
   const timeSec = n(tH) * 3600 + n(tM) * 60 + n(tS);
-  const paceSecIn = n(pM) * 60 + n(pS);
+  const paceSecIn = fromSecondsPerKm(paceSecondsPerKm, unit);
+  const setDisplayUnit = (next: Unit) => {
+    if (next === unit) return;
+    const displayedDistance = Math.round(fromKilometers(distanceKm, next) * 1000) / 1000;
+    const displayedPace = Math.round(fromSecondsPerKm(paceSecondsPerKm, next));
+    setDistance(String(displayedDistance));
+    setPM(String(Math.floor(displayedPace / 60)));
+    setPS(String(displayedPace % 60));
+    setUnit(next);
+  };
 
   // Resolve all three values from the two inputs that apply to the chosen mode.
   let outDist = dist;
@@ -65,7 +79,8 @@ export default function PaceCalculator(_: { slug: string }) {
   if (valid && outPace > 0 && outDist > 0) {
     const whole = Math.min(60, Math.floor(outDist));
     for (let k = 1; k <= whole; k++) splits.push({ mark: k, label: `${k} ${unit}`, time: outPace * k });
-    if (outDist - whole > 0.01 && whole < 60) splits.push({ mark: outDist, label: `${outDist.toFixed(2)} ${unit} (finish)`, time: outPace * outDist });
+    // Always show the actual finish, even beyond the first 60 unit splits.
+    if (outDist - whole > 0.01) splits.push({ mark: outDist, label: `${outDist.toFixed(2)} ${unit} (finish)`, time: outPace * outDist });
   }
 
   const distLabel = `Distance`;
@@ -73,7 +88,11 @@ export default function PaceCalculator(_: { slug: string }) {
     <div class="calc__field">
       <label class="calc__label" for={id('dist')}>{distLabel}</label>
       <div class="calc__input">
-        <input type="number" inputMode="decimal" min="0" step="0.1" id={id('dist')} value={distance} onInput={(e) => setDistance((e.target as HTMLInputElement).value)} />
+        <input type="number" inputMode="decimal" min="0" step="0.1" id={id('dist')} value={distance} onInput={(e) => {
+          const raw = (e.target as HTMLInputElement).value;
+          setDistance(raw);
+          setDistanceKm(toKilometers(n(raw), unit));
+        }} />
         <span class="calc__suffix">{unit}</span>
       </div>
     </div>
@@ -92,8 +111,16 @@ export default function PaceCalculator(_: { slug: string }) {
     <div class="calc__field">
       <span class="calc__label" id={id('pace-grp')}>Pace (per {unit})</span>
       <div class="calc__triple calc__triple--two" role="group" aria-labelledby={id('pace-grp')}>
-        <div class="calc__input"><input type="number" inputMode="numeric" min="0" id={id('pm')} aria-label="Minutes" value={pM} onInput={(e) => setPM((e.target as HTMLInputElement).value)} /><span class="calc__suffix">min</span></div>
-        <div class="calc__input"><input type="number" inputMode="numeric" min="0" max="59" id={id('ps')} aria-label="Seconds" value={pS} onInput={(e) => setPS((e.target as HTMLInputElement).value)} /><span class="calc__suffix">sec</span></div>
+        <div class="calc__input"><input type="number" inputMode="numeric" min="0" id={id('pm')} aria-label="Minutes" value={pM} onInput={(e) => {
+          const raw = (e.target as HTMLInputElement).value;
+          setPM(raw);
+          setPaceSecondsPerKm(toSecondsPerKm(n(raw) * 60 + n(pS), unit));
+        }} /><span class="calc__suffix">min</span></div>
+        <div class="calc__input"><input type="number" inputMode="numeric" min="0" max="59" id={id('ps')} aria-label="Seconds" value={pS} onInput={(e) => {
+          const raw = (e.target as HTMLInputElement).value;
+          setPS(raw);
+          setPaceSecondsPerKm(toSecondsPerKm(n(pM) * 60 + n(raw), unit));
+        }} /><span class="calc__suffix">sec</span></div>
       </div>
     </div>
   );
@@ -105,7 +132,7 @@ export default function PaceCalculator(_: { slug: string }) {
           <h2 class="calc__heading">Running Pace</h2>
           <div class="seg" role="group" aria-label="Unit">
             {(['km', 'mi'] as Unit[]).map((u) => (
-              <button type="button" class={`seg__btn${unit === u ? ' is-active' : ''}`} aria-pressed={unit === u} onClick={() => setUnit(u)}>{u}</button>
+              <button type="button" class={`seg__btn${unit === u ? ' is-active' : ''}`} aria-pressed={unit === u} onClick={() => setDisplayUnit(u)}>{u}</button>
             ))}
           </div>
         </div>
@@ -149,7 +176,7 @@ export default function PaceCalculator(_: { slug: string }) {
                 </ul>
               </>
             )}
-            <p class="calc__note">Splits assume an even (constant) pace across the whole distance.</p>
+            <p class="calc__note">Splits assume an even (constant) pace across the whole distance. {outDist > 60 ? `The first 60 ${unit} splits and the finish are shown.` : ''}</p>
           </>
         )}
       </div>

@@ -1,8 +1,18 @@
 /**
- * "Walk It Off" food → exercise — pure logic + food list (UI-free).
- * minutes = calories / (MET × weightKg) × 60. MET values from the Compendium
- * of Physical Activities. Estimates only.
+ * "Walk It Off" food energy → illustrative extra activity time (UI-free).
+ * minutes = kcal / ((MET - 1) × weightKg) × 60, using energy ABOVE
+ * the resting baseline. MET values are population approximations from the
+ * Compendium, not personal measurements or instructions to offset food.
  */
+
+
+/** Keep calculator mass in kg; displayed unit toggles must not change the math. */
+export type WeightUnits = 'kg' | 'lb';
+const LB_PER_KG = 2.20462;
+export const weightToKg = (value: number, units: WeightUnits): number =>
+  units === 'lb' ? value / LB_PER_KG : value;
+export const weightForDisplay = (kg: number, units: WeightUnits): number =>
+  Math.round((units === 'lb' ? kg * LB_PER_KG : kg) * 100) / 100;
 
 export interface Food {
   name: string;
@@ -19,7 +29,7 @@ export const FOODS: Food[] = [
   { name: 'Chocolate bar', kcal: 230, emoji: '🍫' },
   { name: 'Croissant', kcal: 270, emoji: '🥐' },
   { name: 'Bagel (plain)', kcal: 250, emoji: '🥯' },
-  { name: 'Banana', kcal: 105, emoji: '🍓' },
+  { name: 'Banana', kcal: 105, emoji: '🍌' },
   { name: 'Apple', kcal: 95, emoji: '🍎' },
   { name: 'Can of cola', kcal: 140, emoji: '🥤' },
   { name: 'Pint of beer', kcal: 208, emoji: '🍺' },
@@ -53,8 +63,15 @@ export const ACTIVITIES: Activity[] = [
   { key: 'cycle', label: 'Cycling', met: 7.5, emoji: '🚴' }, // moderate
 ];
 
-/** Minutes of an activity (by MET) to burn `kcal` for a person of `weightKg`. */
+/** Valid UI domain: avoid silently reporting 0 minutes for missing/invalid weight. */
+export function validWalkInputs(kcal: number, weightKg: number): boolean {
+  return Number.isFinite(kcal) && kcal >= 0 && kcal <= 3000 &&
+    Number.isFinite(weightKg) && weightKg >= 1 && weightKg <= 300;
+}
+
+/** Approximate minutes to expend `kcal` ABOVE resting energy at MET intensity. */
 export function minutesToBurn(kcal: number, met: number, weightKg: number): number {
-  if (met <= 0 || weightKg <= 0) return 0;
-  return (kcal / (met * weightKg)) * 60;
+  if (!Number.isFinite(kcal) || kcal < 0 || !Number.isFinite(met) || met <= 1 ||
+      !Number.isFinite(weightKg) || weightKg <= 0) return Number.NaN;
+  return (kcal / ((met - 1) * weightKg)) * 60;
 }

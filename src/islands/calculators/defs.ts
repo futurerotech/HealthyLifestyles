@@ -377,7 +377,21 @@ export const DEFS: Record<string, CalcDef> = {
       const lbm = sex === 'male'
         ? 0.407 * weight + 0.267 * height - 19.2
         : 0.252 * weight + 0.473 * height - 48.3;
-      const fatMass = Math.max(0, weight - lbm);
+      // The empirical Boer regression can exceed actual body weight for some
+      // combinations within our allowed form bounds. Do not conceal this by
+      // clipping negative estimated fat mass to zero or show >100% lean mass.
+      if (!Number.isFinite(weight) || !Number.isFinite(height) ||
+          weight <= 0 || height <= 0 || !Number.isFinite(lbm) ||
+          lbm <= 0 || lbm >= weight) {
+        return {
+          ok: false,
+          error: 'The Boer formula gives a physically implausible lean-mass estimate for these measurements. Recheck height and weight; the model may not fit this body-size combination. No fat-mass result is shown.',
+          primaryLabel: 'Lean body mass',
+          primaryValue: '—',
+          visual: { kind: 'none' },
+        };
+      }
+      const fatMass = weight - lbm;
       const unit = massUnitLabel(units);
       return {
         ok: true,
@@ -397,7 +411,7 @@ export const DEFS: Record<string, CalcDef> = {
           { label: 'Estimated fat mass', value: fmtMass(fatMass, units, 1) },
           { label: 'Lean mass as % of weight', value: `${fmt((lbm / weight) * 100, 1)}%`, strong: true },
         ],
-        note: 'Lean body mass is everything that is not fat — muscle, bone, organs and water. Estimated with the Boer formula.',
+        note: 'Boer (1984) predicts fat-free mass from total weight, height and sex; it does not measure muscle or diagnose health. Predictions outside physical mass bounds are withheld instead of clipped. Even a plausible output may have substantial individual error.',
       };
     },
   },
@@ -965,7 +979,7 @@ export const DEFS: Record<string, CalcDef> = {
   // ---- Metabolic Age (illustrative, BMR-based) ----
   'metabolic-age-calculator': {
     slug: 'metabolic-age-calculator',
-    heading: 'Estimate your metabolic age',
+    heading: 'Explore an illustrative BMR-based age',
     hasSex: true,
     fields: [F.weight(72), F.height(175), F.age(30)],
     compute: ({ vals, sex }) => {
@@ -976,23 +990,19 @@ export const DEFS: Record<string, CalcDef> = {
       let metAge = Math.round(vals.age - diff / 40);
       metAge = Math.max(vals.age - 12, Math.min(vals.age + 12, metAge));
       metAge = Math.max(16, Math.min(90, metAge));
-      const delta = metAge - vals.age;
-      const cat = delta <= -3 ? { label: 'Younger than your age', color: C.green }
-        : delta >= 3 ? { label: 'Older than your age', color: C.amber }
-        : { label: 'About your age', color: C.teal };
+
       return {
         ok: true,
-        primaryLabel: 'Estimated metabolic age',
+        primaryLabel: 'Illustrative BMR-age index (not health)',
         primaryValue: `${metAge} years`,
-        category: cat,
-        visual: { kind: 'split', aLabel: 'Real age', aValue: vals.age, bLabel: 'Metabolic age', bValue: metAge, aColor: C.slate, bColor: delta <= 0 ? C.green : C.amber, unit: 'yrs' },
+        visual: { kind: 'none' },
         rows: [
           { label: 'Your BMR (Mifflin-St Jeor)', value: `${fmt(userBMR, 0)} kcal/day`, strong: true },
-          { label: `Typical BMR around age ${fmt(vals.age, 0)}`, value: `${fmt(avgForAge, 0)} kcal/day` },
+          { label: `Custom illustrative reference for age ${fmt(vals.age, 0)}`, value: `${fmt(avgForAge, 0)} kcal/day` },
           { label: 'Difference', value: `${diff >= 0 ? '+' : ''}${fmt(diff, 0)} kcal/day` },
         ],
-        callout: { tone: 'info', text: 'This is a simplified, illustrative estimate — not a medical measurement. It compares your BMR with a rough average for your age: a higher BMR maps to a "younger" number. Muscle and activity raise BMR, but body size also influences it, so read this as a fun motivator, not a diagnosis.' },
-        note: 'Method: we calculate your Basal Metabolic Rate with the Mifflin-St Jeor equation, then compare it to a typical BMR for your age and sex and map the gap onto an illustrative age (capped at ±12 years). Building muscle and staying active raise your BMR — see the BMR and Calorie calculators for the underlying numbers.',
+        callout: { tone: 'info', text: 'This fictional age index is not a validated measurement of biological age, metabolic health or fitness. Increasing body weight alone can yield a younger-looking result without improving health. Do not use the age number to guide weight, food or treatment decisions.' },
+        note: 'Mifflin-St Jeor predicts resting energy needs from weight, height, age and sex. Male reference 1700 - 6 × (age - 25), female reference 1400 - 5 × (age - 25), and 40 kcal per model year are custom illustrative constants, not validated age-specific population norms. Body size itself changes predicted BMR; a lower displayed age is not better health.',
       };
     },
   },
@@ -1016,7 +1026,6 @@ export const DEFS: Record<string, CalcDef> = {
       const cockK = vals.cocktail * KCAL.cocktail;
       const weekly = beerK + wineK + spiritK + cockK;
       const yearly = weekly * 52;
-      const fatLb = yearly / 3500;
       const totalDrinks = vals.beer + vals.wine + vals.spirits + vals.cocktail;
       const parts = [
         { label: 'Beer', kcal: beerK, color: C.amber },
@@ -1036,11 +1045,10 @@ export const DEFS: Record<string, CalcDef> = {
         rows: [
           { label: 'Per month', value: `${fmt(weekly * 4.345, 0)} kcal` },
           { label: 'Per year', value: `${fmt(yearly, 0)} kcal`, strong: true },
-          { label: '≈ body fat per year, if unburned', value: `${fmt(fatLb, 1)} lb` },
           { label: 'Total drinks per week', value: `${fmt(totalDrinks, 1)}` },
         ],
-        callout: { tone: 'info', text: 'Low-risk guidance: the CDC suggests up to 1 drink/day for women and 2 for men; the UK NHS advises 14 units a week or less, spread over 3+ days with drink-free days. Alcohol carries 7 kcal per gram — "empty" calories with no nutrition, and that\'s before sugary mixers.' },
-        note: 'Calories per drink are typical values (beer 12 oz ≈ 150, wine 5 oz ≈ 125, spirit 1.5 oz ≈ 97, cocktail ≈ 225) and climb with stronger or larger servings and mixers. The body-fat equivalent uses the 3,500 kcal-per-pound rule and assumes the calories are not offset by activity. Educational and non-judgmental — small cutbacks add up.',
+        callout: { tone: 'info', text: 'These are beverage-calorie estimates, not a health-risk score. Even moderate drinking can increase risks, including some cancers; less alcohol is better for health. U.S. moderation limits (up to 1 drink/day for women, 2 for men) are not a risk-free dose. Do not start drinking for health reasons, and avoid alcohol during pregnancy or when contraindicated.' },
+        note: 'Typical calories per drink: beer 12 oz ≈ 150, wine 5 oz ≈ 125, spirits 1.5 oz ≈ 97, cocktail ≈ 225; stronger or larger servings and mixers differ. Weekly, monthly and yearly totals are simple intake projections, not predicted fat gain or weight loss. Real body-weight change cannot be inferred by dividing these calories by 3,500. Educational estimates only.',
       };
     },
   },
@@ -1147,18 +1155,22 @@ export const DEFS: Record<string, CalcDef> = {
       };
       const met = METS[selects.activity] ?? 9.8;
       const hours = vals.minutes / 60;
+      // Gross expenditure includes the resting 1 MET spent during the session.
+      // Above-rest expenditure removes that baseline; both are approximate.
       const cal = met * vals.weight * hours;
+      const aboveRest = Math.max(0, met - 1) * vals.weight * hours;
       return {
         ok: true,
-        primaryLabel: `Calories burned in ${fmt(vals.minutes, 0)} min`,
+        primaryLabel: `Total calories (including rest) in ${fmt(vals.minutes, 0)} min`,
         primaryValue: `${fmt(cal, 0)} kcal`,
         visual: { kind: 'none' },
         rows: [
-          { label: 'Per hour', value: `${fmt(met * vals.weight, 0)} kcal`, strong: true },
+          { label: 'Additional above-rest calories (approx.)', value: `${fmt(aboveRest, 0)} kcal`, strong: true },
+          { label: 'Total per hour (including rest)', value: `${fmt(met * vals.weight, 0)} kcal` },
           { label: 'Per 30 minutes', value: `${fmt(met * vals.weight * 0.5, 0)} kcal` },
           { label: 'MET value', value: `${met}` },
         ],
-        note: 'Calories = METs × weight (kg) × hours. MET values are population averages; your real burn varies with intensity, fitness and terrain.',
+        note: 'Total (gross) kcal = MET × weight (kg) × hours, including resting energy. Additional above-rest kcal = (MET − 1) × weight × hours; neither is a precise personal measurement. If your daily calorie target already includes activity, adding the total again can double-count it.',
       };
     },
   },
@@ -1174,20 +1186,29 @@ export const DEFS: Record<string, CalcDef> = {
     ],
     compute: ({ vals, units }) => {
       const w = vals.weight;
-      const reps = Math.max(1, Math.min(15, vals.reps));
-      const epley = w * (1 + reps / 30);
-      const brzycki = w * 36 / (37 - reps);
+      const reps = Math.max(1, Math.min(15, Math.round(vals.reps)));
+      // One recorded rep is a known load, not a formula-extrapolated max.
+      // It proves the user lifted that load once, not that the load was maximal.
+      const epley = reps === 1 ? w : w * (1 + reps / 30);
+      const brzycki = reps === 1 ? w : w * 36 / (37 - reps);
       const pcts = [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50];
       return {
         ok: true,
-        primaryLabel: 'Estimated 1-rep max (Epley)',
+        primaryLabel: reps === 1 ? 'Recorded single-rep load (not necessarily max)' : 'Estimated 1-rep max (Epley)',
         primaryValue: fmtMass(epley, units, 1),
         visual: { kind: 'none' },
         rows: [
-          { label: 'Brzycki estimate', value: fmtMass(brzycki, units, 1) },
-          ...pcts.map((p) => ({ label: `${p}% of 1RM`, value: fmtMass(epley * (p / 100), units, 1), strong: p === 100 })),
+          { label: reps === 1 ? 'Brzycki: recorded load' : 'Brzycki estimate', value: fmtMass(brzycki, units, 1) },
+          ...pcts.map((p) => ({
+            label: reps === 1 ? `${p}% of recorded single` : `${p}% of estimated 1RM`,
+            value: fmtMass(epley * (p / 100), units, 1),
+            strong: p === 100,
+          })),
         ],
-        note: 'Epley: weight × (1 + reps ÷ 30). Brzycki: weight × 36 ÷ (37 − reps). Most accurate at 10 reps or fewer.',
+        ...(reps > 10 ? { callout: { tone: 'warn' as const, text: 'More than 10 reps makes one-rep-max extrapolation less reliable. This estimate is not a recommended maximum attempt or a guaranteed safe training load.' } } : {}),
+        note: reps === 1
+          ? 'One repetition records the load you lifted once; it does not prove that it was your true maximum. Percentages are based on this recorded single, not on a verified 1RM. Avoid unsupported maximal attempts.'
+          : 'Epley: weight × (1 + reps ÷ 30). Brzycki: weight × 36 ÷ (37 − reps). These estimates assume a hard set with good form and are generally less reliable as reps rise, especially above 10. Training loads should be adjusted for technique, fatigue, and individual readiness.',
       };
     },
   },
@@ -1206,27 +1227,21 @@ export const DEFS: Record<string, CalcDef> = {
       const heightM = vals.height / 100;
       const lbm = vals.weight * (1 - vals.bodyfat / 100);
       const ffmi = lbm / (heightM * heightM);
-      const normalized = ffmi + 6.1 * (1.8 - heightM);
-      const segments: Segment[] = [
-        { upTo: 18, label: 'Below average', color: C.blue },
-        { upTo: 20, label: 'Average', color: C.green },
-        { upTo: 22, label: 'Above average', color: C.teal },
-        { upTo: 25, label: 'High', color: C.amber },
-        { upTo: 30, label: 'Very high', color: C.red },
-      ];
-      const band = bandFor(ffmi, segments);
+      // The originally cited Kouri et al. sample used 6.3, not 6.1,
+      // for normalization to 1.80 m. This is NOT a clinical age/sex correction.
+      const normalized = ffmi + 6.3 * (1.8 - heightM);
       return {
         ok: true,
-        primaryLabel: 'Your FFMI',
+        primaryLabel: 'Calculated FFMI (fat-free mass / height²)',
         primaryValue: fmt(ffmi, 1),
-        category: { label: band.label, color: band.color },
-        visual: { kind: 'gauge', value: ffmi, min: 14, max: 30, segments },
+        // No single FFMI value diagnoses health, steroid use or "natural" status.
+        visual: { kind: 'none' },
         rows: [
-          { label: 'Normalized FFMI (height-adjusted)', value: fmt(normalized, 1), strong: true },
-          { label: 'Lean body mass (LBM)', value: fmtMass(lbm, units, 1) },
-          { label: 'Body fat mass', value: fmtMass(vals.weight - lbm, units, 1) },
+          { label: 'Height-normalized FFMI (Kouri method)', value: fmt(normalized, 1), strong: true },
+          { label: 'Estimated fat-free mass', value: fmtMass(lbm, units, 1) },
+          { label: 'Estimated fat mass', value: fmtMass(vals.weight - lbm, units, 1) },
         ],
-        note: 'FFMI = lean body mass ÷ height². Normalized FFMI adds a height correction so shorter and taller lifters can be compared fairly. Values above ~25 are uncommon for natural athletes and often point to a body-fat measurement error — treat extreme numbers as a prompt to re-check your input, not as a judgment.',
+        note: 'FFMI = estimated fat-free mass (kg) ÷ height² (m²). Kouri height-normalization adds 6.3 × (1.8 − height m). Body-fat estimates can be inaccurate; neither raw nor normalized FFMI is a clinical diagnosis or proof of performance-enhancing drug use. Study-specific reference distributions vary by population and sex.',
       };
     },
   },
@@ -1287,8 +1302,8 @@ export const DEFS: Record<string, CalcDef> = {
       const rpe = vals.rpe;
       const duration = vals.duration;
 
-      // Base recovery (hours) by workout type — general sports-science guidance:
-      // heavy resistance needs ~48-72h per muscle group; HIIT/endurance less.
+      // UNVALIDATED illustrative base-hour choices. General frequency guidance
+      // does not validate this personalized hour prediction.
       const BASE: Record<string, number> = {
         strength: 48,
         hiit: 36,
@@ -1307,7 +1322,7 @@ export const DEFS: Record<string, CalcDef> = {
       else if (duration <= 90) durMult = 1.15;
       else durMult = 1.3;
 
-      // Training age: beginners need more recovery; advanced recover faster.
+      // Training-age factors are author-defined examples, not validated predictions.
       const AGE_MULT: Record<string, number> = {
         beginner: 1.3,
         intermediate: 1.0,
@@ -1315,7 +1330,7 @@ export const DEFS: Record<string, CalcDef> = {
       };
       const ageMult = AGE_MULT[trainingAge] ?? 1.0;
 
-      // Sleep quality: poor sleep impairs muscle repair and recovery.
+      // Sleep-quality multiplier is heuristic, not measured recovery time.
       const SLEEP_MULT: Record<string, number> = {
         poor: 1.25,
         fair: 1.1,
@@ -1324,7 +1339,7 @@ export const DEFS: Record<string, CalcDef> = {
       };
       const sleepMult = SLEEP_MULT[sleep] ?? 1.0;
 
-      // Soreness (DOMS): more soreness = more recovery needed.
+      // DOMS is not a direct biomarker of structural damage or full readiness.
       const SORENESS_MULT: Record<string, number> = {
         none: 0.9,
         mild: 1.0,
@@ -1343,7 +1358,7 @@ export const DEFS: Record<string, CalcDef> = {
 
       return {
         ok: true,
-        primaryLabel: 'Suggested recovery window',
+        primaryLabel: 'Illustrative rest-planning window (not medical clearance)',
         primaryValue: `${fmtWindow(low)} – ${fmtWindow(high)}`,
         visual: { kind: 'none' },
         rows: [
@@ -1356,13 +1371,13 @@ export const DEFS: Record<string, CalcDef> = {
         ],
         callout: {
           tone: 'info',
-          text: 'Listen to your body. These are general guidance ranges from sports-science principles, not a prescription. If you\'re still sore, fatigued, or your performance is down, rest longer. Sharp or joint pain is never normal — stop and see a qualified professional.',
+          text: 'The hour range comes from unvalidated planning multipliers and does not predict biological recovery or determine when training is safe. Use pain, movement quality, fatigue and your training plan in context. Seek qualified medical advice for sharp, worsening or unusual pain, swelling or other concerning symptoms.',
         },
         cta: {
           label: 'Check your protein target for recovery →',
           href: '/tools/protein-intake-calculator',
         },
-        note: 'Method: a transparent heuristic. We start from a base recovery time for your workout type (e.g. ~48h for heavy resistance training, per the general 48–72h guideline), then adjust it up or down for intensity (RPE), duration, training age, sleep quality, and current soreness. The ±15% window reflects individual variation. This is general fitness guidance, not medical advice.',
+        note: 'This is an unvalidated planning example: author-selected workout base hours and multipliers for effort, duration, training experience, sleep and soreness. The ±15% display band is arbitrary and NOT a calibrated confidence interval or a personalized prediction. Training readiness cannot be established from this number; adjust for symptoms, function and professional guidance when relevant.',
       };
     },
   },
@@ -2263,28 +2278,26 @@ export const DEFS: Record<string, CalcDef> = {
       const strideCm = vals.height * (sex === 'female' ? 0.413 : 0.415);
       const distanceKm = (vals.steps * (strideCm / 100)) / 1000;
       const hours = distanceKm / 4.8; // assume ~moderate walking pace
-      const cal = 3.5 * vals.weight * hours;
+      // The MET equation includes resting energy spent during activity.
+      // Show that GROSS total separately from the approximate extra above rest.
+      const grossKcal = 3.5 * vals.weight * hours;
+      const aboveRestKcal = (3.5 - 1) * vals.weight * hours;
       const distStr = units === 'metric' ? `${fmt(distanceKm, 2)} km` : `${fmt(distanceKm * 0.621371, 2)} mi`;
       const strideStr = units === 'metric' ? `${fmt(strideCm, 0)} cm` : `${fmt(strideCm / 2.54, 1)} in`;
-      const segments: Segment[] = [
-        { upTo: 5000, label: 'Sedentary', color: C.red },
-        { upTo: 7500, label: 'Low active', color: C.amber },
-        { upTo: 10000, label: 'Somewhat active', color: C.teal },
-        { upTo: 12000, label: 'Active', color: C.green },
-      ];
-      const band = bandFor(vals.steps, segments);
       return {
         ok: true,
-        primaryLabel: 'Calories burned',
-        primaryValue: `${fmt(cal, 0)} kcal`,
-        category: { label: band.label, color: band.color },
-        visual: { kind: 'gauge', value: vals.steps, min: 0, max: 12000, segments },
+        primaryLabel: 'Total estimated calories (including rest)',
+        primaryValue: `${fmt(grossKcal, 0)} kcal`,
+        // No validated diagnostic "sedentary"/"active" category can be assigned
+        // from one entered step count, without context or clinical evaluation.
+        visual: { kind: 'none' },
         rows: [
-          { label: 'Distance walked', value: distStr, strong: true },
-          { label: 'Your stride length', value: strideStr },
-          { label: 'Daily goal', value: '10,000 steps' },
+          { label: 'Additional above-rest calories (approx.)', value: `${fmt(aboveRestKcal, 0)} kcal`, strong: true },
+          { label: 'Estimated distance walked', value: distStr },
+          { label: 'Estimated stride length', value: strideStr },
+          { label: 'Assumed pace', value: '4.8 km/h (3.0 mph)' },
         ],
-        note: 'Stride length is estimated as height × 0.413 (women) or 0.415 (men). Calories assume a moderate walking pace and will vary with speed and terrain.',
+        note: 'Gross kcal = 3.5 MET × kg × hours; above-rest kcal = (3.5 − 1) MET × kg × hours. Stride length is approximated from height, and walking at 4.8 km/h is assumed throughout. Your actual pace, stride, intensity, and energy use may differ. Steps alone do not diagnose inactivity, and there is no universal 10,000-step requirement.',
       };
     },
   },
@@ -2299,38 +2312,26 @@ export const DEFS: Record<string, CalcDef> = {
       { key: 'rest', label: 'Resting heart rate', type: 'number', metricDefault: 60, min: 30, max: 120, suffix: 'bpm', help: 'Measure your pulse at rest, ideally just after waking.' },
     ],
     compute: ({ vals }) => {
+      // The 15.3 coefficient comes from a small study in well-trained men;
+      // replacing measured HRmax with 220 - age adds prediction uncertainty.
       const hrMax = 220 - vals.age;
       const vo2 = 15.3 * (hrMax / vals.rest);
-      const fitnessAge = Math.max(18, Math.min(90, Math.round(0.5 * vals.age + 50 - vo2)));
-      const segments: Segment[] = [
-        { upTo: 30, label: 'Below average', color: C.red },
-        { upTo: 40, label: 'Fair', color: C.amber },
-        { upTo: 50, label: 'Good', color: C.teal },
-        { upTo: 60, label: 'Excellent', color: C.green },
-        { upTo: 80, label: 'Superior', color: C.blue },
-      ];
-      const band = bandFor(vo2, segments);
       return {
         ok: true,
-        primaryLabel: 'Estimated VO2 max',
+        primaryLabel: 'Rough VO₂ max estimate (heart-rate ratio)',
         primaryValue: `${fmt(vo2, 1)} ml/kg/min`,
-        category: { label: band.label, color: band.color },
-        visual: { kind: 'gauge', value: vo2, min: 20, max: 70, segments },
+        // Avoid fabricating "fitness age" or age/sex-independent diagnostic bands.
+        visual: { kind: 'none' },
         rows: [
-          { label: 'Fitness age', value: `${fmt(fitnessAge, 0)} years`, strong: true },
-          { label: 'Chronological age', value: `${fmt(vals.age, 0)} years` },
-          { label: 'Estimated max heart rate', value: `${fmt(hrMax, 0)} bpm` },
-          { label: 'Resting heart rate', value: `${fmt(vals.rest, 0)} bpm` },
+          { label: 'Assumed max heart rate (220 − age)', value: `${fmt(hrMax, 0)} bpm` },
+          { label: 'Entered resting heart rate', value: `${fmt(vals.rest, 0)} bpm` },
+          { label: 'Heart-rate ratio (assumed max ÷ resting)', value: fmt(hrMax / vals.rest, 2) },
         ],
         callout: {
           tone: 'info',
-          text: fitnessAge < vals.age
-            ? `Your VO2 max is typical of someone about ${fitnessAge} years old — ${vals.age - fitnessAge} years younger than your actual age. This suggests above-average cardio fitness for your age.`
-            : fitnessAge > vals.age
-              ? `Your VO2 max is typical of someone about ${fitnessAge} years old — ${fitnessAge - vals.age} years older than your actual age. This suggests room to improve cardio fitness.`
-              : `Your VO2 max is typical for your actual age (${vals.age}).`,
+          text: 'This is an indirect numerical illustration, not a laboratory VO₂ max measurement or a validated fitness age. The original heart-rate-ratio method was studied in well-trained adults, and predicting maximum heart rate from age adds uncertainty. Medication, illness and individual heart-rate differences can affect the estimate.',
         },
-        note: 'Uses the Uth-Sorensen estimate: VO2 max ~ 15.3 x (max HR / resting HR). Fitness age compares your VO2 max to age-normative averages (approx 50 - 0.5 x age). Both are rough estimates — healthy ranges depend on age and sex. Educational only.',
+        note: 'Based on Uth et al. (2004): VO₂ max ≈ 15.3 × (estimated HRmax ÷ resting HR), with HRmax approximated as 220 − age. The original validation cohort was well-trained men; the method has not been validated as a universal age-specific or sex-specific fitness classification. For an individual measurement, seek supervised exercise testing.',
       };
     },
   },
@@ -2343,45 +2344,38 @@ export const DEFS: Record<string, CalcDef> = {
   // ---- Waist-based Health Risk ----
   'waist-health-risk-calculator': {
     slug: 'waist-health-risk-calculator',
-    heading: 'Check your waist-based risk',
+    heading: 'Review BMI and waist-to-height ratio',
     hasSex: false,
     fields: [F.weight(78), F.height(172), F.waist(92)],
     compute: ({ vals, units }) => {
       const m = vals.height / 100;
       const bmi = vals.weight / (m * m);
       const whtr = vals.waist / vals.height;
-      const bmiScore = bmi < 25 ? 0 : bmi < 30 ? 1 : bmi < 35 ? 2 : 3;
-      const whtrScore = whtr < 0.5 ? 0 : whtr < 0.6 ? 1 : 2;
-      const total = bmiScore + whtrScore;
-      const bands = [
-        { label: 'Low', color: C.green },
-        { label: 'Increased', color: C.amber },
-        { label: 'High', color: C.red },
-        { label: 'Very high', color: '#b91c1c' },
-      ];
-      const idx = total === 0 ? 0 : total <= 2 ? 1 : total <= 4 ? 2 : 3;
-      const band = bands[idx];
       const lowKg = 18.5 * m * m;
       const highKg = 24.9 * m * m;
       const waistTarget = units === 'metric' ? `${fmt(vals.height / 2, 0)} cm` : `${fmt(vals.height / 2 / 2.54, 0)} in`;
+      // NICE waist-to-height classifications apply to adults with BMI below 35.
+      // They are not a validated combined BMI/waist disease-risk score.
+      const waistGuidance = bmi >= 35
+        ? 'NICE waist-to-height categories are not recommended as a standalone classification at BMI 35 or above; seek individualized assessment.'
+        : whtr >= 0.6
+          ? 'NICE guidance: high central adiposity (ratio 0.6 or above); consider professional health assessment.'
+          : whtr >= 0.5
+            ? 'NICE guidance: increased central adiposity (ratio 0.5–0.59); consider professional health assessment.'
+            : 'Ratio under 0.5 meets the usual waist-under-half-height advice, but cannot rule out health risks.';
       return {
         ok: true,
-        primaryLabel: 'Your BMI',
+        primaryLabel: 'Your BMI (kg/m²)',
         primaryValue: fmt(bmi, 1),
-        category: { label: `${band.label} risk`, color: band.color },
-        visual: {
-          kind: 'zones',
-          items: bands.map((b, i) => ({ label: `${b.label} risk`, detail: '', color: b.color, active: i === idx })),
-        },
-        callout: idx >= 2
-          ? { tone: 'warn', text: 'Your combined measurements suggest higher health risk. This is not a diagnosis — please talk to your doctor about your weight and waist.' }
-          : undefined,
+        visual: { kind: 'none' },
+        callout: { tone: 'info', text: 'BMI and waist-to-height ratio are screening measurements, not a diagnosis or a validated combined disease-risk score. A lower value does not rule out cardiovascular or metabolic conditions. BMI is limited in muscular adults and some age and ancestry groups; ask a healthcare professional if you have concerns.' },
         rows: [
           { label: 'Waist-to-height ratio', value: fmt(whtr, 2), strong: true },
-          { label: 'Healthy weight for height', value: `${fmtMass(lowKg, units, 0)} – ${fmtMass(highKg, units, 0)}` },
-          { label: 'Keep waist under', value: waistTarget },
+          { label: 'Waist-to-height interpretation', value: waistGuidance },
+          { label: 'BMI reference weight range (18.5–24.9)', value: `${fmtMass(lowKg, units, 0)} – ${fmtMass(highKg, units, 0)}` },
+          { label: 'Waist under half your height', value: waistTarget },
         ],
-        note: 'Combines BMI with waist-to-height ratio. This is an educational estimate, not a diagnosis — see a doctor for a proper assessment.',
+        note: 'This tool displays BMI and waist-to-height ratio individually. It does not use a validated four-level combined health-risk model. NICE recommends assessing the ratio alongside BMI in adults with BMI below 35; a clinician must consider the full health picture.',
       };
     },
   },
@@ -2389,7 +2383,7 @@ export const DEFS: Record<string, CalcDef> = {
   // ---- Heart Disease Risk (educational) ----
   'heart-disease-risk-calculator': {
     slug: 'heart-disease-risk-calculator',
-    heading: 'Estimate your heart disease risk',
+    heading: 'Review heart-health factors',
     hasSex: false,
     fields: [
       F.age(50), F.weight(82), F.height(172),
@@ -2409,16 +2403,12 @@ export const DEFS: Record<string, CalcDef> = {
       const bmiP = bmi < 25 ? 0 : bmi < 30 ? 1 : 2;
       const bpP = parseInt(selects.bp) || 0;
       const score = ageP + smokeP + actP + bmiP + bpP;
-      const bands = [{ label: 'Lower', color: C.green }, { label: 'Moderate', color: C.amber }, { label: 'Elevated', color: C.red }];
-      const idx = score <= 3 ? 0 : score <= 7 ? 1 : 2;
-      const band = bands[idx];
       return {
         ok: true,
-        primaryLabel: 'Educational risk score',
+        primaryLabel: 'Illustrative checklist points (not clinical risk)',
         primaryValue: `${score} / 12`,
-        category: { label: `${band.label} risk`, color: band.color },
-        visual: { kind: 'zones', items: bands.map((b, i) => ({ label: `${b.label} risk`, detail: '', color: b.color, active: i === idx })) },
-        callout: { tone: idx === 2 ? 'warn' : 'info', text: 'This is an educational estimate, not a diagnosis or a clinical risk score. Talk to your doctor, who can assess your real heart disease risk and check your cholesterol and blood pressure.' },
+        visual: { kind: 'none' },
+        callout: { tone: 'info', text: 'These are unvalidated checklist points, NOT your chance of developing heart disease. Even 0 points cannot rule out cardiovascular disease. This tool omits cholesterol, diabetes, kidney function, blood-pressure medication use and other clinical inputs. Ask your healthcare professional about a validated cardiovascular risk assessment.' },
         rows: [
           { label: 'Age', value: `+${ageP}` },
           { label: 'Smoking', value: `+${smokeP}` },
@@ -2426,7 +2416,7 @@ export const DEFS: Record<string, CalcDef> = {
           { label: 'BMI', value: `+${bmiP} (${fmt(bmi, 1)})` },
           { label: 'Blood pressure', value: `+${bpP}` },
         ],
-        note: 'A simple lifestyle-based estimate for education only — it is not the Framingham or any clinical score. Not smoking, staying active, and managing blood pressure and weight all lower real risk. Sources: CDC and American Heart Association.',
+        note: 'Point weights are for self-reflection, not a validated cardiovascular risk model, percentage, low-risk clearance or AHA PREVENT estimate. Clinical assessment requires more measured information. Not smoking, physical activity and healthy blood pressure support cardiovascular health.',
       };
     },
   },
@@ -2434,7 +2424,7 @@ export const DEFS: Record<string, CalcDef> = {
   // ---- Type 2 Diabetes Risk (educational) ----
   'diabetes-risk-calculator': {
     slug: 'diabetes-risk-calculator',
-    heading: 'Estimate your type 2 diabetes risk',
+    heading: 'Review factors linked to type 2 diabetes',
     hasSex: false,
     fields: [
       F.age(50), F.weight(85), F.height(172), F.waist(96),
@@ -2453,16 +2443,12 @@ export const DEFS: Record<string, CalcDef> = {
       const famP = parseInt(selects.family) || 0;
       const actP = parseInt(selects.activity) || 0;
       const score = ageP + bmiP + waistP + famP + actP;
-      const bands = [{ label: 'Low', color: C.green }, { label: 'Moderate', color: C.amber }, { label: 'High', color: C.red }];
-      const idx = score <= 6 ? 0 : score <= 11 ? 1 : 2;
-      const band = bands[idx];
       return {
         ok: true,
-        primaryLabel: 'Educational risk score',
+        primaryLabel: 'Illustrative diabetes factor points (not screening)',
         primaryValue: `${score} / 18`,
-        category: { label: `${band.label} risk`, color: band.color },
-        visual: { kind: 'zones', items: bands.map((b, i) => ({ label: `${b.label} risk`, detail: '', color: b.color, active: i === idx })) },
-        callout: { tone: 'warn', text: 'This does not diagnose diabetes. Please ask your doctor about a simple blood-sugar screening test (such as HbA1c or fasting glucose) — strongly recommended if your score is moderate or high, or if you have any symptoms.' },
+        visual: { kind: 'none' },
+        callout: { tone: 'info', text: 'These custom points are NOT a validated CDC/ADA prediabetes risk test and cannot diagnose diabetes. Even 0 points cannot rule out elevated blood glucose. Ask your healthcare professional whether A1C or plasma-glucose testing is appropriate, regardless of this total.' },
         rows: [
           { label: 'Age', value: `+${ageP}` },
           { label: 'BMI', value: `+${bmiP} (${fmt(bmi, 1)})` },
@@ -2470,7 +2456,7 @@ export const DEFS: Record<string, CalcDef> = {
           { label: 'Family history', value: `+${famP}` },
           { label: 'Inactivity', value: `+${actP}` },
         ],
-        note: 'An educational, non-diagnostic estimate inspired by tools like FINDRISC. Only a blood test can detect prediabetes or diabetes. Sources: CDC and American Diabetes Association.',
+        note: 'An illustrative checklist, not FINDRISC or the validated CDC/ADA risk test. Its point weights and cutoffs have not been validated for predicting disease. A1C and plasma-glucose testing assess glycemic status; a low tally does not exclude prediabetes or diabetes.',
       };
     },
   },

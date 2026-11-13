@@ -297,28 +297,29 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
   'lean-body-mass-calculator': {
     seoTitle: 'Lean Body Mass Calculator (Boer Formula)',
     metaDescription:
-      'Estimate your lean body mass and fat mass with the Boer formula. Free LBM calculator in metric or imperial — see your muscle-to-fat split.',
+      'Estimate fat-free body mass using Boer (1984), with safeguards when a regression gives a physically impossible result. Educational, not clinical.',
     intro:
-      'Lean body mass is everything in your body that is not fat — muscle, bone, organs and water. Enter your details to estimate it with the Boer formula and see how it splits from your fat mass.',
+      'Explore a population-based fat-free-mass estimate from height, body weight, and sex. The Boer equation does not observe your muscle or body fat, and a numerical estimate is not a direct body-composition measurement.',
+    notice: 'If the Boer equation predicts fat-free mass above total weight, the tool withholds the result rather than reporting negative fat. It does not diagnose metabolic health or measure muscle.',
     sections: [
       {
         h2: 'How lean body mass is estimated',
         paragraphs: [
-          'This calculator uses the Boer formula, a well-regarded equation derived for estimating lean mass in adults. It is based on weight, height and sex:',
-          'For men: LBM = (0.407 × weight kg) + (0.267 × height cm) − 19.2. For women: LBM = (0.252 × weight kg) + (0.473 × height cm) − 48.3. Your estimated fat mass is then simply your total weight minus your lean body mass. The split bar above shows the two side by side.',
+          'The [original Boer 1984 study](https://pubmed.ncbi.nlm.nih.gov/6496691/) investigated estimates for normalizing fluid volumes in 66 adults. It was not a validation of individual muscle mass across all height-weight combinations. The historical regression uses weight, height and sex:',
+          'For men: LBM = (0.407 × kg) + (0.267 × cm) − 19.2. For women: LBM = (0.252 × kg) + (0.473 × cm) − 48.3. These unconstrained formulas can produce lean-mass estimates greater than body weight at extreme inputs. In that case the calculator shows no numeric result, instead of presenting a negative fat mass or over 100% lean tissue.',
         ],
       },
       {
         h2: 'Why lean body mass matters',
         paragraphs: [
-          'Lean mass — particularly muscle — drives your metabolism, strength and physical resilience. People with more lean mass burn more calories at rest, manage blood sugar better, and tend to recover and age more robustly. Preserving lean mass is especially important during weight loss: a sharp, crash diet can strip away muscle along with fat, which is one reason adequate protein and resistance training are so widely recommended.',
-          'Tracking LBM alongside body weight tells you whether changes on the scale are coming from fat or from muscle. Losing weight while keeping (or gaining) lean mass is the goal of a healthy body-recomposition plan.',
+          'Fat-free mass includes body water, muscles, organs, bone and connective tissue. A higher predicted fat-free mass by itself is not evidence of better metabolic health or more skeletal muscle. The formula does not directly measure body composition.',
+          'Since the Boer output is mechanically derived from weight and height, it cannot reveal whether a weight change came from fat, water or muscle. If your goal is tracking body composition, use consistent measurement methods with appropriate professional interpretation.',
         ],
       },
       {
         h2: 'Reading your result',
         paragraphs: [
-          'The Boer formula gives a population estimate, not a direct measurement, and it does not "see" your actual muscle. Very lean, very muscular or very high-body-fat individuals will see less accurate figures. For precise lean-mass measurement, a DEXA scan or bioelectrical impedance analysis is needed. As with body fat, the most reliable use is to track the trend under consistent conditions rather than to treat a single number as exact.',
+          'The Boer formula is a population regression, not a direct lean-mass measurement. At some allowed but extreme height-weight combinations, the predicted lean mass exceeds total weight. The calculator correctly refuses to display those nonphysical results rather than hiding them with a zero-fat clamp. If reliable body composition is needed for health decisions, discuss suitable assessment methods with a qualified clinician.',
         ],
       },
     ],
@@ -329,7 +330,7 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
       },
       {
         q: 'Why is the Boer formula used?',
-        a: 'The Boer formula is a validated equation for estimating lean mass from height, weight and sex, and is commonly used in clinical and fitness settings where a direct scan is not available.',
+        a: 'It is a historical empirical equation originally studied for normalizing body fluid measurements. Its outputs are not individually validated at every possible height-weight combination and do not replace a body-composition assessment.',
       },
       {
         q: 'How can I increase my lean body mass?',
@@ -340,7 +341,7 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
       {
         citation:
           'Boer P. "Estimated lean body mass as an index for normalization of body fluid volumes in humans." Am J Physiol. 1984;247(4 Pt 2):F632–F636.',
-        url: pubmed('Estimated lean body mass as an index for normalization of body fluid volumes'),
+        url: 'https://pubmed.ncbi.nlm.nih.gov/6496691/',
       },
     ],
   },
