@@ -39,6 +39,10 @@ const AHA_HR: Source = {
   citation: 'American Heart Association. "All About Heart Rate (Pulse)" — normal resting heart rate is 60–100 bpm.',
   url: 'https://www.heart.org/en/health-topics/high-blood-pressure/the-facts-about-high-blood-pressure/all-about-heart-rate-pulse',
 };
+const AHA_TARGET_HR: Source = {
+  citation: 'American Heart Association. "Target Heart Rates Chart" — age-predicted values are population estimates and medications can change personal training targets.',
+  url: 'https://www.heart.org/en/healthy-living/exercise-and-physical-activity/fitness-basics/target-heart-rates/',
+};
 const MAYO_HR: Source = {
   citation: 'Mayo Clinic. "What\'s a normal resting heart rate?" (Well-trained athletes may be 40–60 bpm.)',
   url: 'https://www.mayoclinic.org/healthy-lifestyle/fitness/expert-answers/heart-rate/faq-20057979',
@@ -103,15 +107,15 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
     metaDescription:
       'Find your 5 heart-rate training zones with the Karvonen method, using your age and resting heart rate. Free target heart rate calculator, no signup.',
     intro:
-      'Training in the right heart-rate zone helps you get the most from every workout. Enter your age and resting heart rate to see your maximum heart rate and your five personalised training zones.',
+      'Enter your age and a measured resting pulse to estimate maximum exercise heart rate and five Karvonen training zones. The ranges are planning estimates, not a guarantee of safety or a prescription for high-intensity exercise.',
     notice:
-      'Informational only — not a diagnosis. If you have a heart condition, or take medication that affects your heart rate (such as beta-blockers), talk to your doctor before training by heart rate.',
+      'For adults 18+. Stop exercise and call emergency services immediately for chest pain, severe shortness of breath, fainting or other serious new symptoms. A persistently unexplained very low or high resting pulse, heart conditions, and medicines such as beta-blockers require individualized clinical guidance; age-based zones are not exercise clearance.',
     sections: [
       {
         h2: 'How heart rate zones work',
         paragraphs: [
-          'Your training zones are built from two numbers: your maximum heart rate (the fastest your heart can safely beat) and your resting heart rate. The gap between them is your heart-rate reserve — the range you actually train within.',
-          'This calculator uses the Karvonen method, which is more personalised than a simple percentage of maximum because it accounts for your resting heart rate. The formula is: target = ((max HR − resting HR) × intensity %) + resting HR. A fitter person with a low resting heart rate gets zones tailored to them.',
+          'Training zones use an age-predicted maximum exercise heart rate and your measured resting pulse. The difference is heart-rate reserve; it is a mathematical range, not a medically established safe upper limit. A calculated maximum is not clearance to exercise at that intensity.',
+          'This calculator uses Karvonen heart-rate reserve: target = ((estimated max HR − resting HR) × intensity fraction) + resting HR. It offers an individualized numerical estimate from two inputs, not a measured lactate threshold, verified fitness level or medical exercise prescription. An estimated reserve under 10 bpm cannot form five distinguishable whole-bpm zones, so the calculator asks you to recheck those inputs instead of showing misleading identical ranges.',
         ],
       },
       {
@@ -120,18 +124,18 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
           intro: 'Each zone trains your body in a different way:',
           items: [
             'Zone 1 (50–60%) — very light: warming up, cooling down and recovery.',
-            'Zone 2 (60–70%) — light: builds endurance and burns a high proportion of fat.',
+            'Zone 2 (60–70%) — light: a conventional steady-effort zone, not a medically validated fat-loss threshold.',
             'Zone 3 (70–80%) — moderate: improves aerobic fitness and circulation.',
             'Zone 4 (80–90%) — hard: raises your anaerobic threshold and speed.',
-            'Zone 5 (90–100%) — maximum: short, intense bursts for peak performance.',
+            'Zone 5 (90–100%) — near an estimated maximum: not an exercise recommendation for unprepared or medically restricted users.',
           ],
         },
       },
       {
         h2: 'Using your zones',
         paragraphs: [
-          'For general health, most of your training should sit in Zones 2 and 3, with shorter efforts in Zones 4 and 5 once you have a fitness base. The popular "fat-burning zone" (Zone 2) burns the highest share of calories from fat, but higher-intensity work burns more total calories — both have a place.',
-          'Wear a heart-rate monitor or chest strap for accuracy; wrist readings can lag during quick changes in effort. Remember these zones are estimates: your true maximum heart rate can differ from the formula by 10–12 beats per minute, so use how you feel (the ability to talk, for example) as a cross-check.',
+          'For many adults, gradually building sustainable easy-to-moderate physical activity is a practical starting point. The five numerical bands are training conventions; actual exertion varies. Higher-intensity efforts are not required to benefit from activity, and the label “fat-burning zone” does not promise greater weight loss.',
+          'Wrist monitors can lag during intervals; track how you feel and whether you can talk comfortably. Individual maximum heart rates can differ substantially from age-based estimates. If your resting pulse is unusually low, persistently above 100 bpm, or close to the estimated maximum, seek clinical advice before using training zones. Stop activity and seek emergency help for chest pain, severe breathlessness or fainting.',
         ],
       },
     ],
@@ -142,14 +146,14 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
       },
       {
         q: 'What is the best heart rate zone for fat loss?',
-        a: 'Zone 2 (60–70%) burns the highest proportion of calories from fat, but higher zones burn more total calories. For weight loss, total calories burned matters most, so mix the zones.',
+        a: 'There is no single guaranteed fat-loss heart-rate zone. Choose appropriate, sustainable activity based on ability, symptoms and any medical restrictions; these estimated training zones do not prescribe vigorous exercise.',
       },
       {
         q: 'How do I find my resting heart rate?',
         a: 'Measure your pulse for 60 seconds first thing in the morning, before getting out of bed. A typical adult resting heart rate is 60–100 bpm; fitter people are often lower.',
       },
     ],
-    sources: [KARVONEN, TANAKA],
+    sources: [KARVONEN, TANAKA, AHA_TARGET_HR, AHA_HR],
   },
 
   // ============================================================

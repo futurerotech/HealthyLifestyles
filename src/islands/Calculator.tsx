@@ -762,6 +762,11 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
             {result.visual.kind === 'range' && <Range v={result.visual} />}
             {result.visual.kind === 'split' && <Split v={result.visual} />}
             {result.visual.kind === 'donut' && <Donut v={result.visual} />}
+            {slug === 'target-heart-rate-calculator' && result.callout && (
+              <p class={`calc__callout calc__callout--${result.callout.tone}`}>
+                {result.callout.text}
+              </p>
+            )}
             {result.visual.kind === 'zones' && <Zones v={result.visual} />}
 
             {result.cards && result.cards.length > 0 && (
@@ -776,7 +781,7 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
               </div>
             )}
 
-            {result.callout && (
+            {slug !== 'target-heart-rate-calculator' && result.callout && (
               <p class={`calc__callout calc__callout--${result.callout.tone}`}>
                 {result.callout.text}
               </p>
