@@ -138,5 +138,10 @@ GO/NO-GO: **NO-GO for release** until gates 1–4 are closed.
 - Report with exact replacements and drafts: `docs/editorial/PHASE3_EDITORIAL_QUALITY_20261114.md`. No CMS record changed.
 - Phase 3 engineering and offline editorial work is complete. Remaining Phase 3 items are gates: independent clinical review, then owner-authorized CMS application.
 
+## Phase 4 §8.3 site-wide responsive/accessibility QA (done; CI-blocking)
+- `scripts/seo/__tests__/site-qa-browser.test.mjs` runs against the dev server and against the production build (`dist/client`): 68 tools + 13 templates × 390/1440.
+- Eight UX/accessibility defects fixed (see `docs/release/PHASE4_SITE_QA_20261114.md`).
+- Green: run 43616480371 @ 025e00f (dev 162/0, prod 162/0, unit 314/314, content 17/17, preflight, Lighthouse).
+
 ## Next main-roadmap milestone
-Phase 4 of the Master Roadmap (next in order after Phase 3), starting from its first unfinished, authorizable task.
+Phase 4 §8.2 performance: extend the blocking Lighthouse budget from 3 URLs to every page template (tool, article, category hub, hub index) using lab data. Fix any regressions. Field CWV prioritization stays gated on authorized GA4/GSC/CrUX access.
