@@ -18,7 +18,9 @@ merge, deployment, publication, legal or clinical approval.
 | `db53357` | Last untested calculators: alcohol units, smoking cost, anti-inflammatory score, blue light (+ weight-loss %, deficit pins) | 43576208355 ✅ (unit 284/284; browser QA 0 failures) |
 | `6bc4db1` | Weight-loss timeline: no plan to a goal below BMI 18.5 or an impossible weight (goal 0 kg had a date) | 43576743663 ✅ (288/288; new browser scenario passed) |
 | `ff0eee3` | Fasting medicine caution; caffeine 400 mg wording, >400 mg single-dose flag, pregnancy <200 mg | 43577338507 ✅ (unit 294/294; browser QA 0 failures) |
-| `7a2b3fe` | Muscle preservation: always-visible kidney-disease caution beside the 1.6–2.4 g/kg target; weight bounds | **43577837753 ✅** (unit 297/297; browser QA 0 failures) |
+| `7a2b3fe` | Muscle preservation: always-visible kidney-disease caution beside the 1.6–2.4 g/kg target; weight bounds | 43577837753 ✅ (unit 297/297; browser QA 0 failures) |
+| `b2d1ded` | Last six standalone tools: lifestyle age, strength program, chronotype, sleep, breathing timer, recipe analyzer | 43583898160 ✅ (306/306; new browser scenarios passed) |
+| `e2fd47f` | Preflight verifies article tool embeds render a live calculator (Roadmap 6.3); embed/page engine parity guard | **43584650891 ✅** (307/307; live-content preflight `errors: []`) |
 
 ### Phase 2 findings fixed at `e936b48`
 - **BMI:** category bounds were inclusive (18.5 → Underweight, 25.0 → Normal, 30.0 → Overweight). Now WHO/CDC "under Y", classified on the displayed value. Adds an adult-use note.
@@ -61,6 +63,28 @@ All 38 calculators in `defs.ts` now have dedicated audit tests.
 - **Muscle preservation:** the high-protein targets (highest for ages 60+) had no kidney caution. Non-dialysis CKD is usually protein-limited (KDOQI 2020: about 0.55–0.8 g/kg). An always-visible note and a page notice were added, and the weight input now uses the site bounds. Covered by `muscle-preservation-safety.test.ts`.
 - **Caffeine:** half-life maths verified. A dose over 400 mg is now flagged. "Safe limit" became the FDA's "general daily amount for healthy adults", and pregnancy is stated as under 200 mg a day (ACOG). Covered by `caffeine-plan.test.ts`.
 
+### Last six standalone tools (`b2d1ded`)
+- **Lifestyle age:** the pulse scoring now matches the RHR checker. Below 40 bpm is not rewarded; above 100 bpm prompts a medical review.
+- **Strength:** below-bar weights are flagged, and warm-ups are always lighter than the working sets.
+- **Chronotype:** the framework is attributed to Breus and described as not validated (MEQ/MCTQ are used in research). The unsourced population shares are removed, and the Dolphin profile points to insomnia care.
+- **Sleep debt:** blank or out-of-range nights are reported. The contradictory tips are fixed, and cycle variability is stated.
+- **Breathing:** pause now resumes; only phase changes are announced; the heading is correct; a breath-hold caution was added.
+- **Recipe:** no silent 5,000-character truncation; the visitor address is forwarded, so the CMS limit is per visitor.
+- **Security review item (CMS not changed):** the CMS rate limiter trusts a client-supplied `X-Forwarded-For` on direct calls to `/api/analyze-recipe`. That endpoint calls a paid AI parser, so the limit can be bypassed (cost risk). Fixing it needs a trusted-proxy or shared-secret design and belongs to the independent security review.
+
+### Phase 2 acceptance (§6.1 inventory, §6.3 article-to-tool) — from live content
+- CI run 43584650891 built against the production CMS (read-only).
+- **Tools:** 70 routes, of which 68 are rendered pages. The other 2 are intentional permanent aliases: `body-fat-percentage-calculator` → `body-fat-calculator` and `how-much-protein-do-i-need` → `protein-intake-calculator`.
+- **Articles:** 60 published. Three legacy `/articles/` URLs redirect permanently to rendered canonical pages.
+  - *Correction:* commit `e2fd47f`'s message says "30 Wellness Hub articles". The preflight count is 60; history was not rewritten.
+- **Release preflight:** `errors: []`. It now also requires every article `toolEmbed` to render its canonical tool with a live calculator island, and that check passed on all live articles.
+- **Embed parity:** article embeds render the same engines as tool pages, guarded by a test.
+- **Phase 2 engineering is complete.** Clinical sign-off, owner merge and real staging remain external gates.
+
+### Phase 3 started
+- `docs/editorial/PHASE3_RISK_CLASSIFICATION_20261114.md` classifies all 60 published articles (12 high / 33 moderate / 15 lower) and names the §7.2 ten-article audit sample.
+- **Blocker:** article bodies exist only in the CMS, and this session's shell cannot reach the CMS host. Fetching the public article pages needs owner approval, which was requested and went unanswered.
+
 ### Tooling note
 `/home/claude/tools/tsdiag.cjs` is syntax-only and missed the `b1c9614` type error. `tscheck.cjs` (semantic; drops unresolved-module noise) reproduces it and is now used before pushing.
 
@@ -70,6 +94,7 @@ All 38 calculators in `defs.ts` now have dedicated audit tests.
 - The offline SEO title corrections are in `docs/content/CMS_SEO_CORRECTIONS_20261114.md`. No live record was changed.
 
 ## External gates (pending; not claimed)
+0. Phase 1 infrastructure verification remains pending until real Hostinger/Neon/R2 evidence exists. WHO-5 remains suspended pending licensing clearance.
 1. Owner merge authorization: frontend #56; CMS #65 → #64 → #34 → main.
 2. WHO-5 reuse decision (WHO CC BY-NC-SA 3.0 IGO vs. an ad-supported site) or written WHO permission. The hold stays until then.
 3. Independent clinical review: screeners, pregnancy and cycle tools, body-metric categories and wording.
@@ -80,4 +105,4 @@ All 38 calculators in `defs.ts` now have dedicated audit tests.
 GO/NO-GO: **NO-GO for release** until gates 1–4 are closed.
 
 ## Next main-roadmap milestone
-Phase 2 continuation: the remaining untested standalone tools. These are lifestyle age, strength program, chronotype, sleep calculator, breathing timer and recipe analyzer.
+Phase 3 §7.2: claim-level editorial audit of the ten high-risk sample articles, with corrections prepared offline as CMS-ready drafts. Prerequisite: read access to the published article text, either by approving public-page fetches in-session or through a read-only CI export of published content.
