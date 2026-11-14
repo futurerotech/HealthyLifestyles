@@ -126,5 +126,17 @@ GO/NO-GO: **NO-GO for release** until gates 1–4 are closed.
 - Verified defects: 6 wrong destinations, 4 dead URLs, 3 generic/redirected, 1 search link, 2 outdated-edition (DGA) citations, 1 inconclusive (NBK459351). 21 access-only URLs are temporary bot blocks, not defects.
 - Exact offline corrections: `docs/editorial/PHASE3_REFERENCE_AUDIT_20261114.md`. No CMS record changed.
 
+## Phase 3 §7.3/§7.5 editorial quality (done; read-only)
+- Lint: `scripts/content/editorial-lint.mjs` (same workflow; tests `scripts/seo/__tests__/editorial-lint.test.mjs`). Run 43609387700 @ 9e6f218.
+- Manual verdicts:
+  - British spelling: 2 articles.
+  - Responsible language: 2 genuine issues (12 of 14 flags were cautions).
+  - Coherence: 1 new defect (protein FAQ range) plus the 5 existing §6.3 gates.
+  - Sources: 2 articles need added sources.
+  - Body links: 4 articles lack in-copy links (no orphans, no broken links).
+  - Thin content: 10 articles under 700 words, with offline expansion drafts.
+- Report with exact replacements and drafts: `docs/editorial/PHASE3_EDITORIAL_QUALITY_20261114.md`. No CMS record changed.
+- Phase 3 engineering and offline editorial work is complete. Remaining Phase 3 items are gates: independent clinical review, then owner-authorized CMS application.
+
 ## Next main-roadmap milestone
-Phase 3 §7.3/§7.5: American-English consistency of the published CMS copy, thin-content (2–3 min) articles, internal links and article-tool coherence. Produce offline drafts only.
+Phase 4 of the Master Roadmap (next in order after Phase 3), starting from its first unfinished, authorizable task.

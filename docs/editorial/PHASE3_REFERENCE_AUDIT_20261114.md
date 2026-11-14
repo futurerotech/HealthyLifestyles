@@ -22,7 +22,8 @@ Method: read-only. No CMS record was changed and no draft was created.
 |---|---|---|
 | 43607155017 | 4261771 | failed: `readPublishedCollection` returns an array (script bug, fixed) |
 | 43607464885 | 1f00401 | 122 "mismatch" verdicts, mostly NCBI bot challenges (false positives); led to the E-utilities upgrade |
-| **43607716809** | **e2d561f** | **60 articles · 405 citations · 223 unique URLs** — ok 302 · review 29 · mismatch 18 · dead 5 · generic 4 · search-link 1 · access 46 |
+| 43607716809 | e2d561f | **60 articles · 405 citations · 223 unique URLs** — ok 302 · review 29 · mismatch 18 · dead 5 · generic 4 · search-link 1 · access 46 |
+| **43608329754** | **59acc16** | final run with Bookshelf sub-part titles ignored: ok 295 · review 28 · mismatch 17 · dead 5 · generic 4 · search-link 1 · access 55 (NBK records move from "verified" to "access"; no defect changes) |
 
 ## 2. Verdict summary (after manual verification)
 
@@ -60,7 +61,7 @@ Article IDs and slugs come from the CI article map. "Replace" means replacing th
 |---|---|---|---|
 | D1 | `alcohol-units-calculator` | CDC – Binge Drinking Fact Sheet (2024) | CDC retired that fact sheet. URL → `https://www.cdc.gov/alcohol/excessive-drinking-data/index.html` (CDC "Data on Excessive Alcohol Use": binge-drinking definition and prevalence). Label → "CDC — Data on Excessive Alcohol Use" |
 | D2 | `healthy-waist-to-height-ratio` (ID 37) | Assessing Your Weight — CDC (2023) | URL → `https://www.cdc.gov/bmi/about/index.html` ("About Body Mass Index (BMI)", live). Label to match |
-| D3 | `metabolic-age-calculator-guide` (×2 citations) | CDC — Physical Activity for a Healthy Weight | URL → `https://www.cdc.gov/healthy-weight-growth/physical-activity/index.html` (verified: "Physical Activity and Your Weight and Health", reviewed Apr 7, 2026) |
+| D3 | `metabolic-age-calculator-guide` ("CDC — Physical Activity for a Healthy Weight") and `calories-burned-calculator-guide` ("CDC — Physical Activity") | same dead URL `/physical-activity-basics/index.html` | URL → `https://www.cdc.gov/healthy-weight-growth/physical-activity/index.html` (verified: "Physical Activity and Your Weight and Health", reviewed Apr 7, 2026) |
 | D4 | `hidden-calories-in-alcohol-and-weight-loss` | NIAAA – What's a Standard Drink? (Rethinking Drinking) | URL → `https://www.niaaa.nih.gov/alcohols-effects-health/what-standard-drink` (verified: "What Is A Standard Drink?", updated Dec 2025; about 14 g pure alcohol) |
 
 ### 3.3 Generic, redirected, search and outdated links
@@ -96,7 +97,7 @@ Article IDs and slugs come from the CI article map. "Replace" means replacing th
 
 ## 4. Articles affected and release coupling
 
-Articles with at least one §7.4 defect: `how-much-water-should-you-drink-a-day`, `lean-body-mass-calculator-guide`, `healthy-waist-to-height-ratio` (W3, D2, R1, plus the §6.3 wrong-primary gate), `how-to-keep-muscle-while-losing-weight`, `how-long-does-it-take-to-lose-weight`, `due-date-by-conception-date`, `alcohol-units-calculator`, `metabolic-age-calculator-guide`, `hidden-calories-in-alcohol-and-weight-loss`, `how-to-build-a-meal-plan`, `sleep-chronotypes-explained`.
+Articles with at least one §7.4 defect: `how-much-water-should-you-drink-a-day`, `lean-body-mass-calculator-guide`, `healthy-waist-to-height-ratio` (W3, D2, R1, plus the §6.3 wrong-primary gate), `how-to-keep-muscle-while-losing-weight`, `how-long-does-it-take-to-lose-weight`, `due-date-by-conception-date`, `alcohol-units-calculator`, `metabolic-age-calculator-guide`, `calories-burned-calculator-guide`, `hidden-calories-in-alcohol-and-weight-loss`, `how-to-build-a-meal-plan`, `sleep-chronotypes-explained`.
 
 Four of them are among the **12 coupled articles** whose descriptions depend on PR #56: keep-muscle, weight-loss timeline, alcohol units and chronotypes. Apply their reference corrections in the same coordinated release as their description changes, after PR #56 is merged. The other corrections are independent of the frontend release.
 
