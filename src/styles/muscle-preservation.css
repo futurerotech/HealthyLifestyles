@@ -45,7 +45,7 @@
   color: var(--muted);
 }
 .mp__units button.is-on {
-  background: var(--green-primary);
+  background: var(--green-700);
   color: #fff;
 }
 .mp__grid {
@@ -284,7 +284,7 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--green-primary);
+  background: var(--green-700);
   color: #fff;
   font-size: 0.75rem;
   font-weight: 800;

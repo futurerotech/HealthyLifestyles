@@ -13,7 +13,7 @@
 .wo__wt input { flex: 1; min-width: 0; }
 .wo__units { display: inline-flex; border: 1.5px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
 .wo__units button { border: 0; background: var(--surface-2); padding: 0 0.8rem; font-weight: 700; font-size: 0.82rem; color: var(--muted); }
-.wo__units button.is-on { background: var(--green-primary); color: #fff; }
+.wo__units button.is-on { background: var(--green-700); color: #fff; }
 
 .wo__result { padding: clamp(1.5rem, 4vw, 2rem); }
 .wo__food-line { margin: 0 0 1.25rem; font-size: 1.05rem; color: #334155; text-align: center; }

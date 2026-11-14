@@ -498,7 +498,8 @@ const medicalLd = {
     font-size: 0.82rem;
     padding: 0.35rem 0.8rem;
     border-radius: var(--radius-pill);
-    color: var(--c);
+    /* Text in a darker mix of the category hue: 4.5:1+ on its tint for every category color. */
+    color: color-mix(in srgb, var(--c) 55%, #000);
     background: color-mix(in srgb, var(--c) 12%, white);
     border: 1px solid color-mix(in srgb, var(--c) 28%, white);
   }

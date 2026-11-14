@@ -44,7 +44,7 @@
   color: var(--muted);
 }
 .la__units button.is-on {
-  background: var(--green-primary);
+  background: var(--green-700);
   color: #fff;
 }
 

@@ -113,7 +113,7 @@
   transition: background 0.15s ease, color 0.15s ease;
 }
 .seg__btn.is-active {
-  background: var(--green-primary);
+  background: var(--green-700);
   color: #fff;
 }
 
@@ -160,7 +160,7 @@
   font-size: 0.85rem;
   padding: 0.35rem 0.8rem;
   border-radius: var(--radius-pill);
-  color: var(--badge);
+  color: color-mix(in srgb, var(--badge) 55%, #000); /* 4.5:1+ on its tint for every band color */
   background: color-mix(in srgb, var(--badge) 14%, white);
   border: 1px solid color-mix(in srgb, var(--badge) 30%, white);
 }
@@ -279,7 +279,7 @@
   position: absolute;
   top: -1px;
   bottom: -1px;
-  background: var(--green-primary);
+  background: var(--green-700);
   border-radius: var(--radius-pill);
 }
 .rangebar__labels {
@@ -801,7 +801,7 @@
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 .quiz__opt:has(input:checked) span {
-  background: var(--green-primary);
+  background: var(--green-700);
   border-color: var(--green-primary);
   color: #fff;
 }

@@ -150,7 +150,9 @@ test('site-wide 390px and desktop QA: overflow, names, target size, images, head
         if (c.fails.length) fail('contrast (WCAG 1.4.3/1.4.11) ' + JSON.stringify(c.fails.slice(0, 10)));
 
         if (TEMPLATES.includes(path) || STATE_TOOLS.some((t) => path === '/tools/' + t)) {
-          // Focus indicators, reached the way a keyboard user reaches them.
+          // Focus indicators, reached the way a keyboard user reaches them. Transitions are paused
+          // so the settled focus/hover style is measured, not a mid-transition frame.
+          await s.js("(()=>{const st=document.createElement('style');st.id='qa-no-motion';st.textContent='*,*::before,*::after{transition:none!important;animation:none!important}';document.head.append(st);})()");
           await s.js('document.activeElement?.blur(); scrollTo(0,0)');
           await s.js(FOCUS_BASELINE);
           const seenFocus = new Set();
@@ -175,6 +177,7 @@ test('site-wide 390px and desktop QA: overflow, names, target size, images, head
             if (h.fails.length) fail('hover-state contrast ' + JSON.stringify(h.fails));
           }
           await s.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 1, y: 1 });
+          await s.js("document.getElementById('qa-no-motion')?.remove()");
         }
       }
     }

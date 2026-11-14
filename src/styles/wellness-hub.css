@@ -841,7 +841,7 @@
   text-decoration: none;
 }
 .wh-pagination .is-current {
-  background: var(--green-primary);
+  background: var(--green-700);
   border-color: var(--green-primary);
   color: #fff;
 }

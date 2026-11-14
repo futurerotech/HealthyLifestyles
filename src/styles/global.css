@@ -210,7 +210,7 @@ p {
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--green-primary);
+  color: var(--green-700); /* 4.8:1 on mint; green-primary was 3.15:1 */
 }
 
 .text-accent {
@@ -318,7 +318,7 @@ p {
 }
 
 .btn-primary {
-  background: var(--green-primary);
+  background: var(--green-700);
   color: #fff;
   box-shadow: var(--shadow-green);
 }
@@ -377,7 +377,11 @@ p {
 
 /* ---------- Accessibility ---------- */
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: none;
+  /* WCAG 2.2 SC 1.4.11 / 2.4.7: a solid 3:1+ indicator. The soft brand ring alone
+     (35% green) measured 1.35:1 on white. --focus-outline flips to the accent green
+     on dark surfaces (footer, assistant bar). */
+  outline: 2px solid var(--focus-outline, var(--green-700));
+  outline-offset: 2px;
   box-shadow: var(--focus-ring);
   border-radius: 6px;
 }
@@ -387,7 +391,7 @@ p {
   left: 1rem;
   top: -100px;
   z-index: 200;
-  background: var(--green-primary);
+  background: var(--green-700);
   color: #fff;
   padding: 0.7rem 1.1rem;
   border-radius: var(--radius-sm);
@@ -469,7 +473,7 @@ p {
    rule, so it isn't outranked by unlayered globals the way a component-scoped
    rule would be. */
 .social-btn.is-copied {
-  background: var(--green-primary);
+  background: var(--green-700);
   border-color: var(--green-primary);
   color: #fff;
 }
@@ -615,7 +619,7 @@ p {
   cursor: default;
 }
 .result-action--primary {
-  background: var(--green-primary);
+  background: var(--green-700);
   border-color: var(--green-primary);
   color: #fff;
   box-shadow: 0 8px 20px -8px color-mix(in srgb, var(--green-primary) 70%, transparent);
@@ -869,7 +873,7 @@ html[data-theme='dark'] .site-header[data-state='scrolled'] {
   box-shadow: var(--focus-ring);
 }
 [data-theme='dark'] .btn-primary {
-  background: var(--green-primary);
+  background: var(--green-700);
   color: #fff;
 }
 [data-theme='dark'] .btn-primary:hover {
