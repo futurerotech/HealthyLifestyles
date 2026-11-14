@@ -1,0 +1,24 @@
+name: Data snapshots (reviewed refresh)
+
+# Prints the BLS average-price snapshot for human review. Read-only: it never
+# commits, deploys or writes anywhere.
+on:
+  pull_request:
+    paths:
+      - 'scripts/data/bls-price-snapshot.mjs'
+      - '.github/workflows/data-snapshots.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/data/bls-price-snapshot.mjs
