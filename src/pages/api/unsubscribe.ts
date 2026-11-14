@@ -19,7 +19,7 @@ export const POST: APIRoute = async ({ request }) => {
     return json({ ok: false, message: 'This unsubscribe link is invalid or has expired.' }, 400);
   }
   try {
-    const res = await fetch(`${cmsUrl.replace(/\/$/, '')}/api/subscribers/unsubscribe`, {
+    const res = await fetch(`${cmsUrl.replace(/\/$/, '')}/api/subscriber-unsubscribe`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token }),
