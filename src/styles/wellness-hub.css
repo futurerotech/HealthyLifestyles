@@ -295,7 +295,7 @@
   font-size: 0.82rem;
   padding: 0.35rem 0.8rem;
   border-radius: var(--radius-pill);
-  color: var(--c);
+  color: color-mix(in srgb, var(--c) 55%, #000);
   background: color-mix(in srgb, var(--c) 12%, white);
   border: 1px solid color-mix(in srgb, var(--c) 28%, white);
 }

@@ -74,7 +74,13 @@ export const contrastAudit = (rootExpr = 'document.body') => `(() => { ${CONTRAS
     const fill = over(rgba(cs.backgroundColor), parentBg.bg);
     const widths = [cs.borderTopWidth, cs.borderRightWidth, cs.borderBottomWidth, cs.borderLeftWidth].map(parseFloat);
     const borders = [cs.borderTopColor, cs.borderRightColor, cs.borderBottomColor, cs.borderLeftColor].map((c, i) => widths[i] > 0 ? ratio(over(rgba(c), parentBg.bg), parentBg.bg) : 0);
-    const boundary = Math.max(...borders, ratio(fill, parentBg.bg));
+    let boundary = Math.max(...borders, ratio(fill, parentBg.bg));
+    // A borderless field inside a bordered wrapper: the wrapper is the visible boundary.
+    if (boundary < 3 && widths.every((w) => w === 0)) for (let a = f.parentElement, k = 0; a && k < 2; a = a.parentElement, k++) {
+      const acs = getComputedStyle(a); const aw = parseFloat(acs.borderBottomWidth);
+      if (aw > 0 || rgba(acs.backgroundColor)[3] > 0) { const ab = bgOf(a.parentElement); if (ab.indeterminate) break;
+        boundary = Math.max(aw > 0 ? ratio(over(rgba(acs.borderBottomColor), ab.bg), ab.bg) : 0, ratio(over(rgba(acs.backgroundColor), ab.bg), ab.bg)); break; }
+    }
     checked++;
     if (boundary + 0.005 < 3) fails.push(label(f) + ' field boundary ' + boundary.toFixed(2) + ':1 (border ' + cs.borderBottomColor + ' on ' + hex(parentBg.bg) + ', needs 3 — SC 1.4.11)');
     if (f.placeholder && !f.value) {
@@ -93,7 +99,7 @@ export const CONTRAST_AUDIT = contrastAudit();
 const LOOK = `const __look = (e) => { const cs = getComputedStyle(e); return { outline: cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0 ? cs.outlineColor : '', shadow: cs.boxShadow, border: cs.borderBottomColor + ' ' + cs.borderBottomWidth, other: cs.backgroundColor + '|' + cs.color + '|' + cs.textDecorationLine }; };`;
 export const FOCUS_BASELINE = `(() => { ${LOOK}
   window.__fbase = new Map();
-  for (const e of document.querySelectorAll('a[href], button, input, select, textarea, summary, [tabindex]')) window.__fbase.set(e, __look(e));
+  for (const e of document.querySelectorAll('a[href], button, input, select, textarea, summary, [tabindex]')) for (const n of [e, e.parentElement, e.parentElement?.parentElement]) if (n && !window.__fbase.has(n)) window.__fbase.set(n, __look(n));
   return window.__fbase.size; })()`;
 export const FOCUS_CONTRAST = `(() => { ${CONTRAST_FNS} ${LOOK}
   const e = document.activeElement; if (!e || e === document.body) return null;
@@ -104,7 +110,17 @@ export const FOCUS_CONTRAST = `(() => { ${CONTRAST_FNS} ${LOOK}
   if (now.outline && now.outline !== base.outline) cands.push(['outline', now.outline]);
   if (now.shadow !== base.shadow && now.shadow !== 'none') for (const m of now.shadow.matchAll(/(rgba?\\([^)]+\\)|#[0-9a-f]{3,8})/gi)) cands.push(['ring', m[1]]);
   if (now.border !== base.border) cands.push(['border', now.border.split(' ').slice(0, -1).join(' ')]);
-  const best = cands.map(([k, c]) => [k, ratio(over(rgba(c), around.bg), around.bg), c]).sort((a, b) => b[1] - a[1])[0];
+  let best = cands.map(([k, c]) => [k, ratio(over(rgba(c), around.bg), around.bg), c]).sort((a, b) => b[1] - a[1])[0];
+  // :focus-within indicators on a wrapper (up to two levels) count as the control's indicator.
+  for (let a = e.parentElement, k = 0; !best && a && k < 2; a = a.parentElement, k++) {
+    const b0 = window.__fbase?.get(a), n0 = __look(a); if (!b0) continue;
+    const ab = bgOf(a.parentElement || a); if (ab.indeterminate) continue;
+    const c2 = [];
+    if (n0.outline && n0.outline !== b0.outline) c2.push(['wrapper outline', n0.outline]);
+    if (n0.shadow !== b0.shadow && n0.shadow !== 'none') for (const m of n0.shadow.matchAll(/(rgba?\([^)]+\)|#[0-9a-f]{3,8})/gi)) c2.push(['wrapper ring', m[1]]);
+    if (n0.border !== b0.border) c2.push(['wrapper border', n0.border.split(' ').slice(0, -1).join(' ')]);
+    best = c2.map(([kk, c]) => [kk, ratio(over(rgba(c), ab.bg), ab.bg), c]).sort((x, y) => y[1] - x[1])[0];
+  }
   // Focus shown only through a fill, text color or underline change is a visible indicator whose
   // geometry this check cannot rate; it passes here and is listed for manual review.
   const otherOnly = !best && now.other !== base.other;
