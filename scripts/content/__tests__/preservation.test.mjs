@@ -144,3 +144,25 @@ test('a tool-focused article must embed its primary tool: wrong and missing embe
   assert.match(checkArticleToolGates([art('waist-to-height-ratio-calculator', 'bmi-calculator')], [gate])[0], /no longer matches the live record/);
   assert.match(checkArticleToolGates([], [gate])[0], /does not match any published article/);
 });
+
+test('an editorially recorded intended tool catches a wrong primaryTool relationship', async () => {
+  const { articleToolIntegration, checkArticleToolGates } = await import('../preflight.mjs');
+  const doc = { id: 9, slug: 'healthy-waist-to-height-ratio', primaryTool: { slug: 'lean-body-mass-calculator' }, layout: [{ blockType: 'toolEmbed', tool: { slug: 'lean-body-mass-calculator' } }] };
+  // Without the editorial expectation, relation and embed agree, so it looks consistent.
+  assert.equal(articleToolIntegration(doc), null);
+  assert.deepEqual(articleToolIntegration(doc, 'waist-to-height-ratio-calculator'), { kind: 'wrong-primary', expected: 'waist-to-height-ratio-calculator', actual: 'lean-body-mass-calculator,lean-body-mass-calculator' });
+  assert.match(checkArticleToolGates([doc], [], { 'healthy-waist-to-height-ratio': 'waist-to-height-ratio-calculator' })[0], /editorial audit's intended tool is waist-to-height-ratio-calculator/);
+  const fixed = { ...doc, primaryTool: { slug: 'waist-to-height-ratio-calculator' }, layout: [{ blockType: 'toolEmbed', tool: { slug: 'waist-to-height-ratio-calculator' } }] };
+  assert.deepEqual(checkArticleToolGates([fixed], [], { 'healthy-waist-to-height-ratio': 'waist-to-height-ratio-calculator' }), []);
+});
+
+test('the committed gate file is well-formed and every gate names its correction', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const g = JSON.parse(await readFile(new URL('../article-tool-gates.json', import.meta.url), 'utf8'));
+  assert.ok(Array.isArray(g.gates) && typeof g.editorialPrimary === 'object');
+  for (const x of g.gates) {
+    for (const k of ['id', 'slug', 'kind', 'expected', 'evidence', 'correction']) assert.ok(x[k] !== undefined && x[k] !== '', `${x.slug}: ${k}`);
+    assert.ok(['missing', 'wrong', 'wrong-primary'].includes(x.kind));
+  }
+  assert.equal(new Set(g.gates.map((x) => String(x.id))).size, g.gates.length);
+});

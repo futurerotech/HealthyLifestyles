@@ -75,14 +75,25 @@ const relSlug = (rel) => (rel && typeof rel === 'object' ? rel.slug : typeof rel
  * are not required to embed anything. Returns null when the article is
  * consistent, otherwise { kind: 'missing' | 'wrong', expected, actual }.
  */
-export function articleToolIntegration(doc) {
+const canon = (slug) => contract.toolAliases[slug] || slug;
+export const embeddedTools = (doc) => [...new Set((doc.layout || []).filter((b) => b?.blockType === 'toolEmbed')
+  .map((b) => relSlug(b.tool)).filter(Boolean).map(canon))].sort();
+
+/**
+ * `editorialPrimary` is the intended tool recorded by the editorial audit, for
+ * cases where the primaryTool relationship itself is wrong (embed and relation
+ * both point at the wrong calculator, so the embed rule alone cannot see it).
+ */
+export function articleToolIntegration(doc, editorialPrimary) {
   const primary = relSlug(doc.primaryTool);
+  const embedded = embeddedTools(doc);
+  if (editorialPrimary && canon(primary) !== canon(editorialPrimary)) {
+    return { kind: 'wrong-primary', expected: canon(editorialPrimary), actual: [canon(primary) || '(none)', ...embedded].join(',') };
+  }
   if (!primary) return null;
-  const expected = contract.toolAliases[primary] || primary;
-  const embedded = (doc.layout || []).filter((b) => b?.blockType === 'toolEmbed')
-    .map((b) => relSlug(b.tool)).filter(Boolean).map((s) => contract.toolAliases[s] || s);
+  const expected = canon(primary);
   if (embedded.includes(expected)) return null;
-  return { kind: embedded.length ? 'wrong' : 'missing', expected, actual: [...new Set(embedded)].sort().join(',') };
+  return { kind: embedded.length ? 'wrong' : 'missing', expected, actual: embedded.join(',') };
 }
 
 /**
@@ -90,15 +101,18 @@ export function articleToolIntegration(doc) {
  * Any unlisted defect fails; a listed gate that no longer matches the live
  * record (fixed, changed or unpublished) also fails, so the list cannot go stale.
  */
-export function checkArticleToolGates(articles, gates = []) {
+export function checkArticleToolGates(articles, gates = [], editorialPrimary = {}) {
   const errors = [];
   const byId = new Map(gates.map((g) => [String(g.id), g]));
   for (const doc of articles) {
-    const finding = articleToolIntegration(doc);
+    const finding = articleToolIntegration(doc, editorialPrimary[doc.slug]);
     const gate = byId.get(String(doc.id));
     byId.delete(String(doc.id));
     const where = `articles ID ${doc.id} (${doc.slug})`;
-    if (finding && !gate) errors.push(`${where}: ${finding.kind === 'missing' ? 'primary tool ' + finding.expected + ' is not embedded' : 'embeds ' + finding.actual + ' instead of primary tool ' + finding.expected} (Roadmap 6.3)`);
+    const what = finding?.kind === 'missing' ? `primary tool ${finding.expected} is not embedded`
+      : finding?.kind === 'wrong' ? `embeds ${finding.actual} instead of primary tool ${finding.expected}`
+      : `primaryTool/embeds are ${finding?.actual}, but the editorial audit's intended tool is ${finding?.expected}`;
+    if (finding && !gate) errors.push(`${where}: ${what} (Roadmap 6.3)`);
     else if (finding && gate && (gate.slug !== doc.slug || gate.kind !== finding.kind || gate.expected !== finding.expected || (gate.actual || '') !== finding.actual)) errors.push(`${where}: article-tool gate no longer matches the live record (${JSON.stringify(finding)}); review and update the gate`);
     else if (!finding && gate) errors.push(`${where}: article-tool gate is stale (the article is now consistent); remove it from article-tool-gates.json`);
   }
@@ -162,7 +176,7 @@ export function hasPermanentRedirect(config, from, to) {
   return (config?.routes || []).some((route) => route.src === `^${from}$` && [301, 308].includes(route.status) && (route.headers?.Location || route.headers?.location) === to);
 }
 
-export async function verifyContent({ inventory, manifest, readHtml, readRedirect, baseline, requireReleaseProvenance = true, toolGates = [] }) {
+export async function verifyContent({ inventory, manifest, readHtml, readRedirect, baseline, requireReleaseProvenance = true, toolGates = { gates: [], editorialPrimary: {} } }) {
   const errors = [], documents = [];
   if (requireReleaseProvenance && (manifest.version !== 1 || manifest.source !== 'cms' || manifest.buildKind !== 'cms' || manifest.cmsOrigin !== inventory.cmsOrigin)) errors.push('Build is not a direct, complete build from the expected production CMS (fixture/offline/diagnostic builds cannot pass).');
   if (!Array.isArray(manifest.records) || !Array.isArray(manifest.collections)) return { errors: ['Missing/incomplete content manifest'], documents, counts: {} };
@@ -209,8 +223,10 @@ export async function verifyContent({ inventory, manifest, readHtml, readRedirec
     const expectedIds = new Set((inventory.collections[collection] || []).map((d) => String(d.id)));
     for (const record of manifest.records.filter((r) => r.collection === collection)) if (!expectedIds.has(record.docId)) errors.push(`Unexpected/stale ${collection} document in build: ID ${record.docId}`);
   }
-  errors.push(...checkArticleToolGates(inventory.collections.articles || [], toolGates));
-  return { checkedAt: new Date().toISOString(), scope: ['published articles', 'published enabled tools and legacy redirects', 'published CMS pages', 'published pSEO pages'], cmsOrigin: inventory.cmsOrigin, errors, documents, counts };
+  errors.push(...checkArticleToolGates(inventory.collections.articles || [], toolGates.gates, toolGates.editorialPrimary));
+  // Article-to-tool map (id, slug, primaryTool, embeds) for review and audits.
+  const articleTools = (inventory.collections.articles || []).map((d) => ({ id: d.id, slug: d.slug, primaryTool: canon(relSlug(d.primaryTool)) || null, embeds: embeddedTools(d) }));
+  return { articleTools, checkedAt: new Date().toISOString(), scope: ['published articles', 'published enabled tools and legacy redirects', 'published CMS pages', 'published pSEO pages'], cmsOrigin: inventory.cmsOrigin, errors, documents, counts };
 }
 
 export async function verifyOutput({ dist = 'dist/client', inventory, baseline, requireReleaseProvenance = true, providerDir } = {}) {
@@ -220,7 +236,7 @@ export async function verifyOutput({ dist = 'dist/client', inventory, baseline, 
   const config = providerDir ? await readFile(join(providerDir, '..', 'config.json'), 'utf8').then(JSON.parse).catch(() => null) : null;
   // Reviewed list of known live article-to-tool defects (Roadmap 6.3). Each entry is a
   // release gate for a CMS content correction; it is not an exemption.
-  const toolGates = JSON.parse(await readFile(new URL('./article-tool-gates.json', import.meta.url), 'utf8')).gates;
+  const toolGates = JSON.parse(await readFile(new URL('./article-tool-gates.json', import.meta.url), 'utf8'));
   const result = await verifyContent({ inventory, manifest, readHtml, readRedirect: (from, to) => hasPermanentRedirect(config, from, to), baseline, requireReleaseProvenance, toolGates });
   if (providerDir) {
     const receipt = await readFile(join(providerDir, 'content-manifest.json'), 'utf8').catch(() => null);
@@ -275,7 +291,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     const baseline = JSON.parse(await readFile(new URL('./production-baseline.json', import.meta.url), 'utf8'));
     const inventory = await readPublishedInventory(baseline.cmsOrigin);
     const result = await verifyOutput({ inventory, baseline, providerDir: resolve('.vercel/output/static') });
-    console.log(JSON.stringify({ contentComplete: result.contentComplete, counts: result.counts, errors: result.errors, cmsToolCopy: cmsToolCopyReport(inventory) }, null, 2));
+    console.log(JSON.stringify({ contentComplete: result.contentComplete, counts: result.counts, errors: result.errors, articleTools: result.articleTools, cmsToolCopy: cmsToolCopyReport(inventory) }, null, 2));
     if (!result.contentComplete) process.exitCode = 1;
   } catch (error) { console.error(`CONTENT PREFLIGHT BLOCKED: ${error.message}`); process.exitCode = 1; }
 }
