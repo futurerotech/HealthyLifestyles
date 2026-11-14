@@ -35,7 +35,7 @@ export const RISK_CONTENT: Record<string, ToolContent> = {
     },
     seoTitle: 'Healthspan Score – Free Healthy-Habits Calculator',
     metaDescription:
-      'Score your everyday habits (0–100) against WHO and CDC lifestyle guidance and see which habits have the most remaining model points. Educational — not a lifespan prediction.',
+      'Score everyday habits (0–100) against WHO and CDC guidance and see which habits have the most model points left. Educational, not a lifespan prediction.',
     intro:
       'Answer ten quick questions about your everyday habits and get a transparent 0–100 healthspan-habits score — with a bar for every factor and your largest remaining point gaps. It reflects habits linked with more healthy years, not a prediction of your lifespan.',
     notice:

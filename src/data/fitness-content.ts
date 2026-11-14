@@ -86,7 +86,7 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
   'sitting-disease-reversal-calculator': {
     seoTitle: 'Sitting & Movement Break Planner — Optional Steps and NEAT',
     metaDescription:
-      'Explore optional breaks and step ideas for a sitting day. No step count can guarantee reversal of sitting-related health effects; calorie numbers are approximate.',
+      'Explore optional breaks and step ideas for a sitting day. No step count guarantees reversal of sitting-related health effects; calories are approximate.',
     intro:
       'Enter your sitting hours, weight, and usual steps to explore optional movement ideas. The step increments and break cadence are illustrative heuristics, not evidence-based prescriptions, clinical categories, or a way to undo sedentary-health risk.',
     notice:

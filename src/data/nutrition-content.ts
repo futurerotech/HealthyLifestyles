@@ -409,7 +409,7 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
   'water-intake-calculator': {
     seoTitle: 'Water Intake Calculator (Liters & oz)',
     metaDescription:
-      'Calculate how much water to drink each day from your body weight and activity. Get your target in liters and fluid ounces. Free, no signup.',
+      'Estimate your total daily fluid from body weight and activity, and the part from drinks, in liters and fluid ounces. A rule of thumb, not a target or limit.',
     intro:
       'How much water you need depends on your size and how active you are. Enter your weight and activity level to get a daily target in both liters and fluid ounces.',
     sections: [

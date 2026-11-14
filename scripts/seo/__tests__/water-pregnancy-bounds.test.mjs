@@ -168,3 +168,21 @@ test('pregnancy: limitations are stated — singleton only, estimate not target,
   assert.match(r.note, /our estimate/);
   assert.match(r.note, /confirm your targets with your OB-GYN/);
 });
+
+test('search metadata matches the corrected results (no "target" for water or the by-week range)', () => {
+  const nutrition = readFileSync(new URL('../../../src/data/nutrition-content.ts', import.meta.url), 'utf8');
+  const womens = readFileSync(new URL('../../../src/data/womens-content.ts', import.meta.url), 'utf8');
+  const meta = (src, slug) => {
+    const i = src.indexOf(`'${slug}': {`);
+    return src.slice(i, src.indexOf('sections:', i)).match(/metaDescription:\s*'([^']*)'/)[1];
+  };
+  const water = meta(nutrition, 'water-intake-calculator');
+  assert.match(water, /total daily fluid/);
+  assert.match(water, /not a target or limit/);
+  assert.ok(water.length <= 160, water.length);
+  const preg = meta(womens, 'pregnancy-weight-gain-calculator');
+  assert.match(preg, /estimated range for your current week/);
+  assert.match(preg, /single baby/);
+  assert.doesNotMatch(preg, /healthy target/);
+  assert.ok(preg.length <= 160, preg.length);
+});

@@ -228,7 +228,7 @@ export const WOMENS_CONTENT: Record<string, ToolContent> = {
   'pregnancy-weight-gain-calculator': {
     seoTitle: 'Pregnancy Weight Gain Calculator (IOM)',
     metaDescription:
-      'See your recommended pregnancy weight-gain range by pre-pregnancy BMI using IOM guidelines, plus a healthy target for your current week. Free.',
+      'See the IOM recommended pregnancy weight-gain range for your pre-pregnancy BMI, plus an estimated range for your current week. For a single baby. Free.',
     intro:
       'Healthy pregnancy weight gain depends on your weight before pregnancy. Enter your details to see your recommended total gain and a healthy target for the week you’re in, based on IOM guidelines.',
     notice: OBGYN_NOTICE,
