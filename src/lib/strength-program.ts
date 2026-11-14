@@ -59,6 +59,9 @@ export interface LiftProgram {
   warmups: WarmupSet[];
   /** Top working-set weight per week (for the progression chart). */
   topWeights: number[];
+  /** Some prescribed weights are lighter than an empty barbell (20 kg / 45 lb). */
+  belowBar: boolean;
+  barWeight: number;
 }
 
 export interface DaySchedule {
@@ -146,7 +149,10 @@ function buildLift(input: LiftInput, goal: Goal, experience: Experience, units: 
     { label: '~50% × 5', weight: roundToIncrement(0.5 * w1, units) },
     { label: '~70% × 3', weight: roundToIncrement(0.7 * w1, units) },
     { label: '~90% × 1', weight: roundToIncrement(0.9 * w1, units) },
-  ].filter((wu, idx) => idx === 0 || wu.weight > bar); // drop warm-ups lighter than the bar
+  ]
+    // Warm-ups must be lighter than the first working set (the empty bar was
+    // listed even when the working weight was below it) and above the bar.
+    .filter((wu, idx) => (idx === 0 ? bar < w1 : wu.weight > bar) && wu.weight < w1);
 
   return {
     key: input.key,
@@ -155,6 +161,8 @@ function buildLift(input: LiftInput, goal: Goal, experience: Experience, units: 
     weeks,
     warmups,
     topWeights: weeks.map((w) => w.weight),
+    belowBar: weeks.some((w) => w.weight < bar),
+    barWeight: bar,
   };
 }
 

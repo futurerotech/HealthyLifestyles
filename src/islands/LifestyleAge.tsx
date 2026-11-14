@@ -300,6 +300,7 @@ export default function LifestyleAge() {
       {/* ---------------- Result ---------------- */}
       {result && (
         <div class="la__result" ref={resultRef}>
+          {result.pulseNotice && <p class="la__error" role="note">{result.pulseNotice}</p>}
           <p class="sr-only" role="status" aria-live="polite">
             Your estimated lifestyle age is {result.low} to {result.high}; your real age is {result.realAge}.
           </p>

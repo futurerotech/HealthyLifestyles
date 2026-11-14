@@ -107,7 +107,7 @@ function SleepCycleCalc() {
                 </li>
               ))}
             </ul>
-            <p class="calc__note">Most adults do best with 5-6 full cycles (7.5-9 hours). Waking at the end of a cycle helps you feel refreshed rather than groggy.</p>
+            <p class="calc__note">Most adults need 7–9 hours of sleep; 5–6 cycles is about 7.5–9 hours. Cycle length varies between people and through the night (roughly 70–120 minutes), so treat these times as approximate — a consistent schedule matters more than exact timing.</p>
             <div class="calc__callout calc__callout--info">
               <strong>Circadian tip:</strong> Get bright light (ideally outdoors) within 30 minutes of waking to anchor your body clock. Dim lights and screens 60 minutes before bed.
             </div>
@@ -175,6 +175,10 @@ function SleepDebtCalc() {
   const [target, setTarget] = useState('8');
   const [days, setDays] = useState<string[]>(['7', '6.5', '7', '6', '8', '7.5', '6.5']);
 
+  // Blank or out-of-range entries were silently counted (a blank night as 0 h).
+  const inRange = (v: string, lo: number, hi: number) => { const n = Number(v.trim()); return v.trim() !== '' && Number.isFinite(n) && n >= lo && n <= hi; };
+  const targetOk = inRange(target, 4, 12);
+  const badNights = DAY_LABELS.filter((_, i) => !inRange(days[i], 0, 14));
   const T = parseFloat(target) || 0;
   const actuals = days.map((d) => parseFloat(d) || 0);
   const totalActual = actuals.reduce((a, b) => a + b, 0);
@@ -192,7 +196,7 @@ function SleepDebtCalc() {
 
   const tips = inDebt
     ? [
-        'Repay debt gradually — add 1–2 extra hours per night, not one long weekend lie-in.',
+        'Repay debt gradually over several nights — about 30–60 extra minutes a night — rather than one long weekend lie-in.',
         'Go to bed 30–60 minutes earlier rather than sleeping in late, to protect your body clock.',
         'Keep a consistent wake-up time every day, including weekends.',
         'A short early-afternoon nap (10–20 minutes) can ease daytime sleepiness while you recover.',
@@ -235,6 +239,12 @@ function SleepDebtCalc() {
       </div>
 
       <div class="calc__result" aria-live="polite">
+        {!targetOk || badNights.length > 0 ? (
+          <p class="calc__callout calc__callout--warn" role="status">
+            {!targetOk ? 'Enter a target between 4 and 12 hours. ' : ''}
+            {badNights.length > 0 ? `Enter hours slept between 0 and 14 for: ${badNights.join(', ')}.` : ''}
+          </p>
+        ) : (<>
         <div class="calc__headline">
           <span class="calc__result-label">Weekly sleep {inDebt ? 'debt' : 'balance'}</span>
           <span class="calc__value">{round1(Math.abs(debt))} hrs</span>
@@ -263,6 +273,7 @@ function SleepDebtCalc() {
         <div class="calc__callout calc__callout--info">
           <strong>Circadian tip:</strong> To repay sleep debt, go to bed 30-60 min earlier rather than sleeping in - a consistent wake time protects your body clock. Get morning light to lock the rhythm in.
         </div>
+        </>)}
       </div>
     </div>
   );
