@@ -259,6 +259,7 @@ test('changed calculators: hydration, interaction, 390px and desktop fit, access
       await send('Page.navigate', { url: origin + '/tools/' + slug });
       try {
         await until(() => js("location.pathname==='/tools/" + slug + "'&&!!document.querySelector('.tool__calc .quiz')"), 'quiz DOM', 45000);
+        await js("document.querySelector('.tool__calc').scrollIntoView({block:'start'})"); // client:visible
         await until(() => js("(()=>{const i=document.querySelector('.tool__calc astro-island');return !!i&&!i.hasAttribute('ssr')})()"), 'quiz hydration', 30000);
         const initial = await js(`(() => { const r = document.querySelector('.tool__calc');
           return { checked: r.querySelectorAll('input[type=radio]:checked').length, progress: r.querySelector('.quiz__progress')?.textContent ?? '',
