@@ -105,13 +105,22 @@ const AUDIT = `(() => {
   };
 })()`;
 
-// Focus style of the currently focused element, if it is inside the calculator.
+// Focus indicator of the currently focused element, if it is inside the calculator.
+// Counts the element and its two nearest wrappers (a :focus-within ring on the
+// field wrapper is a valid indicator), but only styles that CHANGE on focus,
+// measured focused vs. blurred, so an always-on shadow cannot pass.
 const FOCUSED = `(() => {
   const e = document.activeElement;
   const root = document.querySelector('.tool__calc');
-  if (!e || !root || !root.contains(e)) return null;
-  const cs = getComputedStyle(e);
-  const ring = (cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0) || (cs.boxShadow && cs.boxShadow !== 'none');
+  if (!e || !root || !root.contains(e) || e === root) return null;
+  const nodes = [e, e.parentElement, e.parentElement?.parentElement].filter((n) => n && root.contains(n));
+  const look = () => nodes.map((n) => { const cs = getComputedStyle(n);
+    return [cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0 ? cs.outlineStyle + cs.outlineWidth + cs.outlineColor : '', cs.boxShadow, cs.borderColor].join('|'); });
+  const focused = look();
+  e.blur();
+  const blurred = look();
+  e.focus({ preventScroll: true });
+  const ring = focused.some((f, i) => f !== blurred[i] && (/^[a-z]/.test(f.split('|')[0]) || f.split('|')[1] !== 'none' || f.split('|')[2] !== blurred[i].split('|')[2]));
   return { tag: e.tagName, id: e.id, label: (e.getAttribute('aria-label') || e.textContent || e.id || '').trim().slice(0, 40), ring };
 })()`;
 
