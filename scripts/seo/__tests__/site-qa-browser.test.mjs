@@ -94,7 +94,16 @@ test('site-wide 390px and desktop QA: overflow, names, target size, images, head
           await until(() => s.js("!window.__qaPrev && document.readyState==='complete'"), 'load', 45000);
           const hasCalc = await s.js("!!document.querySelector('.tool__calc astro-island')");
           // Islands are client:visible: bring each into view, as a reader scrolling the page would.
-          if (hasCalc) await until(() => s.js("(()=>{const l=[...document.querySelectorAll('.tool__calc astro-island')];const p=l.find((i)=>i.hasAttribute('ssr'));if(p)p.scrollIntoView({block:'center'});return !p;})()"), 'hydration', 30000);
+          // Only islands a reader can see must hydrate; a client:visible island that is hidden at this
+          // viewport legitimately never loads. On timeout, name the pending component.
+          const PENDING = "[...document.querySelectorAll('.tool__calc astro-island[ssr]')].filter((i)=>[...i.children].some((c)=>c.getClientRects().length))";
+          if (hasCalc) {
+            try {
+              await until(() => s.js(`(()=>{const p=${PENDING}[0];if(p)p.scrollIntoView({block:'center'});return !p;})()`), 'hydration', 30000);
+            } catch (e) {
+              throw Error(String(e) + ' pending=' + JSON.stringify(await s.js(`${PENDING}.map((i)=>(i.getAttribute('component-url')||'').split('/').pop()+' '+(i.getAttribute('client')||''))`)));
+            }
+          }
           await s.js('scrollTo(0,0)');
         } catch (e) { fail(String(e)); continue; }
         await delay(250);
