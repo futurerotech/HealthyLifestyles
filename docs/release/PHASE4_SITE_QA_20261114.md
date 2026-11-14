@@ -123,3 +123,5 @@ Before CI, the audit was checked against a local fixture with known ratios: 4.48
 **Manual-review list:** 93 indeterminate pairs (hero images, gradients, positioned layers). The breathing label was reviewed and fixed. The rest stay listed in CI logs (`[SITE_QA_MANUAL]`) for the independent accessibility review.
 
 **Gates:** this is automated AI-run QA. Testing with real assistive technology and an independent accessibility review remain human gates. The unreachable `[data-theme='dark']` CSS (nothing sets the attribute) was not tested.
+
+**Addendum (run 43638753042 → 43639598217 @ `407131f`):** the fasting calculator's live "Fasting" state is time-of-day dependent, and this run measured it for the first time. Its badge, countdown and label were light text on white (1.0–1.5:1) because `.card` overrode `.if__timer` by stylesheet order. The fasting, chronotype and lifestyle-age dark result cards now use compound selectors. Note for reviewers: time-dependent UI states are covered only when CI happens to run in that state.

@@ -167,5 +167,8 @@ GO/NO-GO: **NO-GO for release** until gates 1–4 are closed.
 - `docs/research/PHASE7_OVERLAP_CANNIBALIZATION_20261114.md`, run 43638753080 @ 886d52b.
 - No article cannibalization. Flagged tool pairs are distinct intents. Two legacy alias tool records are already 301-redirected (retiring them needs a CMS write). The shared-tool flag is the known §6.3 ID 37 gate.
 
+## Phase 4 addendum
+- Fasting timer contrast defect, found in a time-dependent state; it and two more dark cards were hardened. Green: run 43639598217 @ 407131f (site QA 162/0 ×2, Lighthouse 8/8).
+
 ## Next main-roadmap milestone
 Blocked on access: Phase 7 and 8 query-level work needs Search Console data (owner to grant read access or provide an export). No further roadmap work can proceed without new authorization or data. The pending owner decisions are listed in the external gates above and in the Phase 5, 6 and 7 research docs.
