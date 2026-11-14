@@ -10,7 +10,9 @@ merge, deployment, publication, legal or clinical approval.
 | `a054092` | Integrated calculator safety work (#53–#55), screener engine fix, pregnancy dating, focus styles | 43565044508 ✅ |
 | `a0aef49` | Review #6873310811: future raw dates rejected per method; strict dates and integer bounds; no sharing of PHQ-9/GAD-7/WHO-5 results; WHO-5 licence hold | 43568758128 ✅ |
 | `e936b48` | Phase 2: BMI, body fat, ideal weight, calorie and BMR audit fixes | 43569328123 ❌ (Chrome debugger start timeout before any page; unit 267/267) |
-| `8a6d942` | Browser QA: 60 s Chrome debugger wait plus one logged relaunch (no assertion relaxed) | **43569710818 ✅** (unit 267/267; browser QA 0 failures; no relaunch needed) |
+| `8a6d942` | Browser QA: 60 s Chrome debugger wait plus one logged relaunch (no assertion relaxed) | 43569710818 ✅ (unit 267/267; browser QA 0 failures; no relaunch needed) |
+| `b1c9614` | Phase 2 group 2: ratio thresholds, macro and keto consistency, American-English copy | 43570406469 ❌ (tsc: untyped test tuple) |
+| `58f641f` | Typed test tuple | **43570774734 ✅** (unit 273/273; browser QA 0 failures) |
 
 ### Phase 2 findings fixed at `e936b48`
 - **BMI:** category bounds were inclusive (18.5 → Underweight, 25.0 → Normal, 30.0 → Overweight). Now WHO/CDC "under Y", classified on the displayed value. Adds an adult-use note.
