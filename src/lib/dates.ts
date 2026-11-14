@@ -33,3 +33,27 @@ export const trimesterOf = (weeks: number): string => {
   if (weeks <= 27) return 'Second trimester';
   return 'Third trimester';
 };
+
+/** "N weeks M days" for a signed span of days (sign shown by the caller's label). */
+export const weeksAndDays = (totalDays: number): string => {
+  const a = Math.abs(Math.trunc(totalDays));
+  const w = Math.floor(a / 7), d = a % 7;
+  return `${w} ${w === 1 ? 'week' : 'weeks'} ${d} ${d === 1 ? 'day' : 'days'}`;
+};
+
+/** Gestational ages beyond this are treated as a likely date-entry error. */
+export const MAX_GESTATION_DAYS = 44 * 7;
+
+export type PregnancyDating =
+  | { status: 'future' }
+  | { status: 'too-old'; ga: number }
+  | { status: 'ok'; ga: number; weeks: number; days: number; due: Date; toGo: number };
+
+/** Gestational dating from an LMP-equivalent date (Naegele: due = LMP + 280 days). */
+export function pregnancyDating(lmpEquiv: Date, today: Date): PregnancyDating {
+  const ga = diffDays(today, lmpEquiv);
+  if (ga < 0) return { status: 'future' };
+  if (ga > MAX_GESTATION_DAYS) return { status: 'too-old', ga };
+  const due = addDays(lmpEquiv, 280);
+  return { status: 'ok', ga, weeks: Math.floor(ga / 7), days: ga % 7, due, toGo: diffDays(due, today) };
+}

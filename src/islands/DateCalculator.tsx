@@ -1,6 +1,6 @@
 /** @jsxImportSource preact */
 import { useEffect, useState } from 'preact/hooks';
-import { addDays, diffDays, formatDate, parseDateInput, toDateInputValue, trimesterOf } from '../lib/dates';
+import { addDays, diffDays, formatDate, parseDateInput, pregnancyDating, toDateInputValue, trimesterOf, weeksAndDays } from '../lib/dates';
 import { milestoneFor } from '../data/pregnancy-milestones';
 
 // ---------- shared ----------
@@ -54,6 +54,15 @@ function SelectField({ id, label, value, onChange, options }: { id: string; labe
 
 const Placeholder = () => <p class="calc__placeholder">Enter your dates above to see your result.</p>;
 
+/** Shown instead of a result when the entered date cannot describe a current pregnancy. */
+const DatingProblem = ({ status, what }: { status: 'future' | 'too-old'; what: string }) => (
+  <p class="calc__callout calc__callout--warn" role="status">
+    {status === 'future'
+      ? `That ${what} is in the future, so there is no gestational age to show yet. Please check the date.`
+      : `That ${what} gives a pregnancy of more than 44 weeks, which is very unlikely. Please check the date — and if you are pregnant and past your due date, contact your OB-GYN or midwife.`}
+  </p>
+);
+
 // ---------- 1. Due date ----------
 function DueDateCalc() {
   const today = useToday();
@@ -71,11 +80,11 @@ function DueDateCalc() {
       method === 'lmp' ? base
       : method === 'conception' ? addDays(base, -14)
       : addDays(base, -(14 + (embryo === '3' ? 3 : 5)));
-    const due = addDays(lmpEquiv, 280);
-    const ga = diffDays(today, lmpEquiv);
-    const weeks = Math.floor(ga / 7);
-    const days = ((ga % 7) + 7) % 7;
-    const toGo = diffDays(due, today);
+    const dating = pregnancyDating(lmpEquiv, today);
+    if (dating.status !== 'ok') {
+      body = <DatingProblem status={dating.status} what={dateLabel.toLowerCase()} />;
+    } else {
+    const { due, weeks, days, toGo } = dating;
     body = (
       <>
         <div class="calc__headline">
@@ -84,13 +93,14 @@ function DueDateCalc() {
           <span class="calc__badge" style="--badge:#ec4899">{trimesterOf(weeks)}</span>
         </div>
         <dl class="calc__rows">
-          <div class="calc__row is-strong"><dt>Current gestational age</dt><dd>{weeks >= 0 ? `${weeks} weeks ${days} days` : 'Not started yet'}</dd></div>
-          <div class="calc__row"><dt>{toGo >= 0 ? 'Time remaining' : 'Past due by'}</dt><dd>{`${Math.abs(Math.round(toGo / 7))} weeks ${Math.abs(toGo % 7)} days`}</dd></div>
+          <div class="calc__row is-strong"><dt>Current gestational age</dt><dd>{weeksAndDays(weeks * 7 + days)}</dd></div>
+          <div class="calc__row"><dt>{toGo >= 0 ? 'Time remaining' : 'Past due by'}</dt><dd>{weeksAndDays(toGo)}</dd></div>
           <div class="calc__row"><dt>Method</dt><dd>{method === 'lmp' ? "Naegele's rule (LMP + 280 days)" : method === 'conception' ? 'Conception + 266 days' : `IVF day-${embryo} transfer`}</dd></div>
         </dl>
         <p class="calc__note">A due date is an estimate of 40 weeks’ gestation; only about 1 in 20 babies arrive on the exact date.</p>
       </>
     );
+    }
   }
 
   return (
@@ -119,11 +129,12 @@ function PregnancyWeekCalc() {
   const base = parseDateInput(lmp);
   let body = <Placeholder />;
   if (today && base) {
-    const ga = diffDays(today, base);
-    const weeks = Math.max(0, Math.floor(ga / 7));
-    const days = ((ga % 7) + 7) % 7;
-    const due = addDays(base, 280);
-    const pct = Math.max(0, Math.min(100, (ga / 280) * 100));
+    const dating = pregnancyDating(base, today);
+    if (dating.status !== 'ok') {
+      body = <DatingProblem status={dating.status} what="first day of your last period" />;
+    } else {
+    const { ga, weeks, days, due } = dating;
+    const pct = Math.min(100, (ga / 280) * 100);
     body = (
       <>
         <div class="calc__headline">
@@ -142,6 +153,7 @@ function PregnancyWeekCalc() {
         </dl>
       </>
     );
+    }
   }
 
   return (
@@ -182,7 +194,7 @@ function OvulationCalc() {
           <div class="calc__row"><dt>Most fertile days</dt><dd>{formatDate(addDays(ov, -2))} – {formatDate(ov)}</dd></div>
           <div class="calc__row"><dt>Next period expected</dt><dd>{formatDate(np)}</dd></div>
         </dl>
-        <p class="calc__note">Ovulation is estimated about 14 days before your next period. The 6-day fertile window ends on ovulation day; conception is most likely in the 2 days before it.</p>
+        <p class="calc__note">Ovulation is estimated about 14 days before your next period. The 6-day fertile window ends on ovulation day; conception is most likely in the 2 days before it. Calendar estimates are not a reliable way to prevent pregnancy.</p>
       </>
     );
   }
