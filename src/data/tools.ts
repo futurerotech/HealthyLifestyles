@@ -568,7 +568,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'caffeine-intake-calculator',
     title: 'Caffeine Intake Calculator',
-    blurb: 'Add up your daily caffeine from coffee, tea, and energy drinks vs the ~400 mg safe limit.',
+    blurb: 'Add up your daily caffeine from coffee, tea, and energy drinks vs the ~400 mg general daily amount for healthy adults.',
     category: 'sleep',
     icon: 'coffee',
     gradient: 'brown',

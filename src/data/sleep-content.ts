@@ -54,7 +54,7 @@ export const SLEEP_CONTENT: Record<string, ToolContent> = {
     intro:
       'Tap in the coffees, teas, and energy drinks you’ve had today to total your caffeine in milligrams — and see how it stacks up against the roughly 400 mg considered safe for most healthy adults.',
     notice:
-      'General wellness education, not medical advice. The ~400 mg figure is for healthy adults; pregnant people and those sensitive to caffeine should aim considerably lower.',
+      'General wellness education, not medical advice. The ~400 mg figure is the FDA’s general amount for healthy adults, not a target. If you are pregnant, keep to under 200 mg a day (ACOG); children, teens and people sensitive to caffeine should have less.',
     sections: [
       {
         h2: 'How much caffeine is too much?',
