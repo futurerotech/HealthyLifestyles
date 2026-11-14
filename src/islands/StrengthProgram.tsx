@@ -118,7 +118,8 @@ export default function StrengthProgram() {
     y += 6;
     program.lifts.forEach((lift) => {
       line(`${lift.name}  (1RM ${lift.oneRm} ${program.units})`, 13, true, 16);
-      line(`   Warm-up: ${lift.warmups.map((w) => `${w.label.replace(' ', ' ')} @ ${w.weight}`).join('  ·  ')}`, 8, false, 12);
+      line(`   Warm-up: ${lift.warmups.length ? lift.warmups.map((w) => `${w.label.replace(' ', ' ')} @ ${w.weight}`).join('  ·  ') : 'a few light, easy sets with the same equipment'}`, 8, false, 12);
+      if (lift.belowBar) line(`   Some weights are lighter than an empty bar (${lift.barWeight} ${program.units}): use dumbbells, a lighter bar or a machine.`, 8, false, 12);
       lift.weeks.forEach((w) => line(`   ${w.label}: ${w.sets} × ${w.reps} @ ${w.percent}% = ${w.weight} ${program.units}`, 9, false, 12));
       y += 6;
     });
@@ -222,8 +223,16 @@ export default function StrengthProgram() {
                 <h3>{lift.name}</h3>
                 <span class="sp__lift-1rm">1RM {lift.oneRm} {program.units}</span>
               </div>
+              {lift.belowBar && (
+                <p class="sp__error" role="note">
+                  Some of these weights are lighter than an empty barbell ({lift.barWeight} {program.units}). Use dumbbells, a lighter
+                  training bar or a machine for those sessions rather than loading the bar.
+                </p>
+              )}
               <p class="sp__warmup">
-                <strong>Warm-up:</strong> {lift.warmups.map((w) => `${w.label} @ ${w.weight} ${program.units}`).join('  ·  ')}
+                <strong>Warm-up:</strong> {lift.warmups.length
+                  ? lift.warmups.map((w) => `${w.label} @ ${w.weight} ${program.units}`).join('  ·  ')
+                  : 'a few light, easy sets with the same equipment before your working sets'}
               </p>
               <div class="sp__table-wrap">
                 <table class="sp__table">

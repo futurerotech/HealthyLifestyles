@@ -174,7 +174,7 @@ export const RISK_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'The research areas behind it',
         paragraphs: [
-          'The adjustments reflect the general direction of findings in cardiovascular fitness (resting heart rate and mortality), physical activity and longevity, sleep and health, and metabolic health (waist-to-height ratio), along with the well-documented effects of smoking, heavy alcohol use, diet quality and chronic stress. These are population-level associations, not individual predictions — your real health depends on much more than nine inputs.',
+          'The adjustments reflect the general direction of findings in cardiovascular fitness (resting heart rate and mortality), physical activity and longevity, sleep and health, and metabolic health (waist-to-height ratio), along with the well-documented effects of smoking, heavy alcohol use, diet quality and chronic stress. These are population-level associations, not individual predictions — your real health depends on much more than these ten inputs.',
         ],
       },
     ],

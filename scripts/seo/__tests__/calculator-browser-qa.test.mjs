@@ -416,6 +416,41 @@ test('changed calculators: hydration, interaction, 390px and desktop fit, access
       if (s1.scroll > s1.client + 1) failures.push(`weight-loss-timeline-calculator: 390px overflow (${s1.scroll} > ${s1.client})`);
       report.push('weight-loss-timeline-calculator: goal-floor=checked');
     } catch (e) { failures.push('weight-loss-timeline-calculator: ' + e); }
+    // Breathing timer: Pause resumes (did restart), heading follows technique.
+    try {
+      await openTool('box-breathing-timer');
+      const bt = () => js(`(() => { const r = document.querySelector('.tool__calc');
+        return { h: r.querySelector('.calc__heading')?.textContent, count: r.querySelector('.breathe__count')?.textContent ?? '',
+          label: r.querySelector('.breathe__label')?.textContent, live: r.querySelectorAll('[aria-live]').length,
+          btn: [...r.querySelectorAll('.breathe__controls button')].map((b) => b.textContent) }; })()`);
+      const click = (text) => js(`(() => { const b = [...document.querySelectorAll('.tool__calc button')].find((x) => x.textContent.trim() === ${JSON.stringify(text)}); if (!b) return false; b.click(); return true; })()`);
+      if ((await bt()).h !== 'Box breathing') failures.push('box-breathing-timer: heading ' + (await bt()).h);
+      await click('Start');
+      await new Promise((r) => setTimeout(r, 2300));
+      await click('Pause');
+      const paused = await bt();
+      if (paused.label !== 'Paused' || !paused.btn.includes('Resume')) failures.push('box-breathing-timer: pause state ' + JSON.stringify(paused));
+      await click('Resume');
+      await new Promise((r) => setTimeout(r, 300));
+      const resumed = await bt();
+      if (resumed.count === '4' && paused.count !== '4') failures.push('box-breathing-timer: resume restarted the exercise ' + JSON.stringify([paused, resumed]));
+      if (resumed.live !== 1) failures.push('box-breathing-timer: expected one phase-only live region, found ' + resumed.live);
+      await click('4-7-8');
+      if ((await bt()).h !== '4-7-8 breathing') failures.push('box-breathing-timer: heading not updated for 4-7-8');
+      report.push('box-breathing-timer: pause-resume=checked');
+    } catch (e) { failures.push('box-breathing-timer: ' + e); }
+
+    // Sleep debt: a blank night is reported, not counted as 0 hours.
+    try {
+      await openTool('sleep-debt-calculator');
+      await setField('sleep-day-0', '');
+      await until(async () => /Enter hours slept between 0 and 14 for: Mon/.test(await resultText()), 'blank-night message', 5000)
+        .catch(async () => failures.push('sleep-debt-calculator: blank Monday shows ' + (await resultText()).slice(0, 120)));
+      await setField('sleep-day-0', '7');
+      await until(async () => /Weekly sleep/.test(await resultText()), 'result restored', 5000)
+        .catch(() => failures.push('sleep-debt-calculator: valid entry did not restore the result'));
+      report.push('sleep-debt-calculator: blank-night=checked');
+    } catch (e) { failures.push('sleep-debt-calculator: ' + e); }
     if (exceptions.length) failures.push('scenario pages: uncaught exceptions ' + JSON.stringify(exceptions.slice(0, 3)));
 
     console.log('[CALC_BROWSER_QA] ' + report.join(' | '));
