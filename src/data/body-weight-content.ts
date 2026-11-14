@@ -23,13 +23,14 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
     metaDescription:
       'How long to lose the weight? Get a realistic goal date and a weight-over-time chart at a safe, sustainable pace — no crash diets. Free.',
     intro:
-      'Enter your current weight, goal weight, and a weekly pace to see a realistic date you’d reach your goal — with a weight-over-time chart and milestone markers along the way.',
+      'Enter your current weight, goal weight, height, and a weekly pace to see a realistic date you’d reach your goal — with a weight-over-time chart and milestone markers along the way.',
     sections: [
       {
         h2: 'How the timeline works',
         paragraphs: [
           'The planner projects your weight forward week by week at the pace you choose, estimates the number of weeks to your goal, and turns that into a target date. It also marks milestones — including the first 5% lost, which already brings real health benefits — so the journey feels concrete and motivating.',
           'To keep things healthy, the tool caps the pace at about 1% of your body weight per week. If you ask for something faster, it plans at that safe maximum instead and tells you — it won’t generate a crash-diet timeline.',
+          'Your height is used for one safety check: the planner won’t build a timeline to a goal below the healthy adult weight range for your height (a BMI under 18.5). It tells you where that range starts instead. If you’re worried about your weight or your eating, talk to a doctor or a registered dietitian.',
         ],
       },
       {
@@ -49,6 +50,7 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
       { q: 'How long will it take to lose the weight?', a: 'At a safe pace of about 0.5–1 kg (1–2 lb) per week, you can estimate it as your total to lose divided by your weekly pace. The calculator does this and gives you a target date and chart.' },
       { q: 'What is a safe weekly weight-loss pace?', a: 'Around 1–2 pounds (0.5–1 kg) per week, or up to about 1% of your body weight. The tool caps faster requests at that safe maximum.' },
       { q: 'Why won’t it let me lose weight faster?', a: 'Very fast loss usually means losing muscle and tends to rebound. To keep results healthy and realistic, the planner won’t build a crash-diet timeline — it plans at a safe maximum pace instead.' },
+      { q: 'Why does it ask for my height?', a: 'Only to check that your goal is not below the healthy weight range for your height (BMI under 18.5). The planner does not create a timeline to a goal below that range.' },
       { q: 'Is the projected date a guarantee?', a: 'No — it’s a motivating estimate. Real loss isn’t linear and slows over time, so treat the date as a target to aim for, not a promise.' },
     ],
     sources: [

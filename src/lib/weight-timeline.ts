@@ -8,7 +8,17 @@ export interface WeightTimelineInputs {
   currentKg: number;
   goalKg: number;
   weeklyRateKg: number;
+  /** Height in cm. When given, goals below the healthy BMI range are not planned. */
+  heightCm?: number;
 }
+
+/** Same plausible-input bounds as the site's other body calculators. */
+export const WEIGHT_BOUNDS_KG = { min: 25, max: 350 } as const;
+export const HEIGHT_BOUNDS_CM = { min: 120, max: 230 } as const;
+/** WHO/CDC lower bound of the healthy adult BMI range. */
+export const HEALTHY_BMI_MIN = 18.5;
+
+export type WeightTimelineStatus = 'ok' | 'gain' | 'invalid' | 'below-healthy';
 
 export interface TimelinePoint {
   week: number;
@@ -22,7 +32,10 @@ export interface Milestone {
 
 export interface WeightTimelineResult {
   ok: boolean;
+  status: WeightTimelineStatus;
   isGain: boolean;
+  /** Lowest weight in the healthy BMI range for the height, when height is known. */
+  healthyMinKg: number | null;
   currentKg: number;
   goalKg: number;
   toLoseKg: number;
@@ -38,17 +51,25 @@ export interface WeightTimelineResult {
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
 export function computeWeightTimeline(i: WeightTimelineInputs): WeightTimelineResult {
-  const currentKg = Math.max(1, i.currentKg);
-  const goalKg = Math.max(0, i.goalKg);
-  const safeMaxKg = round1(currentKg * 0.01); // ~1% of body weight/week
+  const currentKg = i.currentKg;
+  const goalKg = i.goalKg;
+  const inRange = (v: number, b: { min: number; max: number }) => Number.isFinite(v) && v >= b.min && v <= b.max;
+  const heightGiven = i.heightCm !== undefined;
+  const healthyMinKg = heightGiven && inRange(i.heightCm!, HEIGHT_BOUNDS_CM)
+    ? round1(HEALTHY_BMI_MIN * (i.heightCm! / 100) ** 2) : null;
+  const safeMaxKg = round1(Math.max(0, currentKg) * 0.01); // ~1% of body weight/week
+  const stop = (status: WeightTimelineStatus): WeightTimelineResult => ({
+    ok: false, status, isGain: status === 'gain', healthyMinKg, currentKg, goalKg, toLoseKg: 0,
+    requestedRateKg: i.weeklyRateKg, effectiveRateKg: 0, safeMaxKg, tooFast: false,
+    weeks: 0, points: [], milestones: [],
+  });
 
-  if (goalKg >= currentKg) {
-    return {
-      ok: true, isGain: true, currentKg, goalKg, toLoseKg: 0,
-      requestedRateKg: i.weeklyRateKg, effectiveRateKg: 0, safeMaxKg, tooFast: false,
-      weeks: 0, points: [], milestones: [],
-    };
-  }
+  // Previously a goal of 0 kg (or any value) was accepted and given a date.
+  if (!inRange(currentKg, WEIGHT_BOUNDS_KG) || !inRange(goalKg, WEIGHT_BOUNDS_KG) ||
+      (heightGiven && !inRange(i.heightCm!, HEIGHT_BOUNDS_CM))) return stop('invalid');
+  if (goalKg >= currentKg) return stop('gain');
+  // No timeline is planned to a weight below the healthy range for the height.
+  if (healthyMinKg !== null && round1(goalKg) < healthyMinKg) return stop('below-healthy');
 
   const toLoseKg = currentKg - goalKg;
   const requested = Math.max(0.05, i.weeklyRateKg);
@@ -79,7 +100,7 @@ export function computeWeightTimeline(i: WeightTimelineInputs): WeightTimelineRe
   milestones.push({ label: 'Goal reached 🎯', weightKg: round1(goalKg), week: weeks });
 
   return {
-    ok: true, isGain: false, currentKg, goalKg, toLoseKg: round1(toLoseKg),
+    ok: true, status: 'ok', isGain: false, healthyMinKg, currentKg, goalKg, toLoseKg: round1(toLoseKg),
     requestedRateKg: requested, effectiveRateKg, safeMaxKg, tooFast,
     weeks, points, milestones,
   };
