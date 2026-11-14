@@ -73,7 +73,7 @@ function citations(doc) {
 }
 
 async function main() {
-  const { docs } = await readPublishedCollection(ORIGIN, 'articles');
+  const docs = await readPublishedCollection(ORIGIN, 'articles');
   const byUrl = new Map();
   const rows = [];
   for (const doc of docs) for (const c of citations(doc)) {
