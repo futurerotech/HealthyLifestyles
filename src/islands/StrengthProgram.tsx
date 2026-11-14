@@ -152,6 +152,7 @@ export default function StrengthProgram() {
               </label>
               <div class="sp__lift-input">
                 <input type="number" min="0" value={lifts[k].oneRm} disabled={!lifts[k].enabled}
+                  aria-label={`${LIFT_NAMES[k]} 1-rep max (${lengthLabel})`}
                   onInput={(e) => setOneRm(k, num((e.target as HTMLInputElement).value, 0))} />
                 <small>{lengthLabel}</small>
               </div>

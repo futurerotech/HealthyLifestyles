@@ -69,8 +69,10 @@ export const PAGE_AUDIT = `(() => {
   const h1 = hs.filter((n) => n === 1).length;
   const skips = []; for (let i = 1; i < hs.length; i++) if (hs[i] > hs[i - 1] + 1) skips.push('h' + hs[i - 1] + '→h' + hs[i]);
   const w = document.documentElement.clientWidth;
-  const offenders = document.documentElement.scrollWidth > w + 1 ? [...document.querySelectorAll('body *')].map((e) => ({ e, r: e.getBoundingClientRect() }))
-    .filter(({ r }) => r.right > w + 1 && r.width > 0).sort((a, b) => a.r.width - b.r.width).slice(0, 4).map(({ e, r }) => desc(e) + ' right=' + Math.round(r.right)) : [];
+  // Report the outermost unclipped elements that extend past the viewport: those are what widen the page.
+  const clipped = (e) => { for (let p = e.parentElement; p && p !== document.body; p = p.parentElement) if (getComputedStyle(p).overflowX !== 'visible') return true; return false; };
+  const past = document.documentElement.scrollWidth > w + 1 ? [...document.querySelectorAll('body *')].filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.right > w + 1 && !clipped(e); }) : [];
+  const offenders = past.filter((e) => !past.includes(e.parentElement)).slice(0, 4).map((e) => { const r = e.getBoundingClientRect(); return desc(e) + ' right=' + Math.round(r.right) + ' w=' + Math.round(r.width); });
   return { overflow: document.documentElement.scrollWidth - w, offenders, unnamed, tooSmall: [...new Set(tooSmall)].slice(0, 12), imgs, h1, skips: [...new Set(skips)], calc: !!document.querySelector('.tool__calc') };
 })()`;
 
@@ -91,7 +93,9 @@ test('site-wide 390px and desktop QA: overflow, names, target size, images, head
         try {
           await until(() => s.js("!window.__qaPrev && document.readyState==='complete'"), 'load', 45000);
           const hasCalc = await s.js("!!document.querySelector('.tool__calc astro-island')");
-          if (hasCalc) await until(() => s.js("[...document.querySelectorAll('.tool__calc astro-island')].every((i)=>!i.hasAttribute('ssr'))"), 'hydration', 30000);
+          // Islands are client:visible: bring each into view, as a reader scrolling the page would.
+          if (hasCalc) await until(() => s.js("(()=>{const l=[...document.querySelectorAll('.tool__calc astro-island')];const p=l.find((i)=>i.hasAttribute('ssr'));if(p)p.scrollIntoView({block:'center'});return !p;})()"), 'hydration', 30000);
+          await s.js('scrollTo(0,0)');
         } catch (e) { fail(String(e)); continue; }
         await delay(250);
         const a = await s.js(PAGE_AUDIT);

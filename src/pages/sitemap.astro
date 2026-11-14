@@ -50,7 +50,7 @@ const breadcrumbLd = {
   description="Complete index of all health calculators, tools, and wellness articles on HealthyLifeStyles."
   jsonLd={[breadcrumbLd]}
 >
-  <div class="container" style="max-width: 900px;">
+  <div class="container sitemap" style="max-width: 900px;">
     <Breadcrumb items={items} />
 
     <h1 style="font-family: var(--font-display); font-size: 2rem; margin: 1.5rem 0 0.5rem;">
@@ -137,3 +137,12 @@ const breadcrumbLd = {
     </p>
   </div>
 </BaseLayout>
+
+<style>
+  /* WCAG 2.5.8: list links on this page are standalone targets, not inline text. */
+  .sitemap li > a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+  }
+</style>
