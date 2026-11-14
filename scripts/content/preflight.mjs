@@ -223,7 +223,9 @@ export async function verifyContent({ inventory, manifest, readHtml, readRedirec
     const expectedIds = new Set((inventory.collections[collection] || []).map((d) => String(d.id)));
     for (const record of manifest.records.filter((r) => r.collection === collection)) if (!expectedIds.has(record.docId)) errors.push(`Unexpected/stale ${collection} document in build: ID ${record.docId}`);
   }
-  errors.push(...checkArticleToolGates(inventory.collections.articles || [], toolGates.gates, toolGates.editorialPrimary));
+  // Gates and editorial expectations describe production records only.
+  const forThisCms = toolGates.cmsOrigin === undefined || toolGates.cmsOrigin === inventory.cmsOrigin;
+  errors.push(...checkArticleToolGates(inventory.collections.articles || [], forThisCms ? toolGates.gates : [], forThisCms ? toolGates.editorialPrimary : {}));
   // Article-to-tool map (id, slug, primaryTool, embeds) for review and audits.
   const articleTools = (inventory.collections.articles || []).map((d) => ({ id: d.id, slug: d.slug, primaryTool: canon(relSlug(d.primaryTool)) || null, embeds: embeddedTools(d) }));
   return { articleTools, checkedAt: new Date().toISOString(), scope: ['published articles', 'published enabled tools and legacy redirects', 'published CMS pages', 'published pSEO pages'], cmsOrigin: inventory.cmsOrigin, errors, documents, counts };

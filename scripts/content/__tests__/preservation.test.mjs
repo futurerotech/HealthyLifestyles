@@ -166,3 +166,15 @@ test('the committed gate file is well-formed and every gate names its correction
   }
   assert.equal(new Set(g.gates.map((x) => String(x.id))).size, g.gates.length);
 });
+
+test('production gates never apply to a fixture or synthetic CMS inventory', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const g = JSON.parse(await readFile(new URL('../article-tool-gates.json', import.meta.url), 'utf8'));
+  assert.equal(g.cmsOrigin, 'https://cms.healthylifesstyles.com');
+  // A fixture inventory (other origin) with no tool-focused articles passes with the real gate file.
+  const result = await verify({ toolGates: g });
+  assert.deepEqual(result.errors, []);
+  // On the production origin, the same gates against an inventory without those articles are reported as stale.
+  const prod = await verifyContent({ inventory: { ...inventory, cmsOrigin: g.cmsOrigin }, baseline: { ...baseline, cmsOrigin: g.cmsOrigin }, manifest: { ...manifest(), cmsOrigin: g.cmsOrigin }, readHtml: async () => html(), toolGates: g });
+  assert.ok(prod.errors.some((e) => /does not match any published article/.test(e)));
+});
