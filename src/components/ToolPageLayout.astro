@@ -234,19 +234,21 @@ const medicalLd = {
       </section>
     )}
 
-    <!-- Calculator -->
+    <!-- Calculator. Every engine hydrates client:visible: client:load put the island's module
+         download in the critical window (run 43629211011: meal plan was the only template
+         loading JS before LCP, 19 KB, LCP 2114/2262/2262 ms vs ~1810-1965 ms elsewhere). -->
     <section class="container tool__calc" data-tool={tool.slug} aria-label={`${tool.title} tool`}>
-      {engine === 'meal' && <MealPlanGenerator client:load />}
-      {engine === 'lifestyle-age' && <LifestyleAge client:load />}
-      {engine === 'strength' && <StrengthProgram client:load />}
-      {engine === 'caffeine' && <CaffeineCurfew client:load />}
-      {engine === 'muscle' && <MusclePreservation client:load />}
-      {engine === 'sitting' && <SittingReversal client:load />}
-      {engine === 'fasting' && <Fasting client:load />}
-      {engine === 'chronotype' && <Chronotype client:load />}
-      {engine === 'walk-it-off' && <WalkItOff client:load />}
-      {engine === 'weight-timeline' && <WeightTimeline client:load />}
-      {engine === 'caffeine-tracker' && <CaffeineTracker client:load />}
+      {engine === 'meal' && <MealPlanGenerator client:visible />}
+      {engine === 'lifestyle-age' && <LifestyleAge client:visible />}
+      {engine === 'strength' && <StrengthProgram client:visible />}
+      {engine === 'caffeine' && <CaffeineCurfew client:visible />}
+      {engine === 'muscle' && <MusclePreservation client:visible />}
+      {engine === 'sitting' && <SittingReversal client:visible />}
+      {engine === 'fasting' && <Fasting client:visible />}
+      {engine === 'chronotype' && <Chronotype client:visible />}
+      {engine === 'walk-it-off' && <WalkItOff client:visible />}
+      {engine === 'weight-timeline' && <WeightTimeline client:visible />}
+      {engine === 'caffeine-tracker' && <CaffeineTracker client:visible />}
       {engine === 'sleep' && <SleepCalculator client:visible slug={tool.slug} />}
       {engine === 'date' && <DateCalculator client:visible slug={tool.slug} />}
       {engine === 'pace' && <PaceCalculator client:visible slug={tool.slug} />}
@@ -254,9 +256,9 @@ const medicalLd = {
       {engine === 'breathing' && <BreathingTimer client:visible slug={tool.slug} />}
       {engine === 'numeric' && <Calculator client:visible slug={tool.slug} toolName={tool.title} />}
       {engine === 'healthspan' && <HealthspanScore client:visible />}
-      {engine === 'diary' && <FoodSymptomDiary client:load />}
-      {engine === 'hrv' && <HRVLog client:load />}
-      {engine === 'recipe' && <RecipeAnalyzer client:load />}
+      {engine === 'diary' && <FoodSymptomDiary client:visible />}
+      {engine === 'hrv' && <HRVLog client:visible />}
+      {engine === 'recipe' && <RecipeAnalyzer client:visible />}
     </section>
 
     <!-- Required result-level disclaimer, sized to the tool's YMYL risk tier. -->
