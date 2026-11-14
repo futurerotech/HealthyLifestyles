@@ -327,7 +327,7 @@ test('changed calculators: hydration, interaction, 390px and desktop fit, access
       const proto = e.tagName === 'SELECT' ? HTMLSelectElement.prototype : HTMLInputElement.prototype;
       Object.getOwnPropertyDescriptor(proto, 'value').set.call(e, ${JSON.stringify(value)});
       e.dispatchEvent(new Event('input', { bubbles: true })); e.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
-    const resultText = () => js("document.querySelector('.tool__calc .calc__result')?.innerText ?? ''");
+    const resultText = () => js("document.querySelector('.tool__calc .calc__result')?.textContent ?? ''");
     const ymd = (offset) => { const d = new Date(); d.setDate(d.getDate() + offset);
       return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
 
