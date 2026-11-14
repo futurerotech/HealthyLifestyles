@@ -32,6 +32,7 @@ export default defineConfig({
     sitemap({
       filter: (page) =>
         !page.includes('/404') &&
+        !/^\/unsubscribe\/?$/.test(new URL(page).pathname) &&
         !/\/(?:api|og|embed|game|games|wp-content|wp-admin|wp-includes|category|tag)(?:\/|$)/.test(new URL(page).pathname) &&
         !new URL(page).pathname.startsWith('/index.php') &&
         !page.includes('/content-manifest.json') &&
