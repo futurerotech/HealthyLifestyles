@@ -17,7 +17,8 @@ merge, deployment, publication, legal or clinical approval.
 | `6a81aad` | Source lists wrap long citation tokens; overflow detector scans `<main>` | 43575635618 ✅ |
 | `db53357` | Last untested calculators: alcohol units, smoking cost, anti-inflammatory score, blue light (+ weight-loss %, deficit pins) | 43576208355 ✅ (unit 284/284; browser QA 0 failures) |
 | `6bc4db1` | Weight-loss timeline: no plan to a goal below BMI 18.5 or an impossible weight (goal 0 kg had a date) | 43576743663 ✅ (288/288; new browser scenario passed) |
-| `ff0eee3` | Fasting medicine caution; caffeine 400 mg wording, >400 mg single-dose flag, pregnancy <200 mg | **43577338507 ✅** (unit 294/294; browser QA 0 failures) |
+| `ff0eee3` | Fasting medicine caution; caffeine 400 mg wording, >400 mg single-dose flag, pregnancy <200 mg | 43577338507 ✅ (unit 294/294; browser QA 0 failures) |
+| `7a2b3fe` | Muscle preservation: always-visible kidney-disease caution beside the 1.6–2.4 g/kg target; weight bounds | **43577837753 ✅** (unit 297/297; browser QA 0 failures) |
 
 ### Phase 2 findings fixed at `e936b48`
 - **BMI:** category bounds were inclusive (18.5 → Underweight, 25.0 → Normal, 30.0 → Overweight). Now WHO/CDC "under Y", classified on the displayed value. Adds an adult-use note.
@@ -57,6 +58,7 @@ All 38 calculators in `defs.ts` now have dedicated audit tests.
 ### Standalone tools (`6bc4db1`, `ff0eee3`)
 - **Weight-loss timeline:** any goal was accepted, and 0 kg got a "Goal reached" date. It now takes a height field and plausible bounds (25–350 kg, 120–230 cm). Goals below BMI 18.5 are not planned; the user is offered a doctor or dietitian instead. Covered by `weight-timeline-safety.test.ts` and a browser scenario.
 - **Fasting:** arithmetic verified. The safety notice now names medicine that lowers blood sugar or must be taken with food. Covered by `fasting-schedule.test.ts`.
+- **Muscle preservation:** the high-protein targets (highest for ages 60+) had no kidney caution. Non-dialysis CKD is usually protein-limited (KDOQI 2020: about 0.55–0.8 g/kg). An always-visible note and a page notice were added, and the weight input now uses the site bounds. Covered by `muscle-preservation-safety.test.ts`.
 - **Caffeine:** half-life maths verified. A dose over 400 mg is now flagged. "Safe limit" became the FDA's "general daily amount for healthy adults", and pregnancy is stated as under 200 mg a day (ACOG). Covered by `caffeine-plan.test.ts`.
 
 ### Tooling note
@@ -78,4 +80,4 @@ All 38 calculators in `defs.ts` now have dedicated audit tests.
 GO/NO-GO: **NO-GO for release** until gates 1–4 are closed.
 
 ## Next main-roadmap milestone
-Phase 2 continuation: the remaining untested standalone tools. These are muscle preservation (protein for older adults), lifestyle age, strength program, chronotype, sleep calculator, breathing timer and recipe analyzer.
+Phase 2 continuation: the remaining untested standalone tools. These are lifestyle age, strength program, chronotype, sleep calculator, breathing timer and recipe analyzer.
