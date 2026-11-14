@@ -158,5 +158,10 @@ GO/NO-GO: **NO-GO for release** until gates 1–4 are closed.
 - `docs/research/PHASE5_CANDIDATE1_MEALPLAN_BUDGET_20261114.md`: extend the existing meal-plan generator (no new tool). Recommended scope: quantities, a dated public-domain BLS price snapshot, household multiplier with the USDA food-plan benchmark, and budget-aware swaps. Recurring cost $0.
 - Gated: GSC/GA4 demand evidence; owner authorization of the scope.
 
+## Phase 6 Innovation Lab research (done; research only)
+- `docs/research/PHASE6_INNOVATION_LAB_EVALUATION_20261114.md`. Board criteria and weights were used; repeat-use/organic discovery is insufficient evidence for all three.
+- Provisional weighted scores over the 90% with evidence: A 2.2, B 3.5, C 3.7. The lead is C (Shift Work Explorer, reusing existing sleep, nap, caffeine and chronotype engines). B is credible only if differentiated from AHRQ QuestionBuilder. A is not recommended.
+- No prototype built. The owner decision, search-demand evidence and clinical review are gates.
+
 ## Next main-roadmap milestone
-Owner decision on the Phase 5 Candidate 1 scope (§9.2 step 12). Meanwhile the next permitted work is Phase 6 Innovation Lab research (the §10 evaluation of Hypotheses A–C, using real evidence only), which is also research-only.
+Phase 7 §11.3 using the existing CMS inventory (authorized, read-only): the existing-page overlap audit and cannibalization screening across the published articles, tools and pSEO pages. Search Console-based steps stay gated.
