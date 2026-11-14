@@ -166,7 +166,7 @@ test('unsubscribe proxy: first-party origin, token shape check, generic answers,
   respond = async () => Response.json({ ok: true, message: 'cms text' });
   const ok = await unsubscribe(request({ token }));
   assert.equal(ok.status, 200);
-  assert.equal(calls.at(-1)!.url, 'https://cms.example.test/api/subscribers/unsubscribe');
+  assert.equal(calls.at(-1)!.url, 'https://cms.example.test/api/subscriber-unsubscribe');
   assert.deepEqual(JSON.parse(String(calls.at(-1)!.init.body)), { token });
   assert.equal(new Headers(calls.at(-1)!.init.headers).get('x-internal-key'), null, 'the token is the only credential');
   assert.equal(ok.headers.get('cache-control'), 'no-store');
