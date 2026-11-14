@@ -148,5 +148,11 @@ GO/NO-GO: **NO-GO for release** until gates 1–4 are closed.
 - Run 43617438318 @ 60f041c ✅: 24 runs, all assertions pass, no warnings.
 - Field CWV prioritization (GA4/GSC/CrUX) remains gated on authorized data access.
 
+## Phase 4 §8.2 meal-plan LCP follow-up and §8.1 contrast (done)
+- Review 6881556185: the meal-plan LCP failure was a reproducible bottleneck (client:load island JS before LCP), not only variance. Fixed with client:visible in f51c070; the meal plan is now 1959/1963/1964 ms with 0 KB JS. The budget is unchanged. A first hypothesis (inlined CSS, 008e0f7) was disproved and is recorded.
+- A latent island crash was fixed (process.env in consts.ts) with a regression test.
+- §8.1 WCAG 2.2 AA contrast: the audit covers text, placeholders, field boundaries, focus and hover. 2,137 failures went to 0 in dev and in the production build. Details: `docs/release/PHASE4_SITE_QA_20261114.md`.
+- Green: run 43630591566 @ f51c070 (unit 315/315, content 17/17, preflight, site QA 162/0 ×2, Lighthouse 8 URLs).
+
 ## Next main-roadmap milestone
-Phase 4 §8.1: add an automated WCAG 1.4.3 text-contrast check to the site-wide browser QA (dev and production build) and fix any failures, without replacing the design system.
+Phase 5 §9.2 research gate for Candidate 1 (Smart Meal Plan & Grocery Budget Studio), starting with an inventory of the existing meal-plan generator. Research only. Implementation requires owner authorization of the selected scope (§9.2 step 12).
