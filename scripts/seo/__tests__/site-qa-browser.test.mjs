@@ -99,10 +99,11 @@ test('site-wide 390px and desktop QA: overflow, names, target size, images, head
           await until(() => s.js("!window.__qaPrev && document.readyState==='complete'"), 'load', 45000);
           const hasCalc = await s.js("!!document.querySelector('.tool__calc astro-island')");
           // Islands are client:visible: bring each into view, as a reader scrolling the page would.
+          // astro-island is display:contents (no box), so scroll its first rendered child.
           // Only islands a reader can see must hydrate; a client:visible island that is hidden at this
           // viewport legitimately never loads. On timeout, name the pending component.
           const PENDING = "[...document.querySelectorAll('.tool__calc astro-island[ssr]')].filter((i)=>[...i.children].some((c)=>c.getClientRects().length))";
-          const hydrate = () => until(() => s.js(`(()=>{const p=${PENDING}[0];if(p)p.scrollIntoView({block:'center'});return !p;})()`), 'hydration', 30000);
+          const hydrate = () => until(() => s.js(`(()=>{const p=${PENDING}[0];if(p)[...p.children].find((c)=>c.getClientRects().length)?.scrollIntoView({block:'center'});return !p;})()`), 'hydration', 30000);
           if (hasCalc) {
             try { await hydrate(); } catch (first) {
               // The dev server compiles islands on first request and may reload the page while doing
