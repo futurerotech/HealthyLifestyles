@@ -142,7 +142,7 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
     faq: [
       {
         q: 'What is the Karvonen method?',
-        a: 'The Karvonen method calculates training zones using your heart-rate reserve (maximum minus resting heart rate): target = ((max − resting) × intensity) + resting. It personalises zones better than a flat percentage of maximum.',
+        a: 'The Karvonen method calculates training zones using your heart-rate reserve (maximum minus resting heart rate): target = ((max − resting) × intensity) + resting. It personalizes zones better than a flat percentage of maximum.',
       },
       {
         q: 'What is the best heart rate zone for fat loss?',

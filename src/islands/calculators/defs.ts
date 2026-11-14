@@ -445,7 +445,8 @@ export const DEFS: Record<string, CalcDef> = {
         { upTo: 0.6, label: 'Increased risk', color: C.amber },
         { upTo: 0.7, label: 'High risk', color: C.red },
       ];
-      const band = bandFor(ratio, segments);
+      // <0.4, 0.4–0.49, 0.5–0.59, ≥0.6 (classified on the shown 2-decimal value).
+      const band = bandBelow(round(ratio, 2), segments);
       return {
         ok: true,
         primaryLabel: 'Waist-to-height ratio',
@@ -465,25 +466,21 @@ export const DEFS: Record<string, CalcDef> = {
     fields: [F.waist(85), F.hip()],
     compute: ({ vals, sex }) => {
       const ratio = vals.waist / vals.hip;
-      const segments: Segment[] = sex === 'male'
-        ? [
-            { upTo: 0.9, label: 'Low risk', color: C.green },
-            { upTo: 1.0, label: 'Increased risk', color: C.amber },
-            { upTo: 1.3, label: 'High risk', color: C.red },
-          ]
-        : [
-            { upTo: 0.85, label: 'Low risk', color: C.green },
-            { upTo: 0.9, label: 'Increased risk', color: C.amber },
-            { upTo: 1.3, label: 'High risk', color: C.red },
-          ];
-      const band = bandFor(ratio, segments);
+      // WHO (2008 expert consultation): substantially increased risk at ≥0.90 (men)
+      // or ≥0.85 (women). WHO defines no further tier, so none is invented here.
+      const cutoff = sex === 'male' ? 0.9 : 0.85;
+      const segments: Segment[] = [
+        { upTo: cutoff, label: 'Lower risk', color: C.green },
+        { upTo: 1.3, label: 'Substantially increased risk', color: C.red },
+      ];
+      const band = bandBelow(round(ratio, 2), segments);
       return {
         ok: true,
         primaryLabel: 'Waist-to-hip ratio',
         primaryValue: fmt(ratio, 2),
         category: { label: band.label, color: band.color },
         visual: { kind: 'gauge', value: ratio, min: 0.6, max: 1.1, segments },
-        note: `WHO links higher abdominal fat with greater health risk above ${sex === 'male' ? '0.90 for men' : '0.85 for women'}.`,
+        note: `WHO links a substantially increased risk of metabolic complications to a ratio of ${sex === 'male' ? '0.90 or above for men' : '0.85 or above for women'}.`,
       };
     },
   },
@@ -610,13 +607,24 @@ export const DEFS: Record<string, CalcDef> = {
       if (goal === 'cut') { calories = tdee - 500; pPerKg = 2.2; fPerKg = 0.8; goalLabel = 'Cut'; }
       else if (goal === 'bulk') { calories = tdee + 300; pPerKg = 1.6; fPerKg = 1.0; goalLabel = 'Bulk'; }
       else { calories = tdee; pPerKg = 1.8; fPerKg = 0.9; goalLabel = 'Maintain'; }
-      const clamped = calories < floor;
-      if (clamped) calories = floor;
-      const proteinG = pPerKg * vals.weight;
-      const fatG = fPerKg * vals.weight;
+      // The minimum applies only to a cut, and never lifts a cut above maintenance.
+      const noDeficit = goal === 'cut' && tdee <= floor;
+      const clamped = goal === 'cut' && !noDeficit && calories < floor;
+      if (noDeficit) calories = tdee;
+      else if (clamped) calories = floor;
+      // Protein is set first, then fat, then carbs take the remainder (as the page
+      // describes). If protein + fat alone exceed the calorie target, fat is
+      // reduced so the three macros always add up to the calories shown.
+      let proteinG = pPerKg * vals.weight;
+      let fatG = fPerKg * vals.weight;
       let carbsG = (calories - proteinG * 4 - fatG * 9) / 4;
       let lowCarb = false;
-      if (carbsG < 0) { carbsG = 0; lowCarb = true; }
+      if (carbsG < 0) {
+        carbsG = 0;
+        lowCarb = true;
+        fatG = Math.max(0, (calories - proteinG * 4) / 9);
+        if (proteinG * 4 > calories) proteinG = calories / 4;
+      }
       return {
         ok: true,
         primaryLabel: `Daily calories (${goalLabel})`,
@@ -627,10 +635,12 @@ export const DEFS: Record<string, CalcDef> = {
           { label: 'Carbs', value: `${fmt(carbsG, 0)} g · ${fmt(carbsG * 4, 0)} kcal` },
           { label: 'Fat', value: `${fmt(fatG, 0)} g · ${fmt(fatG * 9, 0)} kcal` },
         ],
-        callout: clamped
-          ? { tone: 'warn', text: `Your cut target was raised to the safe minimum of ${fmt(floor, 0)} kcal/day.` }
+        callout: noDeficit
+          ? { tone: 'warn', text: `Your estimated maintenance intake is already at or below ${fmt(floor, 0)} kcal/day, the usual minimum without medical supervision, so these macros are for maintenance, not a cut. Please talk to a healthcare professional before trying to lose weight.` }
+          : clamped
+          ? { tone: 'warn', text: `A 500 kcal deficit would drop you below ${fmt(floor, 0)} kcal/day, the usual minimum without medical supervision, so your cut target was raised to ${fmt(floor, 0)} kcal/day.` }
           : lowCarb
-          ? { tone: 'info', text: 'Your protein and fat targets already use all your calories, so carbs are set to zero. Consider a smaller deficit.' }
+          ? { tone: 'info', text: `At your body weight, the per-kilogram protein and fat targets would use more than your ${fmt(calories, 0)} kcal, so carbs are set to zero and fat was reduced to fit. A registered dietitian can help set targets for your situation.` }
           : undefined,
         note: `Protein set at ${pPerKg} g/kg and fat at ${fPerKg} g/kg of body weight; the rest of your calories go to carbs (protein & carbs = 4 kcal/g, fat = 9 kcal/g).`,
         cta: {
@@ -720,7 +730,7 @@ export const DEFS: Record<string, CalcDef> = {
         callout: held
           ? {
               tone: 'info',
-              text: 'The 35 ml/kg rule of thumb has not been established for higher body weights, so this site stops scaling it above 100 kg (220 lb). That cut-off is a site choice, not a clinically validated threshold, and not a maximum — your needs may be higher or lower. Thirst, urine colour and your doctor’s advice are better guides.',
+              text: 'The 35 ml/kg rule of thumb has not been established for higher body weights, so this site stops scaling it above 100 kg (220 lb). That cut-off is a site choice, not a clinically validated threshold, and not a maximum — your needs may be higher or lower. Thirst, urine color and your doctor’s advice are better guides.',
             }
           : undefined,
         rows: [
@@ -790,25 +800,32 @@ export const DEFS: Record<string, CalcDef> = {
       const factor = parseFloat(selects.activity) || 1.375;
       const bmr = mifflin(vals.weight, vals.height, vals.age, sex);
       const tdee = bmr * factor;
-      const fatG = (tdee * 0.7) / 9;
-      const proteinG = (tdee * 0.25) / 4;
-      const carbsG = (tdee * 0.05) / 4;
+      // 70 / 25 / 5 split, but carbs never exceed the 50 g upper end of the net-carb
+      // range this tool states; any calories above that move to fat.
+      const CARB_CAP_G = 50;
+      const proteinKcal = tdee * 0.25;
+      const carbsG = Math.min((tdee * 0.05) / 4, CARB_CAP_G);
+      const carbsKcal = carbsG * 4;
+      const fatKcal = tdee - proteinKcal - carbsKcal;
+      const fatG = fatKcal / 9;
+      const proteinG = proteinKcal / 4;
+      const pct = (k: number) => fmt((k / tdee) * 100, 0);
       return {
         ok: true,
         primaryLabel: 'Daily calories (keto)',
         primaryValue: `${fmt(tdee, 0)} kcal/day`,
         visual: macroDonut(proteinG, carbsG, fatG),
         rows: [
-          { label: 'Fat (70%)', value: `${fmt(fatG, 0)} g · ${fmt(tdee * 0.7, 0)} kcal`, strong: true },
-          { label: 'Protein (25%)', value: `${fmt(proteinG, 0)} g · ${fmt(tdee * 0.25, 0)} kcal` },
-          { label: 'Carbs (5%)', value: `${fmt(carbsG, 0)} g · ${fmt(tdee * 0.05, 0)} kcal` },
+          { label: `Fat (${pct(fatKcal)}%)`, value: `${fmt(fatG, 0)} g · ${fmt(fatKcal, 0)} kcal`, strong: true },
+          { label: `Protein (${pct(proteinKcal)}%)`, value: `${fmt(proteinG, 0)} g · ${fmt(proteinKcal, 0)} kcal` },
+          { label: `Carbs (${pct(carbsKcal)}%)`, value: `${fmt(carbsG, 0)} g · ${fmt(carbsKcal, 0)} kcal` },
           { label: 'Net carb cap', value: '≤ 20–50 g', strong: true },
         ],
         callout: {
           tone: 'info',
-          text: `To reach and stay in ketosis, keep net carbs (total carbs minus fibre) under about 20–50 g per day. Your 5% target is ${fmt(carbsG, 0)} g.`,
+          text: `To reach and stay in ketosis, keep net carbs (total carbs minus fiber) under about 20–50 g per day. Your carb target is ${fmt(carbsG, 0)} g${carbsG >= CARB_CAP_G ? ' (capped at 50 g; the rest moved to fat)' : ''}.`,
         },
-        note: 'A standard ketogenic split is roughly 70% fat, 25% protein and 5% carbohydrate. Talk to your doctor before starting keto, especially with a medical condition.',
+        note: 'A standard ketogenic split is roughly 70% fat, 25% protein and 5% carbohydrate. Talk to your doctor before starting keto, especially if you are pregnant or breastfeeding, have a medical condition, or take medicine for diabetes or blood pressure.',
       };
     },
   },
@@ -2210,7 +2227,7 @@ export const DEFS: Record<string, CalcDef> = {
       const PRO: Record<string, number> = { rarely: 3, '1-2': 2, '3-5': 1, daily: 0 };
 
       const antiFoods = [
-        { name: 'Vegetables', freq: selects.vegetables, pts: ANTI[selects.vegetables] ?? 1, add: 'Add more vegetables — aim for 5+ servings/day, varied colours.' },
+        { name: 'Vegetables', freq: selects.vegetables, pts: ANTI[selects.vegetables] ?? 1, add: 'Add more vegetables — aim for 5+ servings/day, varied colors.' },
         { name: 'Fruit', freq: selects.fruit, pts: ANTI[selects.fruit] ?? 1, add: 'Add 2–3 fruit servings/day, especially berries and citrus.' },
         { name: 'Whole grains', freq: selects.wholeGrains, pts: ANTI[selects.wholeGrains] ?? 1, add: 'Swap refined grains for oats, brown rice, quinoa.' },
         { name: 'Fatty fish', freq: selects.fattyFish, pts: ANTI[selects.fattyFish] ?? 1, add: 'Aim for 2+ servings of fatty fish/week (salmon, sardines).' },

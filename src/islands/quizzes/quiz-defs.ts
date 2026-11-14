@@ -145,7 +145,7 @@ export const QUIZZES: Record<string, QuizDef> = {
     bands: [
       { upToPct: 33, label: 'Lower', color: '#16a34a', summary: 'Your answers suggest your stress feels fairly manageable right now. It’s still worth keeping habits that protect your wellbeing.', tips: ['Keep up the routines that help you unwind.', 'Stay connected with people you trust.', 'Protect time for movement and rest.'] },
       { upToPct: 66, label: 'Moderate', color: '#f59e0b', summary: 'Your answers suggest a moderate level of stress. This is common, and small coping steps can help you feel more in control.', tips: ['Try slow breathing or a short walk when tension builds.', 'Break big tasks into smaller steps.', 'Set gentle boundaries on your time and energy.', 'Talk things through with someone you trust.'] },
-      { upToPct: 100, label: 'Higher', color: '#ef4444', summary: 'Your answers suggest stress is weighing on you heavily at the moment. You don’t have to manage this alone — support can really help.', tips: ['Prioritise sleep, movement and regular meals.', 'Share how you’re feeling with someone close to you.', 'Consider speaking with a doctor or counsellor.', 'Be kind to yourself — reaching out is a strength.'] },
+      { upToPct: 100, label: 'Higher', color: '#ef4444', summary: 'Your answers suggest stress is weighing on you heavily at the moment. You don’t have to manage this alone — support can really help.', tips: ['Prioritize sleep, movement and regular meals.', 'Share how you’re feeling with someone close to you.', 'Consider speaking with a doctor or counselor.', 'Be kind to yourself — reaching out is a strength.'] },
     ],
   },
 
@@ -167,7 +167,7 @@ export const QUIZZES: Record<string, QuizDef> = {
     bands: [
       { upToPct: 33, label: 'Coping well', color: '#16a34a', summary: 'Your answers suggest you’re coping well and feel reasonably energised. Keep protecting the habits and boundaries that sustain you.', tips: ['Keep protecting your downtime and boundaries.', 'Notice early what drains and what refuels you.', 'Stay connected with supportive people.'] },
       { upToPct: 66, label: 'Showing some strain', color: '#f59e0b', summary: 'Your answers point to some early signs of strain. This is a good moment to ease the load before it builds.', tips: ['Take real breaks during the day, away from screens.', 'Hand off or pause non-essential tasks where you can.', 'Reconnect with parts of life that energise you.', 'Talk with a manager, friend or professional about the pressure.'] },
-      { upToPct: 100, label: 'Running low', color: '#ef4444', summary: 'Your answers suggest you’re running low and carrying a heavy load. Please don’t push through alone — reaching out for support is a sign of strength, not weakness.', tips: ['Give yourself permission to rest and recover.', 'Talk to someone you trust about how you’re feeling.', 'Consider speaking with your doctor or a counsellor.', 'Step back from what you can, even temporarily.'] },
+      { upToPct: 100, label: 'Running low', color: '#ef4444', summary: 'Your answers suggest you’re running low and carrying a heavy load. Please don’t push through alone — reaching out for support is a sign of strength, not weakness.', tips: ['Give yourself permission to rest and recover.', 'Talk to someone you trust about how you’re feeling.', 'Consider speaking with your doctor or a counselor.', 'Step back from what you can, even temporarily.'] },
     ],
   },
 

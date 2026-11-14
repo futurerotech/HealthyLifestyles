@@ -323,7 +323,7 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'Hitting your numbers',
         paragraphs: [
-          'You do not need to hit your macros perfectly every day — getting within 5–10 grams of each target, most days, is more than enough for results. Protein is the macro worth prioritising; carbs and fat can flex around your preferences and how you train.',
+          'You do not need to hit your macros perfectly every day — getting within 5–10 grams of each target, most days, is more than enough for results. Protein is the macro worth prioritizing; carbs and fat can flex around your preferences and how you train.',
           'Spread protein across three or four meals for best muscle support, and build meals around whole foods. A food-tracking app makes hitting these targets far easier, especially in the first few weeks while you learn the macro content of your usual meals.',
         ],
       },
@@ -417,13 +417,13 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
         h2: 'How your water target is calculated',
         paragraphs: [
           'This tool uses a widely used clinical guide of about 35 ml of fluid per kilogram of body weight as a baseline, then adds an allowance for activity — exercise increases losses through sweat and breathing, so more active people need more.',
-          'For example, a 70 kg person has a baseline of roughly 2.45 litres, rising with training. The per-kilogram rule is a rough guide that has not been established for higher body weights, so the calculator stops scaling it above 100 kg (220 lb). That cut-off is a site design choice, not a clinically validated threshold or a maximum intake. The result is shown in litres and fluid ounces so it works wherever you live. Remember this is total fluid: drinks of all kinds count, and food (especially fruit and vegetables) typically supplies around 20% of everyday fluid. Extra fluid for activity replaces sweat, so the calculator counts that part as drinks.',
+          'For example, a 70 kg person has a baseline of roughly 2.45 liters, rising with training. The per-kilogram rule is a rough guide that has not been established for higher body weights, so the calculator stops scaling it above 100 kg (220 lb). That cut-off is a site design choice, not a clinically validated threshold or a maximum intake. The result is shown in liters and fluid ounces so it works wherever you live. Remember this is total fluid: drinks of all kinds count, and food (especially fruit and vegetables) typically supplies around 20% of everyday fluid. Extra fluid for activity replaces sweat, so the calculator counts that part as drinks.',
         ],
       },
       {
         h2: 'Signs you are well hydrated',
         paragraphs: [
-          'The simplest check is the colour of your urine: pale straw means you are well hydrated, while dark yellow signals you need more fluid. Thirst, headaches, tiredness and poor concentration can all be early signs of mild dehydration.',
+          'The simplest check is the color of your urine: pale straw means you are well hydrated, while dark yellow signals you need more fluid. Thirst, headaches, tiredness and poor concentration can all be early signs of mild dehydration.',
           'There is no need to force large amounts at once. Sipping steadily through the day is more effective, and drinking to thirst plus the guidance above keeps most healthy adults in good balance.',
         ],
       },
@@ -431,7 +431,7 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
         h2: 'When you need more — or less',
         paragraphs: [
           'Increase your intake in hot or humid weather, at altitude, during illness with fever, and during pregnancy or breastfeeding. Endurance athletes lose significant fluid and electrolytes in sweat and should plan their drinking around training.',
-          'For comparison, the U.S. National Academies set adequate intakes for total water — drinks and food together — of about 3.7 litres a day for men and 2.7 litres for women. These describe what healthy adults in temperate climates typically take in; they are not upper limits, and no upper limit has been set for water. Very active people in hot conditions can need considerably more.',
+          'For comparison, the U.S. National Academies set adequate intakes for total water — drinks and food together — of about 3.7 liters a day for men and 2.7 liters for women. These describe what healthy adults in temperate climates typically take in; they are not upper limits, and no upper limit has been set for water. Very active people in hot conditions can need considerably more.',
           'A small number of people — for example those with certain heart or kidney conditions — need to limit fluids, and should follow their doctor’s advice rather than a general formula. Drinking extreme amounts very quickly can dilute blood sodium dangerously, so aim for steady, sensible hydration.',
         ],
       },
@@ -439,7 +439,7 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
     faq: [
       {
         q: 'How many liters of water should I drink a day?',
-        a: 'A common guide is about 35 ml per kg of body weight, plus extra for activity — often 2 to 3 litres a day for adults. This calculator personalises that to your weight and activity level.',
+        a: 'A common guide is about 35 ml per kg of body weight, plus extra for activity — often 2 to 3 liters a day for adults. This calculator personalizes that to your weight and activity level.',
       },
       {
         q: 'Do other drinks and food count?',
@@ -539,8 +539,8 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'Net carbs and your daily cap',
         paragraphs: [
-          'Keto plans count "net carbs" — total carbohydrate minus fibre (and sugar alcohols), since fibre is not digested for energy and has little effect on blood sugar. Most people need to keep net carbs under about 20–50 grams a day to reach and stay in ketosis; 20 g is a strict target, while up to 50 g works for more active people.',
-          'Your 5% carbohydrate allowance above is your starting point. Treat 20–50 g of net carbs as your daily ceiling, and prioritise carbs from non-starchy vegetables rather than grains, sugar or fruit.',
+          'Keto plans count "net carbs" — total carbohydrate minus fiber (and sugar alcohols), since fiber is not digested for energy and has little effect on blood sugar. Most people need to keep net carbs under about 20–50 grams a day to reach and stay in ketosis; 20 g is a strict target, while up to 50 g works for more active people.',
+          'Your 5% carbohydrate allowance above is your starting point. Treat 20–50 g of net carbs as your daily ceiling, and prioritize carbs from non-starchy vegetables rather than grains, sugar or fruit.',
         ],
       },
       {
@@ -558,11 +558,11 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
       },
       {
         q: 'How many carbs can I eat on keto?',
-        a: 'Most people stay in ketosis by keeping net carbs (total carbs minus fibre) under 20–50 grams a day. Twenty grams is a strict limit; more active people can sometimes tolerate up to 50.',
+        a: 'Most people stay in ketosis by keeping net carbs (total carbs minus fiber) under 20–50 grams a day. Twenty grams is a strict limit; more active people can sometimes tolerate up to 50.',
       },
       {
         q: 'What are net carbs?',
-        a: 'Net carbs are total carbohydrate minus fibre and sugar alcohols. Because fibre is not absorbed for energy, keto diets count only the carbs that actually affect blood sugar.',
+        a: 'Net carbs are total carbohydrate minus fiber and sugar alcohols. Because fiber is not absorbed for energy, keto diets count only the carbs that actually affect blood sugar.',
       },
     ],
     sources: [
