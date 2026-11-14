@@ -135,6 +135,14 @@ export interface CalcDef {
 const bandFor = (value: number, segments: Segment[]): Segment =>
   segments.find((s) => value <= s.upTo) ?? segments[segments.length - 1];
 
+/**
+ * Band for a published "from X to under Y" category table: the first segment
+ * whose upper bound the value is BELOW (so 25.0 is the first overweight BMI).
+ * Callers pass the value rounded as displayed, so the label matches the number.
+ */
+const bandBelow = (value: number, segments: Segment[]): Segment =>
+  segments.find((s) => value < s.upTo) ?? segments[segments.length - 1];
+
 const massScale = (kg: number, units: UnitSystem): number =>
   units === 'metric' ? kg : kgToLb(kg);
 
@@ -230,7 +238,8 @@ export const DEFS: Record<string, CalcDef> = {
         { upTo: 30, label: 'Overweight', color: C.amber },
         { upTo: 40, label: 'Obese', color: C.red },
       ];
-      const band = bandFor(bmi, segments);
+      // WHO/CDC adult categories: <18.5, 18.5–24.9, 25–29.9, ≥30 (classified on the shown value).
+      const band = bandBelow(round(bmi, 1), segments);
       const lowKg = 18.5 * m * m;
       const highKg = 24.9 * m * m;
       return {
@@ -242,7 +251,7 @@ export const DEFS: Record<string, CalcDef> = {
         rows: [
           { label: 'Healthy weight for your height', value: `${fmtMass(lowKg, units, 0)} – ${fmtMass(highKg, units, 0)}`, strong: true },
         ],
-        note: 'BMI is a screening tool — it does not distinguish muscle from fat. Very muscular people may read high.',
+        note: 'BMI is a screening tool for adults (18+) — it does not distinguish muscle from fat, so very muscular people may read high. Children and teens use BMI-for-age percentiles instead.',
       };
     },
   },
@@ -272,7 +281,7 @@ export const DEFS: Record<string, CalcDef> = {
           label,
           value: `${fmt(bmr * mult, 0)} kcal/day`,
         })),
-        note: 'BMR is the energy you burn at complete rest. The table estimates total daily calories (TDEE) once activity is added.',
+        note: 'BMR is the energy you burn at complete rest. Mifflin-St Jeor is usually within about 10% of a measured BMR, but can be further off for some people. The table estimates total daily calories (TDEE) once activity is added.',
       };
     },
   },
@@ -288,8 +297,8 @@ export const DEFS: Record<string, CalcDef> = {
       const lowKg = 18.5 * m * m;
       const highKg = 24.9 * m * m;
       const inches = vals.height / 2.54;
-      const over5ft = Math.max(0, inches - 60);
-      const devineKg = (sex === 'male' ? 50 : 45.5) + 2.3 * over5ft;
+      // Devine is defined from 5 ft (60 in, 152.4 cm) upward; below that it has no value.
+      const devineKg = inches >= 60 ? (sex === 'male' ? 50 : 45.5) + 2.3 * (inches - 60) : null;
       const unit = units === 'metric' ? 'kg' : 'lb';
       return {
         ok: true,
@@ -304,7 +313,7 @@ export const DEFS: Record<string, CalcDef> = {
           unit,
         },
         rows: [
-          { label: 'Devine formula ideal weight', value: fmtMass(devineKg, units, 1), strong: true },
+          { label: 'Devine formula ideal weight', value: devineKg === null ? 'Not defined below 5 ft (152 cm)' : fmtMass(devineKg, units, 1), strong: true },
         ],
         note: 'There is no single "ideal" weight. A healthy BMI range and the Devine clinical formula give complementary targets.',
       };
@@ -338,7 +347,13 @@ export const DEFS: Record<string, CalcDef> = {
         }
         bf = 495 / (1.29579 - 0.35004 * log10(waist + hip - neck) + 0.22100 * log10(height)) - 450;
       }
-      bf = Math.max(2, Math.min(60, bf));
+      // Outside 2–60% the circumference equation is not producing a plausible
+      // estimate; show nothing rather than a clamped, invented number.
+      if (!Number.isFinite(bf) || bf < 2 || bf > 60) {
+        return { ok: false, error: 'These measurements give a result outside the range the U.S. Navy method can estimate (2–60%). Re-check your measurements.', primaryLabel: 'Body fat', primaryValue: '—', visual: { kind: 'none' } };
+      }
+      // ACE categories as published on this page: men 2–5 / 6–13 / 14–17 / 18–24 / 25+,
+      // women 10–13 / 14–20 / 21–24 / 25–31 / 32+ (classified on the shown value).
       const segments: Segment[] = sex === 'male'
         ? [
             { upTo: 6, label: 'Essential fat', color: C.blue },
@@ -354,7 +369,7 @@ export const DEFS: Record<string, CalcDef> = {
             { upTo: 32, label: 'Average', color: C.amber },
             { upTo: 45, label: 'Above average', color: C.red },
           ];
-      const band = bandFor(bf, segments);
+      const band = bandBelow(round(bf, 1), segments);
       return {
         ok: true,
         primaryLabel: 'Estimated body fat',
@@ -520,25 +535,40 @@ export const DEFS: Record<string, CalcDef> = {
     heading: 'Calculate your daily calories',
     hasSex: true,
     fields: [F.weight(72), F.height(175), F.age(30), activityField()],
-    compute: ({ vals, selects, sex }) => {
+    compute: ({ vals, selects, sex, units }) => {
       const factor = parseFloat(selects.activity) || 1.375;
       const bmr = mifflin(vals.weight, vals.height, vals.age, sex);
       const tdee = bmr * factor;
       const floor = calorieFloor(sex);
       const loseRaw = tdee - 500;
+      // If maintenance is already at or below the floor, no unsupervised
+      // deficit is offered (previously the "lose" figure exceeded maintenance).
+      const noDeficit = tdee <= floor;
       const lose = Math.max(loseRaw, floor);
-      const clamped = loseRaw < floor;
+      const clamped = !noDeficit && loseRaw < floor;
+      // ~7,700 kcal per kg of body weight lost (common approximation).
+      const weeklyKg = ((tdee - lose) * 7) / 7700;
+      const loseCard: GoalCard = noDeficit
+        ? { label: 'Lose weight', value: '—', sub: 'Talk to a healthcare professional', tone: 'warn' }
+        : clamped
+          ? { label: 'Lose weight', value: `${fmt(lose, 0)} kcal`, sub: `≈ ${fmtMass(weeklyKg, units, 1)}/week`, tone: 'warn' }
+          : { label: 'Lose weight', value: `${fmt(lose, 0)} kcal`, sub: '≈ 0.5 kg (1 lb)/week', tone: 'good' };
       return {
         ok: true,
         primaryLabel: 'Maintenance calories (TDEE)',
         primaryValue: `${fmt(tdee, 0)} kcal/day`,
         visual: { kind: 'none' },
         cards: [
-          { label: 'Lose weight', value: `${fmt(lose, 0)} kcal`, sub: '≈ 0.5 kg (1 lb)/week', tone: clamped ? 'warn' : 'good' },
+          loseCard,
           { label: 'Maintain', value: `${fmt(tdee, 0)} kcal`, sub: 'Stay at current weight', tone: 'neutral' },
           { label: 'Gain weight', value: `${fmt(tdee + 500, 0)} kcal`, sub: '≈ 0.5 kg (1 lb)/week', tone: 'good' },
         ],
-        callout: clamped
+        callout: noDeficit
+          ? {
+              tone: 'warn',
+              text: `Your estimated maintenance intake is already at or below ${fmt(floor, 0)} kcal/day, the usual minimum for ${sex === 'female' ? 'women' : 'men'} without medical supervision, so we don’t suggest a deficit. Please talk to a healthcare professional before trying to lose weight.`,
+            }
+          : clamped
           ? {
               tone: 'warn',
               text: `A 500 kcal deficit would drop you below the safe minimum of ${floor} kcal/day for ${sex === 'female' ? 'women' : 'men'}. We’ve set your weight-loss target to ${fmt(floor, 0)} kcal — for faster loss, work with a healthcare professional.`,
