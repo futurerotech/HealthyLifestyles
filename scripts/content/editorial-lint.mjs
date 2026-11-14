@@ -41,14 +41,20 @@ export function lintArticle(doc, { articleSlugs, toolSlugs, toolAliases = {} }) 
   const findings = [];
   const brit = [...new Set(body.flatMap((t) => hits(BRITISH, t)).map((w) => w.toLowerCase()))];
   if (brit.length) findings.push({ code: 'british-spelling', detail: brit.join(', ') });
-  const over = [...new Set(body.flatMap((t) => hits(OVERCLAIM, t)).map((w) => w.toLowerCase()))];
-  if (over.length) findings.push({ code: 'overclaim-review', detail: over.join(', ') });
+  // Negated or cautionary uses ("does not guarantee", "no miracle") are the responsible form and are not flagged.
+  const over = [];
+  for (const t of body) for (const m of String(t).matchAll(OVERCLAIM)) {
+    const before = String(t).slice(Math.max(0, m.index - 40), m.index).toLowerCase();
+    if (/\b(not|no|never|cannot|can't|isn't|aren't|doesn't|don't|won't|without|nor|neither|rather than|instead of)\b[^.;:]*$/.test(before)) continue;
+    over.push(`"…${String(t).slice(Math.max(0, m.index - 50), m.index + m[0].length + 40).replace(/\s+/g, ' ')}…"`);
+  }
+  if (over.length) findings.push({ code: 'overclaim-review', detail: [...new Set(over)].join(' / ') });
   if (n < 700) findings.push({ code: 'thin-content', detail: `${n} words (~${Math.max(1, Math.round(n / 230))} min)` });
   const sources = (doc.sources || []).filter((s) => s?.url).length;
   if (sources < 3) findings.push({ code: 'few-sources', detail: `${sources} cited sources` });
   if (!links.length) findings.push({ code: 'no-internal-links', detail: '' });
   if (broken.length) findings.push({ code: 'broken-internal-link', detail: [...new Set(broken)].join(', ') });
-  if (!(doc.faq || []).length) findings.push({ code: 'no-faq', detail: '' });
+  if (!(doc.faq || []).length && !(doc.layout || []).some((b) => b?.blockType === 'peopleAlsoAsk' && (b.items || []).length)) findings.push({ code: 'no-faq', detail: '' });
   const tool = articleToolIntegration(doc);
   if (tool) findings.push({ code: `tool-${tool.kind}`, detail: `${tool.expected} vs ${tool.actual || '(none)'}` });
   return { id: doc.id, slug: doc.slug, words: n, sources, internalLinks: links.length, findings };
