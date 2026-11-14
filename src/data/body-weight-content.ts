@@ -80,7 +80,7 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
         h2: 'Reading your BMI category',
         list: {
           intro:
-            'The World Health Organization groups adult BMI into four broad bands. The coloured gauge above shows where your value sits:',
+            'The World Health Organization groups adult BMI into four broad bands. The colored gauge above shows where your value sits:',
           items: [
             'Under 18.5 — underweight, which can signal undernutrition or other health issues.',
             '18.5 to 24.9 — a healthy weight for most adults.',
@@ -188,7 +188,7 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
         h2: 'Two ways to estimate ideal weight',
         paragraphs: [
           'The first method is BMI-based. A healthy BMI is 18.5–24.9, so the healthy weight range is simply 18.5 × height (m)² to 24.9 × height (m)². This gives a realistic band rather than one rigid figure, which better reflects how healthy bodies actually vary.',
-          'The second is the Devine formula, created in the 1970s to standardise medication dosing. For men it is 50 kg + 2.3 kg for every inch over 5 feet; for women, 45.5 kg + 2.3 kg per inch over 5 feet. It returns a single reference weight and is still used in clinical settings, though it tends to under-estimate for very tall or very short people.',
+          'The second is the Devine formula, created in the 1970s to standardize medication dosing. For men it is 50 kg + 2.3 kg for every inch over 5 feet; for women, 45.5 kg + 2.3 kg per inch over 5 feet. It returns a single reference weight and is still used in clinical settings, though it tends to under-estimate for very tall or very short people.',
         ],
       },
       {
@@ -367,9 +367,9 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
           intro: 'The gauge above places your ratio into broad bands:',
           items: [
             'Below 0.4 — low, and occasionally a sign of being underweight.',
-            '0.4 to 0.5 — healthy; this is the target zone for most adults.',
-            '0.5 to 0.6 — increased risk, indicating excess central fat.',
-            'Above 0.6 — high risk, strongly linked to heart and metabolic disease.',
+            '0.4 to 0.49 — healthy; this is the target zone for most adults.',
+            '0.5 to 0.59 — increased risk, indicating excess central fat.',
+            '0.6 or above — high risk, strongly linked to heart and metabolic disease.',
           ],
         },
       },
@@ -377,14 +377,14 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
         h2: 'Why central fat matters',
         paragraphs: [
           'Fat stored around the abdomen (visceral fat) is more metabolically harmful than fat on the hips and thighs. It is associated with higher risk of type 2 diabetes, high blood pressure and cardiovascular disease — even in people whose BMI looks normal, sometimes described as "normal weight obesity." That is why a waist-based measure adds information that BMI alone misses.',
-          'Measure your waist at the midpoint between the bottom of your ribs and the top of your hip bones, directly against the skin, after breathing out normally. If your ratio is above 0.5, reducing waist size through diet quality, regular activity and better sleep can lower your risk substantially.',
+          'Measure your waist at the midpoint between the bottom of your ribs and the top of your hip bones, directly against the skin, after breathing out normally. If your ratio is 0.5 or above, reducing waist size through diet quality, regular activity and better sleep can lower your risk substantially.',
         ],
       },
     ],
     faq: [
       {
         q: 'What is a healthy waist-to-height ratio?',
-        a: 'A ratio below 0.5 is considered healthy for most adults — in other words, your waist should be less than half your height. Ratios above 0.5 indicate increasing central-fat risk.',
+        a: 'A ratio below 0.5 is considered healthy for most adults — in other words, your waist should be less than half your height. Ratios of 0.5 or above indicate increasing central-fat risk.',
       },
       {
         q: 'Is waist-to-height ratio better than BMI?',
@@ -424,10 +424,10 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
         h2: 'WHO risk thresholds',
         list: {
           intro:
-            'The World Health Organization considers abdominal obesity — and substantially increased health risk — to begin above these ratios:',
+            'The World Health Organization considers abdominal obesity — and substantially increased health risk — to begin at these ratios:',
           items: [
-            'Men: a ratio above 0.90 indicates increased risk.',
-            'Women: a ratio above 0.85 indicates increased risk.',
+            'Men: a ratio of 0.90 or above indicates substantially increased risk.',
+            'Women: a ratio of 0.85 or above indicates substantially increased risk.',
             'Lower ratios (at or below those thresholds) are associated with lower risk.',
           ],
         },
@@ -436,14 +436,14 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
         h2: 'What your ratio tells you',
         paragraphs: [
           'A high WHR is associated with greater risk of type 2 diabetes, high blood pressure, heart disease and stroke, independent of overall weight. Some large studies have found WHR predicts heart-attack risk more strongly than BMI, because it captures dangerous abdominal fat directly.',
-          'WHR does have limits: it can be skewed by a naturally wide or narrow pelvis, and it is less reliable at very high BMIs. For a rounded view of central-fat risk, consider it alongside waist-to-height ratio and your BMI, and speak to a clinician if your ratio is above the WHO threshold.',
+          'WHR does have limits: it can be skewed by a naturally wide or narrow pelvis, and it is less reliable at very high BMIs. For a rounded view of central-fat risk, consider it alongside waist-to-height ratio and your BMI, and speak to a clinician if your ratio is at or above the WHO threshold.',
         ],
       },
     ],
     faq: [
       {
         q: 'What is a healthy waist-to-hip ratio?',
-        a: 'The World Health Organization links increased health risk to a ratio above 0.90 for men and above 0.85 for women. Ratios at or below these levels are considered lower risk.',
+        a: 'The World Health Organization links substantially increased health risk to a ratio of 0.90 or above for men and 0.85 or above for women. Ratios below these levels are considered lower risk.',
       },
       {
         q: 'Is waist-to-hip ratio better than BMI?',

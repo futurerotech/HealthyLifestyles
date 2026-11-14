@@ -695,7 +695,7 @@ export const ARTICLES: Article[] = [
 
       { type: 'h2', text: 'What are macros, exactly?' },
       { type: 'p', text: '**Macros** — short for macronutrients — are the three nutrients your body needs in large amounts: protein, carbohydrate, and fat. Each supplies energy. Protein and carbohydrate give about 4 calories per gram; fat gives about 9. (Alcohol, at 7 calories per gram, is a fourth energy source, but it isn’t a nutrient you build a plan around.)' },
-      { type: 'p', text: 'Your macro targets are just your calorie target divided into those three buckets. So macros never override calories — they organise them.' },
+      { type: 'p', text: 'Your macro targets are just your calorie target divided into those three buckets. So macros never override calories — they organize them.' },
 
       { type: 'h2', text: 'How to calculate your macros, step by step' },
       { type: 'p', text: 'This is the protein-first method most evidence-based coaches use:' },

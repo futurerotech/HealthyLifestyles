@@ -323,7 +323,7 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'Hitting your numbers',
         paragraphs: [
-          'You do not need to hit your macros perfectly every day — getting within 5–10 grams of each target, most days, is more than enough for results. Protein is the macro worth prioritising; carbs and fat can flex around your preferences and how you train.',
+          'You do not need to hit your macros perfectly every day — getting within 5–10 grams of each target, most days, is more than enough for results. Protein is the macro worth prioritizing; carbs and fat can flex around your preferences and how you train.',
           'Spread protein across three or four meals for best muscle support, and build meals around whole foods. A food-tracking app makes hitting these targets far easier, especially in the first few weeks while you learn the macro content of your usual meals.',
         ],
       },
@@ -539,8 +539,8 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'Net carbs and your daily cap',
         paragraphs: [
-          'Keto plans count "net carbs" — total carbohydrate minus fibre (and sugar alcohols), since fibre is not digested for energy and has little effect on blood sugar. Most people need to keep net carbs under about 20–50 grams a day to reach and stay in ketosis; 20 g is a strict target, while up to 50 g works for more active people.',
-          'Your 5% carbohydrate allowance above is your starting point. Treat 20–50 g of net carbs as your daily ceiling, and prioritise carbs from non-starchy vegetables rather than grains, sugar or fruit.',
+          'Keto plans count "net carbs" — total carbohydrate minus fiber (and sugar alcohols), since fiber is not digested for energy and has little effect on blood sugar. Most people need to keep net carbs under about 20–50 grams a day to reach and stay in ketosis; 20 g is a strict target, while up to 50 g works for more active people.',
+          'Your 5% carbohydrate allowance above is your starting point. Treat 20–50 g of net carbs as your daily ceiling, and prioritize carbs from non-starchy vegetables rather than grains, sugar or fruit.',
         ],
       },
       {
@@ -558,11 +558,11 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
       },
       {
         q: 'How many carbs can I eat on keto?',
-        a: 'Most people stay in ketosis by keeping net carbs (total carbs minus fibre) under 20–50 grams a day. Twenty grams is a strict limit; more active people can sometimes tolerate up to 50.',
+        a: 'Most people stay in ketosis by keeping net carbs (total carbs minus fiber) under 20–50 grams a day. Twenty grams is a strict limit; more active people can sometimes tolerate up to 50.',
       },
       {
         q: 'What are net carbs?',
-        a: 'Net carbs are total carbohydrate minus fibre and sugar alcohols. Because fibre is not absorbed for energy, keto diets count only the carbs that actually affect blood sugar.',
+        a: 'Net carbs are total carbohydrate minus fiber and sugar alcohols. Because fiber is not absorbed for energy, keto diets count only the carbs that actually affect blood sugar.',
       },
     ],
     sources: [

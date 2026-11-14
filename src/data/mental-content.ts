@@ -141,7 +141,7 @@ export const MENTAL_CONTENT: Record<string, ToolContent> = {
       },
       {
         q: 'When should I see a professional about stress?',
-        a: 'If stress is frequent, overwhelming, lasts for weeks, or affects your sleep, relationships or daily life — or if you have any thoughts of self-harm — please talk to a doctor or counsellor.',
+        a: 'If stress is frequent, overwhelming, lasts for weeks, or affects your sleep, relationships or daily life — or if you have any thoughts of self-harm — please talk to a doctor or counselor.',
       },
     ],
     sources: [APA_STRESS],
@@ -173,7 +173,7 @@ export const MENTAL_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'When to get support',
         paragraphs: [
-          'If exhaustion, dread or detachment have lasted weeks, or you’re struggling to cope day to day, please reach out — to your doctor, a counsellor, or an employee assistance programme if you have one. Early support makes recovery faster.',
+          'If exhaustion, dread or detachment have lasted weeks, or you’re struggling to cope day to day, please reach out — to your doctor, a counselor, or an employee assistance program if you have one. Early support makes recovery faster.',
           'And if you ever feel hopeless or have thoughts of harming yourself, contact a crisis helpline immediately (numbers at the top of this page). Reaching out is a strength, not a failure.',
         ],
       },

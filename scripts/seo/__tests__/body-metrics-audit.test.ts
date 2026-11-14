@@ -139,3 +139,60 @@ test('calorie floor: no deficit is offered when maintenance is already at or bel
     if (r.cards![0].value !== '—') assert.ok(num(r.cards![0].value) < num(r.cards![1].value), `${sex} ${w} ${a} ${act}`);
   }
 });
+
+test('waist-to-height: <0.4, 0.4–0.49, 0.5–0.59, ≥0.6 on the shown value', () => {
+  const cases: [number, string][] = [[0.39, 'Slim'], [0.4, 'Healthy'], [0.49, 'Healthy'], [0.5, 'Increased risk'],
+    [0.595, 'High risk'], [0.59, 'Increased risk'], [0.6, 'High risk'], [0.8, 'High risk']];
+  for (const [r, label] of cases) assert.equal(run('waist-to-height-ratio-calculator', { waist: r * 170, height: 170 }).category?.label, label, String(r));
+});
+
+test('waist-to-hip: WHO substantially increased risk at ≥0.90 (men) and ≥0.85 (women), no invented tiers', () => {
+  const at = (ratio: number, sex: Sex) => run('waist-to-hip-ratio-calculator', { waist: ratio * 100, hip: 100 }, sex);
+  assert.equal(at(0.89, 'male').category?.label, 'Lower risk');
+  assert.equal(at(0.9, 'male').category?.label, 'Substantially increased risk');
+  assert.equal(at(1.2, 'male').category?.label, 'Substantially increased risk');
+  assert.equal(at(0.84, 'female').category?.label, 'Lower risk');
+  assert.equal(at(0.85, 'female').category?.label, 'Substantially increased risk');
+  assert.match(at(0.9, 'male').note ?? '', /0\.90 or above for men/);
+  const v = at(0.8, 'female').visual;
+  assert.equal(v.kind === 'gauge' && v.segments.length, 2);
+});
+
+const macroKcal = (rows: { label: string; value: string }[]) =>
+  rows.reduce((t, r) => t + Number(r.value.split('·')[1].replace(/[^\d.]/g, '')), 0);
+
+test('macro: a cut is never above maintenance, and the floor message matches the goal', () => {
+  const small = run('macro-calculator', { weight: 40, height: 150, age: 80 }, 'female', { activity: '1.2', goal: 'cut' });
+  const maint = run('macro-calculator', { weight: 40, height: 150, age: 80 }, 'female', { activity: '1.2', goal: 'maintain' });
+  assert.equal(small.primaryValue, maint.primaryValue);
+  assert.match(small.callout?.text ?? '', /for maintenance, not a cut/);
+  assert.doesNotMatch(maint.callout?.text ?? '', /cut target was raised/);
+  const clamped = run('macro-calculator', { weight: 55, height: 160, age: 40 }, 'female', { activity: '1.2', goal: 'cut' });
+  assert.match(clamped.primaryValue, /^1,?200 kcal\/day$/);
+  assert.match(clamped.callout?.text ?? '', /cut target was raised to 1,?200/);
+});
+
+test('macro: grams always add up to the calories shown (incl. high body weight)', () => {
+  for (const [w, h] of [[72, 175], [150, 175], [200, 160], [45, 155]]) for (const goal of ['cut', 'maintain', 'bulk']) for (const sex of ['male', 'female'] as const) {
+    const r = run('macro-calculator', { weight: w, height: h, age: 40 }, sex, { activity: '1.2', goal });
+    const shown = Number(r.primaryValue.replace(/[^\d.]/g, ''));
+    assert.ok(Math.abs(macroKcal(r.rows!) - shown) <= 3, `${w}/${h} ${goal} ${sex}: ${macroKcal(r.rows!)} vs ${shown}`);
+    const q = new URL('https://x' + r.cta!.href).searchParams;
+    assert.ok(Math.abs(Number(q.get('protein')) * 4 + Number(q.get('carbs')) * 4 + Number(q.get('fat')) * 9 - Number(q.get('calories'))) <= 15);
+  }
+  const heavy = run('macro-calculator', { weight: 150, height: 175, age: 40 }, 'female', { activity: '1.2', goal: 'cut' });
+  assert.match(heavy.callout?.text ?? '', /fat was reduced to fit/);
+});
+
+test('keto: carbs never exceed the stated 50 g ceiling; calories still add up', () => {
+  for (const [w, act] of [[72, '1.375'], [120, '1.9'], [150, '1.9']]) {
+    const r = run('keto-calculator', { weight: w, height: 190, age: 25 }, 'male', { activity: act });
+    const carbs = r.rows!.find((x) => /^Carbs/.test(x.label))!;
+    assert.ok(Number(carbs.value.split(' g')[0]) <= 50, carbs.value);
+    const shown = Number(r.primaryValue.replace(/[^\d.]/g, ''));
+    assert.ok(Math.abs(macroKcal(r.rows!.filter((x) => x.value.includes('·'))) - shown) <= 3);
+  }
+  const big = run('keto-calculator', { weight: 150, height: 190, age: 25 }, 'male', { activity: '1.9' });
+  assert.match(big.callout?.text ?? '', /capped at 50 g/);
+  assert.match(big.note ?? '', /diabetes or blood pressure/);
+});

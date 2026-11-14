@@ -402,7 +402,7 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'How the calculation works',
         paragraphs: [
-          'First we subtract your fat mass from your total weight to get lean body mass (LBM). Then we divide LBM by height² to get FFMI. The normalized version adds 6.1 × (1.8 − height in metres) to correct for stature.',
+          'First we subtract your fat mass from your total weight to get lean body mass (LBM). Then we divide LBM by height² to get FFMI. The normalized version adds 6.1 × (1.8 − height in meters) to correct for stature.',
         ],
         list: {
           intro: 'The formulas are:',
@@ -655,7 +655,7 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'Reading your per-area breakdown',
         paragraphs: [
-          'The bars show each area individually, coloured by how you scored. Red or amber areas are where to focus your work; green and blue areas are strengths to maintain.',
+          'The bars show each area individually, colored by how you scored. Red or amber areas are where to focus your work; green and blue areas are strengths to maintain.',
           'Most people who sit for long hours will find their hip flexors, hamstrings, and ankles are the tightest. Desk workers in particular benefit from daily hip and chest mobility work — the Sitting Disease Reversal Calculator can help you build movement into your day.',
         ],
       },
