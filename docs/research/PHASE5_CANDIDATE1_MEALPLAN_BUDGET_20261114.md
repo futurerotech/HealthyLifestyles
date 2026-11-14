@@ -93,7 +93,50 @@ Extend the existing generator. **No new tool, no new route, no new dependency.**
 
 Decision requested: approve the scope in §11 (or a subset) for implementation on a branch. Nothing will be merged or deployed without separate release authorization.
 
+## 13. Implementation status (2026-11-15, owner-authorized non-production scope)
+
+The feature is visible only when `PUBLIC_HLS_LAB=1`. It is not demand-validated, and the production lab-flag guard is unchanged.
+
+**Price sources.** Both are public domain. They are never blended into a single "current" price.
+
+| Source | What it is | Use |
+|---|---|---|
+| BLS CPI Average Price Data, U.S. city average | Monthly survey price, Oct 2026 | Preferred source. Two series were added: current "Butter, stick" (the grade AA series ended in 2012) and "Yogurt, per 8 oz". |
+| USDA ERS Fruit and Vegetable Prices (Circana scanner data, CC0) | Annual national average. The CSV carries no year; ERS lists 2023 as its latest scanner year and has archived the 2022 tables, so the year is inferred and flagged as such. | Only for 20 foods with no current BLS series, and only on an exact food-and-form match. Not inflation-adjusted, because ERS says this data should not be used for price changes over time. The UI labels these prices "(2023 price)" and says they are likely low. |
+
+**Preparation yields.**
+- Portions are edible weights. Purchased weight = edible weight ÷ ERS preparation yield. This covers peel, trimming, and drained liquid in canned beans.
+- The yield applies to BLS produce prices too, because those are also per purchased pound. The banana price, for example, rose by 1/0.64. Before this change, peeled and trimmed produce was under-costed.
+- Lentil portions are dry weight, so their yield is 1.
+
+**Deliberately unpriced:**
+- bell peppers (color unknown, and the green and red prices differ);
+- "berries" and "mixed vegetables" (the mix is unknown);
+- corn and sweetcorn (form unknown);
+- Greek yogurt (a different product from BLS "Yogurt");
+- olive oil, nuts, fish, grains other than rice and pasta, and spices (no current public-domain retail series).
+
+**Measured result** (tests in `grocery-cost.test.ts`):
+- Comparable recipes (at least 60% of ingredients priced; threshold unchanged): 2 → **14 of 67**. With BLS only, the count is 4.
+- In a generated omnivore 2,000 kcal week, 23% of grocery lines are priced, for $12.22 per week of priced items, of which $2.45 uses ERS prices.
+- The estimate is therefore **incomplete**. The UI says "Incomplete estimate" and treats the figure as a lower bound.
+
+**Tests:**
+- unit conversion with yield;
+- source precedence (BLS wins);
+- household scaling;
+- missing prices;
+- vegan, allergen and exclusion pools (swaps never leave the pool);
+- a synthetic fully priced swap, including the calorie-tolerance rejection;
+- a coverage regression floor.
+
+**Still open:**
+- the USDA food-plan benchmark;
+- demand validation (Search Console unavailable);
+- owner decision on public release.
+
 ## Sources
+- USDA ERS, Fruit and Vegetable Prices (data and documentation): https://www.ers.usda.gov/data-products/fruit-and-vegetable-prices/
 
 - BLS Average Price Data (CPI): https://download.bls.gov/pub/time.series/ap/
 - BLS Public Data API: https://www.bls.gov/developers/home.htm
