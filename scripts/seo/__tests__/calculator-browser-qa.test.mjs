@@ -105,22 +105,31 @@ const AUDIT = `(() => {
   };
 })()`;
 
-// Focus indicator of the currently focused element, if it is inside the calculator.
-// Counts the element and its two nearest wrappers (a :focus-within ring on the
-// field wrapper is a valid indicator), but only styles that CHANGE on focus,
-// measured focused vs. blurred, so an always-on shadow cannot pass.
-const FOCUSED = `(() => {
+// Focus-indicator styles of a control and its two nearest wrappers (a
+// :focus-within ring on the field wrapper is a valid indicator).
+const LOOK_FN = `const __qaLook = (e, root) => [e, e.parentElement, e.parentElement?.parentElement]
+  .filter((n) => n && root.contains(n)).map((n) => { const cs = getComputedStyle(n);
+    return [cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0 ? cs.outlineStyle + ' ' + cs.outlineWidth + ' ' + cs.outlineColor : 'none', cs.boxShadow, cs.borderColor]; });`;
+
+// Unfocused baseline for every control, taken once before tabbing. Comparing
+// against it means focus is never moved by the measurement itself.
+const BASELINE = `(() => { ${LOOK_FN}
+  const root = document.querySelector('.tool__calc');
+  window.__qaBase = new Map();
+  for (const e of root.querySelectorAll('input, select, textarea, button, a[href]')) window.__qaBase.set(e, __qaLook(e, root));
+  return window.__qaBase.size; })()`;
+
+// The focused control, and whether any focus-indicator style differs from its baseline.
+const FOCUSED = `(() => { ${LOOK_FN}
   const e = document.activeElement;
   const root = document.querySelector('.tool__calc');
   if (!e || !root || !root.contains(e) || e === root) return null;
-  const nodes = [e, e.parentElement, e.parentElement?.parentElement].filter((n) => n && root.contains(n));
-  const look = () => nodes.map((n) => { const cs = getComputedStyle(n);
-    return [cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0 ? cs.outlineStyle + cs.outlineWidth + cs.outlineColor : '', cs.boxShadow, cs.borderColor].join('|'); });
-  const focused = look();
-  e.blur();
-  const blurred = look();
-  e.focus({ preventScroll: true });
-  const ring = focused.some((f, i) => f !== blurred[i] && (/^[a-z]/.test(f.split('|')[0]) || f.split('|')[1] !== 'none' || f.split('|')[2] !== blurred[i].split('|')[2]));
+  const base = window.__qaBase?.get(e);
+  const now = __qaLook(e, root);
+  const ring = !base ? null : now.some((n, i) => base[i] && (
+    (n[0] !== 'none' && n[0] !== base[i][0]) ||
+    (n[1] !== 'none' && n[1] !== base[i][1]) ||
+    (n[2] !== base[i][2])));
   return { tag: e.tagName, id: e.id, label: (e.getAttribute('aria-label') || e.textContent || e.id || '').trim().slice(0, 40), ring };
 })()`;
 
@@ -223,6 +232,7 @@ test('changed calculators: hydration, interaction, 390px and desktop fit, access
 
       // Keyboard: Tab from just before the calculator through all of its controls.
       await js("(()=>{const r=document.querySelector('.tool__calc');const s=document.createElement('button');s.id='qa-tab-start';s.textContent='start';r.parentNode.insertBefore(s,r);s.focus();})()");
+      await js(BASELINE);
       const reached = new Map();
       for (let i = 0; i < mobile.count + 25; i++) {
         await tab();
@@ -233,7 +243,8 @@ test('changed calculators: hydration, interaction, 390px and desktop fit, access
       await js("document.getElementById('qa-tab-start')?.remove()");
       const reachedCount = [...reached.values()].length;
       if (reachedCount < mobile.count) fail(`only ${reachedCount}/${mobile.count} controls reachable with Tab`);
-      const noRing = [...reached.values()].filter((f) => !f.ring).map((f) => f.tag + ' ' + (f.id || f.label));
+      // ring === null: control appeared after the baseline (e.g. a result link); not judged here.
+      const noRing = [...reached.values()].filter((f) => f.ring === false).map((f) => f.tag + ' ' + (f.id || f.label));
       if (noRing.length) fail('no visible focus indicator: ' + JSON.stringify(noRing));
 
       // Interaction: some input change must change the visible result.
