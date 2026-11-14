@@ -19,3 +19,13 @@ test('internal links resolve against published articles and tools (aliases honor
   const thin = lintArticle({ id: 2, slug: 'b', title: 'B', layout: [{ blockType: 'text', text: 'short' }] }, ctx);
   assert.deepEqual(thin.findings.map((f) => f.code), ['thin-content', 'few-sources', 'no-internal-links', 'no-faq']);
 });
+
+test('negated overclaims are not flagged; peopleAlsoAsk counts as an FAQ', () => {
+  const ctx = { articleSlugs: new Set(), toolSlugs: new Set() };
+  const base = { id: 3, slug: 'c', title: 'C', sources: [{ url: 1 }, { url: 2 }, { url: 3 }] };
+  const ok = lintArticle({ ...base, layout: [{ blockType: 'text', text: 'No calculator can guarantee results. This is not a miracle. [x](/wellness-hub/c) ' + 'w '.repeat(800) }, { blockType: 'peopleAlsoAsk', items: [{ question: 'q', answer: 'a' }] }] }, { ...ctx, articleSlugs: new Set(['c']) });
+  assert.deepEqual(ok.findings, []);
+  const bad = lintArticle({ ...base, layout: [{ blockType: 'text', text: 'This plan is guaranteed to work. [x](/wellness-hub/c) ' + 'w '.repeat(800) }] , faq: [{ question: 'q', answer: 'a' }] }, { ...ctx, articleSlugs: new Set(['c']) });
+  assert.equal(bad.findings[0].code, 'overclaim-review');
+  assert.match(bad.findings[0].detail, /guaranteed to work/);
+});
