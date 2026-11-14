@@ -105,3 +105,26 @@ test('published copy and sources mirror the safer AHA guidance', () => {
   assert.match(content, /2025 High Blood Pressure Guideline/);
   assert.doesNotMatch(content, /2017 ACC\/AHA Guideline/);
 });
+
+test('2025 AHA/ACC: zone labels state the and/or rule, matching the classification', () => {
+  const zones = Object.fromEntries(evaluate(118, 78).visual.items.map((i) => [i.label, i.detail]));
+  assert.equal(zones['Normal'], 'Below 120 and below 80 mmHg');
+  assert.equal(zones['Elevated'], '120–129 and below 80 mmHg');
+  assert.equal(zones['High — Stage 1'], '130–139 or 80–89 mmHg');
+  assert.equal(zones['High — Stage 2'], '140+ or 90+ mmHg');
+  // Either number alone is enough, as the labels now say.
+  assert.equal(evaluate(125, 85).category.label, 'High — Stage 1');
+  assert.equal(evaluate(118, 92).category.label, 'High — Stage 2');
+  assert.equal(evaluate(125, 79).category.label, 'Elevated');
+});
+
+test('2025 AHA/ACC: validated upper-arm cuff; cuffless devices not for diagnosis', () => {
+  assert.match(evaluate(118, 78).note, /validated upper-arm cuff/);
+  assert.match(evaluate(118, 78).note, /does not recommend cuffless devices such as smartwatches/);
+  assert.match(copy, /average of at least two careful readings taken on at least two occasions/);
+  assert.match(copy, /validatebp\.org/);
+  assert.match(copy, /does not recommend cuffless devices, such as smartwatches/);
+  assert.match(copy, /ACC_AHA_2025_GUIDELINE/);
+  assert.match(content, /doi:10\.1161\/HYP\.0000000000000249/);
+  assert.doesNotMatch(copy, /hypertensive (urgency|crisis)/i);
+});
