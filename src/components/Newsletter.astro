@@ -35,6 +35,7 @@ const inputId = `nl-email-${variant}`;
       Subscribe <Icon name="arrow-right" size={16} />
     </button>
   </div>
+  <p class="newsletter__privacy">How we use and store your email: <a href="/privacy">Privacy Policy</a>.</p>
   <p class="newsletter__status" data-newsletter-status role="status" aria-live="polite"></p>
 </form>
 
@@ -152,6 +153,18 @@ const inputId = `nl-email-${variant}`;
     cursor: not-allowed;
   }
 
+  .newsletter__privacy {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .newsletter__privacy a {
+    color: inherit;
+    text-decoration: underline;
+  }
+  .newsletter__privacy a:hover {
+    text-decoration-thickness: 2px;
+  }
   .newsletter__status {
     margin: 0;
     font-size: 0.88rem;
@@ -185,6 +198,12 @@ const inputId = `nl-email-${variant}`;
   }
   .newsletter--footer .newsletter__field input::placeholder {
     color: #94a3b8;
+  }
+  .newsletter--footer .newsletter__privacy {
+    color: #94a3b8;
+  }
+  .newsletter--footer .newsletter__privacy a {
+    color: #fff;
   }
   .newsletter--footer .newsletter__status[data-state='loading'] {
     color: #94a3b8;
