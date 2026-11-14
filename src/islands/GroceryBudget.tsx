@@ -19,7 +19,10 @@ export default function GroceryBudget({ days, pool, recipes }: { days: PlannedDa
   const weekly = cost.pricedCost * (7 / cost.days);
   const budgetN = parseFloat(budget);
   const hasBudget = Number.isFinite(budgetN) && budgetN > 0;
-  const periods = cost.snapshot.periods.map(monthName).join(', ');
+  const bls = cost.sources.find((s) => s.source === 'BLS');
+  const ers = cost.sources.find((s) => s.source === 'ERS');
+  const periods = bls ? bls.periods.map(monthName).join(', ') : '';
+  const ersWeekly = cost.costBySource.ERS * (7 / cost.days);
   const priced = cost.lines.filter((l) => l.cost !== null).length;
 
   return (
@@ -39,9 +42,11 @@ export default function GroceryBudget({ days, pool, recipes }: { days: PlannedDa
       </div>
 
       <p class="mpg__budget-total" aria-live="polite">
-        Estimated cost of the <strong>{priced} of {cost.lines.length}</strong> items with a current U.S. average price:{' '}
+        {cost.incomplete && <strong>Incomplete estimate. </strong>}
+        Estimated cost of the <strong>{priced} of {cost.lines.length}</strong> items with a U.S. average price:{' '}
         <strong>{usd(weekly)} per week</strong> ({usd(cost.perDay)} per day) for {cost.household} {cost.household === 1 ? 'person' : 'people'}.
-        {' '}Items without a price are not included, so your total will be higher.
+        {cost.incomplete && ' Items without a price are not included, so your total will be higher.'}
+        {ers && ` ${usd(ersWeekly)} of this uses ${ers.periods[0]} USDA produce prices that are not adjusted for inflation, so it is likely low.`}
       </p>
       {hasBudget && (
         <p class={`mpg__budget-flag ${weekly > budgetN ? 'is-over' : 'is-under'}`}>
@@ -61,7 +66,7 @@ export default function GroceryBudget({ days, pool, recipes }: { days: PlannedDa
               ))}
             </ul>
           ) : (
-            <p>Not enough price data to compare these recipes fairly, so no swaps are suggested. Recipes are compared only when most of their ingredients have a current price.</p>
+            <p>Not enough price data to compare these recipes fairly, so no swaps are suggested. Recipes are compared only when at least 60% of their ingredients have a price.</p>
           )}
         </div>
       )}
@@ -75,7 +80,7 @@ export default function GroceryBudget({ days, pool, recipes }: { days: PlannedDa
               <th scope="row">{l.name}</th>
               <td>{formatAmount(l.amount, l.unit)}</td>
               <td>{l.meals}</td>
-              <td>{l.cost === null ? 'no price' : usd(l.cost)}</td>
+              <td>{l.cost === null ? 'no price' : l.source === 'ERS' ? `${usd(l.cost)} (${ers?.periods[0]} price)` : usd(l.cost)}</td>
             </tr>
           ))}
         </tbody>
@@ -83,7 +88,14 @@ export default function GroceryBudget({ days, pool, recipes }: { days: PlannedDa
 
       <p class="mpg__budget-note">
         Amounts are typical per-serving estimates, not weighed recipes. Prices are U.S. city averages ({periods}) from the{' '}
-        <a href="https://www.bls.gov/cpi/factsheets/average-prices.htm">U.S. Bureau of Labor Statistics</a>. They vary by region and
+        <a href="https://www.bls.gov/cpi/factsheets/average-prices.htm">U.S. Bureau of Labor Statistics</a>
+        {ers && (
+          <>
+            {' '}and, for produce with no current BLS price, {ers.periods[0]} national averages from the{' '}
+            <a href={ers.url}>USDA Economic Research Service</a> (not adjusted for inflation)
+          </>
+        )}
+        . Costs allow for peels, trimming and drained liquid using USDA preparation yields. Prices vary by region and
         store and are not a price guarantee. This plan is not checked for nutritional completeness. If you have a medical
         condition, food allergy or are pregnant, plan with a registered dietitian or clinician.
       </p>
