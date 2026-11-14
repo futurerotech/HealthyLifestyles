@@ -97,7 +97,8 @@
   gap: 1.25rem;
   scroll-margin-top: calc(var(--header-h) + 1rem);
 }
-.la__hero {
+/* Compound selector: beats .card's white background regardless of stylesheet order. */
+.la__hero, .la__hero.card {
   position: relative;
   overflow: hidden;
   text-align: center;
