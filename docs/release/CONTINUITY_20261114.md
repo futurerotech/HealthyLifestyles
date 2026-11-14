@@ -20,6 +20,16 @@ merge, deployment, publication, legal or clinical approval.
 - **BMR:** formula verified exact. An accuracy note was added.
 - **Tests:** `scripts/seo/__tests__/body-metrics-audit.test.ts`.
 
+### Phase 2 group 2 findings fixed at `b1c9614`
+- **Waist-to-height:** 0.50 was "Healthy". Bands are now <0.4 / 0.4–0.49 / 0.5–0.59 / ≥0.6, and the page copy matches.
+- **Waist-to-hip:** 0.90 (men) and 0.85 (women) were "Low risk", and the copy said "above". The cited WHO 2008 report sets risk **at or above** these values. Tool and copy now match, and the invented second tiers are removed.
+- **Macro:** a cut could exceed maintenance, and the cut message appeared on Maintain. At high weights the macros were larger than the calories shown and the meal-plan link carried those numbers. Fat is now reduced to fit and the totals always match.
+- **Keto:** carbs are capped at the tool's own 50 g ceiling. The caution now names pregnancy and diabetes or blood-pressure medicine.
+- **Copy:** British spellings converted to American English. Cited titles are kept. `american-english-copy.test.mjs` guards this.
+- **Open question for clinical review:** per-kg protein and fat use total body weight even at a high BMI. A goal or adjusted weight may suit better. This is not changed without a clinical decision.
+
+Audited with no defect found: weight-loss %, calorie deficit (3,500 kcal/lb rule labelled as an estimate, with unsafe-pace warnings), protein intake.
+
 ## CMS
 - **PR #64** `codex/indexnow-draft-safety-20261114` @ `906070a`: CI 43559981416 ✅ (31/31).
 - **PR #65** `codex/hostinger-runtime-evidence-20261114` @ `50a9358`: CI 43561621197 ✅ (31/31).
