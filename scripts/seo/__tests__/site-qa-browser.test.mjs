@@ -85,7 +85,7 @@ test('site-wide 390px and desktop QA: overflow, names, target size, images, head
     for (const path of paths) {
       for (const [w, h, mobile] of [[390, 844, true], [1440, 900, false]]) {
         const fail = (m) => failures.push(`${path} @${w}: ${m}`);
-        s.exceptions.length = 0;
+        s.exceptions.length = 0; s.consoleErrors.length = 0;
         await s.viewport(w, h, mobile);
         await s.js('window.__qaPrev = true').catch(() => {});
         const nav = await s.send('Page.navigate', { url: s.origin + path });
@@ -97,11 +97,16 @@ test('site-wide 390px and desktop QA: overflow, names, target size, images, head
           // Only islands a reader can see must hydrate; a client:visible island that is hidden at this
           // viewport legitimately never loads. On timeout, name the pending component.
           const PENDING = "[...document.querySelectorAll('.tool__calc astro-island[ssr]')].filter((i)=>[...i.children].some((c)=>c.getClientRects().length))";
+          const hydrate = () => until(() => s.js(`(()=>{const p=${PENDING}[0];if(p)p.scrollIntoView({block:'center'});return !p;})()`), 'hydration', 30000);
           if (hasCalc) {
-            try {
-              await until(() => s.js(`(()=>{const p=${PENDING}[0];if(p)p.scrollIntoView({block:'center'});return !p;})()`), 'hydration', 30000);
-            } catch (e) {
-              throw Error(String(e) + ' pending=' + JSON.stringify(await s.js(`${PENDING}.map((i)=>(i.getAttribute('component-url')||'').split('/').pop()+' '+(i.getAttribute('client')||''))`)));
+            try { await hydrate(); } catch (first) {
+              // The dev server compiles islands on first request and may reload the page while doing
+              // so. Retry once after a reload; only a second failure counts, with console evidence.
+              const pending = await s.js(`${PENDING}.map((i)=>(i.getAttribute('component-url')||'').split('/').pop()+' '+(i.getAttribute('client')||''))`).catch(() => []);
+              await s.send('Page.reload', { ignoreCache: false });
+              await until(() => s.js("document.readyState==='complete'"), 'reload', 45000);
+              try { await hydrate(); console.log(`[SITE_QA] ${path} @${w}: hydrated after one reload (first wait pending ${JSON.stringify(pending)})`); }
+              catch (e) { throw Error(String(e) + ' pending=' + JSON.stringify(pending) + ' console=' + JSON.stringify([...new Set(s.consoleErrors)].slice(-4)) + ' exceptions=' + JSON.stringify([...new Set(s.exceptions)].slice(-3))); }
             }
           }
           await s.js('scrollTo(0,0)');

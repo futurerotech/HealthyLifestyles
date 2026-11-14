@@ -93,11 +93,15 @@ export async function startBrowserSession({ probePath = '/', tag = 'BROWSER_QA' 
       if (x.exceptionDetails) throw Error(JSON.stringify(x.exceptionDetails).slice(0, 400));
       return x.result.value;
     };
-    const exceptions = [];
-    cdp.on((msg) => { if (msg.method === 'Runtime.exceptionThrown') exceptions.push(String(msg.params?.exceptionDetails?.exception?.description ?? msg.params?.exceptionDetails?.text).slice(0, 200)); });
-    await send('Runtime.enable'); await send('Page.enable');
+    const exceptions = [], consoleErrors = [];
+    cdp.on((msg) => {
+      if (msg.method === 'Runtime.exceptionThrown') exceptions.push(String(msg.params?.exceptionDetails?.exception?.description ?? msg.params?.exceptionDetails?.text).slice(0, 200));
+      if (msg.method === 'Runtime.consoleAPICalled' && msg.params?.type === 'error') consoleErrors.push((msg.params.args || []).map((a) => a.value ?? a.description ?? '').join(' ').slice(0, 240));
+      if (msg.method === 'Log.entryAdded' && msg.params?.entry?.level === 'error') consoleErrors.push(String(msg.params.entry.text + ' ' + (msg.params.entry.url || '')).slice(0, 240));
+    });
+    await send('Runtime.enable'); await send('Page.enable'); await send('Log.enable');
     const viewport = (width, height, mobile) => send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile });
-    return { origin, send, js, viewport, exceptions, stop, log };
+    return { origin, send, js, viewport, exceptions, consoleErrors, stop, log };
   } catch (e) {
     await stop();
     throw Error(String(e) + '\n' + log.join('').slice(-1500));
