@@ -163,5 +163,9 @@ GO/NO-GO: **NO-GO for release** until gates 1–4 are closed.
 - Provisional weighted scores over the 90% with evidence: A 2.2, B 3.5, C 3.7. The lead is C (Shift Work Explorer, reusing existing sleep, nap, caffeine and chronotype engines). B is credible only if differentiated from AHRQ QuestionBuilder. A is not recommended.
 - No prototype built. The owner decision, search-demand evidence and clinical review are gates.
 
+## Phase 7 §11.3 overlap and cannibalization screen (done; read-only)
+- `docs/research/PHASE7_OVERLAP_CANNIBALIZATION_20261114.md`, run 43638753080 @ 886d52b.
+- No article cannibalization. Flagged tool pairs are distinct intents. Two legacy alias tool records are already 301-redirected (retiring them needs a CMS write). The shared-tool flag is the known §6.3 ID 37 gate.
+
 ## Next main-roadmap milestone
-Phase 7 §11.3 using the existing CMS inventory (authorized, read-only): the existing-page overlap audit and cannibalization screening across the published articles, tools and pSEO pages. Search Console-based steps stay gated.
+Blocked on access: Phase 7 and 8 query-level work needs Search Console data (owner to grant read access or provide an export). No further roadmap work can proceed without new authorization or data. The pending owner decisions are listed in the external gates above and in the Phase 5, 6 and 7 research docs.
