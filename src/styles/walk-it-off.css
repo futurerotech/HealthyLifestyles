@@ -5,7 +5,7 @@
 .wo__form { padding: clamp(1.25rem, 3vw, 1.6rem); display: grid; gap: 1rem; }
 .wo__modes { display: inline-flex; border: 1.5px solid var(--border); border-radius: var(--radius-pill); padding: 0.15rem; background: var(--surface-2); width: fit-content; }
 .wo__modes button { border: 0; background: transparent; padding: 0.45rem 1rem; border-radius: var(--radius-pill); font-weight: 700; font-size: 0.88rem; color: var(--muted); }
-.wo__modes button.is-on { background: var(--c-fitness); color: #fff; }
+.wo__modes button.is-on { background: color-mix(in srgb, var(--c-fitness) 55%, #000); color: #fff; }
 .wo__inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem 1rem; }
 .wo__field { display: flex; flex-direction: column; gap: 0.3rem; font-weight: 600; font-size: 0.9rem; }
 .wo__field select, .wo__field input { padding: 0.6rem 0.7rem; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font: inherit; font-weight: 600; background: #fff; width: 100%; }

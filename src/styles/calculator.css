@@ -574,7 +574,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #fff;
-  background: var(--zone);
+  background: color-mix(in srgb, var(--zone) 55%, #000); /* white text 4.5:1+ for every zone color */
   padding: 0.15rem 0.5rem;
   border-radius: var(--radius-pill);
 }
@@ -694,7 +694,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #fff;
-  background: #6366f1;
+  background: #4338ca; /* indigo-700: 7.9:1 (was #6366f1, 4.47:1) */
   padding: 0.1rem 0.45rem;
   border-radius: var(--radius-pill);
 }
@@ -880,7 +880,8 @@
   width: 200px;
   height: 200px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #7dd3fc, #0ea5e9);
+  /* Same sky hue, darker: the white phase label (large text) needs 3:1 across the circle. */
+  background: radial-gradient(circle at 35% 30%, #0ea5e9, #0369a1);
   box-shadow: 0 16px 40px rgba(14, 165, 233, 0.35);
   transition-property: transform;
   transition-timing-function: ease-in-out;

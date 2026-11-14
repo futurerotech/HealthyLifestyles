@@ -34,6 +34,17 @@ const bgOf = (el) => {
     const cs = getComputedStyle(n);
     opacity *= Number(cs.opacity);
     if (cs.backgroundImage !== 'none') return { indeterminate: n.tagName.toLowerCase() + '.' + String(n.className).slice(0, 30) };
+    // An absolutely positioned layer is painted over its earlier siblings, not just its
+    // ancestors: if one of them paints a background under it, the pair needs manual review.
+    if ((cs.position === 'absolute' || cs.position === 'fixed') && n.parentElement) {
+      const r = n.getBoundingClientRect();
+      for (const sib of n.parentElement.children) {
+        if (sib === n) break;
+        const sc = getComputedStyle(sib), sr = sib.getBoundingClientRect();
+        const overlaps = sr.left < r.right && sr.right > r.left && sr.top < r.bottom && sr.bottom > r.top;
+        if (overlaps && (sc.backgroundImage !== 'none' || rgba(sc.backgroundColor)[3] > 0)) return { indeterminate: 'layer over ' + sib.tagName.toLowerCase() + '.' + String(sib.className).slice(0, 30) };
+      }
+    }
     const c = rgba(cs.backgroundColor);
     if (c[3] > 0) { layers.push(c); if (c[3] >= 1) break; }
   }
@@ -57,6 +68,9 @@ export const contrastAudit = (rootExpr = 'document.body') => `(() => { ${CONTRAS
   for (let t; (t = walker.nextNode());) {
     const el = t.parentElement; if (!el || seen.has(el)) continue; seen.add(el);
     if (hiddenText(el) || el.closest(':disabled, [aria-disabled=true], .logo, [class*=logo]')) continue;
+    // Text that belongs to an inactive control (e.g. the unit of a disabled field) is exempt.
+    const grp = el.parentElement;
+    if (grp && grp.querySelector(':disabled') && !grp.querySelector('input:enabled, select:enabled, textarea:enabled, button:enabled, a[href]')) continue;
     const cs = getComputedStyle(el);
     const b = bgOf(el); if (b.indeterminate) { indeterminate.add(b.indeterminate); continue; }
     const fg = rgba(cs.color); fg[3] *= b.opacity;
@@ -112,14 +126,15 @@ export const FOCUS_CONTRAST = `(() => { ${CONTRAST_FNS} ${LOOK}
   if (now.border !== base.border) cands.push(['border', now.border.split(' ').slice(0, -1).join(' ')]);
   let best = cands.map(([k, c]) => [k, ratio(over(rgba(c), around.bg), around.bg), c]).sort((a, b) => b[1] - a[1])[0];
   // :focus-within indicators on a wrapper (up to two levels) count as the control's indicator.
-  for (let a = e.parentElement, k = 0; !best && a && k < 2; a = a.parentElement, k++) {
+  for (let a = e.parentElement, k = 0; a && k < 2; a = a.parentElement, k++) {
     const b0 = window.__fbase?.get(a), n0 = __look(a); if (!b0) continue;
     const ab = bgOf(a.parentElement || a); if (ab.indeterminate) continue;
     const c2 = [];
     if (n0.outline && n0.outline !== b0.outline) c2.push(['wrapper outline', n0.outline]);
     if (n0.shadow !== b0.shadow && n0.shadow !== 'none') for (const m of n0.shadow.matchAll(/(rgba?\([^)]+\)|#[0-9a-f]{3,8})/gi)) c2.push(['wrapper ring', m[1]]);
     if (n0.border !== b0.border) c2.push(['wrapper border', n0.border.split(' ').slice(0, -1).join(' ')]);
-    best = c2.map(([kk, c]) => [kk, ratio(over(rgba(c), ab.bg), ab.bg), c]).sort((x, y) => y[1] - x[1])[0];
+    const w = c2.map(([kk, c]) => [kk, ratio(over(rgba(c), ab.bg), ab.bg), c]).sort((x, y) => y[1] - x[1])[0];
+    if (w && (!best || w[1] > best[1])) best = w;
   }
   // Focus shown only through a fill, text color or underline change is a visible indicator whose
   // geometry this check cannot rate; it passes here and is listed for manual review.
