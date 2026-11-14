@@ -96,11 +96,15 @@
 }
 .wh-search input {
   flex: 1;
+  min-width: 0; /* let the field shrink at 390px instead of pushing the button off-screen */
   padding: 0.8rem 1rem;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-pill);
   font: inherit;
   background: #fff;
+}
+.wh-search button {
+  flex-shrink: 0;
 }
 .wh-search input:focus-visible {
   border-color: var(--green-accent);
