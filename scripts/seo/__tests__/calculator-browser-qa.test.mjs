@@ -284,7 +284,10 @@ test('changed calculators: hydration, interaction, 390px and desktop fit, access
         if (done.scroll > done.client + 1) fail(`390px overflow (${done.scroll} > ${done.client})`);
         if (exceptions.length) fail('uncaught exceptions: ' + JSON.stringify(exceptions.slice(0, 3)));
         report.push(`${slug}: unanswered-start=ok item9-alert=${done.role === 'alert' ? 'ok' : 'missing'}`);
-      } catch (e) { fail(String(e)); }
+      } catch (e) {
+        const seen = await js("JSON.stringify({ path: location.pathname, title: document.title, calc: (document.querySelector('.tool__calc')?.innerHTML ?? 'NO .tool__calc').replace(/\\s+/g, ' ').slice(0, 900) })").catch((x) => String(x));
+        fail(String(e) + ' | page: ' + seen);
+      }
     }
 
     console.log('[CALC_BROWSER_QA] ' + report.join(' | '));
