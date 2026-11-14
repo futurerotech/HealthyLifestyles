@@ -26,9 +26,26 @@ export function titleMatch(label, pageTitle) {
 export const isSearchLink = (u) => /[?&](term|q|query|search)=/i.test(u.search) || /\/(search|results)(\/|$)/i.test(u.pathname);
 export const isGeneric = (u) => u.pathname.replace(/\/+$/, '') === '' ;
 
-export function classify({ url, finalUrl, status, error, title, label }) {
+export const isChallenge = (status, title = '') => status === 203 || /checking your browser|cookies must be enabled|just a moment|attention required|recaptcha|access denied/i.test(title);
+
+/** NCBI record behind a PubMed, PMC or Bookshelf URL, if any. */
+export function ncbiId(url) {
+  const u = new URL(url);
+  let m;
+  if (/pubmed\.ncbi\.nlm\.nih\.gov$/.test(u.hostname) && (m = u.pathname.match(/^\/(\d+)/))) return { db: 'pubmed', id: m[1] };
+  if ((m = u.pathname.match(/\/PMC(\d+)/i))) return { db: 'pmc', id: m[1] };
+  if ((m = u.pathname.match(/\/books\/(NBK\d+)/i))) return { db: 'books', accession: m[1] };
+  return null;
+}
+
+export function classify({ url, finalUrl, status, error, title, metaTitle, label, kind }) {
   const u = new URL(finalUrl || url);
   if (isSearchLink(new URL(url))) return 'search-link';
+  if (metaTitle) {
+    const m = titleMatch(label, metaTitle);
+    return m !== null && m < 0.3 ? (kind === 'inline' ? 'review' : 'mismatch') : 'ok';
+  }
+  if (isChallenge(status, title)) return 'access';
   if (error && /ENOTFOUND|EAI_AGAIN|certificate|ECONNREFUSED/i.test(error)) return 'dead';
   if (status === 404 || status === 410) return 'dead';
   if (error || status === 401 || status === 403 || status === 429 || status >= 500) return 'access';
@@ -36,7 +53,7 @@ export function classify({ url, finalUrl, status, error, title, label }) {
   if (isGeneric(u) && !isGeneric(new URL(url))) return 'redirected-to-homepage';
   if (isGeneric(u)) return 'generic';
   const m = titleMatch(label, title);
-  if (m !== null && m < 0.3) return 'mismatch';
+  if (m !== null && m < 0.3) return kind === 'inline' ? 'review' : 'mismatch';
   return 'ok';
 }
 
@@ -57,6 +74,26 @@ async function check(url) {
       if (/html/i.test(out.contentType)) out.title = pageTitle((await r.text()).slice(0, 400000));
       else await r.body?.cancel();
     } catch (e) { out.error = String(e.cause?.code || e.name || e.message); }
+  }
+  const ref = ncbiId(out.finalUrl || url) || ncbiId(url);
+  if (ref) {
+    // PubMed, PMC and Bookshelf block automated page views; NCBI's E-utilities
+    // API is the sanctioned way to read the record's title.
+    try {
+      const eu = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils';
+      let id = ref.id;
+      if (ref.accession) {
+        const s = await (await fetch(`${eu}/esearch.fcgi?db=books&retmode=json&term=${ref.accession}`, { signal: AbortSignal.timeout(20000) })).json();
+        id = s.esearchresult?.idlist?.[0];
+      }
+      if (id) {
+        const j = await (await fetch(`${eu}/esummary.fcgi?db=${ref.db}&retmode=json&id=${id}`, { signal: AbortSignal.timeout(20000) })).json();
+        const rec = j.result?.[id];
+        out.metaTitle = [rec?.title, rec?.booktitle, rec?.chaptertitle].filter(Boolean).join(' | ') || undefined;
+        out.metaSource = `${ref.db}:${id}`;
+      }
+    } catch (e) { out.metaError = String(e.name || e.message); }
+    await new Promise((r) => setTimeout(r, 400)); // E-utilities: max 3 requests/s without a key
   }
   return out;
 }
@@ -81,15 +118,17 @@ async function main() {
     if (!byUrl.has(c.url)) byUrl.set(c.url, null);
   }
   const urls = [...byUrl.keys()];
-  for (let i = 0; i < urls.length; i += 6) {
-    const batch = await Promise.all(urls.slice(i, i + 6).map(check));
+  const ncbi = urls.filter((u) => ncbiId(u)), other = urls.filter((u) => !ncbiId(u));
+  for (const u of ncbi) byUrl.set(u, await check(u));
+  for (let i = 0; i < other.length; i += 6) {
+    const batch = await Promise.all(other.slice(i, i + 6).map(check));
     for (const r of batch) byUrl.set(r.url, r);
   }
-  const results = rows.map((row) => { const r = byUrl.get(row.url); return { ...row, ...r, label: row.label, verdict: classify({ ...r, label: row.label }) }; });
+  const results = rows.map((row) => { const r = byUrl.get(row.url); return { ...row, ...r, label: row.label, verdict: classify({ ...r, label: row.label, kind: row.kind }) }; });
   const counts = results.reduce((a, r) => ({ ...a, [r.verdict]: (a[r.verdict] || 0) + 1 }), {});
   await writeFile('reference-audit.json', JSON.stringify({ checkedAt: new Date().toISOString(), cmsOrigin: ORIGIN, articles: docs.length, citations: results.length, uniqueUrls: urls.length, counts, results }, null, 2));
   console.log(JSON.stringify({ articles: docs.length, citations: results.length, uniqueUrls: urls.length, counts }));
-  for (const r of results.filter((x) => x.verdict !== 'ok')) console.log(`[REF] ${r.verdict} | ${r.slug} | ${r.kind} | ${r.label.slice(0, 90)} | ${r.url} -> ${r.status ?? r.error} ${r.finalUrl && r.finalUrl !== r.url ? r.finalUrl : ''} | ${(r.title || '').slice(0, 120)}`);
+  for (const r of results.filter((x) => x.verdict !== 'ok')) console.log(`[REF] ${r.verdict} | ${r.slug} | ${r.kind} | ${r.label.slice(0, 90)} | ${r.url} -> ${r.status ?? r.error} ${r.finalUrl && r.finalUrl !== r.url ? r.finalUrl : ''} | ${(r.metaTitle || r.title || '').slice(0, 140)}`);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) await main();
