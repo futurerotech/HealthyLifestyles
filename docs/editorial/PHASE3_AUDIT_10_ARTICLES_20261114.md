@@ -164,3 +164,29 @@
 ## Owner actions (consolidated)
 1. Authorize applying corrections 1, 4, 5 and 10 (high), then the low items 3 and 7–9, as **drafts on the existing CMS records**, after independent clinical review. Nothing has been written to the CMS.
 2. Independent licensed clinical review of these corrections (pending; not claimed).
+
+---
+
+## Addendum — remaining two high-risk articles
+
+### 11. Maximum Heart Rate: 220 Minus Age vs. Tanaka — low
+- **Verified.**
+  - Tanaka table: ages 20/30/40/50/60/70 give 194/187/180/173/166/159, crossing 220 − age at age 40.
+  - Age-50 %HRmax zones: moderate 85–119 and vigorous 119–145 (170 max); 87–121 and 121–147 (173 max).
+  - HRR example: 60% gives about 138 bpm, against about 112 bpm for 60% of maximum.
+  - The beta-blocker caution, the maximal-test safety advice and the emergency symptoms are all present.
+- **Minor taxonomy.** Tagged "Resistance Training, Strength Training" (cardio topic). Use "Heart Health" or "Cardio", as for article 9.
+
+### 12. How Much Caffeine Is Too Much in a Day? — low
+- **Verified.**
+  - The worked totals (190 / 317 / 422 / 375 mg) match the presets.
+  - EFSA's single-dose figure of 200 mg.
+  - Drake et al. 2013 (400 mg disrupting sleep 6 h before bed).
+  - The urgent-care symptoms.
+  - The "who should limit" list, which includes medicines.
+- **Findings and corrections (draft).**
+  1. **FDA wording.** The FDA describes 400 mg/day as an amount "not generally associated with dangerous, negative effects". The article drops "dangerous", which makes the statement stronger. Use the FDA wording.
+  2. **US pregnancy source.** The 200 mg pregnancy limit is cited only to the UK NHS. Add ACOG (moderate caffeine, under 200 mg a day, is not a major contributing factor in miscarriage or preterm birth) as the US source; keep the NHS source.
+  3. **Energy-drink preset.** The 80 mg preset reflects a small (8.4 fl oz) can. Many energy drinks contain 150–300 mg or more. State the can size and advise checking labels.
+  4. **Large doses.** Add the FDA note that about 1,200 mg consumed rapidly has been associated with seizures, and that pure or highly concentrated powders and liquids can be dangerous in small amounts.
+  5. **Sources list.** The caffeine-withdrawal review (NCBI Bookshelf NBK430790) is cited inline but missing from the list; add it.

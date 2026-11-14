@@ -96,6 +96,7 @@ All 38 calculators in `defs.ts` now have dedicated audit tests.
 - **No defect (2):** heart-disease risk; pregnancy weight gain. Every worked example in the ten articles was recomputed.
 - **Attribution:** all ten are bylined "Editorial Team" with no reviewer claimed, which complies with §7.3.
 - **Offline draft corrections are in the report; nothing was written to the CMS.**
+- **Addendum, the remaining high-risk pair:** maximum heart rate is low (taxonomy tag only; all numbers verified); caffeine is low (FDA wording; add an ACOG pregnancy source; energy-drink can size; large-dose warning; missing source entry). All 12 high-risk articles are now audited.
 
 ### Tooling note
 `/home/claude/tools/tsdiag.cjs` is syntax-only and missed the `b1c9614` type error. `tscheck.cjs` (semantic; drops unresolved-module noise) reproduces it and is now used before pushing.
@@ -117,4 +118,4 @@ All 38 calculators in `defs.ts` now have dedicated audit tests.
 GO/NO-GO: **NO-GO for release** until gates 1–4 are closed.
 
 ## Next main-roadmap milestone
-Phase 3 continuation: audit the remaining two high-risk articles (maximum heart rate; caffeine) and then the moderate-risk articles, applying the same §7.2 checklist and the offline-draft approach.
+Phase 3 continuation: §7.2 audit of the 33 moderate-risk articles, starting with nutrition and weight management (calorie, macro, protein, keto, meal plan), with the same offline-draft approach.
