@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - 'scripts/content/reference-audit.mjs'
+      - 'scripts/content/editorial-lint.mjs'
       - '.github/workflows/reference-audit.yml'
   workflow_dispatch:
 
@@ -24,9 +25,14 @@ jobs:
           node-version: 22
       - name: Audit cited sources
         run: node scripts/content/reference-audit.mjs
+      - name: Editorial lint (§7.3/§7.5)
+        if: always()
+        run: node scripts/content/editorial-lint.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: reference-audit
-          path: reference-audit.json
+          path: |
+            reference-audit.json
+            editorial-lint.json
           retention-days: 30
