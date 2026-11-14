@@ -76,7 +76,7 @@ const heading = label ?? (tool ? `Try the ${tool.title}` : 'Try the calculator')
         {engine === 'pace' && <PaceCalculator client:visible slug={tool.slug} />}
         {engine === 'quiz' && <QuizCalculator client:visible slug={tool.slug} />}
         {engine === 'breathing' && <BreathingTimer client:visible slug={tool.slug} />}
-        {engine === 'numeric' && <Calculator client:visible slug={tool.slug} />}
+        {engine === 'numeric' && <Calculator client:visible slug={tool.slug} toolName={tool.title} />}
       </div>
     ) : (
       <p style="margin:0;color:var(--muted);font-size:0.92rem;">This tool is coming soon.</p>

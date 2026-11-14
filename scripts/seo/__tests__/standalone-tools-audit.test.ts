@@ -55,3 +55,8 @@ test('article embeds render every tool engine the tool page renders (no silent d
   assert.deepEqual(engines('src/components/ToolEmbed.astro'), engines('src/components/ToolPageLayout.astro'));
   for (const e of all) assert.ok(engines('src/components/ToolEmbed.astro').includes(e), `engine ${e} not embeddable`);
 });
+
+test('article embeds pass the tool name, so share text is not "My Calculate your … result"', () => {
+  assert.match(read('src/components/ToolEmbed.astro'), /<Calculator client:visible slug=\{tool\.slug\} toolName=\{tool\.title\} \/>/);
+  assert.match(read('src/components/ToolPageLayout.astro'), /<Calculator client:visible slug=\{tool\.slug\} toolName=\{tool\.title\} \/>/);
+});
