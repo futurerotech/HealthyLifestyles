@@ -639,6 +639,11 @@ const medicalLd = {
     font-size: 0.9rem;
     color: var(--muted);
     list-style: decimal;
+    /* Grid items default to min-width:auto, so one long citation token (an
+       author-society list joined by slashes, a DOI or URL) widened the page
+       at 390px. Let such tokens wrap instead. */
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
   .tool__sources a {
     color: var(--green-700);

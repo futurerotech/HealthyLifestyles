@@ -536,6 +536,8 @@
   font-size: 0.85rem;
   color: var(--muted);
   list-style: decimal;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .wh-sources a {
   color: var(--green-700);
