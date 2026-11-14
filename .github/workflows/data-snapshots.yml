@@ -5,7 +5,7 @@ name: Data snapshots (reviewed refresh)
 on:
   pull_request:
     paths:
-      - 'scripts/data/bls-price-snapshot.mjs'
+      - 'scripts/data/**'
       - '.github/workflows/data-snapshots.yml'
   workflow_dispatch:
 
@@ -22,3 +22,6 @@ jobs:
         with:
           node-version: 22
       - run: node scripts/data/bls-price-snapshot.mjs
+      - name: Candidate price-source inventory (BLS current items, USDA ERS fruit and vegetable prices)
+        if: always()
+        run: node scripts/data/price-source-inventory.mjs
