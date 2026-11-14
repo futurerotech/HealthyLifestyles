@@ -39,7 +39,7 @@ export function expectedMetadata(collection, doc, cmsOrigin) {
   const ogImage = absoluteMedia(seo.ogImage, cmsOrigin) || (['pages', 'pseo-pages'].includes(collection) ? `${SITE_ORIGIN}/og-default.png` : `${SITE_ORIGIN}/og/${collection}/${doc.slug}.png`);
   return { title, canonical, description, ogTitle: seo.ogTitle || title, ogDescription: seo.ogDescription || description, twitterTitle: seo.twitterTitle || seo.ogTitle || title, twitterDescription: seo.twitterDescription || seo.ogDescription || description, ogImage, twitterImage: absoluteMedia(seo.twitterImage, cmsOrigin) || ogImage };
 }
-function blockTexts(block) {
+export function blockTexts(block) {
   const out = [];
   for (const key of ['text', 'title', 'heading', 'caption', 'hook', 'subtext', 'subtitle']) if (typeof block[key] === 'string') out.push(block[key]);
   for (const item of block.items || []) {
