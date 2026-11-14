@@ -332,3 +332,15 @@
     width: 100%;
   }
 }
+
+/* Kidney caution beside the protein target (always visible). */
+.mp__kidney {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid #f59e0b;
+  background: #fffbeb;
+  color: var(--ink, #0f172a);
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
