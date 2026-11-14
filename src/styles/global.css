@@ -301,6 +301,17 @@ p {
 .btn:active {
   transform: translateY(1px);
 }
+/* Keyboard focus. The global :where() focus rule removes the outline and draws
+   a box-shadow ring, but .btn-primary's own box-shadow (higher specificity)
+   replaced that ring, so primary buttons had no visible focus at all. An
+   offset outline coexists with any button shadow. */
+.btn:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+.btn-ghost-light:focus-visible {
+  outline-color: #fff;
+}
 .btn svg {
   width: 1.1em;
   height: 1.1em;
