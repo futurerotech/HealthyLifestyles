@@ -17,6 +17,9 @@ export interface QuizOption {
 export interface QuizBand {
   /** Inclusive upper bound, as a percentage of the maximum score. */
   upToPct: number;
+  /** Inclusive upper bound as a RAW score. When set it takes precedence over
+   *  upToPct, so published cut-offs are applied exactly (no rounding edges). */
+  upToScore?: number;
   label: string;
   color: string;
   summary: string;
@@ -34,7 +37,56 @@ export interface QuizDef {
   higherIsBetter: boolean;
   /** Distress topic → show a crisis-resources line in the result. */
   crisis: boolean;
+  /** Validated instrument: every item must be answered before a score is shown,
+   *  and nothing is pre-selected. */
+  validated?: boolean;
+  /** Item-level rules shown above the score band, whatever the total. */
+  itemFlags?: QuizItemFlag[];
 }
+
+export interface QuizItemFlag {
+  /** Question indexes to check; omit for every item. */
+  items?: number[];
+  /** Flag when an answer is >= minValue (or <= maxValue). */
+  minValue?: number;
+  maxValue?: number;
+  tone: 'urgent' | 'info';
+  message: string;
+}
+
+export interface QuizResult {
+  complete: boolean;
+  answered: number;
+  total: number;
+  score: number;
+  maxScore: number;
+  band?: QuizBand;
+  flags: QuizItemFlag[];
+}
+
+/** Pure scoring used by the island and by tests. `answers[i]` is null when unanswered. */
+export function scoreQuiz(quiz: QuizDef, answers: (number | null)[]): QuizResult {
+  const total = quiz.questions.length;
+  const maxScore = total * Math.max(...quiz.scale.map((o) => o.value));
+  const given = answers.slice(0, total);
+  const answered = given.filter((a) => typeof a === 'number').length;
+  const score = given.reduce<number>((sum, a) => sum + (typeof a === 'number' ? a : 0), 0);
+  const complete = answered === total;
+  const flags = (quiz.itemFlags ?? []).filter((f) => (f.items ?? given.map((_, i) => i)).some((i) => {
+    const a = given[i];
+    if (typeof a !== 'number') return false;
+    return (f.minValue === undefined || a >= f.minValue) && (f.maxValue === undefined || a <= f.maxValue);
+  }));
+  if (quiz.validated && !complete) return { complete, answered, total, score, maxScore, flags };
+  const pct = maxScore ? (score / maxScore) * 100 : 0;
+  const band = quiz.bands.find((b) => (b.upToScore !== undefined ? score <= b.upToScore : pct <= b.upToPct))
+    ?? quiz.bands[quiz.bands.length - 1];
+  return { complete, answered, total, score, maxScore, band, flags };
+}
+
+/** Shown, above the score band, when PHQ-9 item 9 is answered above "Not at all". */
+export const PHQ9_ITEM9_MESSAGE =
+  'You said you have had thoughts that you would be better off dead or of hurting yourself. Whatever your total score, please talk to someone about this soon — a doctor, a mental health professional, or a crisis line below. If you might act on these thoughts or are in immediate danger, call 911 in the US or 112 in Europe, or go to the nearest emergency department.';
 
 const FREQ: QuizOption[] = [
   { label: 'Never', value: 0 },
@@ -124,6 +176,9 @@ export const QUIZZES: Record<string, QuizDef> = {
     heading: 'PHQ-9 Depression Screener',
     higherIsBetter: false,
     crisis: true,
+    validated: true,
+    // Any answer above "Not at all" on item 9 needs follow-up regardless of the total.
+    itemFlags: [{ items: [8], minValue: 1, tone: 'urgent', message: PHQ9_ITEM9_MESSAGE }],
     scoreLabel: 'PHQ-9 score',
     scale: [
       { label: 'Not at all', value: 0 },
@@ -143,11 +198,11 @@ export const QUIZZES: Record<string, QuizDef> = {
       'Thoughts that you would be better off dead, or of hurting yourself in some way',
     ],
     bands: [
-      { upToPct: 15, label: 'Minimal', color: '#16a34a', summary: 'Your score suggests minimal depression symptoms. If you notice any item that concerns you, it is still worth talking to your doctor.', tips: ['Keep up the habits that protect your mood — sleep, movement, connection.', 'Notice early if things change and reach out if they do.'] },
-      { upToPct: 34, label: 'Mild', color: '#f59e0b', summary: 'Your score suggests mild depression symptoms. This is common. Small, consistent steps can help, and talking to someone is a good idea.', tips: ['Talk things through with someone you trust.', 'Keep a daily routine with movement, daylight, and regular meals.', 'Limit alcohol — it can worsen low mood.', 'If this persists, mention it to your doctor.'] },
-      { upToPct: 52, label: 'Moderate', color: '#f97316', summary: 'Your score suggests moderate depression symptoms. Please consider speaking with a doctor or mental health professional — you do not have to manage this alone.', tips: ['Make an appointment with your doctor or a therapist.', 'Share how you are feeling with someone close to you.', 'Keep daily basics going: sleep, food, movement, daylight.', 'If you indicated any thoughts of self-harm (question 9), contact a crisis line or your doctor now.'] },
-      { upToPct: 71, label: 'Moderately severe', color: '#ef4444', summary: 'Your score suggests moderately severe depression symptoms. Please reach out to a healthcare professional — effective treatment is available.', tips: ['Contact your doctor or a mental health professional this week.', 'Do not wait — depression is treatable and you deserve support.', 'Share how you are feeling with someone close to you.', 'If you indicated any thoughts of self-harm (question 9), contact a crisis line or your doctor immediately.'] },
-      { upToPct: 100, label: 'Severe', color: '#dc2626', summary: 'Your score suggests severe depression symptoms. Please seek professional help as soon as possible — you do not have to go through this alone.', tips: ['Contact your doctor, a mental health professional, or a crisis line today.', 'Do not delay — severe depression is treatable.', 'Let someone close to you know you are struggling.', 'If you indicated any thoughts of self-harm (question 9), contact emergency services or a crisis line immediately.'] },
+      { upToPct: 15, upToScore: 4, label: 'Minimal', color: '#16a34a', summary: 'Your score suggests minimal depression symptoms. If you notice any item that concerns you, it is still worth talking to your doctor.', tips: ['Keep up the habits that protect your mood — sleep, movement, connection.', 'Notice early if things change and reach out if they do.'] },
+      { upToPct: 34, upToScore: 9, label: 'Mild', color: '#f59e0b', summary: 'Your score suggests mild depression symptoms. This is common. Small, consistent steps can help, and talking to someone is a good idea.', tips: ['Talk things through with someone you trust.', 'Keep a daily routine with movement, daylight, and regular meals.', 'Limit alcohol — it can worsen low mood.', 'If this persists, mention it to your doctor.'] },
+      { upToPct: 52, upToScore: 14, label: 'Moderate', color: '#f97316', summary: 'Your score suggests moderate depression symptoms. Please consider speaking with a doctor or mental health professional — you do not have to manage this alone.', tips: ['Make an appointment with your doctor or a therapist.', 'Share how you are feeling with someone close to you.', 'Keep daily basics going: sleep, food, movement, daylight.', 'If you indicated any thoughts of self-harm (question 9), contact a crisis line or your doctor now.'] },
+      { upToPct: 71, upToScore: 19, label: 'Moderately severe', color: '#ef4444', summary: 'Your score suggests moderately severe depression symptoms. Please reach out to a healthcare professional — effective treatment is available.', tips: ['Contact your doctor or a mental health professional this week.', 'Do not wait — depression is treatable and you deserve support.', 'Share how you are feeling with someone close to you.', 'If you indicated any thoughts of self-harm (question 9), contact a crisis line or your doctor immediately.'] },
+      { upToPct: 100, upToScore: 27, label: 'Severe', color: '#dc2626', summary: 'Your score suggests severe depression symptoms. Please seek professional help as soon as possible — you do not have to go through this alone.', tips: ['Contact your doctor, a mental health professional, or a crisis line today.', 'Do not delay — severe depression is treatable.', 'Let someone close to you know you are struggling.', 'If you indicated any thoughts of self-harm (question 9), contact emergency services or a crisis line immediately.'] },
     ],
   },
 
@@ -158,6 +213,7 @@ export const QUIZZES: Record<string, QuizDef> = {
     heading: 'GAD-7 Anxiety Screener',
     higherIsBetter: false,
     crisis: true,
+    validated: true,
     scoreLabel: 'GAD-7 score',
     scale: [
       { label: 'Not at all', value: 0 },
@@ -175,20 +231,25 @@ export const QUIZZES: Record<string, QuizDef> = {
       'Feeling afraid as if something awful might happen',
     ],
     bands: [
-      { upToPct: 19, label: 'Minimal', color: '#16a34a', summary: 'Your score suggests minimal anxiety. Occasional worry is normal — keep up the habits that help you stay steady.', tips: ['Keep up routines that ground you — sleep, movement, connection.', 'Notice if worry starts to feel more frequent or intense.'] },
-      { upToPct: 43, label: 'Mild', color: '#f59e0b', summary: 'Your score suggests mild anxiety. This is common. Simple coping strategies can help you feel more in control.', tips: ['Try slow breathing or short mindful pauses during the day.', 'Limit caffeine if you notice it heightens jitteriness.', 'Talk things through with someone you trust.', 'If worry persists or interferes, mention it to your doctor.'] },
-      { upToPct: 67, label: 'Moderate', color: '#f97316', summary: 'Your score suggests moderate anxiety. Please consider speaking with a doctor or mental health professional — effective support is available.', tips: ['Make an appointment with your doctor or a therapist.', 'Share how you are feeling with someone close to you.', 'Keep daily basics going: sleep, food, movement, daylight.', 'Limit caffeine and alcohol — both can worsen anxiety.'] },
-      { upToPct: 100, label: 'Severe', color: '#ef4444', summary: 'Your score suggests severe anxiety. Please reach out to a healthcare professional — you do not have to manage this alone.', tips: ['Contact your doctor or a mental health professional this week.', 'Do not wait — anxiety is treatable and you deserve support.', 'Let someone close to you know you are struggling.', 'If you feel overwhelmed or in crisis, contact a crisis line now.'] },
+      { upToPct: 19, upToScore: 4, label: 'Minimal', color: '#16a34a', summary: 'Your score suggests minimal anxiety. Occasional worry is normal — keep up the habits that help you stay steady.', tips: ['Keep up routines that ground you — sleep, movement, connection.', 'Notice if worry starts to feel more frequent or intense.'] },
+      { upToPct: 43, upToScore: 9, label: 'Mild', color: '#f59e0b', summary: 'Your score suggests mild anxiety. This is common. Simple coping strategies can help you feel more in control.', tips: ['Try slow breathing or short mindful pauses during the day.', 'Limit caffeine if you notice it heightens jitteriness.', 'Talk things through with someone you trust.', 'If worry persists or interferes, mention it to your doctor.'] },
+      { upToPct: 67, upToScore: 14, label: 'Moderate', color: '#f97316', summary: 'Your score suggests moderate anxiety. Please consider speaking with a doctor or mental health professional — effective support is available.', tips: ['Make an appointment with your doctor or a therapist.', 'Share how you are feeling with someone close to you.', 'Keep daily basics going: sleep, food, movement, daylight.', 'Limit caffeine and alcohol — both can worsen anxiety.'] },
+      { upToPct: 100, upToScore: 21, label: 'Severe', color: '#ef4444', summary: 'Your score suggests severe anxiety. Please reach out to a healthcare professional — you do not have to manage this alone.', tips: ['Contact your doctor or a mental health professional this week.', 'Do not wait — anxiety is treatable and you deserve support.', 'Let someone close to you know you are struggling.', 'If you feel overwhelmed or in crisis, contact a crisis line now.'] },
     ],
   },
 
   // WHO-5 Well-Being Index. WHO public domain. 5 items, 0-5 scale.
-  // Max raw = 25. Raw ≤13 → poor wellbeing, further screening recommended.
+  // Max raw = 25. WHO guide: raw below 13 (≤12) → poor well-being, further
+  // assessment recommended. The 13–18 / 19–25 split is a site description.
   'who-5-wellbeing-screener': {
     slug: 'who-5-wellbeing-screener',
     heading: 'WHO-5 Well-Being Index',
     higherIsBetter: true,
     crisis: true,
+    validated: true,
+    // WHO-5 guide: a raw score below 13, OR a 0 or 1 on any item, is an
+    // indication for further assessment of depression.
+    itemFlags: [{ maxValue: 1, tone: 'info', message: 'You answered “At no time” or “Some of the time” to at least one statement. The WHO-5 guidance treats that, as well as a total below 13, as a reason to check in with a doctor or mental health professional about depression.' }],
     scoreLabel: 'WHO-5 well-being score',
     scale: [
       { label: 'At no time', value: 0 },
@@ -206,9 +267,9 @@ export const QUIZZES: Record<string, QuizDef> = {
       'My daily life has been filled with things that interest me',
     ],
     bands: [
-      { upToPct: 52, label: 'Poor well-being', color: '#ef4444', summary: 'Your score suggests poor well-being over the past two weeks. The WHO-5 guideline recommends further screening for depression when the raw score is 13 or below. Please consider talking to your doctor or a mental health professional.', tips: ['Talk to your doctor — ask about a depression screen if you have not had one.', 'Share how you are feeling with someone you trust.', 'Small daily basics help: daylight, movement, regular meals, sleep.', 'If you are in crisis or having thoughts of self-harm, contact a crisis line now.'] },
-      { upToPct: 72, label: 'Moderate well-being', color: '#f59e0b', summary: 'Your score suggests moderate well-being. Some days are good and some are harder. Small changes can lift the overall pattern.', tips: ['Notice what makes your better days better — and protect those things.', 'Stay connected with people who lift you.', 'Build in movement, daylight, and things you enjoy.', 'If well-being stays low for two more weeks, consider talking to your doctor.'] },
-      { upToPct: 100, label: 'Good well-being', color: '#16a34a', summary: 'Your score suggests good well-being. Keep doing what sustains you, and notice if things shift.', tips: ['Keep up the habits and connections that support your well-being.', 'Notice early if your mood or energy dips — and reach out if it does.'] },
+      { upToPct: 52, upToScore: 12, label: 'Poor well-being', color: '#ef4444', summary: 'Your score suggests poor well-being over the past two weeks. The WHO-5 guidance recommends further assessment for depression when the raw score is below 13. Please consider talking to your doctor or a mental health professional.', tips: ['Talk to your doctor — ask about a depression screen if you have not had one.', 'Share how you are feeling with someone you trust.', 'Small daily basics help: daylight, movement, regular meals, sleep.', 'If you are in crisis or having thoughts of self-harm, contact a crisis line now.'] },
+      { upToPct: 72, upToScore: 18, label: 'Moderate well-being', color: '#f59e0b', summary: 'Your score suggests moderate well-being. Some days are good and some are harder. Small changes can lift the overall pattern.', tips: ['Notice what makes your better days better — and protect those things.', 'Stay connected with people who lift you.', 'Build in movement, daylight, and things you enjoy.', 'If well-being stays low for two more weeks, consider talking to your doctor.'] },
+      { upToPct: 100, upToScore: 25, label: 'Good well-being', color: '#16a34a', summary: 'Your score suggests good well-being. Keep doing what sustains you, and notice if things shift.', tips: ['Keep up the habits and connections that support your well-being.', 'Notice early if your mood or energy dips — and reach out if it does.'] },
     ],
   },
 };

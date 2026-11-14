@@ -1,30 +1,25 @@
 /** @jsxImportSource preact */
 import { useState } from 'preact/hooks';
-import { getQuiz, type QuizBand } from './quizzes/quiz-defs';
+import { getQuiz, scoreQuiz } from './quizzes/quiz-defs';
 import ShareResult from '../components/ShareResult';
 
 const CRISIS =
   'If you’re in distress or crisis, reach out now: in the US & Canada call or text 988; in the UK call Samaritans on 116 123; in Australia call Lifeline on 13 11 14.';
 
-function bandFor(pct: number, bands: QuizBand[]): QuizBand {
-  return bands.find((b) => pct <= b.upToPct) ?? bands[bands.length - 1];
-}
-
 export default function QuizCalculator({ slug }: { slug: string }) {
   const quiz = getQuiz(slug);
-  // Default each question to the lower-middle answer (a calm, non-alarming start).
+  // Wellness self-checks start at the lower-middle answer (a calm start).
+  // Validated screeners start unanswered: a score must never include an answer
+  // the person did not give (e.g. PHQ-9 item 9).
   const mid = quiz ? Math.floor((quiz.scale.length - 1) / 2) : 0;
-  const [answers, setAnswers] = useState<number[]>(() =>
-    quiz ? quiz.questions.map(() => quiz.scale[mid].value) : []
+  const [answers, setAnswers] = useState<(number | null)[]>(() =>
+    quiz ? quiz.questions.map(() => (quiz.validated ? null : quiz.scale[mid].value)) : []
   );
 
   if (!quiz) return null;
 
-  const maxScore = quiz.questions.length * Math.max(...quiz.scale.map((o) => o.value));
-  const score = answers.reduce((a, b) => a + b, 0);
-  // Express as "% concern" so band thresholds read consistently regardless of polarity.
-  const pct = maxScore ? (score / maxScore) * 100 : 0;
-  const band = bandFor(pct, quiz.bands);
+  const result = scoreQuiz(quiz, answers);
+  const { score, maxScore, band, flags } = result;
 
   const setAnswer = (qi: number, value: number) =>
     setAnswers((prev) => prev.map((a, i) => (i === qi ? value : a)));
@@ -59,29 +54,42 @@ export default function QuizCalculator({ slug }: { slug: string }) {
       </div>
 
       <div class="calc__result" aria-live="polite">
-        <div class="calc__headline">
-          <span class="calc__result-label">{quiz.scoreLabel}</span>
-          <span class="calc__value">{score} <span class="quiz__max">/ {maxScore}</span></span>
-          <span class="calc__badge" style={`--badge:${band.color}`}>{band.label}</span>
-        </div>
-        <p class="quiz__summary">{band.summary}</p>
-        <div class="sleep-tips">
-          <h3>Things that may help</h3>
-          <ul>{band.tips.map((t) => <li>{t}</li>)}</ul>
-        </div>
+        {flags.map((f) => (
+          <p class={`quiz__flag quiz__flag--${f.tone}`} role={f.tone === 'urgent' ? 'alert' : undefined}>{f.message}</p>
+        ))}
+        {band ? (
+          <>
+            <div class="calc__headline">
+              <span class="calc__result-label">{quiz.scoreLabel}</span>
+              <span class="calc__value">{score} <span class="quiz__max">/ {maxScore}</span></span>
+              <span class="calc__badge" style={`--badge:${band.color}`}>{band.label}</span>
+            </div>
+            <p class="quiz__summary">{band.summary}</p>
+            <div class="sleep-tips">
+              <h3>Things that may help</h3>
+              <ul>{band.tips.map((t) => <li>{t}</li>)}</ul>
+            </div>
+          </>
+        ) : (
+          <p class="quiz__progress">
+            {result.answered} of {result.total} answered. Answer every question to see your score — this screener is only scored when complete.
+          </p>
+        )}
         <p class="quiz__disclaimer">
           This is not a diagnostic tool. If you’re struggling, please talk to a qualified professional.
         </p>
         {quiz.crisis && <p class="quiz__crisis">{CRISIS}</p>}
 
-        <ShareResult
-          tool={quiz.heading}
-          value={`${score}/${maxScore}`}
-          label={quiz.scoreLabel}
-          category={band.label}
-          categoryColor={band.color}
-          toolSlug={slug}
-        />
+        {band && (
+          <ShareResult
+            tool={quiz.heading}
+            value={`${score}/${maxScore}`}
+            label={quiz.scoreLabel}
+            category={band.label}
+            categoryColor={band.color}
+            toolSlug={slug}
+          />
+        )}
       </div>
     </div>
   );

@@ -835,6 +835,30 @@
   font-weight: 600;
   color: #991b1b;
 }
+/* Item-level flags (PHQ-9 item 9, WHO-5 low item): shown above the score. */
+.quiz__flag {
+  margin: 0 0 0.9rem;
+  padding: 0.8rem 0.95rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.quiz__flag--urgent {
+  background: #fef2f2;
+  border: 2px solid #dc2626;
+  color: #7f1d1d;
+}
+.quiz__flag--info {
+  background: #fffbeb;
+  border: 1px solid #f59e0b;
+  color: #78350f;
+}
+.quiz__progress {
+  margin: 0;
+  font-weight: 600;
+  color: var(--muted);
+}
 
 /* ---------- Mental Wellness: breathing ---------- */
 .breathe {
