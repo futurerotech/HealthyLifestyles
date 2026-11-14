@@ -106,7 +106,10 @@ test('site-wide 390px and desktop QA: overflow, names, target size, images, head
               await s.send('Page.reload', { ignoreCache: false });
               await until(() => s.js("document.readyState==='complete'"), 'reload', 45000);
               try { await hydrate(); console.log(`[SITE_QA] ${path} @${w}: hydrated after one reload (first wait pending ${JSON.stringify(pending)})`); }
-              catch (e) { throw Error(String(e) + ' pending=' + JSON.stringify(pending) + ' console=' + JSON.stringify([...new Set(s.consoleErrors)].slice(-4)) + ' exceptions=' + JSON.stringify([...new Set(s.exceptions)].slice(-3))); }
+              catch (e) {
+                const facts = await s.js(`(()=>{const i=${PENDING}[0];if(!i)return null;return {scrollY:Math.round(scrollY),vh:innerHeight,props:(i.getAttribute('props')||'').slice(0,160),kids:[...i.children].slice(0,4).map((c)=>{const r=c.getBoundingClientRect();const cs=getComputedStyle(c);return c.tagName+'.'+String(c.className).slice(0,40)+' '+Math.round(r.top)+'/'+Math.round(r.height)+' '+cs.display+' '+cs.visibility+' '+cs.position;}),anc:(()=>{const out=[];for(let p=i.parentElement;p&&out.length<6;p=p.parentElement){const cs=getComputedStyle(p);out.push(p.tagName+'.'+String(p.className).slice(0,30)+' '+cs.display+' '+cs.overflow+' '+cs.contentVisibility);}return out;})()};})()`).catch((x) => String(x));
+                throw Error(String(e) + ' pending=' + JSON.stringify(pending) + ' facts=' + JSON.stringify(facts) + ' console=' + JSON.stringify([...new Set(s.consoleErrors)].slice(-4)) + ' exceptions=' + JSON.stringify([...new Set(s.exceptions)].slice(-3)));
+              }
             }
           }
           await s.js('scrollTo(0,0)');
