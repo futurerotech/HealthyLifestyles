@@ -48,4 +48,4 @@ Audited with no defect found: weight-loss %, calorie deficit (3,500 kcal/lb rule
 GO/NO-GO: **NO-GO for release** until gates 1–4 are closed.
 
 ## Next main-roadmap milestone
-Phase 2 continuation: audit the next body and nutrition group against their page copy and formulas. That group is lean body mass, waist-to-height, waist-to-hip, weight-loss %, macro, protein, calorie-deficit and keto.
+Phase 2 continuation: the heart-health group (target heart rate, max heart rate, blood pressure checker, resting heart rate), audited against the page copy and the cited guidance (AHA/ACC 2017 BP categories).
