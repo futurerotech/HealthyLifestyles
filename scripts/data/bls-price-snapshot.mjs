@@ -44,12 +44,16 @@ async function main() {
     const key = year + period; const cur = latest.get(id);
     if (!cur || key > cur.key) latest.set(id, { key, year: +year, month: +period.slice(1), price: +value });
   }
-  const out = [], missing = [];
+  // Discontinued series keep their last value in the file (e.g. butter 2012-04); only
+  // series updated within 3 months of the newest period count as current prices.
+  const newest = Math.max(...[...latest.values()].map((v) => v.year * 12 + v.month));
+  const out = [], missing = [], stale = [];
   for (const [key, name] of Object.entries(ITEMS)) {
     const code = codeByName.get(name), sid = code && seriesByItem.get(code), v = sid && latest.get(sid);
     if (!v) { missing.push(name); continue; }
+    if (newest - (v.year * 12 + v.month) > 3) { stale.push(`${name} (last ${v.year}-${String(v.month).padStart(2, '0')})`); continue; }
     out.push({ key, blsItem: name, seriesId: sid, unit: unitOf(name), period: `${v.year}-${String(v.month).padStart(2, '0')}`, price: v.price });
   }
-  console.log('[BLS_SNAPSHOT] ' + JSON.stringify({ source: 'U.S. Bureau of Labor Statistics, CPI Average Price Data (AP), U.S. city average; public domain', sourceUrl: BASE, retrieved: new Date().toISOString().slice(0, 10), items: out, missing }));
+  console.log('[BLS_SNAPSHOT] ' + JSON.stringify({ source: 'U.S. Bureau of Labor Statistics, CPI Average Price Data (AP), U.S. city average; public domain', sourceUrl: BASE, retrieved: new Date().toISOString().slice(0, 10), items: out, missing, stale }));
 }
 if (import.meta.url === `file://${process.argv[1]}`) await main();
