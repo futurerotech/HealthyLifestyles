@@ -120,6 +120,10 @@ jobs:
       - name: Lighthouse CWV budget (blocking)
         run: npx --yes @lhci/cli@0.14.x autorun
 
+      - name: Lighthouse sample summary (reporting only)
+        if: always()
+        run: node scripts/seo/lhci-summary.mjs
+
       # Phase 9 P3 — external Rich Results validation. Best-effort and NON-BLOCKING:
       # the script always exits 0, and continue-on-error guarantees an external API
       # limit/timeout can never fail verify or strand the auto-promotion.
