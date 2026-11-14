@@ -179,16 +179,31 @@ test('changed calculators: hydration, interaction, 390px and desktop fit, access
       if (astro.exitCode !== null) throw Error('Astro exited ' + astro.exitCode);
       const r = await fetch(origin + '/tools/' + SLUGS[0]); return r.ok;
     }, 'offline Astro tool response', 90000);
-    chrome = spawn(findChrome(), [
-      '--headless=new', '--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu',
-      '--no-first-run', '--no-default-browser-check', '--disable-background-networking',
-      '--remote-debugging-port=' + chromePort, '--user-data-dir=' + profile, 'about:blank',
-    ], { stdio: 'ignore' });
-    const info = await until(async () => {
-      if (chrome.exitCode !== null) throw Error('Chrome exited ' + chrome.exitCode);
-      const r = await fetch('http://' + host + ':' + chromePort + '/json/version');
-      return r.ok ? r.json() : null;
-    }, 'Chrome remote debugger', 25000);
+    // A cold headless Chrome on a shared CI runner can take longer than 25 s to
+    // open its debugging port (seen once in run 43569328123, before any page
+    // was loaded). Wait up to 60 s and relaunch once on a fresh port; a second
+    // failure still fails the test.
+    let info = null;
+    for (let attempt = 1; attempt <= 2 && !info; attempt++) {
+      const debugPort = attempt === 1 ? chromePort : await freePort();
+      chrome = spawn(findChrome(), [
+        '--headless=new', '--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu',
+        '--no-first-run', '--no-default-browser-check', '--disable-background-networking',
+        '--remote-debugging-port=' + debugPort, '--user-data-dir=' + join(profile, 'attempt-' + attempt), 'about:blank',
+      ], { stdio: 'ignore' });
+      try {
+        info = await until(async () => {
+          if (chrome.exitCode !== null) throw Error('Chrome exited ' + chrome.exitCode);
+          const r = await fetch('http://' + host + ':' + debugPort + '/json/version');
+          return r.ok ? r.json() : null;
+        }, 'Chrome remote debugger', 60000);
+      } catch (e) {
+        if (attempt === 2) throw e;
+        console.log('[CALC_BROWSER_QA] Chrome debugger not ready on attempt 1 (' + e + '); relaunching once');
+        chrome.kill('SIGKILL');
+        await new Promise((ok) => { if (chrome.exitCode !== null) return ok(); chrome.once('exit', ok); setTimeout(ok, 2000); });
+      }
+    }
     cdp = connect(info.webSocketDebuggerUrl);
     const { targetId } = await cdp.send('Target.createTarget', { url: 'about:blank' });
     const { sessionId } = await cdp.send('Target.attachToTarget', { targetId, flatten: true });
