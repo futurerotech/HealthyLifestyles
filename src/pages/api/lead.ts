@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { validSubscriber } from '../../lib/subscription-api';
+import { isDuplicateEmail, validSubscriber } from '../../lib/subscription-api';
 import { getLeadDeliveryConfig } from '../../lib/lead-config';
 
 export const prerender = false;
@@ -71,7 +71,17 @@ export const POST: APIRoute = async ({ request }) => {
         metadata: { offer, tool, sourcePage },
       }),
     });
-    if (!saved.ok) throw new Error('CMS rejected subscription');
+    if (!saved.ok) {
+      // Existing address: same answer as a new signup, and no second forward to email automation,
+      // so an unsubscribed person is never re-enrolled by resubmitting the form.
+      if (await isDuplicateEmail(saved)) {
+        return new Response(JSON.stringify({ ok: true, message: 'Subscribed!' }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...cors(origin) },
+        });
+      }
+      throw new Error('CMS rejected subscription');
+    }
 
     // Build payload for n8n
     const payload = {

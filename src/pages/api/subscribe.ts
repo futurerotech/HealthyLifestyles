@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { validSubscriber } from '../../lib/subscription-api';
+import { isDuplicateEmail, validSubscriber } from '../../lib/subscription-api';
 
 export const prerender = false;
 
@@ -41,21 +41,18 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ message: 'CMS error' }));
-      return new Response(JSON.stringify({ ok: false, message: err.message || 'Failed to subscribe' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      // An existing address gets the same answer as a new one (no status disclosure),
+      // and upstream error text is never echoed to the browser.
+      if (await isDuplicateEmail(res)) return Response.json({ ok: true }, { status: 200 });
+      return Response.json({ ok: false, message: 'Unable to subscribe right now. Please try again.' }, { status: 502 });
     }
 
     return new Response(JSON.stringify({ ok: true }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (err) {
-    return new Response(JSON.stringify({ ok: false, message: (err as Error).message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  } catch {
+    // Never echo internal error text (it can include upstream hosts or secrets).
+    return Response.json({ ok: false, message: 'Unable to subscribe right now. Please try again.' }, { status: 502 });
   }
 };

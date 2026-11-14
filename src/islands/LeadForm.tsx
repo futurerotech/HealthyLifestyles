@@ -107,7 +107,7 @@ export default function LeadForm({ headline, description, buttonLabel, collectNa
         {submitting ? 'Sending...' : buttonLabel}
       </button>
 
-      <p class="lead-form__note">No spam. Unsubscribe anytime.</p>
+      <p class="lead-form__note">No spam. See our <a href="/privacy">Privacy Policy</a>.</p>
     </form>
   );
 }
