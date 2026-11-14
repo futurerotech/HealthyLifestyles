@@ -85,6 +85,18 @@ All 38 calculators in `defs.ts` now have dedicated audit tests.
 - `docs/editorial/PHASE3_RISK_CLASSIFICATION_20261114.md` classifies all 60 published articles (12 high / 33 moderate / 15 lower) and names the §7.2 ten-article audit sample.
 - **Blocker:** article bodies exist only in the CMS, and this session's shell cannot reach the CMS host. Fetching the public article pages needs owner approval, which was requested and went unanswered.
 
+### Phase 3 §7.2 — initial ten-article audit (`docs/editorial/PHASE3_AUDIT_10_ARTICLES_20261114.md`)
+- **Access:** public published pages, read-only, under the owner's authorization of 2026-11-14. No CMS records, drafts or credentials were touched.
+- **High (4):**
+  - Blood-pressure article: 2017-era "hypertensive crisis/urgency" wording; "/" in place of "or"; 46% prevalence (CDC now 47.7%); no validated-cuff or cuffless guidance; follow-up only at 140/90.
+  - Pregnancy week-by-week: omits CDC's "thoughts of harming yourself or your baby" urgent sign.
+  - Due date: omits ACOG CO 700's rule that IVF dates are not ultrasound-re-dated, and the re-dating thresholds; thin; unrelated related-guides.
+  - Intermittent fasting: no medication warning (article and tool now disagree); comparison table not rendering.
+- **Low (4):** optional ADA screening note (diabetes); missing source entry (ovulation); taxonomy tags (resting HR, Karvonen).
+- **No defect (2):** heart-disease risk; pregnancy weight gain. Every worked example in the ten articles was recomputed.
+- **Attribution:** all ten are bylined "Editorial Team" with no reviewer claimed, which complies with §7.3.
+- **Offline draft corrections are in the report; nothing was written to the CMS.**
+
 ### Tooling note
 `/home/claude/tools/tsdiag.cjs` is syntax-only and missed the `b1c9614` type error. `tscheck.cjs` (semantic; drops unresolved-module noise) reproduces it and is now used before pushing.
 
@@ -105,4 +117,4 @@ All 38 calculators in `defs.ts` now have dedicated audit tests.
 GO/NO-GO: **NO-GO for release** until gates 1–4 are closed.
 
 ## Next main-roadmap milestone
-Phase 3 §7.2: claim-level editorial audit of the ten high-risk sample articles, with corrections prepared offline as CMS-ready drafts. Prerequisite: read access to the published article text, either by approving public-page fetches in-session or through a read-only CI export of published content.
+Phase 3 continuation: audit the remaining two high-risk articles (maximum heart rate; caffeine) and then the moderate-risk articles, applying the same §7.2 checklist and the offline-draft approach.
