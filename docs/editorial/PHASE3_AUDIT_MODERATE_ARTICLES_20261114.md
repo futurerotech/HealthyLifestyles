@@ -210,3 +210,122 @@ Only verified defects are recorded. Corrections are prepared offline as drafts f
 
 ### weight-loss-percentage-what-the-number-really-means — no defect
 - **Verified:** 5%, 6.7% and 8.9%; NIDDK; MedlinePlus unintentional-loss threshold; eating-disorder caution.
+
+## Batch 4 — hydration, diet patterns, alcohol, gut, vitamin D, cycle, sleep
+
+### how-much-water-should-you-drink-a-day — moderate
+- **Verified:** IOM 3.7 L / 2.7 L; pregnancy 3.0 L; breastfeeding 3.8 L; about 20% of water from food; embed 72 kg × 35 mL = 2.52 L.
+- **Defects:**
+  1. **Broken reference.** The "CDC, Water and Healthier Drinks" source links to the CDC *adult BMI calculator* page.
+  2. Fluid-restricted readers aren't addressed explicitly. Add: "If you've been told to limit fluids — for example with heart failure or advanced kidney disease — follow that limit, not a general target."
+  3. The method description ("~35 mL/kg plus activity") must match the water tool's method on #56 at release (X3).
+  4. British spellings in the CMS text ("litres", "yoghurt").
+- **Draft:**
+  - Replace the CDC link with the CDC water and healthier drinks page.
+  - Add the fluid-restriction sentence.
+  - Convert to American English.
+
+### what-is-an-anti-inflammatory-diet — moderate
+- **Defects:**
+  1. The article repeats claims removed from the tool at `db53357` (X3): omega-3s are "powerfully anti-inflammatory", "liquid sugar drives inflammation", red meat is "high in … inflammatory compounds", and following any of these patterns "gives similar anti-inflammatory benefits".
+  2. None of the three sources (WHO healthy diet, MedlinePlus fats, DGA) supports inflammation-specific claims.
+  3. Share text (X1, fixed).
+- **Draft:**
+  - Use the tool's association wording, for example "omega-3 fats (EPA/DHA) are linked with lower markers of inflammation".
+  - Replace "gives similar anti-inflammatory benefits" with "in studies, people who follow these patterns tend to have lower inflammatory markers".
+  - Add an evidence source on dietary patterns and inflammatory markers, chosen by the editor. Keep the WHO source.
+
+### hidden-calories-in-alcohol-and-weight-loss — moderate
+- **Verified:** 7 kcal/g; NIAAA calorie values; embed 600 + 375 + 194 + 225 = 1,394 kcal/week → 6,057 kcal/month (× 4.345) → 72,488 kcal/year → 20.7 lb; FAQ arithmetic (750 ÷ 3,500 ≈ 0.21 lb).
+- **Defects:**
+  1. No safety context: pregnancy (no known safe amount), interactions with medicines, and driving.
+  2. The claim that alcohol "pauses fat oxidation" is uncited.
+  3. The NHS 14-unit guidance is cited in the text but has no source entry.
+  4. The CDC moderate-drinking figures should be checked against the DGA 2025–2030 at publication (X2).
+- **Draft:**
+  - Add a "Before you drink" safety paragraph (pregnancy, medicines, driving; SAMHSA helpline 1-800-662-4357, as in the units article).
+  - Cite a metabolic study for the fat-oxidation claim, or soften it.
+  - Add the NHS source.
+
+### alcohol-units-calculator (article) — **high (numerical accuracy)**
+- **Verified:** UK unit = 10 mL (7.9 g); 250 mL at 12% = 3 units; 175 mL at 13% = 2.3 units, 1.3 US drinks, about 18 g, about 126 kcal; pint at 4% = 2.3 units; 14 units ≈ 8 US drinks.
+- **Defects:**
+  1. "25 mL at 40% = 0.7 US drinks" is wrong. 10 mL of ethanol is 7.9 g, or **0.56** of a 14 g US drink.
+  2. "15% vs 12% wine = 50% more alcohol" is wrong. It is **25%** more.
+  3. "Binge = 3 to 4 UK units" is wrong. CDC binge drinking (4+ / 5+ US drinks, 56–70 g) is about **7–9 UK units**. The NHS single-session high-risk levels are more than 6 units (women) and more than 8 (men).
+  4. The calorie-savings claim (3 occasions → 1,500–2,500 kcal) implies about 4–6 drinks per occasion without saying so.
+  5. Uncited claims: the "30% or more" undercount, and a red-wine "heart benefits" statement attributed to an unlinked DGA review. Current US and UK guidance does not recommend drinking for heart health. Remove that claim.
+  6. The article's 13% wine example and the calculator's 12% wine default differ without explanation (the tool gives 6.3 units for 3 × 175 mL).
+  7. The live tool's three risk labels (Low / Increasing / High) change to two on #56 (X3).
+- **Draft:**
+  - Correct the three figures to 0.56, 25%, and "about 7–9 UK units".
+  - State the drinks-per-occasion assumption in the savings example.
+  - Remove the red-wine claim and the undercount figure, or add citations.
+  - Say that the calculator assumes 12% wine.
+  - Align the risk-label text with the tool at release.
+
+### how-do-you-know-if-your-gut-is-healthy — low
+- **Verified:** 14 g fiber per 1,000 kcal; 25–35 g/day; red flags (blood in stool, weight loss, persistent pain, change in bowel habit, nighttime symptoms).
+- **Defects:**
+  1. It doesn't mention routine colorectal-cancer screening from age 45 (USPSTF 2021), which belongs alongside the red flags.
+  2. Tag "Mental Wellness" is off-topic (X4).
+- **Draft:** add "Adults 45 and older should also follow routine colorectal-cancer screening, whatever their symptoms."
+
+### can-sun-exposure-tell-you-if-you-need-vitamin-d — low
+- **Verified:** RDA 600 IU (15 mcg) for ages 19–70 and 800 IU (20 mcg) for 71+; AAD position; EPA UV Index ≥3.
+- **Defects:**
+  1. It warns that excess supplementation is harmful but omits the adult upper limit (4,000 IU, or 100 mcg, a day; NIH ODS).
+  2. **No embedded calculator** (§6.3); the tool is only linked.
+- **Draft:**
+  - Add the upper limit.
+  - Add a `toolEmbed` for `vitamin-d-sun-calculator`.
+
+### period-calculator-next-period-dates-guide — no defect
+- **Verified:**
+  - all worked dates for 26-, 28- and 31-day cycles (Nov 5 / Dec 1 / Dec 27; Nov 7 / Dec 5 / Jan 2; Nov 10 / Dec 11 / Jan 11);
+  - ovulation Oct 24;
+  - average 28.5 days;
+  - ACOG 21–35 days;
+  - heavy-bleeding definition;
+  - contraception warnings.
+
+### how-much-sleep-debt-do-you-have-weekly-recovery — moderate
+- **Verified:**
+  - default debt 7.5 h (48.5 of 56 h), about 6.9 h average, 6 of 7 nights below target;
+  - weekend example 59 h;
+  - CDC age bands;
+  - Van Dongen 2003;
+  - drowsy-driving warning.
+- **Defects:**
+  1. It repeats the contradictory tips removed from the tool at `b2d1ded` ("1–2 extra hours per night" vs. "30–60 minutes earlier") (X3).
+  2. The weekend example (weekdays at 7 h, two 12-hour nights) is labeled "Well rested". The article's own source (NIH 2019) says weekend catch-up does not counter chronic weekday restriction.
+- **Draft:**
+  - Use the tool's tip: "about 30–60 extra minutes a night over several nights".
+  - Add after the weekend example: "A weekly total can balance while weekday sleep stays short; research suggests weekend catch-up doesn't fully reverse the effects of short weekday sleep."
+
+### best-time-to-stop-drinking-coffee-for-sleep — moderate
+- **Verified:**
+  - curfew 95 mg → 5 × log₂(95/50) ≈ 4.6 h → 6:22 PM;
+  - 200 mg at 4 PM → 100 mg at 9 PM;
+  - sleep-cycle times 9:45 PM, 11:15 PM and 12:45 AM;
+  - Drake 2013.
+- **Defects:**
+  1. Contradictory advice. The article recommends stopping 8–10 hours before bed (1–3 PM), while the embedded curfew tool shows 6:22 PM, 4.6 hours before bed, for one coffee. The tool's 50 mg residual model is a site heuristic, not a sleep-study threshold. Drake found that 400 mg disrupted sleep even 6 hours before bed.
+  2. Thin (a 2-minute read).
+  3. Tag "Mental Wellness" is off-topic.
+- **Draft:** explain that the tool estimates when one dose falls to about 50 mg, that studies show larger doses can disturb sleep even 6 hours later, and that sensitive people should use the earlier, 8–10-hour rule.
+
+## Summary — 33 moderate-risk articles
+
+| Result | Count | Articles |
+|---|---|---|
+| **High** | 4 | waist-to-height (wrong embedded tool; boundary contradiction), waist-to-hip (WHO "above" vs "at or above"; no embed; wrong source year), VO2 max (fitness age and bands removed from the tool on #56), alcohol-units (three numerical errors; unsupported red-wine claim) |
+| Moderate | 13 | calories-to-lose-weight, protein, keto (SGLT2 / ketoacidosis), meal plan, calorie-deficit (no embed), weight-loss timeline, keep-muscle, water (broken source), anti-inflammatory, hidden alcohol calories, sleep debt, coffee cutoff, BMI-by-age* |
+| Low | 10 | macros, ideal weight, lean body mass, recovery, strength program, 1RM, reduce sitting, gut, vitamin D, push-up (norms to verify) |
+| None | 6 | BMR, body-fat, FFMI, waist-based risk, weight-loss %, period |
+
+\*BMI-by-age is borderline, low to moderate.
+
+**Cross-cutting:**
+- X1 (share text) is **fixed in code** on #56 at `52f393c`.
+- X3 is the important release coupling. Seven articles describe tool behavior that #56 changes, so their corrected drafts should be published with the #56 release.

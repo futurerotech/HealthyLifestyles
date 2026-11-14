@@ -20,7 +20,8 @@ merge, deployment, publication, legal or clinical approval.
 | `ff0eee3` | Fasting medicine caution; caffeine 400 mg wording, >400 mg single-dose flag, pregnancy <200 mg | 43577338507 ✅ (unit 294/294; browser QA 0 failures) |
 | `7a2b3fe` | Muscle preservation: always-visible kidney-disease caution beside the 1.6–2.4 g/kg target; weight bounds | 43577837753 ✅ (unit 297/297; browser QA 0 failures) |
 | `b2d1ded` | Last six standalone tools: lifestyle age, strength program, chronotype, sleep, breathing timer, recipe analyzer | 43583898160 ✅ (306/306; new browser scenarios passed) |
-| `e2fd47f` | Preflight verifies article tool embeds render a live calculator (Roadmap 6.3); embed/page engine parity guard | **43584650891 ✅** (307/307; live-content preflight `errors: []`) |
+| `e2fd47f` | Preflight verifies article tool embeds render a live calculator (Roadmap 6.3); embed/page engine parity guard | 43584650891 ✅ (307/307; live-content preflight `errors: []`) |
+| `52f393c` | Article embeds pass the tool name (share text bug found in the editorial audit) | **43601997553 ✅** (308/308; browser QA 0 failures; live preflight `errors: []`) |
 
 ### Phase 2 findings fixed at `e936b48`
 - **BMI:** category bounds were inclusive (18.5 → Underweight, 25.0 → Normal, 30.0 → Overweight). Now WHO/CDC "under Y", classified on the displayed value. Adds an adult-use note.
@@ -96,6 +97,7 @@ All 38 calculators in `defs.ts` now have dedicated audit tests.
 - **No defect (2):** heart-disease risk; pregnancy weight gain. Every worked example in the ten articles was recomputed.
 - **Attribution:** all ten are bylined "Editorial Team" with no reviewer claimed, which complies with §7.3.
 - **Offline draft corrections are in the report; nothing was written to the CMS.**
+- **Moderate-risk audit, all 33 articles** (`docs/editorial/PHASE3_AUDIT_MODERATE_ARTICLES_20261114.md`): 4 high (waist-to-height embeds the wrong tool; waist-to-hip uses the WHO cutoffs as 'above'; VO2 max fitness age; three numerical errors in alcohol units), 13 moderate, 10 low, 6 none. Release coupling X3: seven article drafts must ship with #56.
 - **Addendum, the remaining high-risk pair:** maximum heart rate is low (taxonomy tag only; all numbers verified); caffeine is low (FDA wording; add an ACOG pregnancy source; energy-drink can size; large-dose warning; missing source entry). All 12 high-risk articles are now audited.
 
 ### Tooling note
@@ -118,4 +120,4 @@ All 38 calculators in `defs.ts` now have dedicated audit tests.
 GO/NO-GO: **NO-GO for release** until gates 1–4 are closed.
 
 ## Next main-roadmap milestone
-Phase 3 continuation: §7.2 audit of the 33 moderate-risk articles, starting with nutrition and weight management (calorie, macro, protein, keto, meal plan), with the same offline-draft approach.
+Phase 3 continuation: §7.2 audit of the 15 lower-risk articles, then the remaining Phase 3 requirements (§7.3 American-English pass over CMS copy, §7.4 reference link validity, §7.5 content-quality items such as the thin 2–3-minute articles).
