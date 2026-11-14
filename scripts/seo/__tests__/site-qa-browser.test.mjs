@@ -95,6 +95,8 @@ test('site-wide 390px and desktop QA: overflow, names, target size, images, head
   let pages = 0, contrastChecked = 0, focusChecked = 0, hoverChecked = 0;
   const indeterminate = new Set(), focusManual = new Set();
   try {
+    // Lab prototypes exist only in lab (dev) builds; the production build must not contain them.
+    if (!staticDir) TEMPLATES.push('/lab/shift-work');
     const paths = [...TEMPLATES, ...TOOLS.map((t) => '/tools/' + t)];
     for (const path of paths) {
       for (const [w, h, mobile] of [[390, 844, true], [1440, 900, false]]) {

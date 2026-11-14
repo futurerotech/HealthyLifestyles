@@ -92,7 +92,8 @@ export async function startBrowserSession({ probePath = '/', tag = 'BROWSER_QA',
     if (staticDir) httpServer = await serveStatic(staticDir, port);
     else {
       astro = spawn('npm', ['run', 'dev', '--', '--host', host, '--port', String(port)], {
-        env: { ...process.env, CMS_DISABLE: '1', CMS_URL: 'http://127.0.0.1:9', INDEXNOW_DISABLE: 'true', VERCEL_ENV: 'development' },
+        // PUBLIC_HLS_LAB enables non-public lab prototypes in this dev-only QA server.
+        env: { ...process.env, CMS_DISABLE: '1', CMS_URL: 'http://127.0.0.1:9', INDEXNOW_DISABLE: 'true', VERCEL_ENV: 'development', PUBLIC_HLS_LAB: '1' },
         stdio: ['ignore', 'pipe', 'pipe'], detached: true,
       });
       for (const s of [astro.stdout, astro.stderr]) s.on('data', (d) => { log.push(String(d)); if (log.length > 40) log.shift(); });

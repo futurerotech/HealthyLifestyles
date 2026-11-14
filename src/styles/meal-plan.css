@@ -383,3 +383,19 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Phase 5 Candidate 1 (lab builds only): quantities and cost estimate. Existing tokens only. */
+.mpg__budget { margin-top: 1.25rem; padding: clamp(1.1rem, 3vw, 1.5rem); }
+.mpg__budget-inputs { display: flex; flex-wrap: wrap; gap: 0.75rem 1.25rem; margin-bottom: 0.9rem; }
+.mpg__budget-inputs .mpg__field { display: flex; flex-direction: column; gap: 0.3rem; font-weight: 600; font-size: 0.9rem; max-width: 240px; }
+.mpg__budget-inputs input { padding: 0.6rem 0.7rem; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font: inherit; background: #fff; }
+.mpg__budget-total, .mpg__budget-note { color: var(--ink); line-height: 1.55; }
+.mpg__budget-note { color: var(--muted); font-size: 0.88rem; margin-top: 0.9rem; }
+.mpg__budget-flag { font-weight: 700; padding: 0.55rem 0.8rem; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+.mpg__budget-flag.is-over { color: #b91c1c; background: #fef2f2; }
+.mpg__budget-flag.is-under { color: var(--green-700); background: var(--mint-50); }
+.mpg__h3 { font-size: 1rem; margin: 0.9rem 0 0.4rem; }
+.mpg__qty { width: 100%; border-collapse: collapse; margin-top: 0.9rem; font-size: 0.9rem; }
+.mpg__qty th, .mpg__qty td { text-align: left; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border); }
+.mpg__qty thead th { color: var(--muted); font-weight: 700; }
+.mpg__qty tbody th { font-weight: 600; }

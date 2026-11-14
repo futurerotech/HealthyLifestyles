@@ -1,0 +1,20 @@
+---
+// Phase 6 Hypothesis C: non-public prototype route. Generated only when PUBLIC_HLS_LAB=1,
+// so production builds contain no /lab pages. Always noindex.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ShiftWorkExplorer from '../../islands/ShiftWorkExplorer.tsx';
+import '../../styles/shift-work.css';
+
+export function getStaticPaths() {
+  return import.meta.env.PUBLIC_HLS_LAB === '1' ? [{ params: { tool: 'shift-work' } }] : [];
+}
+---
+
+<BaseLayout title="Shift Work Schedule Explorer (prototype)" description="Prototype: explore rest windows around your shift and commute." noindex noHeaderAd>
+  <section class="container section">
+    <p class="eyebrow">Prototype, not public</p>
+    <h1>Shift work schedule explorer</h1>
+    <p class="lead">Enter your shift and commute to see the time you have between shifts, a possible sleep window, an optional short nap before night shifts, and a caffeine cutoff. Everything stays in your browser.</p>
+    <ShiftWorkExplorer client:visible />
+  </section>
+</BaseLayout>
