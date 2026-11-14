@@ -87,7 +87,7 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
     intro:
       'Losing weight too fast or without enough protein costs you muscle, not just fat. Enter your details to get your protein target, a muscle-loss risk check, and a simple plan to hold onto the muscle you have.',
     notice:
-      'Educational only, not medical advice. This tool gives general nutrition guidance and says nothing about any medication, dose, or timing. If you’re on a weight-loss program or medication, follow your prescriber’s and dietitian’s guidance — do not change your treatment based on this tool.',
+      'Educational only, not medical advice. This tool gives general nutrition guidance and says nothing about any medication, dose, or timing. If you’re on a weight-loss program or medication, follow your prescriber’s and dietitian’s guidance — do not change your treatment based on this tool. If you have kidney disease or have been told to limit protein, do not raise your protein intake without your doctor’s or dietitian’s advice — these targets assume healthy kidneys.',
     sections: [
       {
         h2: 'The three levers that keep muscle',
