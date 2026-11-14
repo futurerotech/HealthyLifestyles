@@ -8,6 +8,7 @@ on:
     paths:
       - 'scripts/content/reference-audit.mjs'
       - 'scripts/content/editorial-lint.mjs'
+      - 'scripts/content/overlap-audit.mjs'
       - '.github/workflows/reference-audit.yml'
   workflow_dispatch:
 
@@ -28,6 +29,9 @@ jobs:
       - name: Editorial lint (§7.3/§7.5)
         if: always()
         run: node scripts/content/editorial-lint.mjs
+      - name: Overlap and cannibalization screen (Phase 7 §11.3)
+        if: always()
+        run: node scripts/content/overlap-audit.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -35,4 +39,5 @@ jobs:
           path: |
             reference-audit.json
             editorial-lint.json
+            overlap-audit.json
           retention-days: 30
