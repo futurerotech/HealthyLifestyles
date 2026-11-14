@@ -33,6 +33,7 @@
   --dark: #0a1628;       /* hero / footer */
   --muted: #475569;     /* WCAG AA 7.6:1 on white — was #64748b (4.8:1) */
   --border: #e2e8f0;
+  --field-border: #64748b; /* form-field boundary, 4.8:1 on white (WCAG 2.2 SC 1.4.11) */
   --surface: #ffffff;
   --surface-2: #f8fafc;
 
@@ -306,11 +307,10 @@ p {
    replaced that ring, so primary buttons had no visible focus at all. An
    offset outline coexists with any button shadow. */
 .btn:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 3px;
+  outline-offset: 3px; /* color and width come from the global :focus-visible rule */
 }
 .btn-ghost-light:focus-visible {
-  outline-color: #fff;
+  --focus-outline: #fff;
 }
 .btn svg {
   width: 1.1em;
@@ -384,6 +384,24 @@ p {
   outline-offset: 2px;
   box-shadow: var(--focus-ring);
   border-radius: 6px;
+}
+/* Focus is always visible: a component may recolor the outline via --focus-outline,
+   but may not remove it (several component rules set outline: none). */
+:focus-visible {
+  outline: 2px solid var(--focus-outline, var(--green-700)) !important;
+  outline-offset: 2px;
+}
+/* Bordered field wrappers: the wrapper is the visible control. Its border uses the
+   field token, and it carries the focus outline (the inner input would be clipped). */
+:where(input:not([type=checkbox], [type=radio], [type=range], [type=color]), select, textarea, .calc__input, .calc__select, .tools__search-field, .notfound__search, .hs-input) {
+  --border: var(--field-border);
+}
+:where(.calc__input, .calc__select, .tools__search-field, .notfound__search, .hs-input):focus-within {
+  outline: 2px solid var(--focus-outline, var(--green-700));
+  outline-offset: 2px;
+}
+:where(.calc__input, .calc__select, .tools__search-field, .notfound__search, .hs-input) :focus-visible {
+  outline: none !important;
 }
 
 .skip-link {
