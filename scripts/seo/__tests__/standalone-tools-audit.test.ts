@@ -48,3 +48,10 @@ test('recipe analyzer: no silent truncation; visitor address forwarded for per-v
   assert.match(ui, /aria-describedby="ra-text-count"/);
   assert.match(ui, /limit reached; longer text was cut off/);
 });
+
+test('article embeds render every tool engine the tool page renders (no silent drift)', () => {
+  const engines = (p: string) => [...new Set([...read(p).matchAll(/engine === '([a-z-]+)'/g)].map((m) => m[1]))].sort();
+  const all = [...new Set([...read('src/lib/toolEngine.ts').matchAll(/\| '([a-z-]+)'/g)].map((m) => m[1]))].sort();
+  assert.deepEqual(engines('src/components/ToolEmbed.astro'), engines('src/components/ToolPageLayout.astro'));
+  for (const e of all) assert.ok(engines('src/components/ToolEmbed.astro').includes(e), `engine ${e} not embeddable`);
+});
