@@ -854,6 +854,11 @@
   border: 1px solid #f59e0b;
   color: #78350f;
 }
+.quiz__hold {
+  margin: 0 0 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
 .quiz__progress {
   margin: 0;
   font-weight: 600;

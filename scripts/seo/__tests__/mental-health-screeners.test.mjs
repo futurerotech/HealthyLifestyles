@@ -101,7 +101,7 @@ test('the island never pre-selects screener answers and shows flags before the s
   assert.ok(ui.indexOf('{flags.map(') < ui.indexOf('class="calc__headline"'));
   assert.match(ui, /role=\{f\.tone === 'urgent' \? 'alert' : undefined\}/);
   assert.match(ui, /\{quiz\.crisis && <p class="quiz__crisis">\{CRISIS\}<\/p>\}/);
-  assert.match(ui, /\{band && \(\s*<ShareResult/);
+  assert.match(ui, /\{band && !quiz\.validated && \(\s*<ShareResult/);
   for (const n of ['988', '116 123', '13 11 14']) assert.ok(ui.includes(n), n);
 });
 
@@ -111,4 +111,25 @@ test('page copy states the WHO-5 cut-off as below 13 and the PHQ-9 item 9 rule',
   assert.match(copy, /below 13 \(12 or lower\)/);
   assert.match(copy, /to any single statement, whatever your total/);
   assert.match(copy, /regardless of your total score/);
+});
+
+test('validated screener results are never offered for sharing; wellness self-checks still are', () => {
+  for (const q of [PHQ9, GAD7, WHO5]) assert.equal(q.validated, true);
+  for (const slug of ['sleep-quality-check', 'stress-level-check', 'burnout-self-check']) assert.notEqual(QUIZZES[slug].validated, true);
+  assert.equal((ui.match(/<ShareResult/g) || []).length, 1);
+  assert.match(ui, /Answers are never stored or sent anywhere/);
+  assert.doesNotMatch(ui, /fetch\(|localStorage|sessionStorage/);
+});
+
+test('WHO-5 is on licence hold: no reproduced items, link to the official WHO edition', () => {
+  assert.ok(WHO5.licenseHold);
+  assert.equal(WHO5.licenseHold.officialUrl, 'https://www.who.int/publications/m/item/who-ucn-msd-mhe-2024.01');
+  assert.match(WHO5.licenseHold.message, /non-commercial licence/);
+  for (const q of [PHQ9, GAD7]) assert.equal(q.licenseHold, undefined);
+  // The hold branch returns before any question is rendered.
+  assert.ok(ui.indexOf('if (quiz.licenseHold)') < ui.indexOf('{quiz.questions.map('));
+  const defs = readFileSync(new URL('../../../src/islands/quizzes/quiz-defs.ts', import.meta.url), 'utf8');
+  assert.doesNotMatch(defs, /public[- ]domain/i);
+  assert.match(defs, /CC BY-NC-SA 3\.0 IGO/);
+  assert.match(defs, /no permission is required to reproduce, translate, display or\s+\/\/ distribute/);
 });
