@@ -9,6 +9,8 @@ on:
       - 'scripts/content/reference-audit.mjs'
       - 'scripts/content/editorial-lint.mjs'
       - 'scripts/content/overlap-audit.mjs'
+      - 'scripts/content/verify-correction-packages.mjs'
+      - 'scripts/content/correction-packages/**'
       - '.github/workflows/reference-audit.yml'
   workflow_dispatch:
 
@@ -32,6 +34,9 @@ jobs:
       - name: Overlap and cannibalization screen (Phase 7 §11.3)
         if: always()
         run: node scripts/content/overlap-audit.mjs
+      - name: Verify draft correction packages against live records (in memory only)
+        if: always()
+        run: node scripts/content/verify-correction-packages.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

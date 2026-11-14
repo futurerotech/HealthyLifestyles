@@ -1,0 +1,14 @@
+{
+  "purpose": "Draft-only correction package for the five §6.3 article-tool gates (scripts/content/article-tool-gates.json). Applied in memory by verify-correction-packages.mjs. Never written to the CMS without owner authorization and the release-isolation gates.",
+  "cmsOrigin": "https://cms.healthylifesstyles.com",
+  "articles": [
+    { "id": 27, "slug": "how-to-read-your-hrv-trend", "ops": [{ "op": "insertToolEmbed", "tool": "hrv-explainer-log", "position": "afterFirstText" }] },
+    { "id": 28, "slug": "can-sun-exposure-tell-you-if-you-need-vitamin-d", "ops": [{ "op": "insertToolEmbed", "tool": "vitamin-d-sun-calculator", "position": "afterFirstText" }] },
+    { "id": 29, "slug": "what-calorie-deficit-calculator-can-tell-you", "ops": [{ "op": "insertToolEmbed", "tool": "calorie-deficit-calculator", "position": "afterFirstText" }] },
+    { "id": 32, "slug": "waist-to-hip-ratio-how-to-measure-it-and-what-it-means", "ops": [{ "op": "insertToolEmbed", "tool": "waist-to-hip-ratio-calculator", "position": "afterFirstText" }] },
+    { "id": 37, "slug": "healthy-waist-to-height-ratio", "ops": [
+      { "op": "setPrimaryTool", "tool": "waist-to-height-ratio-calculator" },
+      { "op": "replaceToolEmbed", "from": "lean-body-mass-calculator", "tool": "waist-to-height-ratio-calculator" }
+    ] }
+  ]
+}
