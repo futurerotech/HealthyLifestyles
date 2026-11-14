@@ -1,4 +1,12 @@
 {
-  "purpose": "Known live article-to-tool integration defects (Master Roadmap 6.3). Each entry is an open CMS content-correction release gate, not an exemption: the preflight fails for any unlisted defect, and for any listed gate that no longer matches the live record (fixed, changed or unpublished).",
-  "gates": []
+  "purpose": "Known live article-to-tool integration defects (Master Roadmap 6.3). Each gate is an open CMS content-correction release gate, not an exemption: the preflight fails for any unlisted defect, and for any listed gate that no longer matches the live record (fixed, changed or unpublished). Remove a gate only when the corrected article is published.",
+  "editorialPrimary": {
+    "healthy-waist-to-height-ratio": "waist-to-height-ratio-calculator"
+  },
+  "gates": [
+    { "id": 27, "slug": "how-to-read-your-hrv-trend", "kind": "missing", "expected": "hrv-explainer-log", "actual": "", "evidence": "CI 43605292850 live preflight", "correction": "Add a toolEmbed block for hrv-explainer-log (existing tool); relationship only." },
+    { "id": 28, "slug": "can-sun-exposure-tell-you-if-you-need-vitamin-d", "kind": "missing", "expected": "vitamin-d-sun-calculator", "actual": "", "evidence": "CI 43605292850; PHASE3_AUDIT_MODERATE_ARTICLES_20261114.md", "correction": "Add a toolEmbed block for vitamin-d-sun-calculator." },
+    { "id": 29, "slug": "what-calorie-deficit-calculator-can-tell-you", "kind": "missing", "expected": "calorie-deficit-calculator", "actual": "", "evidence": "CI 43605292850; PHASE3_AUDIT_MODERATE_ARTICLES_20261114.md", "correction": "Add a toolEmbed block for calorie-deficit-calculator after the worked example." },
+    { "id": 32, "slug": "waist-to-hip-ratio-how-to-measure-it-and-what-it-means", "kind": "missing", "expected": "waist-to-hip-ratio-calculator", "actual": "", "evidence": "CI 43605292850; PHASE3_AUDIT_MODERATE_ARTICLES_20261114.md", "correction": "Add a toolEmbed block for waist-to-hip-ratio-calculator; publish with the #56 release (X3)." }
+  ]
 }
