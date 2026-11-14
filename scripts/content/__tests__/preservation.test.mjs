@@ -101,3 +101,20 @@ test('an unverified pSEO baseline cannot be turned into an assumed zero count', 
   const result = await verify({ baseline: { ...baseline, unverifiedCollections: ['pseo-pages'] } });
   assert.ok(result.errors.some((e) => e.includes('still unverified for pseo-pages')));
 });
+
+test('article toolEmbed blocks must render their canonical tool with a live calculator (Roadmap 6.3)', () => {
+  const embedDoc = (tool) => ({ ...article, layout: [...article.layout, { blockType: 'toolEmbed', tool, label: 'Try it' }] });
+  const card = (slug, island = true) => `<div class="wh-embed" data-tool="${slug}"><div class="wh-embed__head"></div>${island ? '<astro-island uid="x" component-url="/c.js"></astro-island>' : '<p>This tool is coming soon.</p>'}</div>`;
+  const run = (doc, extra) => inspectDocument('articles', doc, html(doc) + extra, cmsOrigin).errors;
+  const live = { slug: 'bmi-calculator', enabled: true };
+  assert.deepEqual(run(embedDoc(live), card('bmi-calculator')), []);
+  // Unknown or unpublished tool: ToolEmbed renders nothing.
+  assert.ok(run(embedDoc(live), '').some((e) => e.includes('toolEmbed bmi-calculator renders nothing')));
+  // Card without an interactive island.
+  assert.ok(run(embedDoc(live), card('bmi-calculator', false)).some((e) => e.includes('has no interactive calculator')));
+  // A disabled tool may show the "coming soon" card.
+  assert.deepEqual(run(embedDoc({ slug: 'bmi-calculator', enabled: false }), card('bmi-calculator', false)), []);
+  // Aliases resolve to their canonical tool.
+  assert.deepEqual(run(embedDoc({ slug: 'body-fat-percentage-calculator', enabled: true }), card('body-fat-calculator')), []);
+  assert.ok(run(embedDoc(null), '').some((e) => e.includes('toolEmbed block has no tool')));
+});

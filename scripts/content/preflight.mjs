@@ -85,6 +85,20 @@ export function inspectDocument(collection, doc, html, cmsOrigin) {
     if (doc.heroImage?.url) expect(view.images.some((img) => img.src === absoluteMedia(doc.heroImage, cmsOrigin) && img.alt === (doc.heroImage.alt || '') && (!doc.heroImage.width || img.width === String(doc.heroImage.width)) && (!doc.heroImage.height || img.height === String(doc.heroImage.height))), 'hero image URL/alt/dimensions mismatch');
     texts = [doc.excerpt, ...(doc.layout || []).flatMap(blockTexts), ...(doc.faq || []).flatMap((f) => [f.question, f.answer]), ...(doc.takeaways || []).map((t) => t.text), ...(doc.sources || []).map((s) => s.label || s.url)];
     if (doc.author?.name) expect(article?.author?.name === doc.author.name, 'author relationship mismatch');
+    // Article-to-tool integration (Master Roadmap 6.3): every toolEmbed block must
+    // render its canonical tool's card, and a live calculator island when the tool
+    // is enabled. ToolEmbed renders nothing for an unknown slug, so a broken
+    // reference would otherwise pass silently.
+    for (const block of (doc.layout || []).filter((b) => b?.blockType === 'toolEmbed')) {
+      const raw = typeof block.tool === 'object' && block.tool ? block.tool.slug : typeof block.tool === 'string' ? block.tool : '';
+      if (!raw) { errors.push('toolEmbed block has no tool'); continue; }
+      const slug = contract.toolAliases[raw] || raw;
+      const at = html.indexOf(`data-tool="${slug}"`);
+      if (at < 0) { errors.push(`toolEmbed ${slug} renders nothing (unknown or unpublished tool)`); continue; }
+      const next = html.indexOf('class="wh-embed"', at + 1);
+      const card = html.slice(at, next < 0 ? at + 60000 : next);
+      if (block.tool?.enabled !== false) expect(/<astro-island\b/.test(card), `toolEmbed ${slug} has no interactive calculator`);
+    }
     for (const tag of doc.tags || []) if (tag?.slug) expect(view.links.includes(`/wellness-hub/tag/${tag.slug}`), `tag relationship ${tag.slug} missing`);
   } else if (collection === 'pseo-pages') {
     texts = [doc.subheadline, plain(doc.bodyHtml || ''), doc.ctaUrl ? doc.ctaText : undefined];
