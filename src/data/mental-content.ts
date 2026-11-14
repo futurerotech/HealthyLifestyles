@@ -360,25 +360,25 @@ export const MENTAL_CONTENT: Record<string, ToolContent> = {
         h2: 'What the WHO-5 measures',
         paragraphs: [
           'The WHO-5 asks five positive statements about well-being (cheerful, calm, active, rested, interested) over the past two weeks. Each is scored 0 (at no time) to 5 (all of the time). The raw score ranges from 0 to 25.',
-          'Unlike the PHQ-9 or GAD-7, the WHO-5 measures positive well-being — a higher score is better. A raw score of 13 or below suggests poor well-being and the WHO guideline recommends further screening for depression.',
+          'Unlike the PHQ-9 or GAD-7, the WHO-5 measures positive well-being — a higher score is better. A raw score below 13 (12 or lower) suggests poor well-being, and the WHO-5 guidance recommends further assessment for depression. The same applies if you answer “At no time” or “Some of the time” to any single statement, whatever your total.',
         ],
       },
       {
         h2: 'Why well-being matters',
         paragraphs: [
           'Well-being is more than the absence of illness. The WHO-5 captures whether you are thriving, not just whether you are symptom-free. Low scores can be an early signal — sometimes before specific symptoms are noticed.',
-          'If your score is 13 or below, please consider talking to your doctor. The WHO-5 is specifically recommended as a first-step screen for depression — a low score does not mean you are depressed, but it means further assessment is a good idea.',
+          'If your raw score is below 13, or you answered “At no time” or “Some of the time” to any statement, please consider talking to your doctor. The WHO-5 is specifically recommended as a first-step screen for depression — a low score does not mean you are depressed, but it means further assessment is a good idea.',
         ],
       },
     ],
     faq: [
       {
         q: 'Is the WHO-5 a depression test?',
-        a: 'No. The WHO-5 measures positive well-being. However, a raw score of 13 or below is the standard cutoff for recommending further screening for depression. If your score is low, your doctor may follow up with a depression-specific tool like the PHQ-9.',
+        a: 'No. The WHO-5 measures positive well-being. However, a raw score below 13 is the standard cutoff for recommending further assessment for depression. If your score is low, your doctor may follow up with a depression-specific tool like the PHQ-9.',
       },
       {
         q: 'My score is low but I do not feel depressed — what should I do?',
-        a: 'Well-being fluctuates for many reasons — stress, poor sleep, life events, or simply a difficult couple of weeks. If your score is 13 or below, it is still worth mentioning to your doctor, especially if it persists. But a single low score does not mean you are depressed.',
+        a: 'Well-being fluctuates for many reasons — stress, poor sleep, life events, or simply a difficult couple of weeks. If your raw score is below 13, it is still worth mentioning to your doctor, especially if it persists. But a single low score does not mean you are depressed.',
       },
       {
         q: 'Can the WHO-5 diagnose anything?',

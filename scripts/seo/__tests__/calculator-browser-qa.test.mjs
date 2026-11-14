@@ -250,6 +250,43 @@ test('changed calculators: hydration, interaction, 390px and desktop fit, access
       if (exceptions.length) fail('uncaught exceptions: ' + JSON.stringify(exceptions.slice(0, 3)));
       report.push(`${slug}: controls=${mobile.count} tab=${reachedCount} interaction=${interaction}`);
     }
+    // PHQ-9 safety scenario: no pre-filled answers; item 9 flagged above a minimal total.
+    {
+      const slug = 'phq-9-depression-screener';
+      const fail = (msg) => failures.push(slug + ': ' + msg);
+      exceptions = [];
+      await viewport(390, 844, true);
+      await send('Page.navigate', { url: origin + '/tools/' + slug });
+      try {
+        await until(() => js("location.pathname==='/tools/" + slug + "'&&!!document.querySelector('.tool__calc .quiz')"), 'quiz DOM', 45000);
+        await until(() => js("(()=>{const i=document.querySelector('.tool__calc astro-island');return !!i&&!i.hasAttribute('ssr')})()"), 'quiz hydration', 30000);
+        const initial = await js(`(() => { const r = document.querySelector('.tool__calc');
+          return { checked: r.querySelectorAll('input[type=radio]:checked').length, progress: r.querySelector('.quiz__progress')?.textContent ?? '',
+            score: !!r.querySelector('.calc__value'), crisis: !!r.querySelector('.quiz__crisis') }; })()`);
+        if (initial.checked !== 0) fail(initial.checked + ' answers pre-selected');
+        if (initial.score) fail('score shown before any answer');
+        if (!/0 of 9 answered/.test(initial.progress)) fail('missing progress message: ' + initial.progress);
+        if (!initial.crisis) fail('crisis line not visible before completion');
+        // Answer: "Not at all" for items 1-8, "Several days" for item 9.
+        await js(`(() => { document.querySelectorAll('.tool__calc fieldset.quiz__q').forEach((fs, i) => {
+          fs.querySelectorAll('input[type=radio]')[i === 8 ? 1 : 0].click(); }); return true; })()`);
+        await until(() => js("!!document.querySelector('.tool__calc .calc__value')"), 'score after completion', 6000);
+        const done = await js(`(() => { const r = document.querySelector('.tool__calc'); const flag = r.querySelector('.quiz__flag--urgent');
+          const head = r.querySelector('.calc__headline');
+          return { value: r.querySelector('.calc__value')?.textContent.replace(/\s+/g, ' ').trim(), badge: r.querySelector('.calc__badge')?.textContent,
+            flag: flag?.textContent ?? '', role: flag?.getAttribute('role'), before: !!(flag && head && (flag.compareDocumentPosition(head) & Node.DOCUMENT_POSITION_FOLLOWING)),
+            scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth }; })()`);
+        if (done.value !== '1 / 27') fail('score ' + done.value);
+        if (done.badge !== 'Minimal') fail('band ' + done.badge);
+        if (!/better off dead or of hurting yourself/.test(done.flag)) fail('item 9 alert missing');
+        if (done.role !== 'alert') fail('item 9 alert lacks role=alert');
+        if (!done.before) fail('item 9 alert not shown above the score');
+        if (done.scroll > done.client + 1) fail(`390px overflow (${done.scroll} > ${done.client})`);
+        if (exceptions.length) fail('uncaught exceptions: ' + JSON.stringify(exceptions.slice(0, 3)));
+        report.push(`${slug}: unanswered-start=ok item9-alert=${done.role === 'alert' ? 'ok' : 'missing'}`);
+      } catch (e) { fail(String(e)); }
+    }
+
     console.log('[CALC_BROWSER_QA] ' + report.join(' | '));
     if (failures.length) console.error('[CALC_BROWSER_QA] FAILURES\n' + failures.join('\n'));
     assert.deepEqual(failures, []);
