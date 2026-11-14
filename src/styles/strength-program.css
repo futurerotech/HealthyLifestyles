@@ -45,7 +45,7 @@
   color: var(--muted);
 }
 .sp__units button.is-on {
-  background: var(--green-primary);
+  background: var(--green-700);
   color: #fff;
 }
 .sp__lifts-hint {

@@ -109,6 +109,7 @@ const year = 2026;
 
 <style>
   .site-footer {
+    --focus-outline: var(--green-accent);
     background: var(--dark);
     color: #cbd5e1;
     padding-block: clamp(3rem, 6vw, 4.5rem) 2rem;
@@ -203,10 +204,10 @@ const year = 2026;
     padding-top: 1.5rem;
     border-top: 1px solid rgba(148, 163, 184, 0.18);
     font-size: 0.85rem;
-    color: #64748b;
+    color: #94a3b8; /* 7.1:1 on --dark; #64748b was 3.8:1 */
   }
   .footer__sub {
-    color: #64748b;
+    color: #94a3b8; /* 7.1:1 on --dark; #64748b was 3.8:1 */
   }
   .footer__consent {
     border: 0;
