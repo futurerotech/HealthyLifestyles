@@ -66,6 +66,46 @@ function editorialLinks(collection, doc) {
   if (collection === 'pseo-pages') links.push(...inspectHtml(doc.bodyHtml || '').links, ...(doc.ctaUrl ? [doc.ctaUrl] : []));
   return links;
 }
+const relSlug = (rel) => (rel && typeof rel === 'object' ? rel.slug : typeof rel === 'string' ? rel : '') || '';
+
+/**
+ * Article-to-tool integration (Master Roadmap §6.3). An article with a
+ * `primaryTool` relationship is tool-focused: it must embed that same tool
+ * (aliases resolved). Articles without a primaryTool are not tool-focused and
+ * are not required to embed anything. Returns null when the article is
+ * consistent, otherwise { kind: 'missing' | 'wrong', expected, actual }.
+ */
+export function articleToolIntegration(doc) {
+  const primary = relSlug(doc.primaryTool);
+  if (!primary) return null;
+  const expected = contract.toolAliases[primary] || primary;
+  const embedded = (doc.layout || []).filter((b) => b?.blockType === 'toolEmbed')
+    .map((b) => relSlug(b.tool)).filter(Boolean).map((s) => contract.toolAliases[s] || s);
+  if (embedded.includes(expected)) return null;
+  return { kind: embedded.length ? 'wrong' : 'missing', expected, actual: [...new Set(embedded)].sort().join(',') };
+}
+
+/**
+ * Compare live articles with the reviewed list of known content defects.
+ * Any unlisted defect fails; a listed gate that no longer matches the live
+ * record (fixed, changed or unpublished) also fails, so the list cannot go stale.
+ */
+export function checkArticleToolGates(articles, gates = []) {
+  const errors = [];
+  const byId = new Map(gates.map((g) => [String(g.id), g]));
+  for (const doc of articles) {
+    const finding = articleToolIntegration(doc);
+    const gate = byId.get(String(doc.id));
+    byId.delete(String(doc.id));
+    const where = `articles ID ${doc.id} (${doc.slug})`;
+    if (finding && !gate) errors.push(`${where}: ${finding.kind === 'missing' ? 'primary tool ' + finding.expected + ' is not embedded' : 'embeds ' + finding.actual + ' instead of primary tool ' + finding.expected} (Roadmap 6.3)`);
+    else if (finding && gate && (gate.slug !== doc.slug || gate.kind !== finding.kind || gate.expected !== finding.expected || (gate.actual || '') !== finding.actual)) errors.push(`${where}: article-tool gate no longer matches the live record (${JSON.stringify(finding)}); review and update the gate`);
+    else if (!finding && gate) errors.push(`${where}: article-tool gate is stale (the article is now consistent); remove it from article-tool-gates.json`);
+  }
+  for (const gate of byId.values()) errors.push(`article-tool gate for ID ${gate.id} (${gate.slug}) does not match any published article; remove it`);
+  return errors;
+}
+
 export function inspectDocument(collection, doc, html, cmsOrigin) {
   const view = inspectHtml(html);
   const errors = [];
@@ -122,7 +162,7 @@ export function hasPermanentRedirect(config, from, to) {
   return (config?.routes || []).some((route) => route.src === `^${from}$` && [301, 308].includes(route.status) && (route.headers?.Location || route.headers?.location) === to);
 }
 
-export async function verifyContent({ inventory, manifest, readHtml, readRedirect, baseline, requireReleaseProvenance = true }) {
+export async function verifyContent({ inventory, manifest, readHtml, readRedirect, baseline, requireReleaseProvenance = true, toolGates = [] }) {
   const errors = [], documents = [];
   if (requireReleaseProvenance && (manifest.version !== 1 || manifest.source !== 'cms' || manifest.buildKind !== 'cms' || manifest.cmsOrigin !== inventory.cmsOrigin)) errors.push('Build is not a direct, complete build from the expected production CMS (fixture/offline/diagnostic builds cannot pass).');
   if (!Array.isArray(manifest.records) || !Array.isArray(manifest.collections)) return { errors: ['Missing/incomplete content manifest'], documents, counts: {} };
@@ -169,6 +209,7 @@ export async function verifyContent({ inventory, manifest, readHtml, readRedirec
     const expectedIds = new Set((inventory.collections[collection] || []).map((d) => String(d.id)));
     for (const record of manifest.records.filter((r) => r.collection === collection)) if (!expectedIds.has(record.docId)) errors.push(`Unexpected/stale ${collection} document in build: ID ${record.docId}`);
   }
+  errors.push(...checkArticleToolGates(inventory.collections.articles || [], toolGates));
   return { checkedAt: new Date().toISOString(), scope: ['published articles', 'published enabled tools and legacy redirects', 'published CMS pages', 'published pSEO pages'], cmsOrigin: inventory.cmsOrigin, errors, documents, counts };
 }
 
@@ -177,7 +218,10 @@ export async function verifyOutput({ dist = 'dist/client', inventory, baseline, 
   const manifest = JSON.parse(await readFile(join(root, 'content-manifest.json'), 'utf8'));
   const readHtml = (path) => readFile(join(root, path.replace(/^\//, ''), 'index.html'), 'utf8');
   const config = providerDir ? await readFile(join(providerDir, '..', 'config.json'), 'utf8').then(JSON.parse).catch(() => null) : null;
-  const result = await verifyContent({ inventory, manifest, readHtml, readRedirect: (from, to) => hasPermanentRedirect(config, from, to), baseline, requireReleaseProvenance });
+  // Reviewed list of known live article-to-tool defects (Roadmap 6.3). Each entry is a
+  // release gate for a CMS content correction; it is not an exemption.
+  const toolGates = JSON.parse(await readFile(new URL('./article-tool-gates.json', import.meta.url), 'utf8')).gates;
+  const result = await verifyContent({ inventory, manifest, readHtml, readRedirect: (from, to) => hasPermanentRedirect(config, from, to), baseline, requireReleaseProvenance, toolGates });
   if (providerDir) {
     const receipt = await readFile(join(providerDir, 'content-manifest.json'), 'utf8').catch(() => null);
     if (!receipt || receipt !== await readFile(join(root, 'content-manifest.json'), 'utf8')) result.errors.push('Provider content manifest missing or different from verified output');

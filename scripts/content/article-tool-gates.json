@@ -1,0 +1,4 @@
+{
+  "purpose": "Known live article-to-tool integration defects (Master Roadmap 6.3). Each entry is an open CMS content-correction release gate, not an exemption: the preflight fails for any unlisted defect, and for any listed gate that no longer matches the live record (fixed, changed or unpublished).",
+  "gates": []
+}

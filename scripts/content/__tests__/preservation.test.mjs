@@ -118,3 +118,29 @@ test('article toolEmbed blocks must render their canonical tool with a live calc
   assert.deepEqual(run(embedDoc({ slug: 'body-fat-percentage-calculator', enabled: true }), card('body-fat-calculator')), []);
   assert.ok(run(embedDoc(null), '').some((e) => e.includes('toolEmbed block has no tool')));
 });
+
+test('a tool-focused article must embed its primary tool: wrong and missing embeds fail (Roadmap 6.3)', async () => {
+  const { articleToolIntegration, checkArticleToolGates } = await import('../preflight.mjs');
+  const embed = (slug) => ({ blockType: 'toolEmbed', tool: { slug, enabled: true } });
+  const art = (primary, ...embeds) => ({ id: 7, slug: 'healthy-waist-to-height-ratio', primaryTool: primary && { slug: primary }, layout: [{ blockType: 'text', text: 'x' }, ...embeds.map(embed)] });
+  // Consistent, including aliases on either side.
+  assert.equal(articleToolIntegration(art('waist-to-height-ratio-calculator', 'waist-to-height-ratio-calculator')), null);
+  assert.equal(articleToolIntegration(art('body-fat-percentage-calculator', 'body-fat-calculator')), null);
+  assert.equal(articleToolIntegration(art('body-fat-calculator', 'body-fat-percentage-calculator')), null);
+  // An extra secondary embed is fine as long as the primary one is present.
+  assert.equal(articleToolIntegration(art('bmi-calculator', 'bmi-calculator', 'waist-to-height-ratio-calculator')), null);
+  // Not tool-focused: no requirement.
+  assert.equal(articleToolIntegration(art(null)), null);
+  assert.equal(articleToolIntegration(art(null, 'bmi-calculator')), null);
+  // The two real cases recorded by the Phase 3 audit.
+  assert.deepEqual(articleToolIntegration(art('waist-to-height-ratio-calculator', 'lean-body-mass-calculator')), { kind: 'wrong', expected: 'waist-to-height-ratio-calculator', actual: 'lean-body-mass-calculator' });
+  assert.deepEqual(articleToolIntegration(art('waist-to-hip-ratio-calculator')), { kind: 'missing', expected: 'waist-to-hip-ratio-calculator', actual: '' });
+  // Unlisted defects fail; exact gates hold; stale or changed gates fail.
+  const wrong = art('waist-to-height-ratio-calculator', 'lean-body-mass-calculator');
+  assert.match(checkArticleToolGates([wrong], [])[0], /embeds lean-body-mass-calculator instead of primary tool waist-to-height-ratio-calculator/);
+  const gate = { id: 7, slug: wrong.slug, kind: 'wrong', expected: 'waist-to-height-ratio-calculator', actual: 'lean-body-mass-calculator' };
+  assert.deepEqual(checkArticleToolGates([wrong], [gate]), []);
+  assert.match(checkArticleToolGates([art('waist-to-height-ratio-calculator', 'waist-to-height-ratio-calculator')], [gate])[0], /gate is stale/);
+  assert.match(checkArticleToolGates([art('waist-to-height-ratio-calculator', 'bmi-calculator')], [gate])[0], /no longer matches the live record/);
+  assert.match(checkArticleToolGates([], [gate])[0], /does not match any published article/);
+});
