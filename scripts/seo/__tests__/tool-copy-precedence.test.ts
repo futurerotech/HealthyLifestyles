@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import type { ToolContent } from '../../../src/data/content-types.ts';
-import { resolveToolPagePresentation } from '../../../src/lib/tool-copy-safety.ts';
+import { resolveToolPagePresentation, SOURCE_COPY_CANDIDATES, SOURCE_COPY_APPROVED } from '../../../src/lib/tool-copy-safety.ts';
 
 const authored: ToolContent = {
   seoTitle: 'Safety-corrected movement tool',
@@ -30,30 +30,54 @@ const seo = {
   ogImage: 'https://www.healthylifesstyles.com/og.jpg',
 };
 
-test('three educational activity calculators favor corrected source prose and social SEO', () => {
-  for (const slug of ['sitting-disease-reversal-calculator', 'walk-it-off-calculator', 'calories-burned-calculator', 'steps-to-calories-calculator', 'vo2-max-calculator', 'one-rep-max-calculator', 'ffmi-calculator', 'recovery-time-calculator', 'lean-body-mass-calculator', 'alcohol-calorie-calculator']) {
+const BODY = [...SOURCE_COPY_CANDIDATES].filter(([, s]) => s === 'body').map(([k]) => k);
+const META = [...SOURCE_COPY_CANDIDATES].filter(([, s]) => s === 'metadata').map(([k]) => k);
+const ALL = new Set(SOURCE_COPY_CANDIDATES.keys());
+
+test('nothing is approved by default: the CMS stays authoritative for every tool', () => {
+  assert.equal(SOURCE_COPY_APPROVED.size, 0);
+  for (const slug of [...ALL, 'bmi-calculator']) {
     const r = resolveToolPagePresentation(slug, authored, staleCms, seo);
+    assert.deepEqual(r.content.sections, staleCms.sections, slug);
+    assert.deepEqual(r.content.faq, staleCms.faq, slug);
+    assert.equal(r.content.directAnswer, undefined, slug);
+    assert.equal(r.content.seoTitle, seo.metaTitle, slug);
+    assert.equal(r.content.metaDescription, seo.metaDescription, slug);
+    assert.equal(r.seo, seo, slug);
+  }
+});
+
+test('default resolution is identical to the previous inline layout expression', () => {
+  const legacy = (a: ToolContent, cms?: typeof staleCms, s?: typeof seo) => ({
+    ...a, ...cms, ...(cms?.sections ? { directAnswer: undefined } : {}),
+    seoTitle: s?.metaTitle || a.seoTitle, metaDescription: s?.metaDescription || a.metaDescription,
+  });
+  for (const [cms, s] of [[staleCms, seo], [undefined, undefined], [{ faq: staleCms.faq }, { canonical: '/x' }]] as const) {
+    const r = resolveToolPagePresentation('walk-it-off-calculator', authored, cms as typeof staleCms, s as typeof seo);
+    assert.deepEqual(r.content, legacy(authored, cms as typeof staleCms, s as typeof seo));
+    assert.equal(r.seo, s);
+  }
+});
+
+test('when approved, body-scope candidates use reviewed source prose and social SEO', () => {
+  for (const slug of BODY) {
+    const r = resolveToolPagePresentation(slug, authored, staleCms, seo, ALL);
     assert.deepEqual(r.content.sections, authored.sections);
     assert.deepEqual(r.content.faq, authored.faq);
     assert.deepEqual(r.content.sources, authored.sources);
     assert.equal(r.content.intro, authored.intro);
     assert.deepEqual(r.content.directAnswer, authored.directAnswer);
-    assert.equal(r.seo?.metaTitle, authored.seoTitle);
-    assert.equal(r.seo?.ogTitle, authored.seoTitle);
-    assert.equal(r.seo?.twitterTitle, authored.seoTitle);
-    assert.equal(r.seo?.metaDescription, authored.metaDescription);
-    assert.equal(r.seo?.ogDescription, authored.metaDescription);
-    assert.equal(r.seo?.twitterDescription, authored.metaDescription);
+    for (const k of ['metaTitle', 'ogTitle', 'twitterTitle'] as const) assert.equal(r.seo?.[k], authored.seoTitle);
+    for (const k of ['metaDescription', 'ogDescription', 'twitterDescription'] as const) assert.equal(r.seo?.[k], authored.metaDescription);
     assert.equal(r.seo?.canonical, seo.canonical);
     assert.equal(r.seo?.noIndex, false);
     assert.equal(r.seo?.ogImage, seo.ogImage);
   }
 });
 
-test('existing five score indices retain authored metadata across OG and Twitter', () => {
-  for (const slug of ['waist-health-risk-calculator', 'heart-disease-risk-calculator',
-    'diabetes-risk-calculator', 'metabolic-age-calculator', 'healthspan-score']) {
-    const r = resolveToolPagePresentation(slug, authored, staleCms, seo);
+test('when approved, metadata-scope candidates change only metadata', () => {
+  for (const slug of META) {
+    const r = resolveToolPagePresentation(slug, authored, staleCms, seo, ALL);
     assert.equal(r.seo?.metaTitle, authored.seoTitle);
     assert.equal(r.seo?.ogTitle, authored.seoTitle);
     assert.deepEqual(r.content.sections, staleCms.sections);
@@ -61,21 +85,8 @@ test('existing five score indices retain authored metadata across OG and Twitter
   }
 });
 
-test('unrelated tools preserve CMS editorial precedence and metadata', () => {
-  // A tool with no safety-reviewed copy (recovery-time was added to the reviewed
-  // set later, so it is no longer an "unrelated" example).
-  const r = resolveToolPagePresentation('bmi-calculator', authored, staleCms, seo);
+test('approval cannot extend precedence to a tool that is not a reviewed candidate', () => {
+  const r = resolveToolPagePresentation('bmi-calculator', authored, staleCms, seo, new Set(['bmi-calculator']));
   assert.deepEqual(r.content.sections, staleCms.sections);
-  assert.deepEqual(r.content.faq, staleCms.faq);
-  assert.equal(r.content.directAnswer, undefined);
-  assert.deepEqual(r.seo, seo);
-  assert.equal(r.content.seoTitle, seo.metaTitle);
-  assert.equal(r.content.metaDescription, seo.metaDescription);
-});
-
-test('when no CMS copy exists authored text remains complete and safe', () => {
-  const r = resolveToolPagePresentation('walk-it-off-calculator', authored);
-  assert.deepEqual(r.content, authored);
-  assert.equal(r.seo?.metaTitle, authored.seoTitle);
-  assert.equal(r.seo?.canonical, undefined);
+  assert.equal(r.seo, seo);
 });

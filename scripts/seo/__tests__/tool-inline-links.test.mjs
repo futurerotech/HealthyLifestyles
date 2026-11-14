@@ -37,7 +37,7 @@ test('internal editorial links remain followable', () => {
   assert.doesNotMatch(html, /nofollow/);
 });
 
-const { MEDICAL_SCORE_SLUGS, EDUCATIONAL_ACTIVITY_SLUGS } = await import('../../../src/lib/tool-copy-safety.ts');
+const { MEDICAL_SCORE_SLUGS, SOURCE_COPY_CANDIDATES, SOURCE_COPY_APPROVED } = await import('../../../src/lib/tool-copy-safety.ts');
 
 test('custom risk and metabolic index tools cannot claim external validation', () => {
   const layout = source('src/components/ToolPageLayout.astro');
@@ -57,12 +57,10 @@ test('page copy and SEO precedence go through the one tested policy module', () 
   assert.doesNotMatch(layout, /new Set\(\[\s*'[a-z0-9-]+-(calculator|score)'/);
 });
 
-test('the score and activity slug sets are disjoint, deduplicated and include Healthspan', () => {
-  const score = [...MEDICAL_SCORE_SLUGS], activity = [...EDUCATIONAL_ACTIVITY_SLUGS];
-  assert.equal(score.length, 5);
+test('score disclaimer set is the five indices; source-copy precedence awaits owner approval', () => {
+  assert.deepEqual([...MEDICAL_SCORE_SLUGS].sort(), [...SOURCE_COPY_CANDIDATES].filter(([, s]) => s === 'metadata').map(([k]) => k).sort());
   assert.ok(MEDICAL_SCORE_SLUGS.has('healthspan-score'));
-  assert.equal(score.filter((x) => EDUCATIONAL_ACTIVITY_SLUGS.has(x)).length, 0);
-  assert.equal(new Set(activity).size, activity.length);
+  assert.equal(SOURCE_COPY_APPROVED.size, 0);
 });
 
 test('Healthspan page copy keeps its lifespan, alcohol-guidance and comparability limits', () => {

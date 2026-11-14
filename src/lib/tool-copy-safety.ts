@@ -3,11 +3,49 @@ import type { CmsToolContent } from './cms-content';
 import type { SeoMetadata } from './seo';
 
 /**
- * Narrow safety-only source copy precedence for unmerged calculator reviews.
- * CMS records stay authoritative on every unrelated public tool page.
- * Release requires independent CMS, clinical and browser acceptance.
+ * Tool-page copy precedence.
+ *
+ * The CMS is the system of record for published tool copy and SEO metadata:
+ * by default its fields override the authored source copy, exactly as before.
+ * The release preflight (scripts/content/preflight.mjs) enforces that.
+ *
+ * Several calculators have safety-reviewed source copy that differs from what
+ * may be published in the CMS. Showing the source copy instead of the CMS copy
+ * is an owner decision, because it makes the live page diverge from the CMS
+ * record. The preferred route is a reviewed draft update of the CMS records;
+ * this mechanism is the alternative if the owner approves it per tool.
+ *
+ * - SOURCE_COPY_CANDIDATES: tools whose reviewed source copy is ready, and the
+ *   scope it would replace ('body' = intro, notice, sections, FAQ, sources and
+ *   metadata; 'metadata' = SEO title/description and social tags only).
+ * - SOURCE_COPY_APPROVED: tools for which the owner has approved source
+ *   precedence. Empty until such an approval is recorded.
  */
-export const MEDICAL_SCORE_SLUGS = new Set([
+export type CopyScope = 'body' | 'metadata';
+
+export const SOURCE_COPY_CANDIDATES: ReadonlyMap<string, CopyScope> = new Map<string, CopyScope>([
+  ['waist-health-risk-calculator', 'metadata'],
+  ['heart-disease-risk-calculator', 'metadata'],
+  ['diabetes-risk-calculator', 'metadata'],
+  ['metabolic-age-calculator', 'metadata'],
+  ['healthspan-score', 'metadata'],
+  ['sitting-disease-reversal-calculator', 'body'],
+  ['walk-it-off-calculator', 'body'],
+  ['calories-burned-calculator', 'body'],
+  ['steps-to-calories-calculator', 'body'],
+  ['vo2-max-calculator', 'body'],
+  ['one-rep-max-calculator', 'body'],
+  ['ffmi-calculator', 'body'],
+  ['recovery-time-calculator', 'body'],
+  ['lean-body-mass-calculator', 'body'],
+  ['alcohol-calorie-calculator', 'body'],
+]);
+
+export const SOURCE_COPY_APPROVED: ReadonlySet<string> = new Set<string>([]);
+
+/** Custom point tallies and indices: never presented as validated clinical scores.
+ *  This only selects the frontend-owned disclaimer; it does not touch CMS copy. */
+export const MEDICAL_SCORE_SLUGS: ReadonlySet<string> = new Set([
   'waist-health-risk-calculator',
   'heart-disease-risk-calculator',
   'diabetes-risk-calculator',
@@ -15,35 +53,23 @@ export const MEDICAL_SCORE_SLUGS = new Set([
   'healthspan-score',
 ]);
 
-export const EDUCATIONAL_ACTIVITY_SLUGS = new Set([
-  'sitting-disease-reversal-calculator',
-  'walk-it-off-calculator',
-  'calories-burned-calculator',
-  'steps-to-calories-calculator',
-  'vo2-max-calculator',
-  'one-rep-max-calculator',
-  'ffmi-calculator',
-  'recovery-time-calculator',
-  // Safety-reviewed body-composition formula; keep its corrected content visible.
-  'lean-body-mass-calculator',
-  'alcohol-calorie-calculator',
-]);
-
 export function resolveToolPagePresentation(
   slug: string,
   authored: ToolContent,
   cmsContent?: CmsToolContent,
   cmsSeo?: SeoMetadata,
+  approved: ReadonlySet<string> = SOURCE_COPY_APPROVED,
 ): { content: ToolContent; seo: SeoMetadata | undefined } {
-  const updatedBody = EDUCATIONAL_ACTIVITY_SLUGS.has(slug);
-  const updatedMetadata = updatedBody || MEDICAL_SCORE_SLUGS.has(slug);
+  const scope = approved.has(slug) ? SOURCE_COPY_CANDIDATES.get(slug) : undefined;
+  const sourceBody = scope === 'body';
+  const sourceMetadata = scope === 'body' || scope === 'metadata';
   const content: ToolContent = {
     ...authored,
     ...cmsContent,
-    // A CMS Lexical body is not necessarily the body that introduced the
-    // authored quick answer. Do not emit inconsistent FAQ/quick-answer schema.
-    ...(cmsContent?.sections && !updatedBody ? { directAnswer: undefined } : {}),
-    ...(updatedBody ? {
+    // A CMS body is not necessarily the body that introduced the authored
+    // quick answer. Do not emit inconsistent FAQ/quick-answer schema.
+    ...(cmsContent?.sections && !sourceBody ? { directAnswer: undefined } : {}),
+    ...(sourceBody ? {
       intro: authored.intro,
       notice: authored.notice,
       directAnswer: authored.directAnswer,
@@ -51,14 +77,13 @@ export function resolveToolPagePresentation(
       faq: authored.faq,
       sources: authored.sources,
     } : {}),
-    seoTitle: updatedMetadata ? authored.seoTitle : cmsSeo?.metaTitle || authored.seoTitle,
-    metaDescription: updatedMetadata ? authored.metaDescription : cmsSeo?.metaDescription || authored.metaDescription,
+    seoTitle: sourceMetadata ? authored.seoTitle : cmsSeo?.metaTitle || authored.seoTitle,
+    metaDescription: sourceMetadata ? authored.metaDescription : cmsSeo?.metaDescription || authored.metaDescription,
   };
-
-  // SEO.astro gives seo.metaTitle/Description/OG/Twitter priority over the
-  // title/description props. Override all user-visible metadata consistently,
-  // but preserve canonical, noIndex, image and other CMS SEO settings.
-  const seo: SeoMetadata | undefined = updatedMetadata ? {
+  // SEO.astro gives seo.* priority over title/description props. With source
+  // metadata, override every user-visible tag consistently but keep canonical,
+  // noIndex, images and other CMS SEO settings.
+  const seo: SeoMetadata | undefined = sourceMetadata ? {
     ...cmsSeo,
     metaTitle: content.seoTitle,
     metaDescription: content.metaDescription,

@@ -50,9 +50,9 @@ interface Props {
 }
 
 const { tool, stylesheet } = Astro.props;
-// Preserve the CMS editorial fields on all other tools. For the seven identified
-// medical safety issues, resolve source-versus-CMS display fields and SEO tags
-// consistently using the same tested pure policy, without changing CMS records.
+// CMS copy and SEO metadata take precedence over authored copy, as before.
+// Source precedence for a reviewed calculator applies only once the owner has
+// approved it in lib/tool-copy-safety.ts (SOURCE_COPY_APPROVED, empty today).
 const { content, seo } = resolveToolPagePresentation(tool.slug, Astro.props.content, tool.cmsContent, tool.seo);
 const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
 const orgId = `${origin.href}#org`;
