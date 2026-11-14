@@ -965,10 +965,10 @@ export const DEFS: Record<string, CalcDef> = {
       const s = vals.systolic;
       const d = vals.diastolic;
       const cats = [
-        { key: 'normal', label: 'Normal', color: '#16a34a', detail: 'Below 120 / below 80 mmHg' },
-        { key: 'elevated', label: 'Elevated', color: '#f59e0b', detail: '120–129 / below 80 mmHg' },
-        { key: 'stage1', label: 'High — Stage 1', color: '#f97316', detail: '130–139 / 80–89 mmHg' },
-        { key: 'stage2', label: 'High — Stage 2', color: '#ef4444', detail: '140+ / 90+ mmHg' },
+        { key: 'normal', label: 'Normal', color: '#16a34a', detail: 'Below 120 and below 80 mmHg' },
+        { key: 'elevated', label: 'Elevated', color: '#f59e0b', detail: '120–129 and below 80 mmHg' },
+        { key: 'stage1', label: 'High — Stage 1', color: '#f97316', detail: '130–139 or 80–89 mmHg' },
+        { key: 'stage2', label: 'High — Stage 2', color: '#ef4444', detail: '140+ or 90+ mmHg' },
         { key: 'severe', label: 'Severe hypertension', color: '#b91c1c', detail: 'Above 180 systolic or above 120 diastolic (mmHg)' },
       ];
       let key: string;
@@ -1012,7 +1012,7 @@ export const DEFS: Record<string, CalcDef> = {
         category: { label: cat.label, color: cat.color },
         visual: { kind: 'zones', items },
         callout,
-        note: 'General AHA adult categories (2025) are not a pregnancy/postpartum risk assessment. If pregnant or within 6 weeks after childbirth, contact your obstetric care team right away for systolic 140+ OR diastolic 90+; systolic 160+ OR diastolic 110+ needs urgent assessment. Severe headache, vision changes, upper-abdominal pain or trouble breathing need immediate medical attention at any reading. One reading is not a diagnosis.',
+        note: 'General AHA adult categories (2025) are not a pregnancy/postpartum risk assessment. If pregnant or within 6 weeks after childbirth, contact your obstetric care team right away for systolic 140+ OR diastolic 90+; systolic 160+ OR diastolic 110+ needs urgent assessment. Severe headache, vision changes, upper-abdominal pain or trouble breathing need immediate medical attention at any reading. One reading is not a diagnosis. Use a validated upper-arm cuff: the 2025 guideline does not recommend cuffless devices such as smartwatches for diagnosing or managing blood pressure.',
       };
     },
   },

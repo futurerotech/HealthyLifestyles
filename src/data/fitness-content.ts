@@ -225,7 +225,7 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
         h2: 'How the pace calculator works',
         paragraphs: [
           'Pace, time, and distance are linked by one simple relationship: time = distance × pace. Give the calculator any two and it solves the third — your finish time from a target pace, the pace you’d need to hit a goal time, or how far you’d travel at a set pace.',
-          'Pace is shown as minutes and seconds per kilometre or per mile (switch units at the top), while speed is shown in km/h or mph for comparison. Everything is calculated assuming an even effort across the whole distance.',
+          'Pace is shown as minutes and seconds per kilometer or per mile (switch units at the top), while speed is shown in km/h or mph for comparison. Everything is calculated assuming an even effort across the whole distance.',
         ],
       },
       {
@@ -238,7 +238,7 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'Pacing common race distances',
         paragraphs: [
-          'To find a goal pace, set the calculator to "Pace," enter the race distance and your target time, and read the pace you need to hold. For example, a sub-2-hour half-marathon (21.1 km) needs about 5:41 per kilometre; a 4-hour marathon needs roughly 5:41 per kilometre too, sustained for 42.2 km.',
+          'To find a goal pace, set the calculator to "Pace," enter the race distance and your target time, and read the pace you need to hold. For example, a sub-2-hour half-marathon (21.1 km) needs about 5:41 per kilometer; a 4-hour marathon needs roughly 5:41 per kilometer too, sustained for 42.2 km.',
           'Remember that real races include hills, wind, and fatigue, so train across a range of paces rather than only your goal pace. Build endurance with easy runs, and use the calculator to set realistic, achievable targets based on your recent times.',
         ],
       },
@@ -246,14 +246,14 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
     faq: [
       {
         q: 'How do I calculate my running pace?',
-        a: 'Divide your time by your distance. This calculator does it for you — choose "Pace," enter the distance you ran and the time it took, and it returns your pace per kilometre or mile.',
+        a: 'Divide your time by your distance. This calculator does it for you — choose "Pace," enter the distance you ran and the time it took, and it returns your pace per kilometer or mile.',
       },
       {
         q: 'What is a negative split?',
         a: 'A negative split means running the second half of a race faster than the first. It’s widely considered the most efficient way to race and helps avoid burning out early.',
       },
       {
-        q: 'Can I switch between kilometres and miles?',
+        q: 'Can I switch between kilometers and miles?',
         a: 'Yes. The km/mi toggle converts distance and minutes-per-unit pace while keeping the same physical run and projected total time. Inputs show rounded seconds; the model uses full conversion precision until you edit an input.',
       },
     ],

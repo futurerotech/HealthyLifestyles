@@ -245,7 +245,7 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'How the U.S. Navy method works',
         paragraphs: [
-          'The U.S. Navy formula estimates body fat from body circumferences rather than skinfold callipers or lab equipment. It uses your height and neck and waist measurements (plus hip measurement for women), all in centimetres, inside a logarithmic equation:',
+          'The U.S. Navy formula estimates body fat from body circumferences rather than skinfold callipers or lab equipment. It uses your height and neck and waist measurements (plus hip measurement for women), all in centimeters, inside a logarithmic equation:',
           'For men: %fat = 495 ÷ (1.0324 − 0.19077 × log₁₀(waist − neck) + 0.15456 × log₁₀(height)) − 450. For women: %fat = 495 ÷ (1.29579 − 0.35004 × log₁₀(waist + hip − neck) + 0.22100 × log₁₀(height)) − 450. For accuracy, measure relaxed and breathe out before reading the tape; take each measurement twice and average it.',
         ],
       },

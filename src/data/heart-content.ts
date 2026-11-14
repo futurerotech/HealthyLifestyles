@@ -16,6 +16,12 @@ const AHA_BP: Source = {
     'American Heart Association. "Understanding Blood Pressure Readings." (Blood pressure categories.)',
   url: 'https://www.heart.org/en/health-topics/high-blood-pressure/understanding-blood-pressure-readings',
 };
+const ACC_AHA_2025_GUIDELINE: Source = {
+  citation:
+    'Jones DW, Ferdinand KC, Taler SJ, et al. "2025 AHA/ACC/AANP/AAPA/ABC/ACCP/ACPM/AGS/AMA/ASPC/NMA/PCNA/SGIM Guideline for the Prevention, Detection, Evaluation and Management of High Blood Pressure in Adults." Hypertension. 2025. doi:10.1161/HYP.0000000000000249.',
+  url: 'https://doi.org/10.1161/HYP.0000000000000249',
+};
+
 const AHA_GUIDELINE: Source = {
   citation:
     'American Heart Association / American College of Cardiology. "2025 High Blood Pressure Guideline: Top Things to Know." (Updated adult hypertension guidance.)',
@@ -218,7 +224,7 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'Understanding the two numbers',
         paragraphs: [
-          'Blood pressure is measured in millimetres of mercury (mmHg) and written as systolic over diastolic, for example 120/80. The systolic (top) number is the pressure in your arteries when your heart beats; the diastolic (bottom) number is the pressure between beats, when the heart rests.',
+          'Blood pressure is measured in millimeters of mercury (mmHg) and written as systolic over diastolic, for example 120/80. The systolic (top) number is the pressure in your arteries when your heart beats; the diastolic (bottom) number is the pressure between beats, when the heart rests.',
           'Either number being high is enough to raise your category. This checker uses whichever of your two numbers falls into the higher band, exactly as clinicians do.',
         ],
       },
@@ -245,7 +251,8 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'What to do about your reading',
         paragraphs: [
-          'A single reading does not diagnose high blood pressure. Levels rise and fall through the day with activity, stress, caffeine and even a full bladder. Take several measurements while seated and rested, on different days, and share the pattern with your doctor.',
+          'A single reading does not diagnose high blood pressure. Levels rise and fall through the day with activity, stress, caffeine and even a full bladder. The 2025 AHA/ACC guideline bases the category on the average of at least two careful readings taken on at least two occasions, so take several measurements while seated and rested, on different days, and share the pattern with your doctor.',
+          'Use a validated upper-arm cuff in the right size for your arm (independently validated home devices are listed at validatebp.org). The 2025 guideline does not recommend cuffless devices, such as smartwatches, for diagnosing or managing high blood pressure, because their accuracy has not been established.',
           'If your reading is in the elevated or Stage 1 range, lifestyle changes — less salt, more activity, a healthy weight, less alcohol and not smoking — often help. Stage 2 usually needs medication alongside these changes. A reading higher than 180 systolic or higher than 120 diastolic is in the severe hypertension range. With chest pain, shortness of breath, back pain, numbness, weakness, changes in vision, difficulty speaking, or other new concerning symptoms, call emergency services immediately. Without those symptoms, wait at least one minute and measure again; contact your healthcare professional promptly if it remains this high.',
         ],
       },
@@ -272,7 +279,7 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
         a: 'No. A diagnosis is based on multiple readings over time, taken correctly at rest. This tool is for information only — your doctor confirms any diagnosis of high blood pressure.',
       },
     ],
-    sources: [AHA_BP, AHA_GUIDELINE, ACOG_PREGNANCY_BP, ACOG_POSTPARTUM_BP, CDC_PREGNANCY_BP],
+    sources: [AHA_BP, AHA_GUIDELINE, ACC_AHA_2025_GUIDELINE, ACOG_PREGNANCY_BP, ACOG_POSTPARTUM_BP, CDC_PREGNANCY_BP],
   },
 
   // ============================================================
