@@ -5,16 +5,45 @@
       "url": [
         "/",
         "/tools",
-        "/wellness-hub/how-many-calories-to-lose-weight"
+        "/wellness-hub/how-many-calories-to-lose-weight",
+        "/tools/bmi-calculator",
+        "/tools/meal-plan-generator",
+        "/nutrition",
+        "/wellness-hub",
+        "/wellness-hub/normal-resting-heart-rate-by-age"
       ],
       "numberOfRuns": 3
     },
     "assert": {
       "assertions": {
-        "largest-contentful-paint": ["error", { "maxNumericValue": 2000, "aggregationMethod": "median" }],
-        "cumulative-layout-shift": ["error", { "maxNumericValue": 0.05, "aggregationMethod": "median" }],
-        "total-blocking-time": ["warn", { "maxNumericValue": 200, "aggregationMethod": "median" }],
-        "categories:performance": ["warn", { "minScore": 0.9, "aggregationMethod": "median" }]
+        "largest-contentful-paint": [
+          "error",
+          {
+            "maxNumericValue": 2000,
+            "aggregationMethod": "median"
+          }
+        ],
+        "cumulative-layout-shift": [
+          "error",
+          {
+            "maxNumericValue": 0.05,
+            "aggregationMethod": "median"
+          }
+        ],
+        "total-blocking-time": [
+          "warn",
+          {
+            "maxNumericValue": 200,
+            "aggregationMethod": "median"
+          }
+        ],
+        "categories:performance": [
+          "warn",
+          {
+            "minScore": 0.9,
+            "aggregationMethod": "median"
+          }
+        ]
       }
     }
   }
