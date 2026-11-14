@@ -185,7 +185,7 @@ test('macro: grams always add up to the calories shown (incl. high body weight)'
 });
 
 test('keto: carbs never exceed the stated 50 g ceiling; calories still add up', () => {
-  for (const [w, act] of [[72, '1.375'], [120, '1.9'], [150, '1.9']]) {
+  for (const [w, act] of [[72, '1.375'], [120, '1.9'], [150, '1.9']] as [number, string][]) {
     const r = run('keto-calculator', { weight: w, height: 190, age: 25 }, 'male', { activity: act });
     const carbs = r.rows!.find((x) => /^Carbs/.test(x.label))!;
     assert.ok(Number(carbs.value.split(' g')[0]) <= 50, carbs.value);
