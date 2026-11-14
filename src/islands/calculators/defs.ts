@@ -2174,7 +2174,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'fattyFish', label: 'Fatty fish', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'Salmon, sardines, mackerel — omega-3s (EPA/DHA) are powerfully anti-inflammatory.',
+        help: 'Salmon, sardines, mackerel — omega-3 fats (EPA/DHA) are linked with lower markers of inflammation.',
         options: FREQ_OPTIONS,
       },
       {
@@ -2198,7 +2198,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'redMeat', label: 'Red / processed meat', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'Beef, pork, bacon, sausage — high in saturated fat and inflammatory compounds. Less is better.',
+        help: 'Beef, pork, bacon, sausage — higher intakes, especially of processed meat, are linked with higher inflammatory markers. Less is better.',
         options: FREQ_OPTIONS,
       },
       {
@@ -2210,7 +2210,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'sugaryDrinks', label: 'Sugary drinks', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'Soda, energy drinks, sweet juice — liquid sugar drives inflammation. Less is better.',
+        help: 'Soda, energy drinks, sweet juice — high added-sugar intake is linked with higher inflammatory markers. Less is better.',
         options: FREQ_OPTIONS,
       },
       {
@@ -2298,7 +2298,7 @@ export const DEFS: Record<string, CalcDef> = {
         ],
         callout: {
           tone: 'info',
-          text: 'This pattern closely overlaps with the Mediterranean diet (vegetables, fruit, whole grains, fatty fish, olive oil, legumes, nuts) and the DASH diet (which additionally emphasizes low sodium for blood pressure). Following any of these patterns gives similar anti-inflammatory benefits.',
+          text: 'This pattern closely overlaps with the Mediterranean diet (vegetables, fruit, whole grains, fatty fish, olive oil, legumes, nuts) and the DASH diet (which additionally emphasizes low sodium for blood pressure). In studies, people who follow these patterns tend to have lower inflammatory markers; this score does not measure inflammation.',
         },
         note: `${suggestionText} Method: 11 foods scored 0-3 each (anti-inflammatory foods: rarely=0->daily=3; pro-inflammatory foods: rarely=3->daily=0, inverted). Max 33 points -> 0-100 score. Inspired by published research on Mediterranean and anti-inflammatory dietary patterns - this is a transparent adherence score, not a licensed dietary index. Educational only.`,
       };
@@ -2407,11 +2407,18 @@ export const DEFS: Record<string, CalcDef> = {
       const DEVICE_LABEL: Record<string, string> = { phone: 'Phone', tablet: 'Tablet', laptop: 'Laptop', tv: 'TV', ereader: 'E-reader', none: 'No screen' };
       const btLabel = BEDTIME_LABEL[selects.bedtime] ?? 'bedtime';
 
+      // No screen in the hour before bed → the pre-bed device is irrelevant.
+      // No screen at all in the evening → a night-mode filter is irrelevant.
+      // Neither is then penalized nor followed by a tip to change it.
+      const noPreBedScreen = selects.device === 'none' || selects.preBed === '0';
+      const noEveningScreen = selects.device === 'none' && selects.evening === '0' || selects.preBed === '0' && selects.evening === '0';
+      const devicePts = noPreBedScreen ? 6 : DEVICE[selects.device] ?? 0;
+      const nightPts = noEveningScreen ? 8 : NIGHT[selects.nightMode] ?? 4;
       const factors = [
         { name: 'Pre-bed screen', pts: PREBED[selects.preBed] ?? 2, max: 10 },
         { name: 'Evening screen total', pts: EVENING[selects.evening] ?? 4, max: 8 },
-        { name: 'Device type', pts: DEVICE[selects.device] ?? 0, max: 6 },
-        { name: 'Night mode / filter', pts: NIGHT[selects.nightMode] ?? 4, max: 8 },
+        { name: 'Device type', pts: devicePts, max: 6 },
+        { name: 'Night mode / filter', pts: nightPts, max: 8 },
         { name: 'Room lighting', pts: ROOM[selects.roomLight] ?? 2, max: 5 },
         { name: 'Screen curfew', pts: CURFEW[selects.curfew] ?? 0, max: 3 },
       ];
@@ -2446,9 +2453,9 @@ export const DEFS: Record<string, CalcDef> = {
       const tips: string[] = [];
       if ((PREBED[selects.preBed] ?? 2) <= 5)
         tips.push(`Try a 30-min screen curfew before ${btLabel} — even a short break helps your wind-down.`);
-      if ((DEVICE[selects.device] ?? 0) === 0)
+      if (devicePts === 0)
         tips.push('Phones are held closest to the eyes — switch to a larger screen further away, or use audio-only.');
-      if ((NIGHT[selects.nightMode] ?? 4) <= 2)
+      if (nightPts <= 2)
         tips.push(`Enable night mode or a blue-light filter (Night Shift, f.lux, Twilight) starting 2h before ${btLabel}.`);
       if ((ROOM[selects.roomLight] ?? 2) <= 2)
         tips.push('Dim overhead lights after dinner — warm lamp light signals evening to your brain.');
@@ -2718,7 +2725,8 @@ export const DEFS: Record<string, CalcDef> = {
     heading: 'Calculate your smoking cost',
     hasSex: false,
     fields: [
-      { key: 'packs', label: 'Packs per day', type: 'number', metricDefault: 1, min: 0.1, max: 10, step: 0.5 },
+      // step 0.1 so the default (1) and typical values (0.5, 1.5) are valid steps from min 0.1.
+      { key: 'packs', label: 'Packs per day', type: 'number', metricDefault: 1, min: 0.1, max: 10, step: 0.1 },
       { key: 'price', label: 'Price per pack', type: 'number', metricDefault: 10, min: 1, max: 50, step: 0.5, suffix: 'your currency' },
       { key: 'years', label: 'Years smoking', type: 'number', metricDefault: 10, min: 1, max: 70, suffix: 'years' },
     ],
@@ -2730,7 +2738,7 @@ export const DEFS: Record<string, CalcDef> = {
         primaryLabel: `Spent over ${fmt(vals.years, 0)} years (your currency)`,
         primaryValue: fmt(total, 0),
         visual: { kind: 'none' },
-        callout: { tone: 'info', text: 'Quitting pays off fast: heart rate drops within 20 minutes, carbon-monoxide levels normalise within a day, and your risk of heart disease falls sharply within a year. Free help: call a quitline (US 1-800-QUIT-NOW; UK 0300 123 1044; or your national service).' },
+        callout: { tone: 'info', text: 'Quitting pays off fast: heart rate drops within 20 minutes, carbon-monoxide levels return to normal within a day, and your risk of heart disease falls sharply within a year. Free help: call a quitline (US 1-800-QUIT-NOW; UK 0300 123 1044; or your national service).' },
         rows: [
           { label: 'Per year', value: fmt(perYear, 0), strong: true },
           { label: 'Per month', value: fmt(perYear / 12, 0) },
@@ -2754,15 +2762,21 @@ export const DEFS: Record<string, CalcDef> = {
     ],
     compute: ({ vals }) => {
       const units = vals.beer * 2.3 + vals.wine * 2.1 + vals.spirits * 1.0;
-      const bands = [{ label: 'Low risk', color: C.green }, { label: 'Increasing risk', color: C.amber }, { label: 'High risk', color: C.red }];
-      const idx = units <= 14 ? 0 : units <= 35 ? 1 : 2;
+      // UK CMO low-risk guideline: no more than 14 units a week, for men and women.
+      // A former 35-unit "high risk" tier was unsourced on the page, ignored sex
+      // (older NHS higher-risk bands differ for men and women) and is removed.
+      const bands = [
+        { label: 'Within the low-risk guideline', color: C.green, detail: '14 units a week or fewer — lower risk, not zero risk' },
+        { label: 'Above the low-risk guideline', color: C.amber, detail: 'More than 14 units a week — health risks rise as you drink more' },
+      ];
+      const idx = units <= 14 ? 0 : 1;
       const band = bands[idx];
       return {
         ok: true,
         primaryLabel: 'Weekly alcohol units',
         primaryValue: `${fmt(units, 1)} units`,
         category: { label: band.label, color: band.color },
-        visual: { kind: 'zones', items: bands.map((b, i) => ({ label: b.label, detail: '', color: b.color, active: i === idx })) },
+        visual: { kind: 'zones', items: bands.map((b, i) => ({ label: b.label, detail: b.detail, color: b.color, active: i === idx })) },
         callout: idx > 0
           ? { tone: 'warn', text: 'You are drinking above the low-risk guideline. Cutting down lowers your risk — try several drink-free days a week, and speak to your doctor if you find it hard to cut back.' }
           : undefined,

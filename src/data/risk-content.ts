@@ -270,7 +270,7 @@ export const RISK_CONTENT: Record<string, ToolContent> = {
         h2: 'The factors that matter',
         paragraphs: [
           'Smoking is one of the most powerful and most reversible risk factors — quitting begins to lower risk within a year. Regular physical activity, a healthy weight and well-controlled blood pressure all protect the heart, while age is a factor you can’t change but which makes the others matter more.',
-          'The American Heart Association summarises the controllable pieces as "Life’s Essential 8": diet, activity, not smoking, healthy sleep, weight, cholesterol, blood sugar and blood pressure.',
+          'The American Heart Association summarizes the controllable pieces as "Life’s Essential 8": diet, activity, not smoking, healthy sleep, weight, cholesterol, blood sugar and blood pressure.',
         ],
       },
       {
