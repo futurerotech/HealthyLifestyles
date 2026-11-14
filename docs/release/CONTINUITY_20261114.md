@@ -15,7 +15,9 @@ merge, deployment, publication, legal or clinical approval.
 | `58f641f` | Typed test tuple | 43570774734 ✅ (unit 273/273; browser QA 0 failures) |
 | `47e0d0d` | Heart group: BP gaps vs. the 2025 AHA/ACC guideline | 43575235796 ❌ (browser QA: BP page 560px wide at 390px) |
 | `6a81aad` | Source lists wrap long citation tokens; overflow detector scans `<main>` | 43575635618 ✅ |
-| `db53357` | Last untested calculators: alcohol units, smoking cost, anti-inflammatory score, blue light (+ weight-loss %, deficit pins) | **43576208355 ✅** (unit 284/284; browser QA 0 failures) |
+| `db53357` | Last untested calculators: alcohol units, smoking cost, anti-inflammatory score, blue light (+ weight-loss %, deficit pins) | 43576208355 ✅ (unit 284/284; browser QA 0 failures) |
+| `6bc4db1` | Weight-loss timeline: no plan to a goal below BMI 18.5 or an impossible weight (goal 0 kg had a date) | 43576743663 ✅ (288/288; new browser scenario passed) |
+| `ff0eee3` | Fasting medicine caution; caffeine 400 mg wording, >400 mg single-dose flag, pregnancy <200 mg | **43577338507 ✅** (unit 294/294; browser QA 0 failures) |
 
 ### Phase 2 findings fixed at `e936b48`
 - **BMI:** category bounds were inclusive (18.5 → Underweight, 25.0 → Normal, 30.0 → Overweight). Now WHO/CDC "under Y", classified on the displayed value. Adds an adult-use note.
@@ -52,6 +54,11 @@ All 38 calculators in `defs.ts` now have dedicated audit tests.
 - **Anti-inflammatory:** claims reworded to associations.
 - **Blue light:** no penalty for an unused device or filter.
 
+### Standalone tools (`6bc4db1`, `ff0eee3`)
+- **Weight-loss timeline:** any goal was accepted, and 0 kg got a "Goal reached" date. It now takes a height field and plausible bounds (25–350 kg, 120–230 cm). Goals below BMI 18.5 are not planned; the user is offered a doctor or dietitian instead. Covered by `weight-timeline-safety.test.ts` and a browser scenario.
+- **Fasting:** arithmetic verified. The safety notice now names medicine that lowers blood sugar or must be taken with food. Covered by `fasting-schedule.test.ts`.
+- **Caffeine:** half-life maths verified. A dose over 400 mg is now flagged. "Safe limit" became the FDA's "general daily amount for healthy adults", and pregnancy is stated as under 200 mg a day (ACOG). Covered by `caffeine-plan.test.ts`.
+
 ### Tooling note
 `/home/claude/tools/tsdiag.cjs` is syntax-only and missed the `b1c9614` type error. `tscheck.cjs` (semantic; drops unresolved-module noise) reproduces it and is now used before pushing.
 
@@ -71,4 +78,4 @@ All 38 calculators in `defs.ts` now have dedicated audit tests.
 GO/NO-GO: **NO-GO for release** until gates 1–4 are closed.
 
 ## Next main-roadmap milestone
-Phase 2 continuation: the standalone tools whose logic libraries have no tests, in order of safety impact. These are weight timeline, fasting, caffeine, muscle preservation, lifestyle age, strength program, chronotype and sleep.
+Phase 2 continuation: the remaining untested standalone tools. These are muscle preservation (protein for older adults), lifestyle age, strength program, chronotype, sleep calculator, breathing timer and recipe analyzer.
