@@ -112,6 +112,11 @@ jobs:
       # P15-P5a — CWV lab budget (LCP≤2.0s, CLS≤0.05, TBT≤200ms as INP lab
       # proxy). BLOCKING since the human-approved baseline (Phase-15 closure
       # Gate-0). @lhci/cli is npx-fetched in CI only — not a repo dep.
+      - name: Production-build browser QA (site-wide 390px and desktop, Phase 4 §8.3)
+        env:
+          QA_STATIC_DIR: dist/client
+        run: node --test scripts/seo/__tests__/site-qa-browser.test.mjs
+
       - name: Lighthouse CWV budget (blocking)
         run: npx --yes @lhci/cli@0.14.x autorun
 
