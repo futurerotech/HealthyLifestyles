@@ -154,5 +154,9 @@ GO/NO-GO: **NO-GO for release** until gates 1–4 are closed.
 - §8.1 WCAG 2.2 AA contrast: the audit covers text, placeholders, field boundaries, focus and hover. 2,137 failures went to 0 in dev and in the production build. Details: `docs/release/PHASE4_SITE_QA_20261114.md`.
 - Green: run 43630591566 @ f51c070 (unit 315/315, content 17/17, preflight, site QA 162/0 ×2, Lighthouse 8 URLs).
 
+## Phase 5 §9.2 Candidate 1 research (steps 1–9 and 11 done; 10 and 12 gated)
+- `docs/research/PHASE5_CANDIDATE1_MEALPLAN_BUDGET_20261114.md`: extend the existing meal-plan generator (no new tool). Recommended scope: quantities, a dated public-domain BLS price snapshot, household multiplier with the USDA food-plan benchmark, and budget-aware swaps. Recurring cost $0.
+- Gated: GSC/GA4 demand evidence; owner authorization of the scope.
+
 ## Next main-roadmap milestone
-Phase 5 §9.2 research gate for Candidate 1 (Smart Meal Plan & Grocery Budget Studio), starting with an inventory of the existing meal-plan generator. Research only. Implementation requires owner authorization of the selected scope (§9.2 step 12).
+Owner decision on the Phase 5 Candidate 1 scope (§9.2 step 12). Meanwhile the next permitted work is Phase 6 Innovation Lab research (the §10 evaluation of Hypotheses A–C, using real evidence only), which is also research-only.
