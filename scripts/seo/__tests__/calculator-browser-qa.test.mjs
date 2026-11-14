@@ -158,7 +158,9 @@ const candidates = ({ value, min, max }) => {
 };
 // Elements wider than the viewport, for diagnosing overflow.
 const OFFENDERS = `(() => { const w = document.documentElement.clientWidth;
-  return [...document.querySelectorAll('.tool__calc *')].map((e) => { const r = e.getBoundingClientRect();
+  // Whole page, not just the calculator box: run 43575235796 overflowed from the sources list
+  // and this list came back empty.
+  return [...document.querySelectorAll('main *')].map((e) => { const r = e.getBoundingClientRect();
     return { tag: e.tagName.toLowerCase(), cls: String(e.className).slice(0, 40), right: Math.round(r.right), width: Math.round(r.width) }; })
     .filter((x) => x.right > w + 1).sort((a, b) => a.width - b.width).slice(0, 5); })()`;
 
