@@ -192,12 +192,32 @@ export async function verifyOutput({ dist = 'dist/client', inventory, baseline, 
   return result;
 }
 
+/**
+ * Informational, not a gate: which published tools supply their own body copy
+ * or SEO metadata from the CMS. Where they do, that CMS copy is what visitors
+ * see instead of the authored source copy (see src/lib/tool-copy-safety.ts).
+ */
+export function cmsToolCopyReport(inventory) {
+  const tools = (inventory.collections.tools || []).filter((d) => d.enabled !== false);
+  const bodyFields = (d) => ['whatItIs', 'howCalculated', 'howToRead'].filter((k) => lexicalTexts(d[k]).length)
+    .concat((d.faq || []).some((x) => x?.question && x?.answer) ? ['faq'] : [], (d.sources || []).some((x) => x?.title) ? ['sources'] : []);
+  const withBody = tools.map((d) => ({ slug: d.slug, fields: bodyFields(d) })).filter((x) => x.fields.length);
+  return {
+    enabledTools: tools.length,
+    withCmsBody: withBody.length,
+    withCmsSeoTitle: tools.filter((d) => d.seo?.metaTitle).length,
+    withCmsSeoDescription: tools.filter((d) => d.seo?.metaDescription).length,
+    bodyBySlug: Object.fromEntries(withBody.map((x) => [x.slug, x.fields.join(',')])),
+    seoTitleSlugs: tools.filter((d) => d.seo?.metaTitle).map((d) => d.slug).sort(),
+  };
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   try {
     const baseline = JSON.parse(await readFile(new URL('./production-baseline.json', import.meta.url), 'utf8'));
     const inventory = await readPublishedInventory(baseline.cmsOrigin);
     const result = await verifyOutput({ inventory, baseline, providerDir: resolve('.vercel/output/static') });
-    console.log(JSON.stringify({ contentComplete: result.contentComplete, counts: result.counts, errors: result.errors }, null, 2));
+    console.log(JSON.stringify({ contentComplete: result.contentComplete, counts: result.counts, errors: result.errors, cmsToolCopy: cmsToolCopyReport(inventory) }, null, 2));
     if (!result.contentComplete) process.exitCode = 1;
   } catch (error) { console.error(`CONTENT PREFLIGHT BLOCKED: ${error.message}`); process.exitCode = 1; }
 }
