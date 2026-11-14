@@ -4,7 +4,7 @@
  * The first three (sleep, stress, burnout) are NOT diagnostic instruments —
  * bands use plain wellness language.
  *
- * PHQ-9, GAD-7, and WHO-5 are validated public-domain screeners with standard
+ * PHQ-9, GAD-7, and WHO-5 are validated screeners with standard
  * scoring bands. They still do not diagnose — only a qualified professional
  * can diagnose depression, anxiety, or any condition.
  */
@@ -42,6 +42,9 @@ export interface QuizDef {
   validated?: boolean;
   /** Item-level rules shown above the score band, whatever the total. */
   itemFlags?: QuizItemFlag[];
+  /** Reuse terms not yet confirmed: do not reproduce the items; link to the
+   *  official source instead. */
+  licenseHold?: { message: string; officialUrl: string; officialLabel: string };
 }
 
 export interface QuizItemFlag {
@@ -168,8 +171,12 @@ export const QUIZZES: Record<string, QuizDef> = {
     ],
   },
 
-  // ── Validated screeners (public domain) ──────────────────────────────
-  // PHQ-9: Patient Health Questionnaire (9 items). Pfizer public domain.
+  // ── Validated screeners ──────────────────────────────────────────────
+  // PHQ-9: Patient Health Questionnaire (9 items). Developed by Drs Robert L.
+  // Spitzer, Janet B.W. Williams, Kurt Kroenke and colleagues with an
+  // educational grant from Pfizer Inc. (copyright holder); the official form
+  // states that no permission is required to reproduce, translate, display or
+  // distribute it.
   // Max raw = 27. Band cutoffs: 0-4, 5-9, 10-14, 15-19, 20-27.
   'phq-9-depression-screener': {
     slug: 'phq-9-depression-screener',
@@ -206,7 +213,8 @@ export const QUIZZES: Record<string, QuizDef> = {
     ],
   },
 
-  // GAD-7: Generalized Anxiety Disorder 7-item. Spitzer et al. public domain.
+  // GAD-7: Generalized Anxiety Disorder 7-item. Spitzer et al.; same Pfizer
+  // terms as the PHQ-9 (no permission required to reproduce or display).
   // Max raw = 21. Band cutoffs: 0-4, 5-9, 10-14, 15-21.
   'gad-7-anxiety-screener': {
     slug: 'gad-7-anxiety-screener',
@@ -238,7 +246,10 @@ export const QUIZZES: Record<string, QuizDef> = {
     ],
   },
 
-  // WHO-5 Well-Being Index. WHO public domain. 5 items, 0-5 scale.
+  // WHO-5 Well-Being Index. Copyright assigned to WHO in 2024; WHO's edition
+  // (WHO/UCN/MSD/MHE/2024.1) is licensed CC BY-NC-SA 3.0 IGO (non-commercial).
+  // Reproduction here is ON HOLD (licenseHold) until the owner confirms the
+  // terms for this ad-supported site. 5 items, 0-5 scale.
   // Max raw = 25. WHO guide: raw below 13 (≤12) → poor well-being, further
   // assessment recommended. The 13–18 / 19–25 split is a site description.
   'who-5-wellbeing-screener': {
@@ -247,6 +258,11 @@ export const QUIZZES: Record<string, QuizDef> = {
     higherIsBetter: true,
     crisis: true,
     validated: true,
+    licenseHold: {
+      message: 'The WHO-5 is published by the World Health Organization under a non-commercial licence. While we confirm whether we may reproduce it on this site, please use the official WHO version, which includes its scoring instructions.',
+      officialUrl: 'https://www.who.int/publications/m/item/who-ucn-msd-mhe-2024.01',
+      officialLabel: 'The WHO-5 on who.int',
+    },
     // WHO-5 guide: a raw score below 13, OR a 0 or 1 on any item, is an
     // indication for further assessment of depression.
     itemFlags: [{ maxValue: 1, tone: 'info', message: 'You answered “At no time” or “Some of the time” to at least one statement. The WHO-5 guidance treats that, as well as a total below 13, as a reason to check in with a doctor or mental health professional about depression.' }],

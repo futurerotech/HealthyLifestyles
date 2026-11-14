@@ -1,6 +1,6 @@
 /** @jsxImportSource preact */
 import { useEffect, useState } from 'preact/hooks';
-import { addDays, diffDays, formatDate, parseDateInput, pregnancyDating, toDateInputValue, trimesterOf, weeksAndDays } from '../lib/dates';
+import { addDays, boundedInt, diffDays, dueDateDating, formatDate, lastPeriodProblem, parseDateInput, pregnancyDating, toDateInputValue, trimesterOf, weeksAndDays } from '../lib/dates';
 import { milestoneFor } from '../data/pregnancy-milestones';
 
 // ---------- shared ----------
@@ -10,10 +10,19 @@ function useToday(): Date | null {
   return today;
 }
 
-const intNum = (s: string, fallback: number): number => {
-  const n = parseInt(s, 10);
-  return Number.isFinite(n) && n > 0 ? n : fallback;
-};
+/** Shown instead of a result when a typed number is outside its allowed range. */
+const RangeProblem = ({ label, min, max }: { label: string; min: number; max: number }) => (
+  <p class="calc__callout calc__callout--warn" role="status">{`${label} must be a whole number from ${min} to ${max} days.`}</p>
+);
+
+/** Shown when the "first day of last period" cannot be used for a prediction. */
+const LastPeriodProblem = ({ status }: { status: 'future' | 'too-old' }) => (
+  <p class="calc__callout calc__callout--warn" role="status">
+    {status === 'future'
+      ? 'The first day of your last period cannot be in the future. Please check the date.'
+      : 'That date is more than a year ago, so a prediction would not be meaningful. Please enter the first day of your most recent period.'}
+  </p>
+);
 
 function DateField({ id, label, value, onChange, help }: { id: string; label: string; value: string; onChange: (v: string) => void; help?: string }) {
   return (
@@ -76,11 +85,8 @@ function DueDateCalc() {
 
   let body = <Placeholder />;
   if (today && base) {
-    const lmpEquiv =
-      method === 'lmp' ? base
-      : method === 'conception' ? addDays(base, -14)
-      : addDays(base, -(14 + (embryo === '3' ? 3 : 5)));
-    const dating = pregnancyDating(lmpEquiv, today);
+    // The entered date is checked before conception/IVF dates are converted.
+    const dating = dueDateDating(method as 'lmp' | 'conception' | 'ivf', base, embryo === '3' ? '3' : '5', today);
     if (dating.status !== 'ok') {
       body = <DatingProblem status={dating.status} what={dateLabel.toLowerCase()} />;
     } else {
@@ -176,8 +182,13 @@ function OvulationCalc() {
 
   const base = parseDateInput(lmp);
   let body = <Placeholder />;
-  if (today && base) {
-    const c = intNum(cycle, 28);
+  const c = boundedInt(cycle, 20, 45);
+  const problem = today && base ? lastPeriodProblem(base, today) : null;
+  if (today && base && problem) {
+    body = <LastPeriodProblem status={problem} />;
+  } else if (today && base && c === null) {
+    body = <RangeProblem label="Average cycle length" min={20} max={45} />;
+  } else if (today && base && c !== null) {
     let ov = addDays(base, c - 14);
     let np = addDays(base, c);
     let guard = 0;
@@ -221,9 +232,16 @@ function PeriodCalc() {
 
   const base = parseDateInput(last);
   let body = <Placeholder />;
-  if (today && base) {
-    const c = intNum(cycle, 28);
-    const p = intNum(period, 5);
+  const c = boundedInt(cycle, 20, 45);
+  const p = boundedInt(period, 1, 10);
+  const problem = today && base ? lastPeriodProblem(base, today) : null;
+  if (today && base && problem) {
+    body = <LastPeriodProblem status={problem} />;
+  } else if (today && base && c === null) {
+    body = <RangeProblem label="Average cycle length" min={20} max={45} />;
+  } else if (today && base && p === null) {
+    body = <RangeProblem label="Period length" min={1} max={10} />;
+  } else if (today && base && c !== null && p !== null) {
     let start = addDays(base, c);
     let guard = 0;
     while (diffDays(start, today) < 0 && guard < 24) { start = addDays(start, c); guard++; }

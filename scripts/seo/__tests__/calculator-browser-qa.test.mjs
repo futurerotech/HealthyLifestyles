@@ -304,6 +304,7 @@ test('changed calculators: hydration, interaction, 390px and desktop fit, access
         if (done.role !== 'alert') fail('item 9 alert lacks role=alert');
         if (!done.before) fail('item 9 alert not shown above the score');
         if (done.scroll > done.client + 1) fail(`390px overflow (${done.scroll} > ${done.client})`);
+        if (await js("!!document.querySelector('.tool__calc .share-result')")) fail('sensitive screener result offers sharing');
         if (exceptions.length) fail('uncaught exceptions: ' + JSON.stringify(exceptions.slice(0, 3)));
         report.push(`${slug}: unanswered-start=ok item9-alert=${done.role === 'alert' ? 'ok' : 'missing'}`);
       } catch (e) {
@@ -311,6 +312,67 @@ test('changed calculators: hydration, interaction, 390px and desktop fit, access
         fail(String(e) + ' | page: ' + seen);
       }
     }
+
+    // Helper: open a tool page at 390px and wait until its island has hydrated.
+    const openTool = async (slug) => {
+      exceptions = [];
+      await viewport(390, 844, true);
+      await send('Page.navigate', { url: origin + '/tools/' + slug });
+      await until(() => js("location.pathname==='/tools/" + slug + "'&&!!document.querySelector('.tool__calc astro-island')"), slug + ' DOM', 45000);
+      await js("document.querySelector('.tool__calc').scrollIntoView({block:'start'})");
+      await until(() => js("(()=>{const i=document.querySelector('.tool__calc astro-island');return !!i&&!i.hasAttribute('ssr')})()"), slug + ' hydration', 30000);
+    };
+    // Set a field the way a user would (native setter + input/change events).
+    const setField = (id, value) => js(`(() => { const e = document.getElementById(${JSON.stringify(id)});
+      const proto = e.tagName === 'SELECT' ? HTMLSelectElement.prototype : HTMLInputElement.prototype;
+      Object.getOwnPropertyDescriptor(proto, 'value').set.call(e, ${JSON.stringify(value)});
+      e.dispatchEvent(new Event('input', { bubbles: true })); e.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+    const resultText = () => js("document.querySelector('.tool__calc .calc__result')?.innerText ?? ''");
+    const ymd = (offset) => { const d = new Date(); d.setDate(d.getDate() + offset);
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+
+    // WHO-5 licence hold: no reproduced items, official WHO link.
+    try {
+      await openTool('who-5-wellbeing-screener');
+      const w = await js(`(() => { const r = document.querySelector('.tool__calc');
+        return { radios: r.querySelectorAll('input[type=radio]').length, hold: r.querySelector('.quiz__hold')?.textContent ?? '',
+          link: r.querySelector('a[href^="https://www.who.int/"]')?.getAttribute('href') ?? '', share: !!r.querySelector('.share-result') }; })()`);
+      if (w.radios !== 0) failures.push('who-5-wellbeing-screener: ' + w.radios + ' reproduced answer options shown');
+      if (!/non-commercial licence/.test(w.hold)) failures.push('who-5-wellbeing-screener: licence notice missing');
+      if (w.link !== 'https://www.who.int/publications/m/item/who-ucn-msd-mhe-2024.01') failures.push('who-5-wellbeing-screener: official link ' + w.link);
+      if (w.share) failures.push('who-5-wellbeing-screener: share control shown');
+      report.push('who-5-wellbeing-screener: licence-hold=ok');
+    } catch (e) { failures.push('who-5-wellbeing-screener: ' + e); }
+
+    // Due date: a future entered date never yields a pregnancy, for LMP and conception.
+    try {
+      await openTool('due-date-calculator');
+      for (const method of ['lmp', 'conception']) {
+        await setField('dd-method', method);
+        await setField('dd-date', ymd(1));
+        await until(async () => /is in the future/.test(await resultText()), 'future-date message (' + method + ')', 5000)
+          .catch(async () => failures.push('due-date-calculator: ' + method + ' tomorrow shows: ' + (await resultText()).slice(0, 120)));
+        if (/Estimated due date/.test(await resultText())) failures.push('due-date-calculator: ' + method + ' tomorrow still shows a due date');
+      }
+      await setField('dd-method', 'lmp');
+      await setField('dd-date', ymd(-56));
+      await until(async () => /Estimated due date/.test(await resultText()), 'valid date restores result', 5000)
+        .catch(() => failures.push('due-date-calculator: valid date did not restore the result'));
+      report.push('due-date-calculator: future-date=checked');
+    } catch (e) { failures.push('due-date-calculator: ' + e); }
+
+    // Ovulation: an out-of-range cycle length is reported, not silently used.
+    try {
+      await openTool('ovulation-calculator');
+      await setField('ov-cycle', '1000');
+      await until(async () => /must be a whole number from 20 to 45 days/.test(await resultText()), 'range message', 5000)
+        .catch(async () => failures.push('ovulation-calculator: cycle 1000 shows: ' + (await resultText()).slice(0, 120)));
+      await setField('ov-cycle', '28');
+      await until(async () => /Estimated ovulation/.test(await resultText()), 'valid cycle restores result', 5000)
+        .catch(() => failures.push('ovulation-calculator: valid cycle did not restore the result'));
+      report.push('ovulation-calculator: cycle-range=checked');
+    } catch (e) { failures.push('ovulation-calculator: ' + e); }
+    if (exceptions.length) failures.push('scenario pages: uncaught exceptions ' + JSON.stringify(exceptions.slice(0, 3)));
 
     console.log('[CALC_BROWSER_QA] ' + report.join(' | '));
     if (failures.length) console.error('[CALC_BROWSER_QA] FAILURES\n' + failures.join('\n'));

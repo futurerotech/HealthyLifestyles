@@ -18,6 +18,20 @@ export default function QuizCalculator({ slug }: { slug: string }) {
 
   if (!quiz) return null;
 
+  // Reuse terms not confirmed: no reproduced items, link to the official source.
+  if (quiz.licenseHold) {
+    return (
+      <div class="calc">
+        <div class="calc__form">
+          <div class="calc__toolbar"><h2 class="calc__heading">{quiz.heading}</h2></div>
+          <p class="quiz__hold">{quiz.licenseHold.message}</p>
+          <p><a class="btn btn-outline" href={quiz.licenseHold.officialUrl} rel="noopener" target="_blank">{quiz.licenseHold.officialLabel}</a></p>
+          {quiz.crisis && <p class="quiz__crisis">{CRISIS}</p>}
+        </div>
+      </div>
+    );
+  }
+
   const result = scoreQuiz(quiz, answers);
   const { score, maxScore, band, flags } = result;
 
@@ -80,7 +94,10 @@ export default function QuizCalculator({ slug }: { slug: string }) {
         </p>
         {quiz.crisis && <p class="quiz__crisis">{CRISIS}</p>}
 
-        {band && (
+        {/* Validated mental-health screener results are sensitive: no social
+            share text or result image (which would carry the score and
+            severity in a URL). Answers are never stored or sent anywhere. */}
+        {band && !quiz.validated && (
           <ShareResult
             tool={quiz.heading}
             value={`${score}/${maxScore}`}
