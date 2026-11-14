@@ -120,5 +120,11 @@ All 38 calculators in `defs.ts` now have dedicated audit tests.
 
 GO/NO-GO: **NO-GO for release** until gates 1–4 are closed.
 
+## Phase 3 §7.4 reference integrity (done; read-only)
+- Audit: `scripts/content/reference-audit.mjs` + `.github/workflows/reference-audit.yml` (non-blocking; `contents: read`; `workflow_dispatch`). Tests: `scripts/seo/__tests__/reference-audit.test.mjs`.
+- Run 43607716809 @ e2d561f: 60 articles, 405 citations, 223 unique URLs.
+- Verified defects: 6 wrong destinations, 4 dead URLs, 3 generic/redirected, 1 search link, 2 outdated-edition (DGA) citations, 1 inconclusive (NBK459351). 21 access-only URLs are temporary bot blocks, not defects.
+- Exact offline corrections: `docs/editorial/PHASE3_REFERENCE_AUDIT_20261114.md`. No CMS record changed.
+
 ## Next main-roadmap milestone
-Phase 3 §7.4 reference integrity: check that every source URL cited by the 60 published articles resolves to the cited work (two broken or mismatched links are already known: the water article's CDC link and the chronotype PubMed search link). Then §7.3/§7.5: an American-English pass and the thin-content (2–3 min) articles, as offline drafts.
+Phase 3 §7.3/§7.5: American-English consistency of the published CMS copy, thin-content (2–3 min) articles, internal links and article-tool coherence. Produce offline drafts only.

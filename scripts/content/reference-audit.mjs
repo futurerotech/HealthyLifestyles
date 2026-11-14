@@ -89,7 +89,9 @@ async function check(url) {
       if (id) {
         const j = await (await fetch(`${eu}/esummary.fcgi?db=${ref.db}&retmode=json&id=${id}`, { signal: AbortSignal.timeout(20000) })).json();
         const rec = j.result?.[id];
-        out.metaTitle = [rec?.title, rec?.booktitle, rec?.chaptertitle].filter(Boolean).join(' | ') || undefined;
+        const t = [rec?.title, rec?.booktitle, rec?.chaptertitle].filter(Boolean).join(' | ');
+        // A Bookshelf accession can resolve to a chapter sub-part ("Review Questions"); that is not the cited chapter, so leave it unverified.
+        out.metaTitle = t && !(ref.db === 'books' && /^review questions$/i.test(t.trim())) ? t : undefined;
         out.metaSource = `${ref.db}:${id}`;
       }
     } catch (e) { out.metaError = String(e.name || e.message); }
