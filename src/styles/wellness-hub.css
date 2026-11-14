@@ -372,6 +372,10 @@
   color: var(--ink);
   font-size: 0.92rem;
   font-weight: 600;
+  /* WCAG 2.5.8: a 24px-tall hit area for each table-of-contents link. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
 }
 .wh-toc a:hover {
   color: var(--green-700);
