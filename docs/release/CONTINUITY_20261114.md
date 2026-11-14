@@ -12,7 +12,10 @@ merge, deployment, publication, legal or clinical approval.
 | `e936b48` | Phase 2: BMI, body fat, ideal weight, calorie and BMR audit fixes | 43569328123 ❌ (Chrome debugger start timeout before any page; unit 267/267) |
 | `8a6d942` | Browser QA: 60 s Chrome debugger wait plus one logged relaunch (no assertion relaxed) | 43569710818 ✅ (unit 267/267; browser QA 0 failures; no relaunch needed) |
 | `b1c9614` | Phase 2 group 2: ratio thresholds, macro and keto consistency, American-English copy | 43570406469 ❌ (tsc: untyped test tuple) |
-| `58f641f` | Typed test tuple | **43570774734 ✅** (unit 273/273; browser QA 0 failures) |
+| `58f641f` | Typed test tuple | 43570774734 ✅ (unit 273/273; browser QA 0 failures) |
+| `47e0d0d` | Heart group: BP gaps vs. the 2025 AHA/ACC guideline | 43575235796 ❌ (browser QA: BP page 560px wide at 390px) |
+| `6a81aad` | Source lists wrap long citation tokens; overflow detector scans `<main>` | 43575635618 ✅ |
+| `db53357` | Last untested calculators: alcohol units, smoking cost, anti-inflammatory score, blue light (+ weight-loss %, deficit pins) | **43576208355 ✅** (unit 284/284; browser QA 0 failures) |
 
 ### Phase 2 findings fixed at `e936b48`
 - **BMI:** category bounds were inclusive (18.5 → Underweight, 25.0 → Normal, 30.0 → Overweight). Now WHO/CDC "under Y", classified on the displayed value. Adds an adult-use note.
@@ -32,6 +35,26 @@ merge, deployment, publication, legal or clinical approval.
 
 Audited with no defect found: weight-loss %, calorie deficit (3,500 kcal/lb rule labelled as an estimate, with unsafe-pace warnings), protein intake.
 
+### Heart-health group (`47e0d0d`, `6a81aad`)
+- **Reused, not repeated:** #37 (BP, AHA 2025), #39 (resting HR), #40 (Karvonen), #41 (max HR) are ancestors of #56, and their tests run in CI.
+- **#38 (one-rep max) is superseded** by #53's `83eab50` and the `one-rep-max-integrity` test (comment 6874535056). Close it after #56 merges.
+- **BP gaps vs. 2025 AHA/ACC (Jones et al., Hypertension 2025):**
+  - zone labels now say "and"/"or" exactly (the classification itself was already right);
+  - added validated upper-arm cuff advice and the cuffless/smartwatch non-recommendation;
+  - categories are based on the average of 2+ readings on 2+ occasions;
+  - the primary guideline is now cited.
+- The new citation's 60-character token overflowed the page at 390px. Fixed site-wide: source-list items get `min-width:0; overflow-wrap:anywhere`.
+
+### Remaining calculators (`db53357`)
+All 38 calculators in `defs.ts` now have dedicated audit tests.
+- **Alcohol:** the unsourced, sex-blind 35-unit tier is removed.
+- **Smoking:** the off-step stepper is fixed.
+- **Anti-inflammatory:** claims reworded to associations.
+- **Blue light:** no penalty for an unused device or filter.
+
+### Tooling note
+`/home/claude/tools/tsdiag.cjs` is syntax-only and missed the `b1c9614` type error. `tscheck.cjs` (semantic; drops unresolved-module noise) reproduces it and is now used before pushing.
+
 ## CMS
 - **PR #64** `codex/indexnow-draft-safety-20261114` @ `906070a`: CI 43559981416 ✅ (31/31).
 - **PR #65** `codex/hostinger-runtime-evidence-20261114` @ `50a9358`: CI 43561621197 ✅ (31/31).
@@ -48,4 +71,4 @@ Audited with no defect found: weight-loss %, calorie deficit (3,500 kcal/lb rule
 GO/NO-GO: **NO-GO for release** until gates 1–4 are closed.
 
 ## Next main-roadmap milestone
-Phase 2 continuation: the heart-health group (target heart rate, max heart rate, blood pressure checker, resting heart rate), audited against the page copy and the cited guidance (AHA/ACC 2017 BP categories).
+Phase 2 continuation: the standalone tools whose logic libraries have no tests, in order of safety impact. These are weight timeline, fasting, caffeine, muscle preservation, lifestyle age, strength program, chronotype and sleep.
