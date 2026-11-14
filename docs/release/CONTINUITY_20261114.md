@@ -143,5 +143,10 @@ GO/NO-GO: **NO-GO for release** until gates 1–4 are closed.
 - Eight UX/accessibility defects fixed (see `docs/release/PHASE4_SITE_QA_20261114.md`).
 - Green: run 43616480371 @ 025e00f (dev 162/0, prod 162/0, unit 314/314, content 17/17, preflight, Lighthouse).
 
+## Phase 4 §8.2 lab performance (done)
+- `lighthouserc.json` blocking budget (LCP ≤ 2.0 s, CLS ≤ 0.05; TBT and score as warnings) now covers 8 URLs: home, /tools, two articles (including the longest), BMI tool, meal-plan tool, a category hub and the Wellness Hub index.
+- Run 43617438318 @ 60f041c ✅: 24 runs, all assertions pass, no warnings.
+- Field CWV prioritization (GA4/GSC/CrUX) remains gated on authorized data access.
+
 ## Next main-roadmap milestone
-Phase 4 §8.2 performance: extend the blocking Lighthouse budget from 3 URLs to every page template (tool, article, category hub, hub index) using lab data. Fix any regressions. Field CWV prioritization stays gated on authorized GA4/GSC/CrUX access.
+Phase 4 §8.1: add an automated WCAG 1.4.3 text-contrast check to the site-wide browser QA (dev and production build) and fix any failures, without replacing the design system.
