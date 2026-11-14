@@ -97,6 +97,7 @@ All 38 calculators in `defs.ts` now have dedicated audit tests.
 - **No defect (2):** heart-disease risk; pregnancy weight gain. Every worked example in the ten articles was recomputed.
 - **Attribution:** all ten are bylined "Editorial Team" with no reviewer claimed, which complies with §7.3.
 - **Offline draft corrections are in the report; nothing was written to the CMS.**
+- **Lower-risk audit, all 15 articles** (`docs/editorial/PHASE3_AUDIT_LOWER_ARTICLES_20261114.md`): 2 moderate (metabolic-age overclaims; chronotypes framework presented as research), 9 low, 4 none. **§7.2 is complete for all 60 published articles:** 8 high, 15 moderate, 25 low, 12 none.
 - **Moderate-risk audit, all 33 articles** (`docs/editorial/PHASE3_AUDIT_MODERATE_ARTICLES_20261114.md`): 4 high (waist-to-height embeds the wrong tool; waist-to-hip uses the WHO cutoffs as 'above'; VO2 max fitness age; three numerical errors in alcohol units), 13 moderate, 10 low, 6 none. Release coupling X3: seven article drafts must ship with #56.
 - **Addendum, the remaining high-risk pair:** maximum heart rate is low (taxonomy tag only; all numbers verified); caffeine is low (FDA wording; add an ACOG pregnancy source; energy-drink can size; large-dose warning; missing source entry). All 12 high-risk articles are now audited.
 
@@ -120,4 +121,4 @@ All 38 calculators in `defs.ts` now have dedicated audit tests.
 GO/NO-GO: **NO-GO for release** until gates 1–4 are closed.
 
 ## Next main-roadmap milestone
-Phase 3 continuation: §7.2 audit of the 15 lower-risk articles, then the remaining Phase 3 requirements (§7.3 American-English pass over CMS copy, §7.4 reference link validity, §7.5 content-quality items such as the thin 2–3-minute articles).
+Phase 3 §7.4 reference integrity: check that every source URL cited by the 60 published articles resolves to the cited work (two broken or mismatched links are already known: the water article's CDC link and the chronotype PubMed search link). Then §7.3/§7.5: an American-English pass and the thin-content (2–3 min) articles, as offline drafts.
