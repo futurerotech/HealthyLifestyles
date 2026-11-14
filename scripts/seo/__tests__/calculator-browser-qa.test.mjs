@@ -285,7 +285,7 @@ test('changed calculators: hydration, interaction, 390px and desktop fit, access
         if (exceptions.length) fail('uncaught exceptions: ' + JSON.stringify(exceptions.slice(0, 3)));
         report.push(`${slug}: unanswered-start=ok item9-alert=${done.role === 'alert' ? 'ok' : 'missing'}`);
       } catch (e) {
-        const seen = await js("JSON.stringify({ path: location.pathname, title: document.title, calc: (document.querySelector('.tool__calc')?.innerHTML ?? 'NO .tool__calc').replace(/\\s+/g, ' ').slice(0, 900) })").catch((x) => String(x));
+        const seen = await js("JSON.stringify({ path: location.pathname, title: document.title, island: (() => { const i = document.querySelector('.tool__calc astro-island'); if (!i) return 'NO astro-island'; const c = i.cloneNode(true); c.querySelectorAll('script,style').forEach((x) => x.remove()); return [...i.attributes].map((x) => x.name + '=' + x.value.slice(0, 60)).join(' ') + ' || ' + c.innerHTML.replace(/\\s+/g, ' ').slice(0, 900); })() })").catch((x) => String(x));
         fail(String(e) + ' | page: ' + seen);
       }
     }
