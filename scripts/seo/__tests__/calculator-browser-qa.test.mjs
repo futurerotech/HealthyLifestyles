@@ -389,6 +389,33 @@ test('changed calculators: hydration, interaction, 390px and desktop fit, access
         .catch(() => failures.push('ovulation-calculator: valid cycle did not restore the result'));
       report.push('ovulation-calculator: cycle-range=checked');
     } catch (e) { failures.push('ovulation-calculator: ' + e); }
+    // Weight-loss timeline: no plan to a goal below the healthy range; valid goal restores it.
+    try {
+      await openTool('weight-loss-timeline-calculator');
+      const setNth = (n, value) => js(`(() => { const e = document.querySelectorAll('.tool__calc .wt__grid input')[${n}];
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(e, ${JSON.stringify(value)});
+        e.dispatchEvent(new Event('input', { bubbles: true })); return true; })()`);
+      const state = () => js(`(() => { const r = document.querySelector('.tool__calc');
+        return { inputs: r.querySelectorAll('.wt__grid input').length, hero: !!r.querySelector('.wt__hero'),
+          msg: r.querySelector('.wt__gain')?.textContent ?? '', labels: [...r.querySelectorAll('.wt__grid label > span')].map((x) => x.textContent),
+          scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth }; })()`);
+      const s0 = await state();
+      if (s0.inputs !== 4 || !s0.labels.includes('Height')) failures.push('weight-loss-timeline-calculator: height field missing ' + JSON.stringify(s0.labels));
+      if (!s0.hero) failures.push('weight-loss-timeline-calculator: default plan not shown');
+      await setNth(1, '50'); // goal 50 kg at 175 cm (healthy range starts ~56.7 kg)
+      await until(async () => /below the healthy weight range/.test((await state()).msg), 'below-range message', 5000)
+        .catch(async () => failures.push('weight-loss-timeline-calculator: goal 50 kg shows ' + JSON.stringify(await state())));
+      if ((await state()).hero) failures.push('weight-loss-timeline-calculator: goal date shown for a below-range goal');
+      await setNth(1, '0');
+      await until(async () => /Check your numbers/.test((await state()).msg), 'invalid message', 5000)
+        .catch(() => failures.push('weight-loss-timeline-calculator: goal 0 kg not rejected'));
+      await setNth(1, '75');
+      await until(async () => (await state()).hero, 'plan restored', 5000)
+        .catch(() => failures.push('weight-loss-timeline-calculator: valid goal did not restore the plan'));
+      const s1 = await state();
+      if (s1.scroll > s1.client + 1) failures.push(`weight-loss-timeline-calculator: 390px overflow (${s1.scroll} > ${s1.client})`);
+      report.push('weight-loss-timeline-calculator: goal-floor=checked');
+    } catch (e) { failures.push('weight-loss-timeline-calculator: ' + e); }
     if (exceptions.length) failures.push('scenario pages: uncaught exceptions ' + JSON.stringify(exceptions.slice(0, 3)));
 
     console.log('[CALC_BROWSER_QA] ' + report.join(' | '));

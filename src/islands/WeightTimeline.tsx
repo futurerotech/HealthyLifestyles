@@ -14,6 +14,7 @@ export default function WeightTimeline() {
   const [current, setCurrent] = useState(90);
   const [goal, setGoal] = useState(75);
   const [rate, setRate] = useState(0.5); // per week, active unit
+  const [height, setHeight] = useState(175); // cm in kg mode, inches in lb mode
 
   const toKg = (v: number) => (units === 'kg' ? v : v / LB);
   const toDisp = (kg: number) => Math.round((units === 'kg' ? kg : kg * LB) * 10) / 10;
@@ -25,19 +26,29 @@ export default function WeightTimeline() {
     setCurrent((w) => Math.round(w * f));
     setGoal((w) => Math.round(w * f));
     setRate((w) => Math.round(w * f * 10) / 10);
+    setHeight((h) => (next === 'lb' ? Math.round(h / 2.54) : Math.round(h * 2.54)));
     setUnits(next);
   };
 
-  const r = computeWeightTimeline({ currentKg: toKg(current), goalKg: toKg(goal), weeklyRateKg: toKg(rate) });
+  const heightCm = units === 'kg' ? height : height * 2.54;
+  const r = computeWeightTimeline({ currentKg: toKg(current), goalKg: toKg(goal), weeklyRateKg: toKg(rate), heightCm });
   const safeMaxDisp = toDisp(r.safeMaxKg);
+  const inputProps = { units, current, goal, rate, height, setCurrent, setGoal, setRate, setHeight, switchUnits, u, safeMaxDisp, tooFast: r.tooFast };
 
-  if (r.isGain) {
+  if (!r.ok) {
+    const msg = r.status === 'gain'
+      ? { title: 'Set a goal below your current weight.', body: 'This planner is for weight loss. Enter a goal weight lower than your current weight to see your timeline.' }
+      : r.status === 'below-healthy'
+        ? { title: 'This goal is below the healthy weight range for your height.', body: `For your height, the healthy range (BMI 18.5–24.9) starts at about ${toDisp(r.healthyMinKg ?? 0)} ${u}, so we don’t plan a timeline to a lower weight. If you’re worried about your weight or your eating, a doctor or registered dietitian can help.` }
+        : { title: 'Check your numbers.', body: units === 'kg'
+            ? 'Enter current and goal weights between 25 and 350 kg and a height between 120 and 230 cm.'
+            : 'Enter current and goal weights between 55 and 770 lb and a height between 47 and 91 inches.' };
     return (
       <div class="wt">
-        <Inputs {...{ units, current, goal, rate, setCurrent, setGoal, setRate, switchUnits, u, safeMaxDisp, tooFast: false }} />
-        <div class="wt__gain card">
-          <strong>Set a goal below your current weight.</strong>
-          <p>This planner is for weight loss. Enter a goal weight lower than your current weight to see your timeline.</p>
+        <Inputs {...inputProps} tooFast={false} />
+        <div class="wt__gain card" role="status" aria-live="polite">
+          <strong>{msg.title}</strong>
+          <p>{msg.body}</p>
         </div>
       </div>
     );
@@ -48,7 +59,7 @@ export default function WeightTimeline() {
 
   return (
     <div class="wt">
-      <Inputs {...{ units, current, goal, rate, setCurrent, setGoal, setRate, switchUnits, u, safeMaxDisp, tooFast: r.tooFast }} />
+      <Inputs {...inputProps} />
 
       <p class="sr-only" role="status" aria-live="polite">
         At {toDisp(r.effectiveRateKg)} {u} per week, you could reach {toDisp(r.goalKg)} {u} in about {r.weeks} weeks, by {projected}.
@@ -94,7 +105,7 @@ export default function WeightTimeline() {
 }
 
 function Inputs(props: any) {
-  const { units, current, goal, rate, setCurrent, setGoal, setRate, switchUnits, u, safeMaxDisp, tooFast } = props;
+  const { units, current, goal, rate, height, setCurrent, setGoal, setRate, setHeight, switchUnits, u, safeMaxDisp, tooFast } = props;
   return (
     <div class="wt__form card">
       <div class="wt__form-head">
@@ -106,10 +117,13 @@ function Inputs(props: any) {
       </div>
       <div class="wt__grid">
         <label class="wt__field"><span>Current weight</span>
-          <div class="wt__iu"><input type="number" min="1" value={current} onInput={(e) => setCurrent(num((e.target as HTMLInputElement).value, 0))} /><small>{u}</small></div>
+          <div class="wt__iu"><input type="number" min={units === 'kg' ? 25 : 55} max={units === 'kg' ? 350 : 770} value={current} onInput={(e) => setCurrent(num((e.target as HTMLInputElement).value, 0))} /><small>{u}</small></div>
         </label>
         <label class="wt__field"><span>Goal weight</span>
-          <div class="wt__iu"><input type="number" min="0" value={goal} onInput={(e) => setGoal(num((e.target as HTMLInputElement).value, 0))} /><small>{u}</small></div>
+          <div class="wt__iu"><input type="number" min={units === 'kg' ? 25 : 55} max={units === 'kg' ? 350 : 770} value={goal} onInput={(e) => setGoal(num((e.target as HTMLInputElement).value, 0))} /><small>{u}</small></div>
+        </label>
+        <label class="wt__field"><span>Height</span>
+          <div class="wt__iu"><input type="number" min={units === 'kg' ? 120 : 47} max={units === 'kg' ? 230 : 91} value={height} onInput={(e) => setHeight(num((e.target as HTMLInputElement).value, 0))} /><small>{units === 'kg' ? 'cm' : 'in'}</small></div>
         </label>
         <label class="wt__field"><span>Weekly pace</span>
           <div class="wt__iu"><input type="number" min="0.1" step="0.1" value={rate} class={tooFast ? 'is-warn' : ''} onInput={(e) => setRate(num((e.target as HTMLInputElement).value, 0))} /><small>{u}/wk</small></div>
