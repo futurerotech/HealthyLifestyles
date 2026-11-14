@@ -40,6 +40,15 @@
       "actual": "",
       "evidence": "CI 43605292850; PHASE3_AUDIT_MODERATE_ARTICLES_20261114.md",
       "correction": "Add a toolEmbed block for waist-to-hip-ratio-calculator; publish with the #56 release (X3)."
+    },
+    {
+      "id": 37,
+      "slug": "healthy-waist-to-height-ratio",
+      "kind": "wrong-primary",
+      "expected": "waist-to-height-ratio-calculator",
+      "actual": "lean-body-mass-calculator,lean-body-mass-calculator",
+      "evidence": "CI 43606203148 live preflight: primaryTool and the toolEmbed are both lean-body-mass-calculator; PHASE3_AUDIT_MODERATE_ARTICLES_20261114.md",
+      "correction": "Change primaryTool to waist-to-height-ratio-calculator and the toolEmbed block's tool to waist-to-height-ratio-calculator (existing tool); keep lean-body-mass-calculator only as a related tool if desired."
     }
   ]
 }
