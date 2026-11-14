@@ -43,6 +43,10 @@ const { items } = Astro.props;
     color: var(--muted);
     font-weight: 600;
     text-decoration: none;
+    /* WCAG 2.5.8: 24px-tall targets, also when the trail wraps at 390px. */
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
   }
   .crumbs a:hover {
     color: var(--green-700);

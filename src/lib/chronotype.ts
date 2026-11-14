@@ -90,7 +90,8 @@ export interface ChronotypeInfo {
   name: string;
   emoji: string;
   tagline: string;
-  share: number; // approx % of population
+  /** The popular framework's own estimate — NOT research data; not displayed. */
+  share: number;
   description: string;
   tips: string[];
   circadianTips: string[];
@@ -141,7 +142,7 @@ export const TYPES: Record<TypeKey, ChronotypeInfo> = {
   },
   dolphin: {
     key: 'dolphin', name: 'Dolphin', emoji: '\uD83D\uDC2C', tagline: 'Light, alert sleeper', share: 10,
-    description: 'You\u2019re a light sleeper who can wake easily and often feels unrefreshed. A calm, consistent routine and good sleep hygiene help most — your focus tends to be best in the late morning.',
+    description: 'You\u2019re a light sleeper who can wake easily and often feels unrefreshed. A calm, consistent routine and good sleep hygiene help most — your focus tends to be best in the late morning. If you regularly struggle to fall or stay asleep, or wake unrefreshed for weeks, talk to a healthcare professional: insomnia is common and treatable.',
     tips: ['Keep a strict, calming wind-down and wake time.', 'Reserve late morning for your most important work.', 'Limit caffeine after midday and keep the bedroom cool and dark.'],
     circadianTips: ['Minimize evening light — use blackout curtains and dim warm lamps after sunset.', 'Get morning light to anchor your clock, but avoid bright light in the evening.', 'Keep the bedroom cool (18-20C) and completely dark — you are especially light-sensitive.'],
     schedule: [

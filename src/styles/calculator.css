@@ -359,6 +359,12 @@
 }
 .calc__cta {
   margin-top: 1.1rem;
+  /* .btn is nowrap; a long result CTA must wrap inside narrow screens
+     (recovery-time CTA was 18px wider than a 390px viewport). */
+  max-width: 100%;
+  white-space: normal;
+  line-height: 1.3;
+  text-align: center;
 }
 
 /* Select field */
@@ -829,6 +835,35 @@
   font-weight: 600;
   color: #991b1b;
 }
+/* Item-level flags (PHQ-9 item 9, WHO-5 low item): shown above the score. */
+.quiz__flag {
+  margin: 0 0 0.9rem;
+  padding: 0.8rem 0.95rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.quiz__flag--urgent {
+  background: #fef2f2;
+  border: 2px solid #dc2626;
+  color: #7f1d1d;
+}
+.quiz__flag--info {
+  background: #fffbeb;
+  border: 1px solid #f59e0b;
+  color: #78350f;
+}
+.quiz__hold {
+  margin: 0 0 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.quiz__progress {
+  margin: 0;
+  font-weight: 600;
+  color: var(--muted);
+}
 
 /* ---------- Mental Wellness: breathing ---------- */
 .breathe {
@@ -888,7 +923,8 @@
 
 @media (max-width: 760px) {
   .calc {
-    grid-template-columns: 1fr;
+    /* Explicit zero minimum: long result rows must wrap, not widen the mobile viewport. */
+    grid-template-columns: minmax(0, 1fr);
   }
   .calc__result {
     position: static;

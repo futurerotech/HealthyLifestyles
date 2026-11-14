@@ -10,6 +10,10 @@
  * people on a medically supervised program, who should follow their prescriber
  * and dietitian. The risk output is a QUALITATIVE band (Low/Moderate/Higher),
  * never a fake precise percentage.
+ *
+ * KIDNEYS: 1.6–2.4 g/kg assumes healthy kidneys. People with chronic kidney
+ * disease are usually advised to limit protein, so the UI always shows a
+ * talk-to-your-doctor note next to the target.
  */
 
 export type Training = 'none' | 'some' | 'regular'; // none / 1–2 / 3+ days per week

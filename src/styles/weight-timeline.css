@@ -7,7 +7,7 @@
 .wt__units { display: inline-flex; border: 1.5px solid var(--border); border-radius: var(--radius-pill); padding: 0.15rem; background: var(--surface-2); }
 .wt__units button { border: 0; background: transparent; padding: 0.4rem 1rem; border-radius: var(--radius-pill); font-weight: 700; font-size: 0.85rem; color: var(--muted); }
 .wt__units button.is-on { background: var(--green-primary); color: #fff; }
-.wt__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.85rem 1rem; }
+.wt__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.85rem 1rem; }
 .wt__field { display: flex; flex-direction: column; gap: 0.3rem; font-weight: 600; font-size: 0.9rem; }
 .wt__iu { display: flex; align-items: center; gap: 0.4rem; }
 .wt__iu input { width: 100%; padding: 0.6rem 0.7rem; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font: inherit; font-weight: 600; background: #fff; }

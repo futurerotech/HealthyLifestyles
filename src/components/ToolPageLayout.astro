@@ -40,6 +40,8 @@ import { getArticlesForTool, resolveAuthor } from '../lib/cms';
 import type { Tool } from '../data/tools';
 import { getAffiliates } from '../data/affiliates';
 import type { ToolContent } from '../data/content-types';
+import { renderInline } from '../lib/text';
+import { MEDICAL_SCORE_SLUGS, resolveToolPagePresentation } from '../lib/tool-copy-safety';
 
 interface Props {
   tool: Tool;
@@ -48,7 +50,10 @@ interface Props {
 }
 
 const { tool, stylesheet } = Astro.props;
-const content = { ...Astro.props.content, ...tool.cmsContent, ...(tool.cmsContent?.sections ? { directAnswer: undefined } : {}), seoTitle: tool.seo?.metaTitle || Astro.props.content.seoTitle, metaDescription: tool.seo?.metaDescription || Astro.props.content.metaDescription };
+// CMS copy and SEO metadata take precedence over authored copy, as before.
+// Source precedence for a reviewed calculator applies only once the owner has
+// approved it in lib/tool-copy-safety.ts (SOURCE_COPY_APPROVED, empty today).
+const { content, seo } = resolveToolPagePresentation(tool.slug, Astro.props.content, tool.cmsContent, tool.seo);
 const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
 const orgId = `${origin.href}#org`;
 
@@ -68,7 +73,11 @@ const RESULT_AUTHORITY: Record<string, string> = {
   'heart-vitals': ' Categories follow the American Heart Association (AHA).',
   'health-risk': ' Based on CDC and World Health Organization (WHO) guidance — only a clinician can assess your real risk.',
 };
-const resultAuthority = RESULT_AUTHORITY[tool.category] ?? '';
+// These custom calculations are not validated clinical scores, regardless of
+// whether individual underlying measurements appear in CDC/WHO guidance.
+const resultAuthority = MEDICAL_SCORE_SLUGS.has(tool.slug)
+  ? ' The result is a tool-defined educational score or index, not a CDC/WHO-endorsed clinical risk classification.'
+  : RESULT_AUTHORITY[tool.category] ?? '';
 
 // Which calculator island powers this tool — the ONE shared mapping in
 // lib/toolEngine.ts (this used to be a duplicated inline ternary chain, and
@@ -182,7 +191,7 @@ const medicalLd = {
   image={`/og/tools/${tool.slug}.png`}
   type="website"
   jsonLd={[breadcrumbLd, appLd, ...(faqLd.mainEntity.length ? [faqLd] : []), medicalLd]}
-  seo={tool.seo}
+  seo={seo}
 >
   <Fragment slot="head">{stylesheet && <link rel="stylesheet" href={stylesheet} />}</Fragment>
   <article class="tool" data-cms-id={tool.cmsId}>
@@ -338,7 +347,7 @@ const medicalLd = {
           content.sections.map((s) => (
             <section class="prose">
               <h2>{s.h2}</h2>
-              {s.paragraphs?.map((p) => <p>{p}</p>)}
+              {s.paragraphs?.map((p) => <p set:html={renderInline(p)} />)}
               {s.list && (
                 <>
                   {s.list.intro && <p>{s.list.intro}</p>}
@@ -425,6 +434,8 @@ const medicalLd = {
             <strong>Medical disclaimer:</strong>{' '}
             {tool.slug === 'vitamin-d-sun-calculator'
               ? 'This tool summarizes your inputs and provides general sun-safety information. It does not calculate vitamin D production, diagnose deficiency, or prescribe a safe UV dose. Consult a qualified healthcare professional about your health.'
+              : tool.slug === 'recovery-time-calculator'
+              ? 'This site-defined recovery planning model does not measure muscle healing or provide a validated return-to-training time. Severe pain that limits normal movement needs professional assessment; seek urgent care for serious symptoms.'
               : 'This calculator is for general information and education only and is not medical advice, diagnosis, or treatment. Results are estimates based on population formulas. Always consult a qualified healthcare professional about your health.'}
           </p>
         </aside>
@@ -443,6 +454,8 @@ const medicalLd = {
         <strong>Not medical advice.</strong>{' '}
         {tool.slug === 'vitamin-d-sun-calculator'
           ? 'This printed summary does not measure vitamin D or prescribe a safe UV dose. Consult a qualified healthcare professional about your health.'
+          : tool.slug === 'recovery-time-calculator'
+          ? `This printed summary from ${SITE.name} (${SITE.tagline}) is based on a site-defined recovery-planning heuristic, not population norms, a validated healing timeline or medical clearance.`
           : `This result is an educational estimate from ${SITE.name} (${SITE.tagline}), based on population formulas — not a diagnosis or treatment. Always consult a qualified healthcare professional about your health.`}
       </p>
       <p class="print-sheet-foot__url">{pageUrl}</p>
@@ -626,6 +639,11 @@ const medicalLd = {
     font-size: 0.9rem;
     color: var(--muted);
     list-style: decimal;
+    /* Grid items default to min-width:auto, so one long citation token (an
+       author-society list joined by slashes, a DOI or URL) widened the page
+       at 390px. Let such tokens wrap instead. */
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
   .tool__sources a {
     color: var(--green-700);

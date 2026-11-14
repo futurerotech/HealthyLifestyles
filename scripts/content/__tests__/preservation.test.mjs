@@ -101,3 +101,80 @@ test('an unverified pSEO baseline cannot be turned into an assumed zero count', 
   const result = await verify({ baseline: { ...baseline, unverifiedCollections: ['pseo-pages'] } });
   assert.ok(result.errors.some((e) => e.includes('still unverified for pseo-pages')));
 });
+
+test('article toolEmbed blocks must render their canonical tool with a live calculator (Roadmap 6.3)', () => {
+  const embedDoc = (tool) => ({ ...article, layout: [...article.layout, { blockType: 'toolEmbed', tool, label: 'Try it' }] });
+  const card = (slug, island = true) => `<div class="wh-embed" data-tool="${slug}"><div class="wh-embed__head"></div>${island ? '<astro-island uid="x" component-url="/c.js"></astro-island>' : '<p>This tool is coming soon.</p>'}</div>`;
+  const run = (doc, extra) => inspectDocument('articles', doc, html(doc) + extra, cmsOrigin).errors;
+  const live = { slug: 'bmi-calculator', enabled: true };
+  assert.deepEqual(run(embedDoc(live), card('bmi-calculator')), []);
+  // Unknown or unpublished tool: ToolEmbed renders nothing.
+  assert.ok(run(embedDoc(live), '').some((e) => e.includes('toolEmbed bmi-calculator renders nothing')));
+  // Card without an interactive island.
+  assert.ok(run(embedDoc(live), card('bmi-calculator', false)).some((e) => e.includes('has no interactive calculator')));
+  // A disabled tool may show the "coming soon" card.
+  assert.deepEqual(run(embedDoc({ slug: 'bmi-calculator', enabled: false }), card('bmi-calculator', false)), []);
+  // Aliases resolve to their canonical tool.
+  assert.deepEqual(run(embedDoc({ slug: 'body-fat-percentage-calculator', enabled: true }), card('body-fat-calculator')), []);
+  assert.ok(run(embedDoc(null), '').some((e) => e.includes('toolEmbed block has no tool')));
+});
+
+test('a tool-focused article must embed its primary tool: wrong and missing embeds fail (Roadmap 6.3)', async () => {
+  const { articleToolIntegration, checkArticleToolGates } = await import('../preflight.mjs');
+  const embed = (slug) => ({ blockType: 'toolEmbed', tool: { slug, enabled: true } });
+  const art = (primary, ...embeds) => ({ id: 7, slug: 'healthy-waist-to-height-ratio', primaryTool: primary && { slug: primary }, layout: [{ blockType: 'text', text: 'x' }, ...embeds.map(embed)] });
+  // Consistent, including aliases on either side.
+  assert.equal(articleToolIntegration(art('waist-to-height-ratio-calculator', 'waist-to-height-ratio-calculator')), null);
+  assert.equal(articleToolIntegration(art('body-fat-percentage-calculator', 'body-fat-calculator')), null);
+  assert.equal(articleToolIntegration(art('body-fat-calculator', 'body-fat-percentage-calculator')), null);
+  // An extra secondary embed is fine as long as the primary one is present.
+  assert.equal(articleToolIntegration(art('bmi-calculator', 'bmi-calculator', 'waist-to-height-ratio-calculator')), null);
+  // Not tool-focused: no requirement.
+  assert.equal(articleToolIntegration(art(null)), null);
+  assert.equal(articleToolIntegration(art(null, 'bmi-calculator')), null);
+  // The two real cases recorded by the Phase 3 audit.
+  assert.deepEqual(articleToolIntegration(art('waist-to-height-ratio-calculator', 'lean-body-mass-calculator')), { kind: 'wrong', expected: 'waist-to-height-ratio-calculator', actual: 'lean-body-mass-calculator' });
+  assert.deepEqual(articleToolIntegration(art('waist-to-hip-ratio-calculator')), { kind: 'missing', expected: 'waist-to-hip-ratio-calculator', actual: '' });
+  // Unlisted defects fail; exact gates hold; stale or changed gates fail.
+  const wrong = art('waist-to-height-ratio-calculator', 'lean-body-mass-calculator');
+  assert.match(checkArticleToolGates([wrong], [])[0], /embeds lean-body-mass-calculator instead of primary tool waist-to-height-ratio-calculator/);
+  const gate = { id: 7, slug: wrong.slug, kind: 'wrong', expected: 'waist-to-height-ratio-calculator', actual: 'lean-body-mass-calculator' };
+  assert.deepEqual(checkArticleToolGates([wrong], [gate]), []);
+  assert.match(checkArticleToolGates([art('waist-to-height-ratio-calculator', 'waist-to-height-ratio-calculator')], [gate])[0], /gate is stale/);
+  assert.match(checkArticleToolGates([art('waist-to-height-ratio-calculator', 'bmi-calculator')], [gate])[0], /no longer matches the live record/);
+  assert.match(checkArticleToolGates([], [gate])[0], /does not match any published article/);
+});
+
+test('an editorially recorded intended tool catches a wrong primaryTool relationship', async () => {
+  const { articleToolIntegration, checkArticleToolGates } = await import('../preflight.mjs');
+  const doc = { id: 9, slug: 'healthy-waist-to-height-ratio', primaryTool: { slug: 'lean-body-mass-calculator' }, layout: [{ blockType: 'toolEmbed', tool: { slug: 'lean-body-mass-calculator' } }] };
+  // Without the editorial expectation, relation and embed agree, so it looks consistent.
+  assert.equal(articleToolIntegration(doc), null);
+  assert.deepEqual(articleToolIntegration(doc, 'waist-to-height-ratio-calculator'), { kind: 'wrong-primary', expected: 'waist-to-height-ratio-calculator', actual: 'lean-body-mass-calculator,lean-body-mass-calculator' });
+  assert.match(checkArticleToolGates([doc], [], { 'healthy-waist-to-height-ratio': 'waist-to-height-ratio-calculator' })[0], /editorial audit's intended tool is waist-to-height-ratio-calculator/);
+  const fixed = { ...doc, primaryTool: { slug: 'waist-to-height-ratio-calculator' }, layout: [{ blockType: 'toolEmbed', tool: { slug: 'waist-to-height-ratio-calculator' } }] };
+  assert.deepEqual(checkArticleToolGates([fixed], [], { 'healthy-waist-to-height-ratio': 'waist-to-height-ratio-calculator' }), []);
+});
+
+test('the committed gate file is well-formed and every gate names its correction', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const g = JSON.parse(await readFile(new URL('../article-tool-gates.json', import.meta.url), 'utf8'));
+  assert.ok(Array.isArray(g.gates) && typeof g.editorialPrimary === 'object');
+  for (const x of g.gates) {
+    for (const k of ['id', 'slug', 'kind', 'expected', 'evidence', 'correction']) assert.ok(x[k] !== undefined && x[k] !== '', `${x.slug}: ${k}`);
+    assert.ok(['missing', 'wrong', 'wrong-primary'].includes(x.kind));
+  }
+  assert.equal(new Set(g.gates.map((x) => String(x.id))).size, g.gates.length);
+});
+
+test('production gates never apply to a fixture or synthetic CMS inventory', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const g = JSON.parse(await readFile(new URL('../article-tool-gates.json', import.meta.url), 'utf8'));
+  assert.equal(g.cmsOrigin, 'https://cms.healthylifesstyles.com');
+  // A fixture inventory (other origin) with no tool-focused articles passes with the real gate file.
+  const result = await verify({ toolGates: g });
+  assert.deepEqual(result.errors, []);
+  // On the production origin, the same gates against an inventory without those articles are reported as stale.
+  const prod = await verifyContent({ inventory: { ...inventory, cmsOrigin: g.cmsOrigin }, baseline: { ...baseline, cmsOrigin: g.cmsOrigin }, manifest: { ...manifest(), cmsOrigin: g.cmsOrigin }, readHtml: async () => html(), toolGates: g });
+  assert.ok(prod.errors.some((e) => /does not match any published article/.test(e)));
+});

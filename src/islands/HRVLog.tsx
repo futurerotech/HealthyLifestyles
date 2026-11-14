@@ -188,7 +188,7 @@ export default function HRVLog() {
 
       {/* ── Educational explainer ──────────────────────────────────── */}
       <div class="hrv__explainer">
-        <h3 class="hrv__section-title">What is HRV?</h3>
+        <h2 class="hrv__section-title">What is HRV?</h2>
         <p class="hrv__text">
           Heart Rate Variability (HRV) is the natural variation in time between each heartbeat.
           A higher HRV generally means your autonomic nervous system is flexible and recovering
@@ -286,7 +286,7 @@ export default function HRVLog() {
       {/* ── Trend chart ────────────────────────────────────────────── */}
       {chartData && (
         <div class="hrv__chart-block">
-          <h3 class="hrv__section-title">Your HRV trend</h3>
+          <h2 class="hrv__section-title">Your HRV trend</h2>
           <svg viewBox={`0 0 ${W} ${H}`} class="hrv__chart" role="img" aria-label="HRV readings over time">
             {/* Y-axis labels */}
             {[0, 0.5, 1].map((f) => {
@@ -331,7 +331,7 @@ export default function HRVLog() {
 
       {/* ── Lifestyle factors ──────────────────────────────────────── */}
       <div class="hrv__factors">
-        <h3 class="hrv__section-title">What affects HRV?</h3>
+        <h2 class="hrv__section-title">What affects HRV?</h2>
         <div class="hrv__factors-grid">
           {FACTORS.map((f) => (
             <div class="hrv__factor">
@@ -347,7 +347,7 @@ export default function HRVLog() {
       {/* ── Readings table ─────────────────────────────────────────── */}
       {readings.length > 0 && (
         <div class="hrv__log">
-          <h3 class="hrv__section-title">Readings log</h3>
+          <h2 class="hrv__section-title">Readings log</h2>
           <div class="hrv__table-wrap">
             <table class="hrv__table">
               <thead>

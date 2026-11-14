@@ -6,10 +6,34 @@ const COMPENDIUM: Source = {
     'Ainsworth BE, Haskell WL, Herrmann SD, et al. "2011 Compendium of Physical Activities: a second update of codes and MET values." Med Sci Sports Exerc. 2011;43(8):1575–1581.',
   url: pubmed('2011 Compendium of Physical Activities MET values Ainsworth'),
 };
+const COMPENDIUM_2024: Source = {
+  citation: 'Herrmann SD, Willis EA, Ainsworth BE, et al. "2024 Adult Compendium of Physical Activities: A third update of the energy costs of human activities." J Sport Health Sci. 2024;13(1):6–12.',
+  url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10818145/',
+};
+const WHO_SEDENTARY: Source = {
+  citation: 'World Health Organization. WHO guidelines on physical activity and sedentary behaviour. 2020 — adult sedentary behaviour recommendations.',
+  url: 'https://www.ncbi.nlm.nih.gov/books/NBK566046/',
+};
+const STEPS_2025: Source = {
+  citation: 'Ding D, Nguyen B, Nau T, et al. "Daily steps and health outcomes in adults: a systematic review and dose-response meta-analysis." Lancet Public Health. 2025;10:e668–e681.',
+  url: 'https://pubmed.ncbi.nlm.nih.gov/40713949/',
+};
+const AHA_HRMAX: Source = {
+  citation: 'American Heart Association. Target Heart Rates Chart. Age-predicted heart rate values are population averages, not individual measured maxima.',
+  url: 'https://www.heart.org/en/healthy-living/exercise-and-physical-activity/fitness-basics/target-heart-rates',
+};
 const UTH: Source = {
   citation:
     'Uth N, Sørensen H, Overgaard K, Pedersen PK. "Estimation of VO2max from the ratio between HRmax and HRrest — the Heart Rate Ratio Method." Eur J Appl Physiol. 2004;91(1):111–115.',
-  url: pubmed('Estimation of VO2max ratio HRmax HRrest Heart Rate Ratio Method Uth'),
+  url: 'https://pubmed.ncbi.nlm.nih.gov/14624296/',
+};
+const AHA_PULSE_VO2: Source = {
+  citation: 'American Heart Association. "All About Heart Rate (Pulse)." (Resting heart rate, beta blockers, and urgent symptoms.)',
+  url: 'https://www.heart.org/en/health-topics/high-blood-pressure/the-facts-about-high-blood-pressure/all-about-heart-rate-pulse',
+};
+const HR_RATIO_LIMITS: Source = {
+  citation: 'Viik et al. "Estimating Maximal Oxygen Uptake from the Ratio of Heart Rate at Maximal Exercise to Heart Rate at Rest in Middle-Aged Men." 2021. (Other populations require recalibration.)',
+  url: 'https://pubmed.ncbi.nlm.nih.gov/32777866/',
 };
 const BRZYCKI: Source = {
   citation:
@@ -27,15 +51,15 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
   'walk-it-off-calculator': {
     seoTitle: 'Walk It Off Calculator — Food to Exercise Time',
     metaDescription:
-      'How long to walk off that food? Enter a food or calories and your weight to see the minutes of walking, running, or cycling to burn it. Free.',
+      'Explore illustrative walking, running, and cycling time using estimated extra activity energy above rest. Food is not something you must earn or burn off.',
     intro:
-      'Ever wondered how long you’d have to move to burn off a treat? Pick a food (or enter calories) and your weight to see the minutes of walking, running, or cycling it takes.',
+      'Explore approximate activity-time equivalents for a food calorie amount, calculated using energy above rest. These estimates are educational comparisons, not prescriptions for how much you need to exercise after eating.',
     sections: [
       {
         h2: 'How it works',
         paragraphs: [
-          'The calculator takes the calories in your chosen food and works out how long each activity would take to burn that many calories for someone your weight, using standard MET (metabolic equivalent) values. Heavier people burn a little more per minute, so the time is personalized to you.',
-          'It’s a fun, eye-opening way to picture energy balance — not a rule that you must "earn" every bite.',
+          'The calculator estimates how long it could take to expend a similar number of calories above resting energy at a selected activity intensity. The formula is minutes = calories ÷ [(MET − 1) × body weight in kilograms] × 60. The resting 1 MET is subtracted so this illustration does not count energy you would have used while resting. The [2024 Adult Compendium of Physical Activities](https://pmc.ncbi.nlm.nih.gov/articles/PMC10818145/) explains the MET framework; the simplified activity values used here are population averages, not measurements of an individual.',
+          'Do not interpret this as an exercise requirement or a promise that movement cancels out eating. Food intake and energy expenditure interact across days, not as a direct one-meal transaction.',
         ],
       },
       {
@@ -52,41 +76,41 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       },
     ],
     faq: [
-      { q: 'How long does it take to walk off a slice of pizza?', a: 'A ~285-calorie slice takes most people roughly 60–75 minutes of brisk walking, or about 30 minutes of running — the exact time depends on your weight and pace.' },
-      { q: 'Is it accurate?', a: 'It’s a solid estimate based on MET values and your body weight. Real burn varies with intensity, fitness, and terrain, so treat the numbers as a ballpark.' },
-      { q: 'Should I exercise to “burn off” food?', a: 'It’s fine as motivation, but try not to treat exercise as punishment. Movement is valuable on its own, and overall habits matter more than any single food.' },
+      { q: 'How long does it take to walk off a slice of pizza?', a: 'For a 70-kg adult, a 285-kcal slice corresponds mathematically to about 87 minutes of walking at 3.8 METs or 28 minutes of running at 9.8 METs above rest. These are illustrative estimates, not instructions to exercise after eating.' },
+      { q: 'Is it accurate?', a: 'It is a rough activity-time comparison based on standard MET values and body weight, not a personalized measurement. Resting metabolism, movement efficiency, intensity, terrain and many other factors vary.' },
+      { q: 'Should I exercise to “burn off” food?', a: 'No. Eating never creates an obligation to exercise, and activity should not be used as punishment or as a promised way to cancel out a meal. Movement has benefits unrelated to calorie balance.' },
     ],
-    sources: [COMPENDIUM],
+    sources: [COMPENDIUM, COMPENDIUM_2024],
   },
   // ============================================================
   'sitting-disease-reversal-calculator': {
-    seoTitle: 'Sitting Disease Calculator – Offset Sitting (NEAT)',
+    seoTitle: 'Sitting & Movement Break Planner — Optional Steps and NEAT',
     metaDescription:
-      'Sitting too much? Get a personalized movement recipe — micro-breaks and extra daily steps (NEAT) to offset desk time, plus calories reclaimed. Free.',
+      'Explore optional breaks and step ideas for a sitting day. No step count guarantees reversal of sitting-related health effects; calories are approximate.',
     intro:
-      'Long days at a desk add up. Enter your sitting hours, weight, and step count to get a personalized "movement recipe" — how often to break, how many extra steps to add, and the calories you’d reclaim.',
+      'Enter your sitting hours, weight, and usual steps to explore optional movement ideas. The step increments and break cadence are illustrative heuristics, not evidence-based prescriptions, clinical categories, or a way to undo sedentary-health risk.',
     notice:
-      'General wellness education, not medical advice. Calorie figures are rough estimates that assume an average walking pace. If you have a health condition, check with a professional before changing your activity.',
+      'Educational planning only, not a validated health-risk score. Displayed calories use gross MET approximations (including rest) and can overlap when walking occurs during breaks. They are not additional calories to eat or proof of reduced disease risk.',
     sections: [
       {
         h2: 'What is “sitting disease”?',
         paragraphs: [
           '"Sitting disease" is a popular term for the health risks tied to too much sedentary time. Research links long uninterrupted sitting with higher cardiometabolic risk — and, importantly, some of that risk is independent of whether you exercise. You can be an "active couch potato": a daily workout is great, but it doesn’t fully cancel out 9+ hours of sitting the rest of the day.',
-          'The encouraging part is that how you sit matters as much as how long. Breaking sitting into shorter chunks, and adding everyday movement, meaningfully changes the picture.',
+          'Moving more and sitting less can benefit health. The [WHO sedentary behaviour guidance](https://www.ncbi.nlm.nih.gov/books/NBK566046/) does not set an exact safe sitting-hour threshold or prescribe a specific break duration; make movement choices that fit your abilities and circumstances.',
         ],
       },
       {
         h2: 'How micro-breaks help',
         paragraphs: [
           'Studies that interrupt prolonged sitting every 30–60 minutes with just 2–5 minutes of light movement show improvements in things like post-meal blood sugar and blood pressure compared with sitting straight through. The muscle contractions from simply standing and walking switch on processes that idle when you’re seated.',
-          'This calculator turns that into a simple cadence: a target number of short breaks across your sitting hours, and how many minutes that puts you on your feet each day.',
+          'This tool illustrates one optional break cadence. It is not a validated schedule or a guarantee of improved blood sugar, blood pressure, or long-term outcomes.',
         ],
       },
       {
         h2: 'NEAT: how steps offset sitting',
         paragraphs: [
           'NEAT — non-exercise activity thermogenesis — is all the energy you burn from everyday movement that isn’t formal exercise: walking, fidgeting, taking the stairs, chores. It can vary by hundreds of calories a day between people, and it’s the easiest lever for desk workers to pull.',
-          'A practical way to offset a sedentary day is to add roughly 3,000–4,000 steps beyond your current count, outside of any structured workout. The tool scales that to your sitting hours and estimates the calories those added steps and breaks reclaim — modest day to day, but it compounds over a week and a year.',
+          'The tool suggests roughly 3,000–4,500 steps for positive sitting-hour inputs as a planning example, not an official step target. The exact number of steps needed to reduce health risk cannot be calculated from sitting hours alone. Its calorie estimates are gross energy and may double-count walking done during movement breaks.',
         ],
       },
       {
@@ -103,10 +127,10 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       },
     ],
     faq: [
-      { q: 'How many steps offset a day of sitting?', a: 'A common target is an extra 3,000–4,000 steps beyond your current daily count, taken as everyday movement outside structured exercise. The more you sit, the more it helps — this tool scales it to your hours.' },
-      { q: 'How often should I take a break from sitting?', a: 'Aim to stand and move for about 2–5 minutes roughly every 30–60 minutes of sitting. Frequent short breaks appear to matter more than one long one.' },
-      { q: 'What is NEAT?', a: 'NEAT is non-exercise activity thermogenesis — the calories you burn through everyday movement like walking, fidgeting, and chores. Increasing it is one of the most practical ways to offset a desk job.' },
-      { q: 'Can extra steps undo the harm of too much sitting?', a: 'Movement clearly lowers the risks linked to sedentary time, but it’s best to both add activity and reduce total sitting where you can. Think "move more and sit less," not one or the other.' },
+      { q: 'How many steps offset a day of sitting?', a: 'There is no validated number of steps that cancels out a day of sitting. WHO does not specify a universal sedentary-time cutoff or precise break cadence. This calculator offers optional planning ideas, not a formula for reversing health risk.' },
+      { q: 'How often should I take a break from sitting?', a: 'Short, comfortable movement breaks may be useful. This tool illustrates 3 minutes about every 45 minutes, but WHO has not established an exact medically required interval or duration; adapt your routine to your abilities and needs.' },
+      { q: 'What is NEAT?', a: 'NEAT means non-exercise activity thermogenesis: energy used in everyday movement such as walking and chores. It is not a measure of how much disease risk is reversed by activity.' },
+      { q: 'Can extra steps undo the harm of too much sitting?', a: 'No number of steps guarantees that sitting-related health effects are reversed. Activity is beneficial, and reducing sedentary time where possible can help; think "move more and sit less," not "erase" a measured number of sitting hours.' },
       { q: 'Is a standing desk enough?', a: 'Standing is better than sitting still, but the bigger wins come from actually moving — breaks, steps, and light activity. Use a standing desk as a prompt to move, not a substitute for it.' },
     ],
     sources: [
@@ -114,6 +138,7 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       { citation: 'Diaz KM, et al. "Patterns of sedentary behavior and mortality in US adults." Ann Intern Med. 2017.', url: pubmed('Patterns of sedentary behavior and mortality US adults Diaz') },
       { citation: 'Levine JA. "Non-exercise activity thermogenesis (NEAT)." Best Pract Res Clin Endocrinol Metab. 2002.', url: pubmed('Non-exercise activity thermogenesis NEAT Levine') },
       { citation: 'Ekelund U, et al. "Does physical activity attenuate the association between sitting time and mortality? A harmonised meta-analysis." Lancet. 2016.', url: pubmed('physical activity attenuate sitting time mortality harmonised meta-analysis Ekelund') },
+      WHO_SEDENTARY,
     ],
   },
   // ============================================================
@@ -192,28 +217,28 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
   'running-pace-calculator': {
     seoTitle: 'Running Pace Calculator (with Splits)',
     metaDescription:
-      'Calculate running pace, finish time, or distance from the other two — with a full split table. Free pace calculator in km or miles, no signup.',
+      'Calculate running pace, finish time, or distance from the other two, with cumulative split checkpoints. Converts km and miles without relabeling the run.',
     intro:
-      'Whatever you know — your distance and pace, or a goal time — this calculator works out the missing piece and shows your splits. Choose what to solve for and enter the other two values.',
+      'Enter two known quantities to calculate running pace, time or distance. Switching kilometers and miles converts the same physical run; split times assume a constant pace and are estimates, not race predictions.',
     sections: [
       {
         h2: 'How the pace calculator works',
         paragraphs: [
           'Pace, time, and distance are linked by one simple relationship: time = distance × pace. Give the calculator any two and it solves the third — your finish time from a target pace, the pace you’d need to hit a goal time, or how far you’d travel at a set pace.',
-          'Pace is shown as minutes and seconds per kilometre or per mile (switch units at the top), while speed is shown in km/h or mph for comparison. Everything is calculated assuming an even effort across the whole distance.',
+          'Pace is shown as minutes and seconds per kilometer or per mile (switch units at the top), while speed is shown in km/h or mph for comparison. Everything is calculated assuming an even effort across the whole distance.',
         ],
       },
       {
         h2: 'Using your splits',
         paragraphs: [
-          'The split table shows the cumulative time you should reach at each kilometre or mile if you hold a steady pace. Runners use splits to pace races: glance at your watch at each marker and you’ll know instantly whether you’re ahead of or behind schedule.',
+          'The table shows cumulative times at whole kilometers or miles at a steady pace. For distances longer than 60 units it shows the first 60 checkpoints plus the actual finish marker; the finish is never omitted. The times are mathematical pacing targets, not forecasts of an individual athlete’s race readiness.',
           'A classic strategy is the "even split" — running the second half at the same pace as the first — or a slight "negative split," finishing faster than you started. Going out too fast and fading is the most common pacing mistake, and a split sheet helps you avoid it.',
         ],
       },
       {
         h2: 'Pacing common race distances',
         paragraphs: [
-          'To find a goal pace, set the calculator to "Pace," enter the race distance and your target time, and read the pace you need to hold. For example, a sub-2-hour half-marathon (21.1 km) needs about 5:41 per kilometre; a 4-hour marathon needs roughly 5:41 per kilometre too, sustained for 42.2 km.',
+          'To find a goal pace, set the calculator to "Pace," enter the race distance and your target time, and read the pace you need to hold. For example, a sub-2-hour half-marathon (21.1 km) needs about 5:41 per kilometer; a 4-hour marathon needs roughly 5:41 per kilometer too, sustained for 42.2 km.',
           'Remember that real races include hills, wind, and fatigue, so train across a range of paces rather than only your goal pace. Build endurance with easy runs, and use the calculator to set realistic, achievable targets based on your recent times.',
         ],
       },
@@ -221,15 +246,15 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
     faq: [
       {
         q: 'How do I calculate my running pace?',
-        a: 'Divide your time by your distance. This calculator does it for you — choose "Pace," enter the distance you ran and the time it took, and it returns your pace per kilometre or mile.',
+        a: 'Divide your time by your distance. This calculator does it for you — choose "Pace," enter the distance you ran and the time it took, and it returns your pace per kilometer or mile.',
       },
       {
         q: 'What is a negative split?',
         a: 'A negative split means running the second half of a race faster than the first. It’s widely considered the most efficient way to race and helps avoid burning out early.',
       },
       {
-        q: 'Can I switch between kilometres and miles?',
-        a: 'Yes. Use the km/mi toggle at the top of the calculator; pace, distance, and splits all update to your chosen unit.',
+        q: 'Can I switch between kilometers and miles?',
+        a: 'Yes. The km/mi toggle converts distance and minutes-per-unit pace while keeping the same physical run and projected total time. Inputs show rounded seconds; the model uses full conversion precision until you edit an input.',
       },
     ],
     sources: [
@@ -242,26 +267,26 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
 
   // ============================================================
   'calories-burned-calculator': {
-    seoTitle: 'Calories Burned Calculator (METs)',
+    seoTitle: 'Calories Burned Calculator — Gross vs Above-Rest METs',
     metaDescription:
-      'Estimate calories burned for running, cycling, swimming, HIIT and more using MET values and your body weight. Free, metric or imperial.',
+      'Estimate gross activity energy and illustrative above-rest calories for exercise using MET values, weight and duration. Includes metric/imperial inputs.',
     intro:
-      'See how many calories an activity burns for your body weight. Pick what you did and how long for, and the calculator uses scientific MET values to estimate your energy use.',
+      'Choose an activity, weight and duration to compare estimated gross energy used during exercise with an approximate amount above standardized resting expenditure. These are population-based MET estimates, not measured personal calorie burn or a weight-loss target.',
     sections: [
       {
         h2: 'How calories burned are calculated',
         paragraphs: [
-          'The calculation uses MET (Metabolic Equivalent of Task) values: calories burned = METs × weight in kilograms × time in hours. One MET is roughly the energy you use sitting quietly, so an activity rated at 8 METs burns about eight times that.',
-          'MET values come from the Compendium of Physical Activities, a research database used by exercise scientists worldwide. Because heavier bodies use more energy to move, your weight is a key part of the equation.',
+          'The original model estimates gross activity energy as MET × body mass (kg) × hours. Gross includes energy your body would expend at rest over the same period. A separately labeled, approximate above-rest figure uses (MET − 1) × kg × hours, subtracting standardized 1-MET rest; it is not an individualized net expenditure measurement.',
+          'METs are standardized activity-intensity estimates from Compendium research, not a precise measurement of your metabolism. The example coefficients are retained from the original tool; observed costs vary with pace, terrain, technique and individual physiology. The 2024 Adult Compendium lists walking at 3.5–3.9 mph as approximately 4.8 MET, so the unchanged tool’s 3.5-MET walking preset is labeled walking for pleasure rather than a precise 3.5-mph pace.',
         ],
       },
       {
         h2: 'MET values for common activities',
         list: {
-          intro: 'A few examples from the Compendium (higher means more intense):',
+          intro: 'Illustrative fixed values used in this tool (not individualized pace or work-rate measurements):',
           items: [
-            'Yoga ≈ 3.0, walking (3.5 mph) ≈ 3.5',
-            'Weightlifting ≈ 5.0, hiking ≈ 6.0',
+            'Yoga ≈ 3.0, walking for pleasure ≈ 3.5',
+            'Weightlifting (example intensity) ≈ 5.0, hiking ≈ 6.0',
             'Cycling (moderate) ≈ 7.5, tennis ≈ 7.3, dancing ≈ 7.8',
             'Swimming ≈ 8.0, HIIT ≈ 8.0, running (6 mph) ≈ 9.8',
             'Jumping rope ≈ 12.3 — one of the most demanding common activities',
@@ -271,26 +296,36 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'Why it’s an estimate',
         paragraphs: [
-          'MET values are population averages measured in labs, so your real burn depends on intensity, fitness, age, body composition, and even the weather. Two people doing "moderate cycling" can burn quite different amounts.',
-          'Use the result to compare activities and plan rather than to count calories to the last unit. If you’re tracking energy for weight management, pair this with your daily calorie needs and adjust based on real-world results over a few weeks.',
+          'MET values summarize activity categories rather than measuring your metabolism. Gross energy includes rest; above-rest energy subtracts a standard resting reference, not your actual resting metabolic rate. The estimates vary with age, activity intensity, fitness, body composition, terrain and weather, and a long exercise duration is not a recommendation.',
+          'Use the results to understand relative activity-energy demand, not as a prescription to compensate for food, an exercise-clearance test, or a guaranteed weight-loss prediction. The existing article on daily energy expenditure provides broader context; avoid double-counting resting energy when combining activity calories with daily totals.',
         ],
       },
     ],
     faq: [
       {
         q: 'What is a MET?',
-        a: 'A MET (Metabolic Equivalent of Task) is a unit of energy expenditure. One MET equals your energy use at rest; an activity of 8 METs uses about eight times as much energy as sitting quietly.',
+        a: 'A MET expresses the estimated metabolic demand of an activity relative to a standardized 1-MET resting reference. The calculator’s 8-MET example gives gross activity energy of roughly eight times that reference, not eight times each individual’s measured resting rate.',
       },
       {
         q: 'Does body weight affect calories burned?',
-        a: 'Yes. Heavier bodies use more energy to perform the same activity, which is why the formula multiplies the MET value by your weight in kilograms.',
+        a: 'Body weight is part of the original MET estimate, so two different entered weights give different gross and approximate above-rest calculations. This is a simplified model, not an individual measurement of walking efficiency or body composition.',
       },
       {
         q: 'How accurate is the calorie estimate?',
-        a: 'It’s a solid estimate based on average MET values, but your true burn varies with intensity, fitness and body composition. Treat it as a guide for comparing and planning activities.',
+        a: 'The values are illustrative, not measured personal calories. Gross includes estimated energy at rest; the above-rest figure subtracts a standardized 1 MET and is still approximate. Use both only to compare activity assumptions, not to prescribe exercise or offset a meal.',
       },
     ],
-    sources: [COMPENDIUM],
+    sources: [
+      COMPENDIUM,
+      {
+        citation: 'Herrmann SD, et al. The 2024 Adult Compendium of Physical Activities: A third update of the energy costs of human activities. J Sport Health Sci. 2024.',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/38242596/',
+      },
+      {
+        citation: '2024 Compendium of Physical Activities. Walking activity codes and MET values.',
+        url: 'https://pacompendium.com/walking/',
+      },
+    ],
   },
 
   // ============================================================
@@ -299,20 +334,20 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
     metaDescription:
       'Estimate your one-rep max from a set with the Epley and Brzycki formulas, plus a 50–100% training table. Free 1RM calculator, no signup.',
     intro:
-      'Your one-rep max (1RM) is the most weight you can lift once. Instead of attempting a risky maximal lift, estimate it from a lighter set — enter the weight and reps to get your 1RM and a full percentage table.',
+      'Estimate a one-rep maximum from a completed multi-repetition set without attempting a risky true max. Enter the load and whole reps; for a single completed rep, this tool shows the lifted load, which is not necessarily a true maximum. Percentage loads are planning examples, not a training prescription.',
     sections: [
       {
         h2: 'How your 1RM is estimated',
         paragraphs: [
-          'This calculator uses two of the most validated formulas. Epley: 1RM = weight × (1 + reps ÷ 30). Brzycki: 1RM = weight × 36 ÷ (37 − reps). Both convert a "reps to failure" set into an estimated single-rep maximum.',
-          'The two formulas agree closely at low reps and diverge a little as reps climb. Accuracy is best when your set is 10 reps or fewer — beyond that, factors like muscular endurance muddy the estimate. For the most reliable number, use a hard set of 3–6 reps.',
+          'The tool uses two widely studied prediction formulas for sets of 2–15 reps: Epley = lifted weight × (1 + reps / 30); Brzycki = lifted weight × 36 / (37 − reps). These were developed for challenging sets near repetition failure. For one completed repetition, no extrapolation is made, because a successful single does not prove it was maximal.',
+          'Estimates become more uncertain as repetition counts increase. A study of bench-press and leg-press prediction found that linear equations should not use more than 10 reps in those movements. The calculator still allows 11–15 whole reps for comparison but displays a caution. Controlled low-rep working sets can be informative; do not train to failure or attempt a true maximum solely for a calculator.',
         ],
       },
       {
         h2: 'Training with percentages of your 1RM',
         paragraphs: [
-          'Most strength programs prescribe loads as a percentage of 1RM, which is why the table above matters. As a rough guide: 85–100% builds maximal strength (1–5 reps), 70–85% builds muscle (6–12 reps), and 50–70% develops muscular endurance (12+ reps).',
-          'Knowing your 1RM lets you pick the right weight for the goal of each session and progress in a structured way, rather than guessing. Recalculate every few weeks as you get stronger.',
+          'Some strength programs organize loads by percentage of an estimated 1RM. Actual repetition capacity and adaptation vary by exercise and individual; the displayed 50–100% table is an arithmetic planning reference, not a guarantee of how many reps you can complete or an instruction to lift a particular weight.',
+          'Record which exercise, equipment and load produced the estimate. A percentage table cannot determine an individually safe working weight; use appropriate technique, gradual progression and conservative loads instead of chasing the highest calculated figure.',
         ],
       },
       {
@@ -330,14 +365,21 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       },
       {
         q: 'Which is better, Epley or Brzycki?',
-        a: 'Both are well validated and agree closely at low reps. Epley tends to read slightly higher at higher reps. Using a set of 5 reps or fewer makes both more accurate.',
+        a: 'Both are commonly studied but can differ by rep count and exercise. For 80 kg × 5, Epley predicts 93.3 kg while Brzycki predicts 90 kg; they coincide mathematically at 10 reps, and Brzycki rises above Epley for some longer sets. Neither provides a guaranteed true maximum.',
       },
       {
         q: 'How often should I recalculate my 1RM?',
-        a: 'Every four to six weeks, or whenever your working weights climb noticeably. Re-estimating keeps your training percentages accurate as you get stronger.',
+        a: 'About every four to six weeks is a practical, optional training-log interval, not a medical schedule. Recalculate only when you have a comparable recent set with sound technique; neither estimate should determine a mandatory heavy lift.',
       },
     ],
-    sources: [BRZYCKI, ONERM_VALIDITY],
+    sources: [
+      BRZYCKI,
+      ONERM_VALIDITY,
+      {
+        citation: 'Reynolds JM, Gordon TJ, Robergs RA. Prediction of one repetition maximum strength from multiple repetition maximum testing and anthropometry. J Strength Cond Res. 2006.',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/16937972/',
+      },
+    ],
   },
 
   // ============================================================
@@ -346,21 +388,21 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
     metaDescription:
       'Calculate your Fat-Free Mass Index (FFMI) and height-normalized FFMI. A useful fitness metric for lifters and athletes — not a medical diagnosis.',
     intro:
-      'FFMI measures how much lean mass you carry relative to your height. Enter your weight, height and body-fat percentage to see your FFMI, your height-normalized score, and where you sit on the athlete reference scale.',
+      'FFMI estimates fat-free mass relative to height. Enter weight, height and estimated body-fat percentage to see raw FFMI, site-adjusted FFMI and estimated fat-free and fat mass, without nonvalidated population grades.',
     notice:
-      'Educational fitness metric only — not a health diagnosis. If you are unsure of your body-fat percentage, estimate it first with the Body Fat Calculator.',
+      'Educational body-composition estimate only, not a diagnosis, skeletal-muscle measurement, anabolic-steroid screen, or fitness percentile. Body-fat estimates vary; the Body Fat Calculator is also an estimate.',
     sections: [
       {
         h2: 'What is FFMI?',
         paragraphs: [
-          'Fat-Free Mass Index (FFMI) is your lean body mass divided by your height in metres squared. It is similar in shape to BMI, but instead of comparing total body weight it compares only your fat-free mass — muscle, bone, organs and water. That makes it more meaningful for athletes and lifters, who can be heavy but metabolically healthy because of extra muscle.',
-          'Because taller people have more frame to fill, FFMI also includes a height correction (the “normalized” score) so a 165 cm lifter and a 195 cm lifter can be compared on the same scale.',
+          'FFMI is estimated fat-free mass divided by height in meters squared; BMI uses total body weight. Fat-free mass includes muscle but also body water, bone, blood and organs. FFMI alone cannot establish metabolic health, strength or how much skeletal muscle a person carries.',
+          'Normalized FFMI applies this website’s published 6.1 × (1.80 − height in meters) correction. It does not make different ages, sexes or body-composition measurement methods directly comparable. The original small male-athlete study used 6.3 instead.',
         ],
       },
       {
         h2: 'How the calculation works',
         paragraphs: [
-          'First we subtract your fat mass from your total weight to get lean body mass (LBM). Then we divide LBM by height² to get FFMI. The normalized version adds 6.1 × (1.8 − height in metres) to correct for stature.',
+          'First we subtract your fat mass from your total weight to get lean body mass (LBM). Then we divide LBM by height² to get FFMI. The normalized version adds 6.1 × (1.8 − height in meters) to correct for stature.',
         ],
         list: {
           intro: 'The formulas are:',
@@ -374,7 +416,7 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'Reading your result',
         paragraphs: [
-          'The reference bands are calibrated to common population and athlete data. Most untrained adults fall in the 17–19 range; trained natural lifters often sit around 20–23. Values above ~25 are very unusual for natural athletes and usually mean the body-fat estimate is too low, so re-check your input before drawing any conclusion.',
+          'There is no universal FFMI grade suitable for all adults. A study of 5,635 Swiss adults found median raw FFMI values of 18.9 among younger adult men and 15.4 among younger adult women; these describe the study population, not clinical targets. The often-quoted value of 25 came from normalized FFMI in a small study of male athletes and cannot establish steroid use.',
           'FFMI is best used to track your own progress over time, not to compare yourself to outliers online.',
         ],
       },
@@ -382,15 +424,15 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
     faq: [
       {
         q: 'What is a good FFMI?',
-        a: 'For most men, 18–20 is average, 20–22 is athletic, and 22–25 is highly muscular. For women, subtract roughly 1.5–2 points because of higher essential body fat. The most useful comparison is your own trend over time.',
+        a: 'There is no single medically validated good FFMI. Research percentiles differ by sex, age and population, with medians of 18.9 for younger adult men and 15.4 for younger adult women in one Swiss study. This tool does not collect sex or age and therefore does not assign an average grade or percentile. Compare results using a consistent method.',
       },
       {
         q: 'Why normalize FFMI for height?',
-        a: 'Taller people naturally have more bone and muscle mass. The normalized score adds a height correction so FFMI can be compared fairly across short and tall individuals.',
+        a: 'The normalized score uses this website’s documented coefficient 6.1 for the height adjustment, not the 6.3 used in the original athlete study. Neither coefficient corrects for sex, age, measurement error or differences in anatomy.',
       },
       {
         q: 'Can FFMI tell if someone is natural?',
-        a: 'No. Extremely high values are uncommon for natural athletes, but they can also come from an inaccurate body-fat estimate, unusual genetics, or measurement error. FFMI is not a diagnostic or judgment tool.',
+        a: 'No. A normalized score near 25 appeared in a small observational study of male athletes, not as an established universal limit. Body-fat uncertainty, hydration and genetics affect individual results. Do not use FFMI to accuse or medically classify another person.',
       },
       {
         q: 'How do I estimate body-fat percentage?',
@@ -400,11 +442,11 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
     sources: [
       {
         citation: 'Schutz Y, Kyle UU, Pichard C. "Fat-free mass index and fat mass index percentiles in Caucasians aged 18–98 y." Int J Obes Relat Metab Disord. 2002.',
-        url: pubmed('Fat-free mass index percentiles Caucasians Schutz'),
+        url: 'https://pubmed.ncbi.nlm.nih.gov/12080449/',
       },
       {
         citation: 'Kouri EM, Pope HG Jr, Katz DL, Oliva P. "Fat-free mass index in users and nonusers of anabolic-androgenic steroids." Clin J Sport Med. 1995.',
-        url: pubmed('Fat-free mass index anabolic androgenic steroids Kouri'),
+        url: 'https://pubmed.ncbi.nlm.nih.gov/7496846/',
       },
     ],
   },
@@ -412,17 +454,17 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
   'recovery-time-calculator': {
     seoTitle: 'Recovery Time Calculator — Rest Between Workouts',
     metaDescription:
-      'Estimate how long to rest before training the same muscle group again. A transparent heuristic from sports-science recovery principles. Free, no signup.',
+      'Explore a site-defined recovery planning estimate for hard workouts. Understand limits, effort, sleep and soreness; not a validated healing timer.',
     intro:
-      'Enter your workout type, effort, and how your body feels to get a suggested recovery window. This is general guidance from sports-science principles — not a medical prescription.',
+      'Compare workouts, perceived effort, sleep and soreness using an illustrative recovery-planning range. This site-defined formula does not measure muscle repair or determine when an injury has healed.',
     notice:
-      'General fitness guidance, not medical advice. Sharp pain, joint pain, or pain that worsens with activity is not normal soreness — stop and consult a qualified professional.',
+      'Do not rely on a numeric recovery time if soreness limits normal movement. Stop hard training for severe or worsening pain and seek medical evaluation; marked swelling, significant weakness or dark urine after intense exertion requires urgent assessment. This tool cannot diagnose injuries.',
     sections: [
       {
         h2: 'How recovery time is estimated',
         paragraphs: [
-          'This calculator uses a transparent heuristic built on well-known recovery principles. Heavy resistance training typically needs 48–72 hours of recovery per muscle group before it is trained hard again. HIIT and endurance work usually need a little less, and light sessions recover quickly.',
-          'We start from a base recovery time for your workout type, then adjust it up or down for five factors: how hard you pushed (RPE), how long the session lasted, your training age, your sleep quality, and how sore you currently feel. The result is a range, not a single number, because individual recovery varies.',
+          'This calculator starts with site-defined example times (48 hours for heavy resistance, 36 for HIIT, 30 for steady endurance, and 18 for light activity). Those category numbers are modeling assumptions, not trial-derived measurements of when an individual has fully recovered. A common training guideline is to separate hard sessions for the same muscle group by about 48 hours, but demanding endurance events and unusual loads can require more rest.',
+          'The estimator applies fixed adjustments for perceived effort (RPE), session duration, training experience, sleep and mild/moderate soreness. Its plus-or-minus 15 percent margin is a display rule chosen by the site, not a statistically measured prediction interval. It does not issue numeric estimates when soreness severely affects normal movement.',
         ],
       },
       {
@@ -430,11 +472,11 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
         list: {
           intro: 'The five factors and how they move the estimate:',
           items: [
-            'Intensity (RPE): higher effort means more muscle damage and central nervous system fatigue, so more recovery time.',
-            'Duration: a 2-hour session needs more recovery than a 30-minute one, all else equal.',
-            'Training age: beginners generally need more recovery — their muscles are less conditioned to repeated hard work. Advanced athletes recover faster for the same stimulus.',
-            'Sleep: most muscle repair and adaptation happens during deep sleep. Poor sleep is one of the biggest recovery killers.',
-            'Soreness (DOMS): if you are still sore from a previous session, your body is telling you it is not finished repairing yet.',
+            'Intensity (RPE): hard exercise can increase fatigue, but a reported effort score does not directly quantify muscle injury or time to heal.',
+            'Duration: longer sessions may add fatigue, but duration and difficulty must be considered together rather than mapping every extra minute to a known recovery requirement.',
+            'Training age: unfamiliar training often produces greater soreness; experienced athletes may still need substantial recovery after demanding or high-volume sessions.',
+            'Sleep: inadequate or disrupted sleep can impair performance and perceived readiness; the calculator cannot measure how much muscle repair happened during any sleep stage.',
+            'Soreness (DOMS): soreness alone cannot establish tissue damage or full recovery. Severe pain that limits movement needs assessment instead of a clock-based estimate.',
           ],
         },
       },
@@ -443,7 +485,7 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
         list: {
           intro: 'Recovery is not just waiting — you can actively improve it:',
           items: [
-            'Prioritize 7–9 hours of quality sleep — it is the single most impactful recovery tool. Use the Sleep Debt Calculator to track shortfalls.',
+            'Prioritize adequate sleep and a consistent schedule; many adults need about 7–9 hours. The Sleep Debt Calculator helps review sleep patterns, not biological repair time.',
             'Eat enough protein spread across the day — aim for 0.25 g per kg per meal, 3–4 meals. Use the Protein Intake Calculator to find your target.',
             'Stay hydrated — even mild dehydration increases perceived effort and slows recovery. Use the Water Intake Calculator for your daily target.',
             'Use active recovery — light walking, cycling, or mobility work on rest days increases blood flow without adding damage.',
@@ -462,19 +504,19 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
     faq: [
       {
         q: 'How many rest days between training the same muscle group?',
-        a: 'For heavy resistance training, the general guideline is 48–72 hours before hitting the same muscle group hard again. This calculator personalises that starting point based on your effort, duration, training age, sleep, and soreness.',
+        a: 'About 48 hours between demanding sessions of the same muscle group is a useful starting guideline, not a guarantee of readiness. The calculator adjusts a site-defined planning number using self-reported inputs; it does not measure muscle healing or prescribe an exact return date.',
       },
       {
         q: 'Can I train while still sore?',
-        a: 'Mild soreness is usually fine for a different muscle group or a lighter session. Moderate or severe soreness means you should either rest, train a different muscle group, or do active recovery. Training the same hard session on a severely sore muscle increases injury risk.',
+        a: 'Mild soreness may allow easier movement or work for a different muscle group. If soreness is severe enough to limit normal movement, the calculator deliberately withholds a time estimate: avoid hard exercise of the affected area and seek professional advice for severe or worsening pain, swelling or weakness.',
       },
       {
         q: 'Does sleep really affect muscle recovery?',
-        a: 'Yes — significantly. Most muscle repair, protein synthesis, and anabolic hormone release happen during deep sleep. Consistently sleeping less than 7 hours demonstrably slows recovery and reduces strength and muscle gains over time.',
+        a: 'Sleep matters for energy, performance and recovery, but an individual night of sleep does not map to a proven number of muscle-repair hours. The tool uses a transparent, unvalidated sleep adjustment and should not be treated as a physiological measurement.',
       },
       {
         q: 'Why do beginners need more recovery?',
-        a: 'Beginners experience more muscle damage and soreness (DOMS) from a given workout because their muscles are not yet adapted to the stress. As training age increases, the body becomes more efficient at repairing and adapting, so recovery times shorten for the same relative effort.',
+        a: 'A new or unfamiliar exercise may cause more soreness before you adapt (the repeated-bout effect). Training experience alone cannot predict recovery time: high volume, intensity, illness and sleep disruption can affect experienced athletes too.',
       },
     ],
     sources: [
@@ -492,30 +534,38 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
           '"Sleep and muscle recovery: endocrinological and behavioral basis." Med Hypotheses. 2011.',
         url: pubmed('Sleep muscle recovery endocrinological behavioral basis Dattilo'),
       },
+      {
+        citation: 'Cleveland Clinic. Delayed Onset Muscle Soreness (DOMS): What It Is & Treatment. Updated December 19, 2025.',
+        url: 'https://my.clevelandclinic.org/health/diseases/delayed-onset-muscle-soreness',
+      },
+      {
+        citation: 'CDC/NIOSH. Signs and Symptoms of Rhabdomyolysis. Updated October 28, 2026.',
+        url: 'https://www.cdc.gov/niosh/rhabdo/signs-symptoms/',
+      },
     ],
   },
   // ============================================================
   'push-up-test-calculator': {
     seoTitle: 'Push-Up Test Calculator — Score by Age & Sex Norms',
     metaDescription:
-      'Score your push-up test against ACSM age and sex normative tables. See your percentile band, how to improve, and when to retest. Free fitness self-assessment.',
+      'Compare whole-repetition push-up scores with ACSM age- and protocol-specific reference categories for adults 20–69. Learn how to test, train, and retest safely.',
     intro:
-      'The push-up test measures upper-body muscular endurance. Enter your age, sex, and the number of strict push-ups you completed to see where you rank against published norms.',
+      'The push-up test measures upper-body muscular endurance. To compare your result with the ACSM adult reference categories, men perform standard toe-supported push-ups and women perform modified knee-supported push-ups. Those are different testing protocols, not equivalent physical workloads. Enter whole repetitions; ages outside 20–69 receive a raw score without an age-based rating.',
     notice:
-      'Fitness self-assessment, not a medical test. Stop immediately if you feel chest pain, dizziness, or severe shortness of breath — these are red flags that need medical care.',
+      'Educational fitness self-assessment, not a medical test. Stop for chest pain, faintness, unusual severe breathlessness, palpitations, or sharp joint pain; call emergency services for persistent chest pain or suspected heart attack symptoms. Do not attempt a maximal test against medical advice.',
     sections: [
       {
         h2: 'How to do the test properly',
         paragraphs: [
-          'Form matters more than the number. A rep only counts if you lower your body until your chest is about fist height above the floor, keep your body in a straight line from head to heels, and push back up to full arm extension. If your hips sag, your chin leads, or you half-rep, the number is not comparable to the norms.',
-          'Do the test after a short warm-up (arm circles, a few easy reps). Pace yourself — most people do better with a steady rhythm than an explosive start that burns them out early. Rest between reps in the plank position, not on the floor.',
+          'Follow the exact protocol for the reference category you select. The ACSM method starts men in a standard toe-supported push-up and women in a modified knee-supported push-up. Keep the back aligned, lower until the chin reaches the mat without resting the abdomen on it, and press to fully straightened elbows. Count only complete repetitions; do not compare knee-supported and toe-supported scores as equivalent.',
+          'Warm up gently with shoulder movement and a few comfortable practice repetitions. The ACSM test counts consecutive proper repetitions without rest; stop if you cannot maintain correct technique. If you have shoulder or wrist pain, recent surgery, known cardiovascular disease, or exercise restrictions, ask a qualified clinician whether maximal testing is appropriate.',
         ],
       },
       {
-        h2: 'Reading your percentile band',
+        h2: 'Reading your reference category (not a percentile)',
         paragraphs: [
-          'Your result is compared to the ACSM push-up test norms for your age and sex, which are based on population data collected from thousands of adults. The bands run from "Below average" through "Average," "Above average," and "Good" to "Excellent" (roughly the 90th percentile or higher).',
-          'If you land in "Below average" or "Average," that is common — most adults do not train push-ups regularly. The good news is that push-up capacity responds quickly to consistent training; most people see measurable improvement in 4–6 weeks.',
+          'The ACSM 10th-edition Table 4.11 groups adults ages 20–69 into Poor, Fair, Good, Very good, and Excellent based on their age and the correct test protocol. These descriptive categories are not exact percentiles and do not establish medical risk, overall fitness, or a specific health benefit. For ages 15–19 or 70 and older, the calculator preserves your repetition count but does not invent a category.',
+          'An age-reference category is only meaningful when the test is performed in the same way as its source. A female user who performs full toe-supported push-ups can track that achievement, but should not interpret those repetitions using this modified-knee reference table. Focus on pain-free, repeatable technique and progress over time rather than using a label as a judgment of health.',
         ],
       },
       {
@@ -535,18 +585,18 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
         h2: 'When to retest',
         paragraphs: [
           'Retest every 4–6 weeks under the same conditions: same time of day, same warm-up, same surface. Progress in muscular endurance is real but gradual — testing too often just measures daily variation.',
-          'A 3–5 rep improvement in a month is solid progress. If your score stalls for two consecutive tests, change your training stimulus: add volume, increase frequency, or address weak points like core or triceps strength.',
+          'Progress depends on practice, sleep, recovery, body mass, and how consistently you repeat the test. If your score stalls, review form and recovery before adding workload; avoid increasing intensity when joint pain persists.',
         ],
       },
     ],
     faq: [
       {
         q: 'What counts as a proper push-up rep?',
-        a: 'Your body must stay in a straight line from head to heels, your chest must lower to about fist height above the floor, and you must push back to full arm extension. Hips sagging, knees touching, or half-range reps do not count toward the normative comparison.',
+        a: 'Keep the back aligned, lower until the chin reaches the mat without resting the abdomen, and press to full elbow extension. ACSM reference testing uses toe-supported reps for men and modified knee-supported reps for women. Do not count half-range reps or rest between repetitions.',
       },
       {
         q: 'Can women do the standard push-up test?',
-        a: 'Yes. The norms here use the standard (knees-off-the-floor) push-up position for both men and women. If you are not yet strong enough for standard push-ups, start with knee push-ups or incline push-ups and work toward the full version before comparing to these norms.',
+        a: 'Yes, women may train and perform full standard push-ups. But the ACSM female comparison in this calculator is based on modified push-ups from the knees. Full and modified repetitions are not interchangeable; for this reference result, use the test protocol shown for the selected sex, or simply track the full repetition count separately without treating its category as validated.',
       },
       {
         q: 'Why does the norm change with age?',
@@ -558,6 +608,8 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       },
     ],
     sources: [
+      { citation: 'ACSM Guidelines for Exercise Testing and Prescription, 10th ed., Table 4.11 (2018), adult age- and protocol-specific reference categories.', url: 'https://www.exercisescienceacademy.online/_files/ugd/86c999_6c889a821c004e86bd71c8e3debfab50.pdf' },
+      { citation: 'Development of a Standard Push-up Scale for College-Aged Females (2022), discussion of standard vs modified push-up protocols.', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC9362895/' },
       {
         citation: 'American College of Sports Medicine. "ACSM\'s Health-Related Physical Fitness Assessment Manual." 5th ed. Lippincott Williams & Wilkins; 2021.',
         url: pubmed('ACSM Health-Related Physical Fitness Assessment Manual push-up test norms'),
@@ -572,11 +624,11 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
   'flexibility-mobility-score': {
     seoTitle: 'Flexibility & Mobility Score — At-Home Test Battery',
     metaDescription:
-      'Test your flexibility and mobility at home with four simple tests. Get an overall score, per-area breakdown, and targeted stretch suggestions. Free, no equipment.',
+      'Check four at-home movements with a 9-point raw tally and transparent, site-defined adjusted index out of 10. Educational, not clinical norms.',
     intro:
-      'Four quick at-home tests — sit-and-reach, shoulder, ankle, and hip mobility — give you an overall mobility score and targeted suggestions for where to focus.',
+      'Four at-home movement checks — sit-and-reach, shoulder, ankle, and hip mobility — yield up to 9 raw points and an illustrative age-adjusted index out of 10. No sex-dependent formulas, diagnostic claims, or validated population norms are used.',
     notice:
-      'Never force a range of motion. Stretch to mild tension, not pain. Sharp pain means stop — it signals strain, not progress. This is a general self-assessment, not a clinical measurement.',
+      'Never force movement or stretch through pain. Sharp pain means stop. This site-defined educational index and its age bonus are not a clinical assessment, validated age/sex norms, or injury-risk prediction.',
     sections: [
       {
         h2: 'The four tests',
@@ -597,13 +649,13 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
         h2: 'How the score works',
         paragraphs: [
           'Each test earns points: the sit-and-reach is scored 0–3 (can\'t reach toes → palms flat), and the shoulder, ankle, and hip tests are each scored 0–2 (fail → pass). The maximum raw score is 9.',
-          'Because flexibility naturally declines with age, adults 40–49 get a +0.5 adjustment and those 50+ get +1 — this is a transparent age bonus, not a penalty. The adjusted score maps to five bands from "Below average" to "Excellent".',
+          'The four observed tasks total up to 9 raw points. The website then adds an illustrative +0.5 points for ages 40–49 or +1 for ages 50+, making the displayed adjusted index out of 10. This bonus and the five descriptive bands are site-defined heuristics, not validated age- or sex-specific population norms. Use the four task results to track your own comfortable movement over time.',
         ],
       },
       {
         h2: 'Reading your per-area breakdown',
         paragraphs: [
-          'The bars show each area individually, coloured by how you scored. Red or amber areas are where to focus your work; green and blue areas are strengths to maintain.',
+          'The bars show each area individually, colored by how you scored. Red or amber areas are where to focus your work; green and blue areas are strengths to maintain.',
           'Most people who sit for long hours will find their hip flexors, hamstrings, and ankles are the tightest. Desk workers in particular benefit from daily hip and chest mobility work — the Sitting Disease Reversal Calculator can help you build movement into your day.',
         ],
       },
@@ -658,36 +710,36 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
   'steps-to-calories-calculator': {
     seoTitle: 'Steps to Calories & Distance Calculator',
     metaDescription:
-      'Convert your daily steps into distance walked and calories burned, using your height and weight. Free steps calculator in km or miles.',
+      'Convert steps to approximate walking distance, gross energy and above-rest energy from height and weight. Kilometers or miles; no measured calorie claims.',
     intro:
-      'Turn a step count into something meaningful. Enter your steps along with your height and weight to estimate how far you walked and how many calories you burned.',
+      'Enter a whole-number step count from one walk or a full day, plus height and weight. See estimated distance, gross walking calories and approximate above-rest energy. These are model outputs, not measured active calories.',
     sections: [
       {
         h2: 'From steps to distance',
         paragraphs: [
-          'Distance depends on your stride length, which scales with your height. This calculator estimates stride as your height × 0.413 for women and × 0.415 for men — a widely used research-based ratio. Multiplying your stride by your step count gives the distance you covered.',
+          'Distance is approximated by multiplying steps by a population-derived step-length shortcut: height × 0.413 for women, or × 0.415 for men. Actual step length can differ; a measured route or calibrated device provides a more personal distance estimate.',
           'Taller people cover more ground per step, so two people taking 10,000 steps can walk noticeably different distances. Using your own height makes the estimate far more personal than a generic "2,000 steps per mile" rule.',
         ],
       },
       {
         h2: 'From steps to calories',
         paragraphs: [
-          'Calories are estimated from the distance you walked and your body weight, using the MET method (about 3.5 METs for a steady walk). Heavier bodies and longer distances burn more, which the calculation reflects.',
-          'This assumes a moderate walking pace. Walking faster, uphill, or carrying weight all increase the burn, so treat the figure as a reasonable estimate rather than an exact count.',
+          'This fixed model assumes 4.8 km/h (about 3 mph), 3.5 MET, and every reported step is level walking. Gross kcal = 3.5 × body mass (kg) × estimated hours, including simplified resting energy. Estimated above-rest kcal = (3.5 − 1) × kg × hours, shown separately. Neither value is a measurement of your actual calorie use.',
+          'Your actual walking pace, slope, load, stops and gait can change the energy cost per step. The model cannot detect them or confirm the exact time walked. The gross kcal figure should not automatically be added to a food budget that already includes daily activity.',
         ],
       },
       {
         h2: 'How many steps should you aim for?',
         paragraphs: [
-          'The famous "10,000 steps" target began as a marketing slogan, but research does support more steps meaning better health. Benefits rise steadily from around 7,000–8,000 steps a day for adults, with gains continuing higher, especially for older adults at lower counts.',
-          'Fewer than 5,000 steps a day is generally considered sedentary. If you’re starting low, adding 1,000–2,000 steps a day is a realistic, effective goal — every extra walk counts.',
+          'The popular 10,000-step daily goal is optional, not a medical requirement. Published adult step-per-day bands describe full-day totals, not the steps from one walking session; none is a clinical diagnosis or a personalized safe exercise target.',
+          'The original adult pedometer categories describe fewer than 5,000 steps/day as sedentary, 5,000–7,499 as low active, 7,500–9,999 somewhat active, 10,000–12,499 active and 12,500 or more highly active. Increase gradually from your own starting level rather than treating a band as a health verdict.',
         ],
       },
     ],
     faq: [
       {
         q: 'How many calories does 10,000 steps burn?',
-        a: 'Very roughly 300–500 calories for most adults, depending on your weight, height and walking speed. This calculator personalises the estimate to your own measurements.',
+        a: 'For the calculator’s 72 kg, 170 cm male example, 10,000 steps produce about 370 gross kcal under the assumed walking pace and MET. Actual gross and additional above-rest calories vary with gait, terrain, pace and individual circumstances.',
       },
       {
         q: 'How is distance from steps calculated?',
@@ -695,56 +747,68 @@ export const FITNESS_CONTENT: Record<string, ToolContent> = {
       },
       {
         q: 'Are 10,000 steps a day necessary?',
-        a: 'No — it’s a popular target, not a medical rule. Health benefits build from around 7,000–8,000 steps a day, and any increase from a low baseline helps.',
+        a: 'No. It is an optional goal, not a medical threshold. Gradual progress from your own baseline is useful, and adult step-count categories only apply to full-day totals, not one walk or a health diagnosis.',
       },
     ],
-    sources: [COMPENDIUM],
+    sources: [
+      COMPENDIUM,
+      {
+        citation: 'Tudor-Locke C, Bassett DR. How many steps/day are enough? Preliminary pedometer indices for public health. Sports Med. 2004.',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/14715035/',
+      },
+      {
+        citation: 'Herrmann SD, et al. 2024 Adult Compendium of Physical Activities: a third update. J Sport Health Sci. 2024.',
+        url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10818145/',
+      },
+    ],
   },
 
   // ============================================================
   'vo2-max-calculator': {
     seoTitle: 'VO₂ Max Calculator (Heart Rate Method)',
     metaDescription:
-      'Estimate your VO₂ max from your resting and maximum heart rate using the Uth–Sørensen method. Free cardio fitness calculator, no test required.',
+      'Get a rough VO₂ max estimate from your age and resting heart rate using the Uth–Sørensen heart-rate ratio. An illustration, not a lab test or fitness grade.',
     intro:
-      'VO₂ max is the gold-standard measure of aerobic fitness — how much oxygen your body can use during hard exercise. Estimate it without a lab test using just your age and resting heart rate.',
+      'VO₂ max is a measure of maximal oxygen uptake. This calculator estimates it indirectly from age and resting pulse, not from a laboratory test; the result is a number with its inputs shown, not a fitness grade, fitness age or clinical assessment.',
+    notice:
+      'For adults 18+. The underlying HR-ratio estimate was studied in well-trained men aged 21–51 and is not equally validated for other ages, sexes or conditions. A very low or high resting pulse, medications or an irregular rhythm can distort the estimate. Call emergency services for chest pain, severe breathlessness, fainting or other serious new symptoms.',
     sections: [
       {
         h2: 'How this estimate works',
         paragraphs: [
-          'This tool uses the Uth–Sørensen "Heart Rate Ratio Method": VO₂ max ≈ 15.3 × (maximum heart rate ÷ resting heart rate). Maximum heart rate is estimated as 220 − age, and a lower resting heart rate — a hallmark of good fitness — produces a higher VO₂ max.',
-          'The result is expressed in millilitres of oxygen per kilogram of body weight per minute (ml/kg/min). It’s a convenient estimate that needs no exercise test, which makes it easy to track over time.',
+          'This tool uses the Uth–Sørensen heart-rate ratio: VO₂ max ≈ 15.3 × (estimated maximum heart rate ÷ resting heart rate), with maximum heart rate approximated as 220 − age. The original study examined 46 well-trained men aged 21–51, so accuracy for other ages, sexes, fitness levels and medication use is uncertain. A lower resting pulse may reflect training, medicines or a medical condition; it does not automatically prove better fitness.',
+          'The result is expressed in milliliters of oxygen per kilogram per minute (mL/kg/min). It is a rough numerical estimate rather than a direct metabolic measurement. Resting pulse near or above age-predicted maximum cannot support a meaningful ratio, so that input combination is not graded.',
         ],
       },
       {
         h2: 'What your number means',
         paragraphs: [
-          'Higher VO₂ max means your heart, lungs and muscles deliver and use oxygen more efficiently. As a general guide for adults, under 30 is below average, 40–50 is good, and above 60 is found in well-trained endurance athletes. Healthy ranges shift with age and differ between men and women, so compare yourself mainly to your own trend.',
-          'VO₂ max is strongly linked to long-term health: higher cardiorespiratory fitness is associated with lower risk of heart disease and death from all causes.',
+          'Laboratory-measured VO₂ max describes aerobic oxygen uptake. This calculator does not grade the estimate against sex- or age-adjusted reference values, and it does not compute a fitness age. A predicted VO₂ max must not be treated as a validated norm for an individual; it can change simply because resting pulse changes.',
+          'Measured cardiorespiratory fitness has been associated with long-term outcomes in research, but this two-input estimate does not independently predict an individual person’s lifespan, disease status or biological age.',
         ],
       },
       {
         h2: 'Improving your VO₂ max',
         paragraphs: [
-          'The most effective way to raise VO₂ max is regular aerobic training, especially interval work that pushes you close to your maximum heart rate, balanced with longer steady sessions. Consistency over months is what moves the number.',
-          'Because this method relies on an accurate resting heart rate, measure your pulse first thing in the morning before getting up, ideally averaged over a few days. As your fitness improves and your resting heart rate falls, your estimated VO₂ max will rise.',
+          'Aerobic activity can improve cardiovascular fitness over time. Very demanding intervals are not necessary for every person and should not be treated as a prescription based on a calculated VO₂ max or a predicted maximum heart rate.',
+          'For consistent tracking, measure resting pulse after waking under similar conditions over several mornings. Changes in medication, illness, hydration and rhythm can change the computed score independently of measured oxygen uptake; if your pulse is repeatedly unusually low, high or irregular, seek professional guidance.',
         ],
       },
     ],
     faq: [
       {
         q: 'What is a good VO₂ max?',
-        a: 'It varies with age and sex, but as a general guide for adults, 40–50 ml/kg/min is good and above 60 is excellent. Compare your result mainly against your own progress over time.',
+        a: 'Reference values for measured VO₂ max vary with age, sex and testing methods. This two-input calculator does not apply validated age- and sex-specific norms, so it does not label your result as good or poor.',
       },
       {
         q: 'How accurate is the heart-rate VO₂ max estimate?',
-        a: 'The Uth–Sørensen method is a useful, non-exercise estimate but less precise than a lab test. Its accuracy depends heavily on an accurate resting heart rate measurement.',
+        a: 'It uses a heart-rate ratio originally tested in well-trained men aged 21–51. Replacing measured maximum pulse with 220 minus age and applying the same factor to other populations adds uncertainty; laboratory gas-analysis testing is a different level of evidence.',
       },
       {
         q: 'How can I improve my VO₂ max?',
-        a: 'Regular aerobic exercise — particularly interval training near your maximum heart rate, combined with steady endurance work — raises VO₂ max over weeks and months of consistent training.',
+        a: 'Regular appropriately paced aerobic activity can help improve capacity; build progressively. High-intensity intervals are not necessary for everyone, and exertional symptoms or heart conditions require individualized advice.',
       },
     ],
-    sources: [UTH],
+    sources: [UTH, HR_RATIO_LIMITS, AHA_HRMAX, AHA_PULSE_VO2],
   },
 };

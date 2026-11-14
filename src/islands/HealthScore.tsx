@@ -255,7 +255,7 @@ export default function HealthScore() {
         <div class="hs-intro">
           <span class="pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7" /></svg> Under 3 minutes · 13 quick questions</span>
           <h2>Ready when you are</h2>
-          <p>Answer a few private questions to get your overall Health Score, six sub-scores, and a personalised plan. Nothing is uploaded — your answers stay on this device.</p>
+          <p>Answer a few private questions to get your overall Health Score, six sub-scores, and a personalized plan. Nothing is uploaded — your answers stay on this device.</p>
 
           {saved && (
             <div class="hs-intro__last">
@@ -370,7 +370,7 @@ export default function HealthScore() {
             <Dial score={result.overall} color={band.color} band={band.label} />
             <div class="hs-result__intro">
               <h2>Your Health Score</h2>
-              <p>Here’s your personalised wellness snapshot. Use the strengths to stay motivated and the focus areas to choose your next step.</p>
+              <p>Here’s your personalized wellness snapshot. Use the strengths to stay motivated and the focus areas to choose your next step.</p>
               {delta !== null && (
                 <p class="hs-delta">
                   {delta === 0 ? 'Same as your last check.' : delta > 0 ? `Up ${delta} from your last check (${prevForCompare}). Nice work!` : `Down ${Math.abs(delta)} from your last check (${prevForCompare}).`}

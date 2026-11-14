@@ -21,6 +21,8 @@ const PATTERNS: Record<Technique, Phase[]> = {
 export default function BreathingTimer(_: { slug: string }) {
   const [technique, setTechnique] = useState<Technique>('box');
   const [running, setRunning] = useState(false);
+  // Pause previously restarted the exercise; `started` lets Start resume.
+  const [started, setStarted] = useState(false);
   const [t, setT] = useState({ phase: 0, left: 4, cycles: 0 });
 
   const pattern = PATTERNS[technique];
@@ -44,15 +46,20 @@ export default function BreathingTimer(_: { slug: string }) {
 
   const reset = (tech: Technique = technique) => {
     setRunning(false);
+    setStarted(false);
     setT({ phase: 0, left: PATTERNS[tech][0].secs, cycles: 0 });
   };
-  const start = () => { if (!running) setT({ phase: 0, left: pattern[0].secs, cycles: 0 }); setRunning(true); };
+  const start = () => {
+    if (!started) setT({ phase: 0, left: pattern[0].secs, cycles: 0 });
+    setStarted(true);
+    setRunning(true);
+  };
   const switchTechnique = (tech: Technique) => { setTechnique(tech); reset(tech); };
 
   const phase = pattern[t.phase];
-  const scale = running ? phase.scale : 0.7;
-  const label = running ? phase.label : 'Ready';
-  const count = running ? t.left : '';
+  const scale = started ? phase.scale : 0.7;
+  const label = started ? (running ? phase.label : 'Paused') : 'Ready';
+  const count = started ? t.left : '';
   // Match the scale transition to the phase length so growth/shrink is smooth.
   const dur = running ? phase.secs : 0.6;
 
@@ -60,7 +67,7 @@ export default function BreathingTimer(_: { slug: string }) {
     <div class="calc">
       <div class="calc__form">
         <div class="calc__toolbar">
-          <h2 class="calc__heading">Box Breathing</h2>
+          <h2 class="calc__heading">{technique === 'box' ? 'Box breathing' : '4-7-8 breathing'}</h2>
           <div class="seg" role="group" aria-label="Technique">
             <button type="button" class={`seg__btn${technique === 'box' ? ' is-active' : ''}`} aria-pressed={technique === 'box'} onClick={() => switchTechnique('box')}>4-4-4-4</button>
             <button type="button" class={`seg__btn${technique === '478' ? ' is-active' : ''}`} aria-pressed={technique === '478'} onClick={() => switchTechnique('478')}>4-7-8</button>
@@ -78,22 +85,25 @@ export default function BreathingTimer(_: { slug: string }) {
         </div>
       </div>
 
-      <div class="calc__result breathe" aria-live="polite">
+      <div class="calc__result breathe">
+        {/* Announce phase changes only; the per-second count is not announced. */}
+        <p class="sr-only" aria-live="polite">{label}</p>
         <div class="breathe__stage">
           <div class="breathe__circle" style={`transform:scale(${scale});transition-duration:${dur}s`} />
           <div class="breathe__text">
             <span class="breathe__label">{label}</span>
-            {count !== '' && <span class="breathe__count">{count}</span>}
+            {count !== '' && <span class="breathe__count" aria-hidden="true">{count}</span>}
           </div>
         </div>
         <div class="breathe__controls">
           {!running
-            ? <button type="button" class="btn btn-primary" onClick={start}>Start</button>
+            ? <button type="button" class="btn btn-primary" onClick={start}>{started ? 'Resume' : 'Start'}</button>
             : <button type="button" class="btn btn-outline" onClick={() => setRunning(false)}>Pause</button>}
           <button type="button" class="btn btn-outline" onClick={() => reset()}>Reset</button>
         </div>
         <p class="quiz__disclaimer" style="margin-top:1.25rem">
           A calming exercise, not a diagnostic tool. If you’re struggling, please talk to a qualified professional. Stop if you feel dizzy or unwell.
+          If you are pregnant or have a heart or lung condition, skip the breath holds or keep them short and comfortable.
         </p>
       </div>
     </div>

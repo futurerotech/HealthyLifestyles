@@ -53,7 +53,7 @@ export default function MusclePreservation() {
           <label class="mp__field">
             <span>Current weight</span>
             <div class="mp__input-unit">
-              <input type="number" min="1" value={weight} onInput={(e) => setWeight(num((e.target as HTMLInputElement).value, 0))} />
+              <input type="number" min={units === 'kg' ? 25 : 55} max={units === 'kg' ? 350 : 770} value={weight} onInput={(e) => setWeight(num((e.target as HTMLInputElement).value, 0))} />
               <small>{units}</small>
             </div>
           </label>
@@ -109,6 +109,12 @@ export default function MusclePreservation() {
           )}
         </div>
       </div>
+
+      {/* Always shown with the protein target: high-protein targets are not for people with kidney disease. */}
+      <p class="mp__kidney" role="note">
+        <strong>Kidney disease, or told to limit protein?</strong> Don’t raise your protein without talking to your doctor or dietitian —
+        these targets assume healthy kidneys.
+      </p>
 
       {/* ---------------- Safety flag ---------------- */}
       {r.rapid && (

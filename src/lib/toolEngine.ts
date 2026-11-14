@@ -15,7 +15,14 @@ const DATE_TOOLS = new Set([
   'ovulation-calculator',
   'period-calculator',
 ]);
-const QUIZ_TOOLS = new Set(['sleep-quality-check', 'stress-level-check', 'burnout-self-check']);
+// Every questionnaire in islands/quizzes/quiz-defs.ts must be listed here, or its
+// page falls through to the numeric engine and renders no calculator at all
+// (PHQ-9, GAD-7 and WHO-5 were missing from 2026-07-05 to 2026-11-14).
+// tool-engine-integrity.test.mjs enforces this for every tool.
+const QUIZ_TOOLS = new Set([
+  'sleep-quality-check', 'stress-level-check', 'burnout-self-check',
+  'phq-9-depression-screener', 'gad-7-anxiety-screener', 'who-5-wellbeing-screener',
+]);
 
 /** Slug → engine for the coded-island tools (each has its own bespoke island).
  *  Must mirror the engine switch in ToolPageLayout.astro. */

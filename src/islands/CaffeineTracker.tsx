@@ -1,6 +1,6 @@
 /** @jsxImportSource preact */
 import { useState } from 'preact/hooks';
-import { CAFFEINE_PRESETS, SAFE_DAILY_CAFFEINE_MG } from '../lib/caffeine';
+import { CAFFEINE_PRESETS, PREGNANCY_DAILY_CAFFEINE_MG, SAFE_DAILY_CAFFEINE_MG } from '../lib/caffeine';
 
 export default function CaffeineTracker() {
   const [counts, setCounts] = useState<number[]>(() => CAFFEINE_PRESETS.map(() => 0));
@@ -52,9 +52,9 @@ export default function CaffeineTracker() {
         <span class="ct__total-num">{total} <small>mg</small></span>
         <div class="ct__bar" aria-hidden="true">
           <div class={`ct__bar-fill ct__bar-fill--${status}`} style={`width:${pct}%`}></div>
-          <span class="ct__bar-limit" title={`${limit} mg limit`}></span>
+          <span class="ct__bar-limit" title={`${limit} mg general daily amount for healthy adults`}></span>
         </div>
-        <span class="ct__bar-scale">0 mg<span>{limit} mg safe limit</span></span>
+        <span class="ct__bar-scale">0 mg<span>{limit} mg general limit (healthy adults)</span></span>
         <p class={`ct__status ct__status--${status}`}>{statusText[status]}</p>
       </div>
 
@@ -62,8 +62,9 @@ export default function CaffeineTracker() {
         Want to know how late is too late? Try the <a href="/tools/caffeine-curfew-calculator">Caffeine Curfew Calculator</a> to time your last cup for better sleep.
       </p>
       <p class="ct__note">
-        General wellness education, not medical advice. The ~{limit} mg figure is for healthy adults; pregnant people and those
-        sensitive to caffeine should aim considerably lower. Drink caffeine amounts vary by brand and size — these are typical values.
+        General wellness education, not medical advice. The ~{limit} mg figure is the FDA’s general amount for healthy adults, not a target.
+        If you are pregnant, keep to under {PREGNANCY_DAILY_CAFFEINE_MG} mg a day; children, teens and people sensitive to caffeine or taking
+        certain medicines should have less, and can ask a doctor or pharmacist. Drink caffeine amounts vary by brand and size — these are typical values.
       </p>
     </div>
   );

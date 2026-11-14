@@ -228,7 +228,7 @@ export const WOMENS_CONTENT: Record<string, ToolContent> = {
   'pregnancy-weight-gain-calculator': {
     seoTitle: 'Pregnancy Weight Gain Calculator (IOM)',
     metaDescription:
-      'See your recommended pregnancy weight-gain range by pre-pregnancy BMI using IOM guidelines, plus a healthy target for your current week. Free.',
+      'See the IOM recommended pregnancy weight-gain range for your pre-pregnancy BMI, plus an estimated range for your current week. For a single baby. Free.',
     intro:
       'Healthy pregnancy weight gain depends on your weight before pregnancy. Enter your details to see your recommended total gain and a healthy target for the week you’re in, based on IOM guidelines.',
     notice: OBGYN_NOTICE,
@@ -243,7 +243,7 @@ export const WOMENS_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'Gaining at a healthy pace',
         paragraphs: [
-          'Most weight gain happens in the second and third trimesters. In the first trimester, a gain of just 1–4.5 lb (about 0.5–2 kg) is typical. After that, a steady rate of roughly 0.5–1 lb per week is recommended for those who started at a healthy weight, and a little less if you began overweight.',
+          'Most weight gain happens in the second and third trimesters. In the first trimester, a gain of just 1–4.5 lb (about 0.5–2 kg) is typical. After that, the IOM’s recommended rate is about 1 lb a week (a range of 0.8–1 lb, roughly 0.35–0.5 kg) for those who started at a healthy weight, and about 0.5–0.7 lb (0.23–0.33 kg) a week if you began overweight.',
           'The gauge above compares the weight you’ve gained so far with the healthy range for your week, so you can see whether you’re on track, a little behind, or ahead.',
         ],
       },

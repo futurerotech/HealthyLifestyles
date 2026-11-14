@@ -130,8 +130,8 @@ function Disclaimer() {
   return (
     <p class="if__disclaimer" role="note">
       <strong>This isn’t medical advice, and fasting isn’t for everyone.</strong> It’s not recommended if you’re pregnant or
-      breastfeeding, under 18, have a history of disordered eating, or have diabetes or another condition affected by meal
-      timing — check with a healthcare professional first.
+      breastfeeding, under 18, have a history of disordered eating, have diabetes or another condition affected by meal
+      timing, or take medicine that lowers blood sugar or must be taken with food — check with a healthcare professional first.
     </p>
   );
 }

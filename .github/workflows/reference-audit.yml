@@ -1,0 +1,38 @@
+name: Reference integrity audit (Phase 3 §7.4)
+
+# Read-only audit of the sources cited by published articles. It never blocks
+# releases and writes nothing to the CMS. It runs only when the audit itself
+# changes, or on request.
+on:
+  pull_request:
+    paths:
+      - 'scripts/content/reference-audit.mjs'
+      - 'scripts/content/editorial-lint.mjs'
+      - '.github/workflows/reference-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Audit cited sources
+        run: node scripts/content/reference-audit.mjs
+      - name: Editorial lint (§7.3/§7.5)
+        if: always()
+        run: node scripts/content/editorial-lint.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reference-audit
+          path: |
+            reference-audit.json
+            editorial-lint.json
+          retention-days: 30
