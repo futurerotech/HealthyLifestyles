@@ -46,10 +46,11 @@ import { MEDICAL_SCORE_SLUGS, resolveToolPagePresentation } from '../lib/tool-co
 interface Props {
   tool: Tool;
   content: ToolContent;
-  stylesheet?: string;
+  /** Engine-specific CSS, inlined into <head> (no render-blocking request). */
+  inlineCss?: string;
 }
 
-const { tool, stylesheet } = Astro.props;
+const { tool, inlineCss } = Astro.props;
 // CMS copy and SEO metadata take precedence over authored copy, as before.
 // Source precedence for a reviewed calculator applies only once the owner has
 // approved it in lib/tool-copy-safety.ts (SOURCE_COPY_APPROVED, empty today).
@@ -193,7 +194,7 @@ const medicalLd = {
   jsonLd={[breadcrumbLd, appLd, ...(faqLd.mainEntity.length ? [faqLd] : []), medicalLd]}
   seo={seo}
 >
-  <Fragment slot="head">{stylesheet && <link rel="stylesheet" href={stylesheet} />}</Fragment>
+  <Fragment slot="head">{inlineCss && <style is:inline set:html={inlineCss} />}</Fragment>
   <article class="tool" data-cms-id={tool.cmsId}>
     <!-- Branded header shown only when printing / saving to PDF -->
     <div class="print-only print-sheet-head">

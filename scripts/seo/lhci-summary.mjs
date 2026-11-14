@@ -12,9 +12,13 @@ for (const f of files) {
   const lhr = JSON.parse(await readFile(`${dir}/${f}`, 'utf8'));
   const url = new URL(lhr.requestedUrl || lhr.finalUrl).pathname;
   const a = lhr.audits;
-  const el = a['largest-contentful-paint-element']?.details?.items || [];
-  const node = el[0]?.items?.[0]?.node;
-  const phases = (el[1]?.items || []).map((p) => `${p.phase}=${Math.round(p.timing)}`).join(' ');
+  // The LCP element and its phases moved between Lighthouse versions (classic audit vs
+  // "insight" audits), so search every LCP-related audit for them.
+  const find = (v, pred, out = []) => { if (v && typeof v === 'object') { if (pred(v)) out.push(v); for (const x of Object.values(v)) find(x, pred, out); } return out; };
+  const lcpAudits = Object.entries(a).filter(([id]) => /lcp|largest-contentful/.test(id)).map(([, v]) => v.details);
+  const node = find(lcpAudits, (v) => v.type === 'node' || (v.nodeLabel && v.snippet))[0];
+  const phases = [...new Map(find(lcpAudits, (v) => (v.phase || v.subpart || v.label) && typeof (v.timing ?? v.duration) === 'number')
+    .map((p) => [p.phase || p.subpart || p.label, Math.round(p.timing ?? p.duration)])).entries()].map(([k, t]) => `${k}=${t}`).join(' ');
   const scripts = (a['bootup-time']?.details?.items || []).slice(0, 3).map((s) => `${String(s.url).split('/').pop()}:${Math.round(s.total)}ms`).join(' ');
   const jsBytes = (a['network-requests']?.details?.items || []).filter((r) => r.resourceType === 'Script').reduce((n, r) => n + (r.transferSize || 0), 0);
   (byUrl.get(url) || byUrl.set(url, []).get(url)).push({
