@@ -11,14 +11,26 @@
 //   - every image in <main> has an alt attribute;
 //   - exactly one <h1>, and no heading level is skipped after it;
 //   - the tool calculator, when present, hydrates;
-//   - no uncaught JavaScript exceptions.
+//   - no uncaught JavaScript exceptions;
+//   - WCAG 2.2 AA contrast (contrast-audit.mjs): text 4.5:1 / large 3:1 incl. placeholders
+//     (SC 1.4.3) and form-field boundaries 3:1 (SC 1.4.11). On the templates and one tool
+//     per island type, also focus-indicator contrast via real Tab presses and text contrast
+//     of buttons and links in their hover state.
+//
+// With QA_STATIC_DIR=dist/client the same audit runs against the production build
+// (CI, after `npm run build`). There a hydration retry is a failure: the dev-server
+// compile delay that justifies one retry does not exist in built output.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { startBrowserSession, until, delay } from './browser-harness.mjs';
+import { CONTRAST_AUDIT, contrastAudit, FOCUS_BASELINE, FOCUS_CONTRAST } from './contrast-audit.mjs';
 
 const contract = JSON.parse(readFileSync(new URL('../../../src/lib/site-contract.json', import.meta.url), 'utf8'));
 const TOOLS = contract.tools.map((t) => (typeof t === 'string' ? t : t.slug));
+// One tool page per island type, for the focus and hover state checks.
+const STATE_TOOLS = ['bmi-calculator', 'meal-plan-generator', 'strength-program-builder', 'hrv-explainer-log', 'due-date-calculator', 'sleep-calculator',
+  'running-pace-calculator', 'phq-9-depression-screener', 'food-symptom-diary', 'recipe-nutrition-analyzer', 'box-breathing-timer', 'healthspan-score', 'intermittent-fasting-calculator'];
 const TEMPLATES = ['/', '/tools', '/wellness-hub', '/nutrition', '/sleep', '/about', '/methodology', '/contact', '/health-score', '/sitemap',
   '/wellness-hub/how-many-calories-to-lose-weight', '/wellness-hub/healthy-bmi-by-age', '/wellness-hub/due-date-by-conception-date'];
 
@@ -77,9 +89,11 @@ export const PAGE_AUDIT = `(() => {
 })()`;
 
 test('site-wide 390px and desktop QA: overflow, names, target size, images, headings', { timeout: 1500000 }, async () => {
-  const s = await startBrowserSession({ probePath: '/tools/bmi-calculator', tag: 'SITE_QA' });
+  const staticDir = process.env.QA_STATIC_DIR;
+  const s = await startBrowserSession({ probePath: '/tools/bmi-calculator', tag: 'SITE_QA', staticDir });
   const failures = [];
-  let pages = 0;
+  let pages = 0, contrastChecked = 0, focusChecked = 0, hoverChecked = 0;
+  const indeterminate = new Set(), focusManual = new Set();
   try {
     const paths = [...TEMPLATES, ...TOOLS.map((t) => '/tools/' + t)];
     for (const path of paths) {
@@ -106,7 +120,11 @@ test('site-wide 390px and desktop QA: overflow, names, target size, images, head
               const pending = await s.js(`${PENDING}.map((i)=>(i.getAttribute('component-url')||'').split('/').pop()+' '+(i.getAttribute('client')||''))`).catch(() => []);
               await s.send('Page.reload', { ignoreCache: false });
               await until(() => s.js("document.readyState==='complete'"), 'reload', 45000);
-              try { await hydrate(); console.log(`[SITE_QA] ${path} @${w}: hydrated after one reload (first wait pending ${JSON.stringify(pending)})`); }
+              try {
+                await hydrate();
+                if (staticDir) fail(`hydrated only after a reload (production build) pending=${JSON.stringify(pending)} console=${JSON.stringify([...new Set(s.consoleErrors)].slice(-4))}`);
+                else console.log(`[SITE_QA] ${path} @${w}: hydrated after one reload (first wait pending ${JSON.stringify(pending)})`);
+              }
               catch (e) {
                 const facts = await s.js(`(()=>{const i=${PENDING}[0];if(!i)return null;return {scrollY:Math.round(scrollY),vh:innerHeight,props:(i.getAttribute('props')||'').slice(0,160),kids:[...i.children].slice(0,4).map((c)=>{const r=c.getBoundingClientRect();const cs=getComputedStyle(c);return c.tagName+'.'+String(c.className).slice(0,40)+' '+Math.round(r.top)+'/'+Math.round(r.height)+' '+cs.display+' '+cs.visibility+' '+cs.position;}),anc:(()=>{const out=[];for(let p=i.parentElement;p&&out.length<6;p=p.parentElement){const cs=getComputedStyle(p);out.push(p.tagName+'.'+String(p.className).slice(0,30)+' '+cs.display+' '+cs.overflow+' '+cs.contentVisibility);}return out;})()};})()`).catch((x) => String(x));
                 throw Error(String(e) + ' pending=' + JSON.stringify(pending) + ' facts=' + JSON.stringify(facts) + ' console=' + JSON.stringify([...new Set(s.consoleErrors)].slice(-4)) + ' exceptions=' + JSON.stringify([...new Set(s.exceptions)].slice(-3)));
@@ -125,10 +143,46 @@ test('site-wide 390px and desktop QA: overflow, names, target size, images, head
         if (a.h1 !== 1) fail(`expected one h1, found ${a.h1}`);
         if (a.skips.length) fail('heading levels skipped ' + JSON.stringify(a.skips));
         if (s.exceptions.length) fail('uncaught exceptions ' + JSON.stringify([...new Set(s.exceptions)]));
+
+        const c = await s.js(CONTRAST_AUDIT);
+        contrastChecked += c.checked;
+        for (const x of c.indeterminate) indeterminate.add(path + ' ' + x);
+        if (c.fails.length) fail('contrast (WCAG 1.4.3/1.4.11) ' + JSON.stringify(c.fails.slice(0, 10)));
+
+        if (TEMPLATES.includes(path) || STATE_TOOLS.some((t) => path === '/tools/' + t)) {
+          // Focus indicators, reached the way a keyboard user reaches them.
+          await s.js('document.activeElement?.blur(); scrollTo(0,0)');
+          await s.js(FOCUS_BASELINE);
+          const seenFocus = new Set();
+          for (let i = 0; i < 45; i++) {
+            await Promise.all(['keyDown', 'keyUp'].map((type) => s.send('Input.dispatchKeyEvent', { type, key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 })));
+            const f = await s.js(FOCUS_CONTRAST);
+            if (!f || f.unknown || f.indeterminate || seenFocus.has(f.el)) continue;
+            seenFocus.add(f.el);
+            if (!f.changed) fail('focus not visible (SC 2.4.7) ' + f.el);
+            else if (!f.ok) fail('focus indicator contrast (SC 1.4.11) ' + f.el + ' ' + f.best + ' on ' + f.on);
+            else if (f.otherOnly) focusManual.add(path + ' ' + f.el);
+            focusChecked++;
+          }
+          await s.js('document.activeElement?.blur()');
+          // Hover state: text contrast of buttons and links while the pointer is over them.
+          const spots = await s.js(`[...document.querySelectorAll('main .btn, main button, header a[href], main a.btn, .tool__calc a[href]')].filter((e)=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0&&r.top>=0&&r.bottom<=innerHeight;}).slice(0,10).map((e,i)=>{e.setAttribute('data-qa-hover',i);const r=e.getBoundingClientRect();return [i,r.left+r.width/2,r.top+r.height/2];})`);
+          for (const [i, x, y] of spots) {
+            await s.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y });
+            await delay(220); // let hover transitions settle
+            const h = await s.js(contrastAudit(`document.querySelector('[data-qa-hover="${i}"]')`));
+            hoverChecked++;
+            if (h.fails.length) fail('hover-state contrast ' + JSON.stringify(h.fails));
+          }
+          await s.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 1, y: 1 });
+        }
       }
     }
   } finally { await s.stop(); }
-  console.log(`[SITE_QA] audited ${pages} page views; ${failures.length} failures`);
+  console.log(`[SITE_QA] ${staticDir ? 'production build ' + staticDir : 'dev server'}: audited ${pages} page views; ${failures.length} failures`);
+  console.log(`[SITE_QA] contrast: ${contrastChecked} text/field checks, ${focusChecked} focus stops, ${hoverChecked} hover states; ${indeterminate.size} indeterminate (image/gradient backgrounds, manual check)`);
+  for (const x of [...indeterminate].slice(0, 40)) console.log('[SITE_QA_MANUAL] contrast over image/gradient: ' + x);
+  for (const x of [...focusManual].slice(0, 40)) console.log('[SITE_QA_MANUAL] focus shown by fill/color/underline only: ' + x);
   for (const f of failures) console.log('[SITE_QA_FAIL] ' + f);
   assert.deepEqual(failures, []);
 });

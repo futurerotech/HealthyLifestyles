@@ -53,7 +53,9 @@ export const CONTACT = {
  * There is no static fallback.
  */
 export const ADS = {
-  publisherId: process.env.ADSENSE_PUBLISHER_ID ?? null,
+  // consts.ts is also bundled into client islands (meal plan, AI assistant), where
+  // `process` does not exist; reading it unguarded threw during hydration.
+  publisherId: (typeof process !== 'undefined' ? process.env.ADSENSE_PUBLISHER_ID : undefined) ?? null,
 } as const;
 
 /**
