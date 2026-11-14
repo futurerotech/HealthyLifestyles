@@ -6,7 +6,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 const ROOTS = ['src/data', 'src/islands', 'src/components', 'src/pages', 'src/layouts'];
-const BRITISH = /\b(fibre|colour(?:s|ed|ful)?|behaviour(?:s|al)?|(?:milli|centi|kilo)?(?:litre|metre)s?|favour(?:ite|s)?|programme|counsellor|(?:prioriti|organi|standardi|personali|optimi|minimi|recogni)s(?:e|ed|es|ing|ation))\b/gi;
+const BRITISH = /\b(fibre|colour(?:s|ed|ful)?|behaviour(?:s|al)?|(?:milli|centi|kilo)?(?:litre|metre)s?|favour(?:ite|s)?|programme|counsellor|(?:prioriti|organi|standardi|personali|optimi|minimi|recogni|normali|emphasi|summari|apologi|reali|utili)s(?:e|ed|es|ing|ation))\b/gi;
 // Proper names / cited titles, kept verbatim.
 const ALLOWED = [/sedentary behaviour/i, /Intersun Programme/i];
 const files = (d) => readdirSync(d).flatMap((n) => { const p = join(d, n); return statSync(p).isDirectory() ? files(p) : /\.(ts|tsx|astro|mjs)$/.test(n) ? [p] : []; });
