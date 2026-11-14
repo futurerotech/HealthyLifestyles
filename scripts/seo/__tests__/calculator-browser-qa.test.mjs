@@ -27,6 +27,7 @@ const SLUGS = [
   'walk-it-off-calculator', 'heart-disease-risk-calculator', 'diabetes-risk-calculator',
   'waist-health-risk-calculator', 'metabolic-age-calculator', 'lean-body-mass-calculator',
   'alcohol-calorie-calculator', 'healthspan-score', 'sitting-disease-reversal-calculator',
+  'due-date-calculator', 'pregnancy-week-calculator', 'ovulation-calculator', 'period-calculator',
 ];
 
 const host = '127.0.0.1';
