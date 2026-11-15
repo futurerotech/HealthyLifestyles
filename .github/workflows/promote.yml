@@ -10,7 +10,8 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
+  # A new commit supersedes an older run on the same ref; the latest exact SHA still runs every gate.
+  cancel-in-progress: true
 
 permissions:
   contents: read
