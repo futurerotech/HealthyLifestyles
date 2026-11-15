@@ -79,7 +79,10 @@ export function sanitize(value, path = '', dropped = []) {
   return { value, dropped };
 }
 
-const sha = (v) => createHash('sha256').update(JSON.stringify(v)).digest('hex');
+/** Canonical JSON (recursively sorted keys). Shared with the CMS importer's `checksum` (staging-import.ts). */
+const canon = (v) => Array.isArray(v) ? v.map(canon) : v && typeof v === 'object' ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, canon(v[k])])) : v;
+export const checksum = (v) => createHash('sha256').update(JSON.stringify(canon(v))).digest('hex');
+const sha = checksum;
 
 /** Build the bundle from already-fetched public data (pure, so it can be tested offline). */
 export function buildBundle({ cmsOrigin, collections, globals, capturedAt, allowFindings = false }) {

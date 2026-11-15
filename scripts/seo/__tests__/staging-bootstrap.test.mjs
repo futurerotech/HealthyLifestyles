@@ -54,3 +54,13 @@ test('no false positives on public editorial fields: author credentials, numeric
   assert.equal(scanEmbedded({ x: 'Call 555-010-2030' }).length, 1);
   assert.equal(scanEmbedded({ x: 'Tel +44 20 7946 0958' }).length, 1);
 });
+
+import { checksum } from '../../content/staging-bootstrap-export.mjs';
+
+test('checksum is canonical and identical to the CMS importer (shared fixed vector)', () => {
+  // Same vector as healthylifestyles-cms src/lib/staging-import.test.ts.
+  assert.equal(checksum({ b: 2, a: [1, { d: 4, c: 3 }] }), 'b90ecf34c980b7ce791e11520e8f83c0c20ddbc78be1ff95bd85fb7708edb05a');
+  const b = buildBundle({ cmsOrigin: 'https://cms.healthylifesstyles.com', capturedAt: 't', collections: { articles: [{ slug: 'x', id: 1, title: 'T' }] }, globals: {} });
+  assert.equal(b.checksums['articles:1'], checksum({ id: 1, slug: 'x', title: 'T' }));
+  assert.equal(b.scope, 'published public content only');
+});
