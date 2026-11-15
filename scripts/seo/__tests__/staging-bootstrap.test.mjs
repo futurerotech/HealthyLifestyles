@@ -47,6 +47,15 @@ test('findings name the record (collection, id, slug) for private CMS review, ne
   assert.ok(!JSON.stringify(b.findings).includes('010-2030'));
 });
 
+import { maskedContext, valueAt } from '../../content/staging-bootstrap-export.mjs';
+test('masked review context shows words and the number shape, never a digit or an email', () => {
+  const text = 'If you need support, call the national helpline at 800-662-4357 or write to a@b.org for help.';
+  const m = maskedContext(text, 'phone number');
+  assert.deepEqual(m, { before: ' support, call the national helpline at ', shape: '###-###-####', after: ' or write to <email> for help.' });
+  assert.ok(!/\d/.test(JSON.stringify(m)));
+  assert.equal(valueAt({ collections: { articles: [{ layout: [{ text }] }] } }, 'collections.articles[0].layout[0].text'), text);
+});
+
 test('media rows are derived from populated references only, deduplicated', () => {
   const m = { id: 9, filename: 'a.png', mimeType: 'image/png', url: 'https://media/a.png', alt: 'A' };
   const media = referencedMedia({ articles: [{ id: 1, heroImage: m }, { id: 2, layout: [{ image: m }, { image: { id: 10, filename: 'b.png', mimeType: 'image/png' } }] }] });

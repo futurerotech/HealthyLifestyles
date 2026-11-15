@@ -41,6 +41,20 @@ const EMBEDDED = [
   // North American format, or + country code followed by 8-12 grouped digits.
   ['phone number', /(?:\(\d{3}\)\s?|\b\d{3}[\s.-])\d{3}[\s.-]\d{4}\b|\+\d{1,3}(?:[\s.-]?\d{2,4}){3,5}\b/],
 ];
+/**
+ * Privacy-safe review aid: the matched value's shape and up to 40 characters on each side,
+ * with every digit replaced by "#". Words remain, so a reviewer can tell a published helpline
+ * ("call the national helpline at ###-###-####") from a personal number, but no number is shown.
+ */
+export function maskedContext(text, kind) {
+  const re = EMBEDDED.find(([k]) => k === kind)?.[1];
+  const m = re && re.exec(String(text));
+  if (!m) return null;
+  const mask = (s) => s.replace(/\d/g, '#').replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+/g, '<email>');
+  const s = String(text);
+  return { before: mask(s.slice(Math.max(0, m.index - 40), m.index)), shape: mask(m[0]), after: mask(s.slice(m.index + m[0].length, m.index + m[0].length + 40)) };
+}
+export const valueAt = (root, path) => path.split(/\.|\[(\d+)\]/).filter(Boolean).reduce((v, k) => (v == null ? v : v[k]), root);
 /** Public site addresses already published on every page; reviewed and allowed. */
 export const REVIEWED_PUBLIC_EMAILS = ['hello@healthylifesstyles.com'];
 
@@ -124,7 +138,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const globals = {};
   for (const g of GLOBALS) { const r = await fetch(`${origin}/api/globals/${g}?depth=1`); if (!r.ok) throw new Error(`global ${g}: HTTP ${r.status}`); globals[g] = await r.json(); }
   const bundle = buildBundle({ cmsOrigin: origin, collections, globals, capturedAt: new Date().toISOString(), allowFindings: true });
-  console.log('[STAGING_EXPORT_DRYRUN] ' + JSON.stringify({ counts: bundle.counts, globals: Object.keys(bundle.globals), dropped: bundle.dropped, findings: bundle.findings }));
+  const reviewed = bundle.findings.map((fd) => ({ ...fd, masked: maskedContext(valueAt(bundle, fd.path), fd.kind) }));
+  console.log('[STAGING_EXPORT_DRYRUN] ' + JSON.stringify({ counts: bundle.counts, globals: Object.keys(bundle.globals), dropped: bundle.dropped, findings: reviewed }));
   const out = process.argv.indexOf('--out');
   if (out > 0) (await import('node:fs/promises')).writeFile(process.argv[out + 1], JSON.stringify(bundle));
 }
