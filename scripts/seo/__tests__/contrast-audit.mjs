@@ -41,6 +41,9 @@ const bgOf = (el) => {
       for (const sib of n.parentElement.children) {
         if (sib === n) break;
         const sc = getComputedStyle(sib), sr = sib.getBoundingClientRect();
+        // A sibling that paints nothing (closed overlay: visibility hidden, display none or
+        // opacity 0) cannot change the background, so it is not a reason for manual review.
+        if (sc.visibility === 'hidden' || sc.display === 'none' || Number(sc.opacity) === 0) continue;
         const overlaps = sr.left < r.right && sr.right > r.left && sr.top < r.bottom && sr.bottom > r.top;
         if (overlaps && (sc.backgroundImage !== 'none' || rgba(sc.backgroundColor)[3] > 0)) return { indeterminate: 'layer over ' + sib.tagName.toLowerCase() + '.' + String(sib.className).slice(0, 30) };
       }

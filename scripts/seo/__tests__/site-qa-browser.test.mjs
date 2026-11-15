@@ -184,7 +184,8 @@ test('site-wide 390px and desktop QA: overflow, names, target size, images, head
   } finally { await s.stop(); }
   console.log(`[SITE_QA] ${staticDir ? 'production build ' + staticDir : 'dev server'}: audited ${pages} page views; ${failures.length} failures`);
   console.log(`[SITE_QA] contrast: ${contrastChecked} text/field checks, ${focusChecked} focus stops, ${hoverChecked} hover states; ${indeterminate.size} indeterminate (image/gradient backgrounds, manual check)`);
-  for (const x of [...indeterminate].slice(0, 40)) console.log('[SITE_QA_MANUAL] contrast over image/gradient: ' + x);
+  // The full list, so the human visual review has every case.
+  for (const x of [...indeterminate].sort()) console.log('[SITE_QA_MANUAL] contrast over image/gradient: ' + x);
   for (const x of [...focusManual].slice(0, 40)) console.log('[SITE_QA_MANUAL] focus shown by fill/color/underline only: ' + x);
   for (const f of failures) console.log('[SITE_QA_FAIL] ' + f);
   assert.deepEqual(failures, []);
