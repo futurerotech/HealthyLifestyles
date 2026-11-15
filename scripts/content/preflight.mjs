@@ -3,6 +3,7 @@ import { resolve, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { documentProof } from '../../src/lib/content-integrity.mjs';
 import { readPublishedInventory } from './inventory.mjs';
+import { checkContentLock, loadLock } from './release-content-lock.mjs';
 
 const contract = JSON.parse(await readFile(new URL('../../src/lib/site-contract.json', import.meta.url), 'utf8'));
 export const SITE_ORIGIN = contract.origin;
@@ -108,7 +109,7 @@ export function hasPermanentRedirect(config, from, to) {
   return (config?.routes || []).some((route) => route.src === `^${from}$` && [301, 308].includes(route.status) && (route.headers?.Location || route.headers?.location) === to);
 }
 
-export async function verifyContent({ inventory, manifest, readHtml, readRedirect, baseline, requireReleaseProvenance = true }) {
+export async function verifyContent({ inventory, manifest, readHtml, readRedirect, baseline, requireReleaseProvenance = true, contentLock = null }) {
   const errors = [], documents = [];
   if (requireReleaseProvenance && (manifest.version !== 1 || manifest.source !== 'cms' || manifest.buildKind !== 'cms' || manifest.cmsOrigin !== inventory.cmsOrigin)) errors.push('Build is not a direct, complete build from the expected production CMS (fixture/offline/diagnostic builds cannot pass).');
   if (!Array.isArray(manifest.records) || !Array.isArray(manifest.collections)) return { errors: ['Missing/incomplete content manifest'], documents, counts: {} };
@@ -155,6 +156,10 @@ export async function verifyContent({ inventory, manifest, readHtml, readRedirec
     const expectedIds = new Set((inventory.collections[collection] || []).map((d) => String(d.id)));
     for (const record of manifest.records.filter((r) => r.collection === collection)) if (!expectedIds.has(record.docId)) errors.push(`Unexpected/stale ${collection} document in build: ID ${record.docId}`);
   }
+  // Pre-release guard (coordinated #56 release): the 16 locked article records must still be
+  // exactly their reviewed pre-release content. A partial, early or unreviewed publish fails
+  // this build, and the previous deployment keeps serving.
+  if (contentLock && (contentLock.cmsOrigin === undefined || contentLock.cmsOrigin === inventory.cmsOrigin)) errors.push(...checkContentLock(inventory.collections.articles || [], contentLock));
   return { checkedAt: new Date().toISOString(), scope: ['published articles', 'published enabled tools and legacy redirects', 'published CMS pages', 'published pSEO pages'], cmsOrigin: inventory.cmsOrigin, errors, documents, counts };
 }
 
@@ -163,7 +168,8 @@ export async function verifyOutput({ dist = 'dist/client', inventory, baseline, 
   const manifest = JSON.parse(await readFile(join(root, 'content-manifest.json'), 'utf8'));
   const readHtml = (path) => readFile(join(root, path.replace(/^\//, ''), 'index.html'), 'utf8');
   const config = providerDir ? await readFile(join(providerDir, '..', 'config.json'), 'utf8').then(JSON.parse).catch(() => null) : null;
-  const result = await verifyContent({ inventory, manifest, readHtml, readRedirect: (from, to) => hasPermanentRedirect(config, from, to), baseline, requireReleaseProvenance });
+  const contentLock = await loadLock();
+  const result = await verifyContent({ inventory, manifest, readHtml, readRedirect: (from, to) => hasPermanentRedirect(config, from, to), baseline, requireReleaseProvenance, contentLock });
   if (providerDir) {
     const receipt = await readFile(join(providerDir, 'content-manifest.json'), 'utf8').catch(() => null);
     if (!receipt || receipt !== await readFile(join(root, 'content-manifest.json'), 'utf8')) result.errors.push('Provider content manifest missing or different from verified output');
