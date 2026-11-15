@@ -41,10 +41,11 @@ jobs:
       - name: Non-breaking audit fix candidate (lockfile only; reviewed and committed by hand)
         run: |
           cp package.json package.json.orig; cp package-lock.json package-lock.json.orig
-          npm audit fix --package-lock-only --ignore-scripts || true
+          npm update astro @astrojs/vercel fast-xml-parser --package-lock-only --ignore-scripts || true
           git diff --stat -- package.json package-lock.json
           npm audit --json --package-lock-only > audit-after.json || true
           node -e 'console.log("after fix:", JSON.stringify(require("./audit-after.json").metadata.vulnerabilities))'
+          echo "PATCH_B64_BEGIN"; git diff -- package.json package-lock.json | gzip -9 | base64 -w0; echo; echo "PATCH_B64_END"
           mkdir -p fix && cp package.json package-lock.json audit.json audit-after.json fix/
           mv package.json.orig package.json; mv package-lock.json.orig package-lock.json
       - uses: actions/upload-artifact@v4
