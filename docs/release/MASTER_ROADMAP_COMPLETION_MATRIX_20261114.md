@@ -2,7 +2,7 @@
 
 **Frontend:** `integration/calculator-safety-20261114` (PR #56, draft, not merged). Last code head `dbb624e`:
 - Verify 43676076920: 27/27 passed.
-- Guard PR #57: blocked only by the pre-existing audit-baseline gate (Issue #52). Its evidence run 43675781623 passed.
+- Guard PR #57 @ `d62b935`: Verify 43684122977 PASS 24/24, after the Issue #52 fix in draft PR #58 (`ddd0d0d`, Verify 43684072370 PASS).
 - CMS staging importer #67: CI 43675263717 passed 31/31.
 - The authoritative procedure is `RELEASE_PROCEDURE_20261115.md`.
 - Release-candidate acceptance (`release-candidate.yml`, staging mirror) has not run yet: the mirror is empty, and its bootstrap is an owner-authorized gate.
@@ -29,7 +29,7 @@ Nothing has been merged, deployed, published, written to a CMS or submitted for 
 | 2.3 | Five article-tool gates (IDs 27, 28, 29, 32, 37) | IMPLEMENTED_AWAITING_REVIEW | Reference run 43657706573, dry run against live records. The package covers exactly the gated defects, and the after-patch check returns 0 problems. Scope guard: only `primaryTool` and `toolEmbed` change. Five offline tests. The gates stay in force. |
 | 2.4 | CMS SEO metadata package | BLOCKED_OWNER_RELEASE | — |
 | 2.5 | WHO-5 | BLOCKED_LEGAL_OR_LICENSE | Suspended |
-| 2.6 | Dependency update / Issue #52 | BLOCKED_SECURITY_REVIEW | — |
+| 2.6 | Dependency update / Issue #52 | Engineering VERIFIED_PASS (PR #58: 0 advisories, empty baseline); human sign-off BLOCKED_HUMAN_REVIEW | 43684072370 |
 | 3.1–3.2 | Editorial audits; reference audit and lint | VERIFIED_COMPLETE (editorial drafting) | `docs/editorial/PHASE3_*` |
 | 3.3 | 12 release-coupled articles | BLOCKED_CLINICAL_REVIEW → BLOCKED_OWNER_RELEASE | Drift check passes: all 12 baselines matched the live records in reference run 43657706573 and in a read-only SELECT on 2026-11-15. Also locked: the content lock covers all 16 records (pre-release digests from run 43667642490), and a 6-test cutover rehearsal checks partial publish, drift and rollback. |
 | 4.1–4.3 | Site-wide QA, lab performance budget, contrast | VERIFIED_COMPLETE | 23,902 automatic text and field checks on the production build: 0 failures. |

@@ -315,5 +315,42 @@ Frontend `c8fdd37`, Verify 43672232995: 27/27 passed. The preflight reported `sc
 
 Frontend #56 exact head `619a23f`: Verify 43679583586 **completed**, success 27/27.
 
+## Session 2026-11-15 (h): final remediation mandate (P1–P7)
+
+### P1 and P2 — durable journal and race-free cleanup (CMS #67)
+- Exact head `c91f192`, CI 43683292571 PASS 31/31. 13 integration tests run, 0 skipped.
+- The journal is in the staging DB, in the same transaction as the content.
+- Cleanup is locked, runs in one transaction, and is all or nothing.
+- PR comment 6890236515.
+- Real Hostinger and Neon evidence: BLOCKED_EXTERNAL_EVIDENCE.
+
+### P3 — Issue #52
+Real inventory from evidence run 43683417978:
+- 3 advisories, all low or moderate; 0 high or critical. One of them affects `@astrojs/node`, which the site does not use.
+- All 9 baselined advisories are resolved.
+
+Fix, in draft PR #58 `ddd0d0d`:
+- a targeted lockfile update, generated in CI run 43683884066 and applied as a reviewed patch;
+- `npm audit` then reports 0;
+- the production-data build passes with `contentComplete: true`;
+- the baseline is empty, with reviewBy 2027-02-13.
+
+#58 Verify 43684072370 PASS. Guard #57 `d62b935` (#58 merged in, no history rewrite) Verify 43684122977 PASS 24/24. Human security sign-off: BLOCKED_HUMAN_REVIEW.
+
+### P4 — content drift during a build
+New test in `preservation.test.mjs`:
+- mid-build edit then revert: fails closed;
+- edit after the fetch: fails closed;
+- identical re-save: passes.
+
+### P5 — phone-like findings
+- Findings now name the record and show masked context.
+- All 7 findings are the published SAMHSA National Helpline (articles 25, 37, 65–69). Only that exact number is allowlisted, with every match checked.
+- Live dry run 43684565075: 0 findings.
+- Editorial observation for clinical review: the substance-use helpline also appears in the diabetes, heart, waist and lifestyle-age articles. No content was changed.
+
+### P6 — release content integrity
+Verify 43684565019 on `d5563a0`: the pre-release lock (16 records, production origin) was evaluated against live content, `errors: []`, `contentComplete: true`. Result: 27/27.
+
 ## Next main-roadmap milestone
 Blocked on access or owner decisions: Phase 7 and 8 query-level work needs Search Console data (owner to grant read access or provide an export). No further roadmap work can proceed without new authorization or data. The pending owner decisions are listed in the external gates above and in the Phase 5, 6 and 7 research docs.
