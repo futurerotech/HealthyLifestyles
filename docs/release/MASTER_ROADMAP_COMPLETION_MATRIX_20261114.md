@@ -1,9 +1,8 @@
 # Master Roadmap completion matrix (updated 2026-11-15)
 
-**Frontend:** `integration/calculator-safety-20261114` (PR #56, draft, not merged). Last code head `cb47f50`:
-- Verify 43661108618: 27/27 passed.
-- Reference audit 43661108588: passed.
-- Data snapshots 43661108626: passed.
+**Frontend:** `integration/calculator-safety-20261114` (PR #56, draft, not merged). Last code head `ff446b5`:
+- Verify 43667966676: 27/27 passed. The preflight ran with the pre-release content lock enabled.
+- Release order: `RELEASE_PROCEDURE_20261115.md` (the single authoritative order).
 
 **CMS:** chain #65 → #64 → #34, plus #66 stacked on #65. All four are draft and not merged.
 - #66 `codex/newsletter-suppression-20261115` @ `51d001c`, CI 43661483884: 31/31 passed (268 unit tests). Ancestry is verified as main `1637680` ← #34 `603f192` ← #64 `906070a` ← #65 `50a9358` ← #66 (6 commits).
@@ -28,7 +27,7 @@ Nothing has been merged, deployed, published, written to a CMS or submitted for 
 | 2.5 | WHO-5 | BLOCKED_LEGAL_OR_LICENSE | Suspended |
 | 2.6 | Dependency update / Issue #52 | BLOCKED_SECURITY_REVIEW | — |
 | 3.1–3.2 | Editorial audits; reference audit and lint | VERIFIED_COMPLETE (editorial drafting) | `docs/editorial/PHASE3_*` |
-| 3.3 | 12 release-coupled articles | BLOCKED_CLINICAL_REVIEW → BLOCKED_OWNER_RELEASE | Drift check passes: all 12 baselines matched the live records in reference run 43657706573 and in a read-only SELECT on 2026-11-15. |
+| 3.3 | 12 release-coupled articles | BLOCKED_CLINICAL_REVIEW → BLOCKED_OWNER_RELEASE | Drift check passes: all 12 baselines matched the live records in reference run 43657706573 and in a read-only SELECT on 2026-11-15. Also locked: the content lock covers all 16 records (pre-release digests from run 43667642490), and a 6-test cutover rehearsal checks partial publish, drift and rollback. |
 | 4.1–4.3 | Site-wide QA, lab performance budget, contrast | VERIFIED_COMPLETE | 23,902 automatic text and field checks on the production build: 0 failures. |
 | 4.4 | Indeterminate contrast cases | BLOCKED_EXTERNAL_ACCESS (human visual check) | **94 → 13**, without changing any threshold. The closed mobile-nav overlay, which paints nothing, was a false trigger, and its text is now checked automatically. Every remaining case is listed below. |
 | 4.5 | Human accessibility review; CrUX field data | BLOCKED_EXTERNAL_ACCESS | — |

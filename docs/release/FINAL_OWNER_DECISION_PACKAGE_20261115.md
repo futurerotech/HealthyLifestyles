@@ -8,13 +8,12 @@ The per-item status is in `MASTER_ROADMAP_COMPLETION_MATRIX_20261114.md`. Nothin
 
 | Repository | PR | Head | CI |
 |---|---|---|---|
-| Frontend | #56 `integration/calculator-safety-20261114` | `d6c48a4` | Verify 43662380016: 27/27 |
+| Frontend | #56 `integration/calculator-safety-20261114` | `ff446b5` | Verify 43667966676: 27/27. The release preflight ran with the pre-release content lock enabled against live production: `contentComplete: true`. |
 | CMS | #34 `fix/unified-indexnow-postdeploy-20261028` | `603f192` | 43459577611: 31/31 |
 | CMS | #64 `codex/indexnow-draft-safety-20261114` | `906070a` | 43559981416: 31/31 |
 | CMS | #65 `codex/hostinger-runtime-evidence-20261114` | `50a9358` | 43561621197: 31/31 |
-| CMS | #66 `codex/newsletter-suppression-20261115` | `51d001c` (code) | 43661483884: 31/31, 268 unit tests |
+| CMS | #66 `codex/newsletter-suppression-20261115` | `3c4a501` (last code commit `51d001c`) | 43664977518: 31/31 (code head: 43661483884, 268 unit tests) |
 
-`3c4a501` on #66 is a documentation-only commit: the migration adds three consent columns, not two.
 
 ## 2. Technically complete (awaiting review or release, not blocked by engineering)
 
@@ -60,6 +59,8 @@ The CMS #65 procedure must show:
 - an IndexNow dry run only.
 
 Already verified read-only: the two Neon projects are separate, and both R2 buckets exist.
+
+**Staging has no content (re-checked read-only on 2026-11-15).** Neon `small-hall-15225012` has 0 tools, 0 articles and none of the 16 IDs, with 17 ledger entries. Production has 70 tools, 60 articles and 15 ledger entries. A content rehearsal therefore first needs an owner-authorized, isolated staging bootstrap from published production content, preserving IDs, slugs and relations, through a writable Hostinger QA path. The #65 checker is read-only and is not that path. Production credentials must not be reused.
 
 ## 5. Sign-offs (genuine qualified humans; none can be produced by AI review)
 

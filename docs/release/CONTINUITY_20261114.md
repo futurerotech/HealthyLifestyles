@@ -218,5 +218,23 @@ Frontend `cb47f50`, Verify 43661108618: 27/27 passed.
 
 Integration sequence #34 → #64 → #65 → #66 → frontend #56 is documented in the CMS doc `docs/release/NEWSLETTER_SUPPRESSION_20261115.md`. It has not been executed. Newsletter delivery stays NO-GO.
 
+## Session 2026-11-15 (c): cutover-order review on #56 (comment 6887842807)
+
+Frontend `ff446b5`, Verify 43667966676: 27/27 passed. The preflight ran with the pre-release lock enabled against live production: `contentComplete: true`.
+
+- **Verified behavior**
+  - Article pages are static; only `/api/*` routes are server-rendered.
+  - A merge into `main` deploys to production automatically.
+  - Production CMS main pings IndexNow and Google on every article save, drafts included. The chain removes this.
+  - Publishing on the chain triggers no deploy, and no push is sent for records that are already published.
+- `9eeb9bc`, `ff446b5`: release content lock for the 16 records (`scripts/content/release-content-lock.*`).
+  - It uses the editorial digest without `updatedAt` (`content-integrity.mjs`: `documentContent` and `editorialDigest`).
+  - It is now enabled in pre-release mode, with digests from run 43667642490.
+- `vercel.json` now pins `buildCommand: npm run build`, so the preflight runs on Vercel.
+- `release-rehearsal.test.mjs`: 6 tests covering partial publish, drift and rollback.
+- `RELEASE_PROCEDURE_20261115.md` is the single cutover order. Both conflicting sections now point to it.
+- **Staging re-checked (read-only):** Neon `small-hall-15225012` has 0 tools, 0 articles and none of the 16 IDs.
+  - A staging content bootstrap, through a writable and isolated path, is an external gate.
+
 ## Next main-roadmap milestone
 Blocked on access or owner decisions: Phase 7 and 8 query-level work needs Search Console data (owner to grant read access or provide an export). No further roadmap work can proceed without new authorization or data. The pending owner decisions are listed in the external gates above and in the Phase 5, 6 and 7 research docs.
