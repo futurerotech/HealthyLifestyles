@@ -22,6 +22,26 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Audit inventory for Issue #52 (evidence only; the gate in main CI is unchanged)
+        run: |
+          npm audit --json > audit.json || true
+          node -e '
+            const a = require("./audit.json"), b = require("./audit-baseline.json");
+            const base = new Set(b.advisories.map((x) => x.id));
+            const rows = new Map();
+            for (const [pkg, v] of Object.entries(a.vulnerabilities || {})) for (const via of v.via || []) if (via && typeof via === "object") {
+              const r = rows.get(via.source) || { id: via.source, severity: via.severity, package: via.name, title: via.title, url: via.url, range: via.range, paths: [], fix: v.fixAvailable };
+              r.paths.push(pkg); rows.set(via.source, r);
+            }
+            const cur = [...rows.values()].sort((x, y) => x.id - y.id);
+            console.log("npm totals:", JSON.stringify(a.metadata.vulnerabilities));
+            for (const r of cur) console.log([base.has(r.id) ? "BASELINED" : "NEW", r.severity, r.id, r.package, r.range, typeof r.fix === "object" ? "fix:" + r.fix.name + "@" + r.fix.version + (r.fix.isSemVerMajor ? " (major)" : "") : "fix:" + r.fix, r.url, r.title].join(" | "));
+            for (const id of base) if (!rows.has(id)) console.log("RESOLVED since baseline |", id, "|", b.advisories.find((x) => x.id === id).package);
+          '
+      - uses: actions/upload-artifact@v4
+        with:
+          name: audit-inventory
+          path: audit.json
       - name: Guard unit tests
         run: node --test scripts/seo/__tests__/release-guard.test.mjs
       - name: Production-data build exactly as Vercel runs it (npm run build lifecycle)
