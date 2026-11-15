@@ -120,7 +120,7 @@ Before CI, the audit was checked against a local fixture with known ratios: 4.48
 | Strength builder: label of a lift toggled off, dimmed | 3.94:1 | only the inactive field dims |
 | Caffeine dose, slate-400 note, sleep tag | 2.56–4.47:1 | indigo-700 / `--muted` |
 
-**Manual-review list:** 93 indeterminate pairs (hero images, gradients, positioned layers). The breathing label was reviewed and fixed. The rest stay listed in CI logs (`[SITE_QA_MANUAL]`) for the independent accessibility review.
+**Manual-review list:** 93 indeterminate pairs at first. On 2026-11-15 the audit stopped treating a sibling that paints nothing (the closed mobile-nav overlay) as a background layer, which removed 81 false cases. 13 remain after adding `/unsubscribe` (run 43657706598). Thresholds are unchanged. The full list is printed in CI (`[SITE_QA_MANUAL]`) and in the completion matrix, for the independent accessibility review.
 
 **Gates:** this is automated AI-run QA. Testing with real assistive technology and an independent accessibility review remain human gates. The unreachable `[data-theme='dark']` CSS (nothing sets the attribute) was not tested.
 

@@ -170,5 +170,33 @@ GO/NO-GO: **NO-GO for release** until gates 1–4 are closed.
 ## Phase 4 addendum
 - Fasting timer contrast defect, found in a time-dependent state; it and two more dark cards were hardened. Green: run 43639598217 @ 407131f (site QA 162/0 ×2, Lighthouse 8/8).
 
+## Session 2026-11-15 (owner directive: finish the remaining engineering)
+
+The authoritative per-item status is `MASTER_ROADMAP_COMPLETION_MATRIX_20261114.md` (updated 2026-11-15).
+
+Frontend PR #56 commits:
+- `46ec638`: read-only BLS and ERS price inventory. Data snapshots run 43654292892.
+- `6dcdc68`: Phase 5 coverage.
+  - Added ERS produce prices with preparation yields, and current BLS butter and yogurt.
+  - Comparable recipes: 2 → 14 of 67.
+  - 12 grocery tests.
+- `f7c563b`, `d6d4895`: newsletter frontend.
+  - `/unsubscribe` page and `/api/unsubscribe` proxy.
+  - Non-revealing duplicate signups.
+  - Copy no longer promises unsubscribe.
+- `476ce8d`: stricter correction-package verification.
+  - Fixed: ID 37's wrong-primary finding was not being evaluated.
+  - The live dry run returns 0 problems and no drift.
+- `fc9e96f`: contrast audit skips closed overlays. Manual cases: 94 → 13.
+  - Verify 43657706598: 27/27 passed.
+
+CMS PR #66 `codex/newsletter-suppression-20261115` @ `22a25c8`, stacked on #65:
+- CI 43656222398: 31/31 passed.
+- Signed, expiring unsubscribe tokens.
+- `subscriber-unsubscribe` and `subscriber-send-check` endpoints, on collision-free paths.
+- Consent evidence fields, stamped by the server.
+- Additive migration, with the October ledger rehearsal counts updated.
+- One defect fixed during review: send-check did not normalize addresses (`8c5f3a7`).
+
 ## Next main-roadmap milestone
-Blocked on access: Phase 7 and 8 query-level work needs Search Console data (owner to grant read access or provide an export). No further roadmap work can proceed without new authorization or data. The pending owner decisions are listed in the external gates above and in the Phase 5, 6 and 7 research docs.
+Blocked on access or owner decisions: Phase 7 and 8 query-level work needs Search Console data (owner to grant read access or provide an export). No further roadmap work can proceed without new authorization or data. The pending owner decisions are listed in the external gates above and in the Phase 5, 6 and 7 research docs.
