@@ -198,5 +198,25 @@ CMS PR #66 `codex/newsletter-suppression-20261115` @ `22a25c8`, stacked on #65:
 - Additive migration, with the October ledger rehearsal counts updated.
 - One defect fixed during review: send-check did not normalize addresses (`8c5f3a7`).
 
+## Session 2026-11-15 (b): consent provenance review on CMS #66 (comment 6886950310)
+
+CMS #66 @ `51d001c`, CI 43661483884: 31/31 passed, 268 unit tests. Reply posted as comment 6887177977.
+- `131242c`: `isSuppressed` and `isEligibleForMarketing` are now separate functions.
+  - `subscriber-send-check` and the n8n forward fail closed for legacy, imported and unknown-consent records.
+  - Consent is captured only for a trusted proxy request: the internal key (constant-time compare) plus `x-consent-capture`. A client `source` or any body field cannot set it.
+  - New field `consentMethod`, value `form-single-opt-in`. It records a form submission, not a verified mailbox.
+  - Consent evidence is frozen; `unsubscribedAt` is one-way.
+  - `consent_method` is added to the same unreleased additive migration.
+- `51d001c`: fixed a test-helper defect. The no-key case was not actually being exercised.
+
+Frontend `cb47f50`, Verify 43661108618: 27/27 passed.
+- `/api/subscribe` now:
+  - sends the capture header;
+  - ignores any browser-supplied `source` and consent fields;
+  - accepts the first-party Origin only.
+- `/api/lead` never requests consent capture.
+
+Integration sequence #34 → #64 → #65 → #66 → frontend #56 is documented in the CMS doc `docs/release/NEWSLETTER_SUPPRESSION_20261115.md`. It has not been executed. Newsletter delivery stays NO-GO.
+
 ## Next main-roadmap milestone
 Blocked on access or owner decisions: Phase 7 and 8 query-level work needs Search Console data (owner to grant read access or provide an export). No further roadmap work can proceed without new authorization or data. The pending owner decisions are listed in the external gates above and in the Phase 5, 6 and 7 research docs.
