@@ -1,7 +1,8 @@
 # Master Roadmap completion matrix (updated 2026-11-15)
 
-**Frontend:** `integration/calculator-safety-20261114` (PR #56, draft, not merged). Last code head `ff446b5`:
-- Verify 43667966676: 27/27 passed. The preflight ran with the pre-release content lock enabled.
+**Frontend:** `integration/calculator-safety-20261114` (PR #56, draft, not merged). Last code head `c8fdd37`:
+- Verify 43672232995: 27/27 passed. The preflight ran in production-promotion scope with the pre-release lock: `contentComplete: true`.
+- Release-candidate acceptance (`release-candidate.yml`, staging mirror) has not run yet: the mirror is empty, and its bootstrap is an owner-authorized gate.
 - Release order: `RELEASE_PROCEDURE_20261115.md` (the single authoritative order).
 
 **CMS:** chain #65 → #64 → #34, plus #66 stacked on #65. All four are draft and not merged.

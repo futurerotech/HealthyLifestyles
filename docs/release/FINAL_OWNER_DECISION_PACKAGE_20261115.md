@@ -8,7 +8,7 @@ The per-item status is in `MASTER_ROADMAP_COMPLETION_MATRIX_20261114.md`. Nothin
 
 | Repository | PR | Head | CI |
 |---|---|---|---|
-| Frontend | #56 `integration/calculator-safety-20261114` | `ff446b5` | Verify 43667966676: 27/27. The release preflight ran with the pre-release content lock enabled against live production: `contentComplete: true`. |
+| Frontend | #56 `integration/calculator-safety-20261114` | `c8fdd37` | Verify 43672232995: 27/27, production-promotion scope, `contentComplete: true`. Release-candidate acceptance against the staging mirror has not run yet (blocked on staging). |
 | CMS | #34 `fix/unified-indexnow-postdeploy-20261028` | `603f192` | 43459577611: 31/31 |
 | CMS | #64 `codex/indexnow-draft-safety-20261114` | `906070a` | 43559981416: 31/31 |
 | CMS | #65 `codex/hostinger-runtime-evidence-20261114` | `50a9358` | 43561621197: 31/31 |

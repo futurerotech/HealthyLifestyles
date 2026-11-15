@@ -236,5 +236,23 @@ Frontend `ff446b5`, Verify 43667966676: 27/27 passed. The preflight ran with the
 - **Staging re-checked (read-only):** Neon `small-hall-15225012` has 0 tools, 0 articles and none of the 16 IDs.
   - A staging content bootstrap, through a writable and isolated path, is an external gate.
 
+## Session 2026-11-15 (d): release-state CI deadlock (review comment 6888386743)
+
+Frontend `c8fdd37`, Verify 43672232995: 27/27 passed. The preflight reported `scope: production-promotion` and `contentComplete: true`.
+
+- `476bc62`: the deadlock is resolved with two separate, labeled gates.
+  - **Release-candidate acceptance**: `release-candidate.yml`, run against an allowlisted staging mirror. A production build refuses a mirror origin.
+  - **Production promotion gate**: the unchanged Verify build. It is red for release commit R until production publication, and is never suppressed.
+  - R is promoted by fast-forwarding `main` to the tested SHA.
+  - The lifecycle tests accept both committed states and reject mixed commits (release-rehearsal: 8 tests).
+  - preflight-origin: 3 tests. staging-bootstrap: 3 tests; the exporter is prepared but has not been run.
+  - Vercel previews are disabled for `release/rc-**`.
+- `c8fdd37`: the contrast audit now finishes animations before measuring.
+  - Run 43671636111 had measured the cookie banner mid-fade at 4.38:1. Its final `#15803d` on white is 5.0:1.
+  - Thresholds are unchanged.
+- **Verified:** frontend `main` has no branch protection or rulesets, so GitHub would allow merging a red PR.
+  - Requiring the Verify check on `main` is an owner decision.
+- Not runnable yet: RC acceptance, because the staging mirror is empty and its bootstrap needs owner authorization and isolation proof.
+
 ## Next main-roadmap milestone
 Blocked on access or owner decisions: Phase 7 and 8 query-level work needs Search Console data (owner to grant read access or provide an export). No further roadmap work can proceed without new authorization or data. The pending owner decisions are listed in the external gates above and in the Phase 5, 6 and 7 research docs.
