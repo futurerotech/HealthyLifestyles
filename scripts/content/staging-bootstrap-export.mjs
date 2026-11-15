@@ -101,7 +101,12 @@ export function buildBundle({ cmsOrigin, collections, globals, capturedAt, allow
   for (const [g, data] of Object.entries(globals)) { out.globals[g] = sanitize(data, `global:${g}`, dropped).value; out.checksums[`global:${g}`] = sha(out.globals[g]); }
   out.dropped = dropped;
   // Fail closed: embedded sensitive values need a human decision; they are never silently copied.
-  out.findings = scanEmbedded({ collections: out.collections, globals: out.globals });
+  out.findings = scanEmbedded({ collections: out.collections, globals: out.globals }).map((fd) => {
+    // Name the record (never the value) so an editor can review it privately in the CMS.
+    const m = /^collections\.([a-z-]+)\[(\d+)\]/.exec(fd.path);
+    const doc = m ? out.collections[m[1]]?.[Number(m[2])] : undefined;
+    return doc ? { ...fd, record: { collection: m[1], id: doc.id, slug: doc.slug ?? null } } : fd;
+  });
   if (out.findings.length && !allowFindings) throw Object.assign(new Error(`${out.findings.length} embedded sensitive value(s) need review before any import`), { findings: out.findings });
   out.counts = Object.fromEntries(Object.entries(out.collections).map(([c, d]) => [c, d.length]));
   return out;

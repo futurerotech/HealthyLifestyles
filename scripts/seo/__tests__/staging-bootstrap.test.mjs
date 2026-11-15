@@ -40,6 +40,13 @@ test('embedded sensitive values in nested text fail closed (path and kind only, 
   assert.throws(() => buildBundle({ cmsOrigin: 'x', capturedAt: 't', collections: { articles: [{ ...art, excerpt: 'mail jane@example.org' }] }, globals: {} }), /need review/);
 });
 
+test('findings name the record (collection, id, slug) for private CMS review, never the value', () => {
+  const b = buildBundle({ cmsOrigin: 'https://cms.healthylifesstyles.com', capturedAt: 't', allowFindings: true, globals: {},
+    collections: { articles: [art, { ...art, id: 28, slug: 'second', layout: [{ blockType: 'text', body: 'Call 555-010-2030 today' }] }] } });
+  assert.deepEqual(b.findings, [{ path: 'collections.articles[1].layout[0].body', kind: 'phone number', record: { collection: 'articles', id: 28, slug: 'second' } }]);
+  assert.ok(!JSON.stringify(b.findings).includes('010-2030'));
+});
+
 test('media rows are derived from populated references only, deduplicated', () => {
   const m = { id: 9, filename: 'a.png', mimeType: 'image/png', url: 'https://media/a.png', alt: 'A' };
   const media = referencedMedia({ articles: [{ id: 1, heroImage: m }, { id: 2, layout: [{ image: m }, { image: { id: 10, filename: 'b.png', mimeType: 'image/png' } }] }] });
