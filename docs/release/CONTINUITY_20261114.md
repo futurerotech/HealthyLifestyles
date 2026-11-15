@@ -297,5 +297,23 @@ Frontend `c8fdd37`, Verify 43672232995: 27/27 passed. The preflight reported `sc
 - a real staging import (owner authorization);
 - qualified human reviews.
 
+## Session 2026-11-15 (g): guarded cleanup (CMS #67 comment 6889642696)
+
+**CMS #67** @ `67cffb5`: CI 43680747911 passed 31/31, with 32 importer unit tests and 9 synthetic integration tests in isolated-staging mode.
+
+- `importBundle` now requires `HLS_STAGING_IMPORT_JOURNAL_KEY` and a durable `writeJournal` sink, both checked before any DB access.
+  - It writes an HMAC-signed creation journal **before commit**. The journal lists only the records it created, each with its stored checksum.
+- `cleanupImport(payload, journal, { env })` is a compensating delete after commit only; a rollback before commit needs no cleanup.
+  - It runs the same runtime and connected-DB gate as import, before any DB access.
+  - It verifies the signature, the target host, allowlisted collections and unique entries.
+  - It pre-checks every record. If any record changed, nothing is deleted and the changed records are named.
+  - It re-verifies each record before deleting it.
+  - It is resumable and idempotent.
+  - It never deletes skipped or pre-existing records.
+- **Unit tests:** every denied environment, connection and journal type makes zero DB calls. An edited record gives zero deletions. A partial cleanup can be resumed.
+- **Integration tests:** a forged journal and a production environment are refused. An editor change blocks cleanup. A partial failure resumes. A re-run deletes nothing.
+
+Frontend #56 exact head `619a23f`: Verify 43679583586 **completed**, success 27/27.
+
 ## Next main-roadmap milestone
 Blocked on access or owner decisions: Phase 7 and 8 query-level work needs Search Console data (owner to grant read access or provide an export). No further roadmap work can proceed without new authorization or data. The pending owner decisions are listed in the external gates above and in the Phase 5, 6 and 7 research docs.
