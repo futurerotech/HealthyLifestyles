@@ -24,7 +24,7 @@ const MILESTONES: Record<number, string> = {
   22: 'Features look more like a newborn. The senses of touch and taste continue to refine.',
   23: 'The lungs are developing the ability to breathe air, though they are far from ready.',
   24: 'A key viability milestone. Lungs make surfactant and the inner ear is fully developed.',
-  25: 'The fetus is gaining fat and the skin is becoming less wrinkled. Hair colour and texture form.',
+  25: 'The fetus is gaining fat and the skin is becoming less wrinkled. Hair color and texture form.',
   26: 'The eyes begin to open and the lungs continue to mature in preparation for breathing.',
   27: 'End of the second trimester. Brain activity increases and sleep-wake patterns appear.',
   28: 'Third trimester begins. The fetus can blink and the brain is growing quickly.',

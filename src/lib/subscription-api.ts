@@ -21,6 +21,18 @@ export function validSubscriber(value: unknown, lead = false): value is Record<s
     (value.metadata === undefined || (isRecord(value.metadata) && JSON.stringify(value.metadata).length <= 4096));
 }
 
+/**
+ * True when the CMS rejected a create only because the email already exists (unique
+ * index). Callers answer exactly as for a new signup, so the form never reveals whether
+ * an address is subscribed or unsubscribed, and they never forward the address again.
+ * An existing record keeps its unsubscribedAt suppression.
+ */
+export async function isDuplicateEmail(res: Response): Promise<boolean> {
+  if (res.status !== 400 && res.status !== 409) return false;
+  const text = await res.clone().text().catch(() => '');
+  return /\bunique\b|already (?:exists|registered)|duplicate/i.test(text);
+}
+
 export function validPush(value: unknown): value is { endpoint: string; keys: { auth: string; p256dh: string } } {
   if (!isRecord(value) || typeof value.endpoint !== 'string' || value.endpoint.length > 2048 || !isRecord(value.keys)) return false;
   try {

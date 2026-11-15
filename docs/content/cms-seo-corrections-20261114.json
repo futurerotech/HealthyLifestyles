@@ -1,0 +1,216 @@
+{
+  "version": 1,
+  "purpose": "Offline, reviewable SEO metadata corrections for existing CMS tool records. Nothing here has been written to any CMS.",
+  "currentValuesReadAt": "2026-11-14",
+  "currentValuesSource": "read-only SELECT on the production CMS database (public metadata, also present in page HTML)",
+  "proposedValuesSource": "reviewed source copy on frontend PR #56 (src/data/*-content.ts); enforced equal by scripts/seo/__tests__/cms-seo-corrections.test.mjs",
+  "applyRules": [
+    "Owner authorization required before any CMS change.",
+    "Apply only as draft versions of the existing records (same CMS ID), first on verified isolated staging.",
+    "Change only seo.metaTitle and seo.metaDescription; leave og/twitter fields empty so they inherit.",
+    "Never publish, create duplicates, or trigger indexing as part of this change."
+  ],
+  "unchangedOnPurpose": [
+    "ffmi-calculator",
+    "one-rep-max-calculator",
+    "pregnancy-weight-gain-calculator"
+  ],
+  "corrections": [
+    {
+      "cmsToolId": 46,
+      "slug": "heart-disease-risk-calculator",
+      "priority": "required",
+      "reason": "CMS calls it a \"heart risk estimate\"; the tool is an illustrative checklist, not a validated risk score.",
+      "current": {
+        "metaTitle": "Heart Disease Risk (Educational)",
+        "metaDescription": "An educational lifestyle-based heart risk estimate — not a diagnosis."
+      },
+      "proposed": {
+        "metaTitle": "Heart Disease Risk Factors Checklist (Educational)",
+        "metaDescription": "Review five heart-health factors using illustrative points, not a validated heart disease risk score. Ask your clinician about AHA PREVENT."
+      }
+    },
+    {
+      "cmsToolId": 47,
+      "slug": "diabetes-risk-calculator",
+      "priority": "required",
+      "reason": "CMS promises a \"risk band\"; the tool is an illustrative checklist, not a validated screening score.",
+      "current": {
+        "metaTitle": "Type 2 Diabetes Risk (Educational)",
+        "metaDescription": "A non-diagnostic diabetes risk band — and why to get screened."
+      },
+      "proposed": {
+        "metaTitle": "Type 2 Diabetes Factors Checklist (Educational)",
+        "metaDescription": "Explore factors linked to type 2 diabetes with illustrative points, not a validated screening risk score. Learn about laboratory testing."
+      }
+    },
+    {
+      "cmsToolId": 45,
+      "slug": "waist-health-risk-calculator",
+      "priority": "required",
+      "reason": "CMS promises a combined \"risk-level\"; the tool no longer produces an unvalidated combined risk score.",
+      "current": {
+        "metaTitle": "Waist-Based Health Risk",
+        "metaDescription": "Combine your BMI and waist-to-height ratio into a risk-level explainer."
+      },
+      "proposed": {
+        "metaTitle": "BMI and Waist-to-Height Ratio Calculator",
+        "metaDescription": "Calculate BMI and waist-to-height ratio side by side. Learn what each measure means and its limits, without an unvalidated combined risk score."
+      }
+    },
+    {
+      "cmsToolId": 21,
+      "slug": "sitting-disease-reversal-calculator",
+      "priority": "required",
+      "reason": "CMS title and description promise \"reversal\" and a \"personalized\" recipe; no step count can guarantee reversal.",
+      "current": {
+        "metaTitle": "Sitting Disease Reversal Calculator",
+        "metaDescription": "Offset desk time with micro-breaks and extra NEAT steps — get a personalized movement recipe."
+      },
+      "proposed": {
+        "metaTitle": "Sitting & Movement Break Planner — Optional Steps and NEAT",
+        "metaDescription": "Explore optional breaks and step ideas for a sitting day. No step count guarantees reversal of sitting-related health effects; calories are approximate."
+      }
+    },
+    {
+      "cmsToolId": 25,
+      "slug": "vo2-max-calculator",
+      "priority": "required",
+      "reason": "CMS says the estimate uses your max heart rate; max heart rate is predicted from age, and the result is not a fitness grade.",
+      "current": {
+        "metaTitle": "VO₂ Max Calculator",
+        "metaDescription": "Estimate your cardio fitness from your resting and max heart rate."
+      },
+      "proposed": {
+        "metaTitle": "VO₂ Max Calculator (Heart Rate Method)",
+        "metaDescription": "Get a rough VO₂ max estimate from your age and resting heart rate using the Uth–Sørensen heart-rate ratio. An illustration, not a lab test or fitness grade."
+      }
+    },
+    {
+      "cmsToolId": 19,
+      "slug": "walk-it-off-calculator",
+      "priority": "recommended",
+      "reason": "CMS frames food as something to \"burn\" off; the tool uses energy above rest and avoids earn/burn framing.",
+      "current": {
+        "metaTitle": "Walk It Off Calculator",
+        "metaDescription": "Enter a food or calories to see the minutes of walking, running, or cycling to burn it."
+      },
+      "proposed": {
+        "metaTitle": "Walk It Off Calculator — Food to Exercise Time",
+        "metaDescription": "Explore illustrative walking, running, and cycling time using estimated extra activity energy above rest. Food is not something you must earn or burn off."
+      }
+    },
+    {
+      "cmsToolId": 31,
+      "slug": "metabolic-age-calculator",
+      "priority": "recommended",
+      "reason": "CMS presents \"metabolic age\" as estimable; the tool is an illustrative BMR index, not a measure of metabolic health.",
+      "current": {
+        "metaTitle": "Metabolic Age Calculator",
+        "metaDescription": "Estimate your metabolic age from your BMR vs the average for your age (illustrative)."
+      },
+      "proposed": {
+        "metaTitle": "Metabolic Age Calculator (BMR Illustration)",
+        "metaDescription": "See a fictional BMR-based age index with transparent assumptions. It does not measure metabolic health or biological age."
+      }
+    },
+    {
+      "cmsToolId": 56,
+      "slug": "healthspan-score",
+      "priority": "recommended",
+      "reason": "CMS ranks \"highest-impact next steps\" (unsupported) and its description is cut off after \"Educational\".",
+      "current": {
+        "metaTitle": "Healthspan Score – Free Healthy-Habits Calculator",
+        "metaDescription": "Score your everyday habits (0–100) against WHO and CDC lifestyle guidance and see your 2–3 highest-impact next steps. Educational"
+      },
+      "proposed": {
+        "metaTitle": "Healthspan Score – Free Healthy-Habits Calculator",
+        "metaDescription": "Score everyday habits (0–100) against WHO and CDC guidance and see which habits have the most model points left. Educational, not a lifespan prediction."
+      }
+    },
+    {
+      "cmsToolId": 58,
+      "slug": "recovery-time-calculator",
+      "priority": "recommended",
+      "reason": "CMS calls it a heuristic \"from sports-science principles\"; the tool states it is site-defined and not validated.",
+      "current": {
+        "metaTitle": "Recovery Time Calculator — Rest Between Workouts",
+        "metaDescription": "Estimate how long to rest before training the same muscle group again. A transparent heuristic from sports-science recovery principles. Free, no signup."
+      },
+      "proposed": {
+        "metaTitle": "Recovery Time Calculator — Rest Between Workouts",
+        "metaDescription": "Explore a site-defined recovery planning estimate for hard workouts. Understand limits, effort, sleep and soreness; not a validated healing timer."
+      }
+    },
+    {
+      "cmsToolId": 15,
+      "slug": "lean-body-mass-calculator",
+      "priority": "recommended",
+      "reason": "CMS states a measurement (\"find how much … is muscle\"); the tool gives a Boer (1984) estimate.",
+      "current": {
+        "metaTitle": "Lean Body Mass Calculator",
+        "metaDescription": "Find how much of your weight is muscle, bone, and organs — not fat."
+      },
+      "proposed": {
+        "metaTitle": "Lean Body Mass Calculator (Boer Formula)",
+        "metaDescription": "Estimate fat-free body mass using Boer (1984), with safeguards when a regression gives a physically impossible result. Educational, not clinical."
+      }
+    },
+    {
+      "cmsToolId": 7,
+      "slug": "water-intake-calculator",
+      "priority": "recommended",
+      "reason": "CMS says \"how much water to drink\"; the tool estimates total fluid (drinks + food) and is not a target.",
+      "current": {
+        "metaTitle": "Water Intake Calculator",
+        "metaDescription": "Find how much water to drink each day, in liters and fluid ounces."
+      },
+      "proposed": {
+        "metaTitle": "Water Intake Calculator (Liters & oz)",
+        "metaDescription": "Estimate your total daily fluid from body weight and activity, and the part from drinks, in liters and fluid ounces. A rule of thumb, not a target or limit."
+      }
+    },
+    {
+      "cmsToolId": 26,
+      "slug": "steps-to-calories-calculator",
+      "priority": "recommended",
+      "reason": "CMS says \"calories burned\"; the tool separates gross and above-rest energy.",
+      "current": {
+        "metaTitle": "Steps to Calories Calculator",
+        "metaDescription": "Turn your step count into distance walked and calories burned."
+      },
+      "proposed": {
+        "metaTitle": "Steps to Calories & Distance Calculator",
+        "metaDescription": "Convert steps to approximate walking distance, gross energy and above-rest energy from height and weight. Kilometers or miles; no measured calorie claims."
+      }
+    },
+    {
+      "cmsToolId": 24,
+      "slug": "calories-burned-calculator",
+      "priority": "optional",
+      "reason": "Accurate as published; the source adds the gross/above-rest distinction.",
+      "current": {
+        "metaTitle": "Calories Burned Calculator",
+        "metaDescription": "Estimate calories burned by activity using MET values and your weight."
+      },
+      "proposed": {
+        "metaTitle": "Calories Burned Calculator — Gross vs Above-Rest METs",
+        "metaDescription": "Estimate gross activity energy and illustrative above-rest calories for exercise using MET values, weight and duration. Includes metric/imperial inputs."
+      }
+    },
+    {
+      "cmsToolId": 32,
+      "slug": "alcohol-calorie-calculator",
+      "priority": "optional",
+      "reason": "Accurate as published; the source adds that no threshold is risk-free.",
+      "current": {
+        "metaTitle": "Alcohol Calorie Calculator",
+        "metaDescription": "Add up the hidden calories in your weekly drinks — per week, month, and year."
+      },
+      "proposed": {
+        "metaTitle": "Alcohol Calorie Calculator (Weekly & Yearly)",
+        "metaDescription": "Estimate weekly, monthly and yearly beverage calories from alcohol. No predicted fat gain or risk-free drinking threshold."
+      }
+    }
+  ]
+}

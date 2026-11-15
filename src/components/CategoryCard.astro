@@ -21,7 +21,7 @@ const count = tools.filter((t) => t.live).length;
   </span>
   <h3 class="cat-card__title">{category.name}</h3>
   <p class="cat-card__blurb">{category.blurb}</p>
-  <span class="cat-card__count" style={`color:${category.color}`}>
+  <span class="cat-card__count" style={`color:color-mix(in srgb, ${category.color} 55%, #000)`}>
     {count} {count === 1 ? 'tool' : 'tools'}
     <Icon name="arrow-right" size={16} />
   </span>

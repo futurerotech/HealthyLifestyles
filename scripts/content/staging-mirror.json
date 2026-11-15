@@ -1,0 +1,4 @@
+{
+  "purpose": "Isolated staging CMS origins allowed for RELEASE-CANDIDATE acceptance only. A mirror holds published production content copied with the same IDs, slugs and relations, plus the reviewed release versions. A pass against a mirror proves the release candidate, never production promotion. Production builds (VERCEL_ENV=production) refuse a mirror origin.",
+  "mirrorOrigins": ["https://cms-qa.healthylifesstyles.com"]
+}

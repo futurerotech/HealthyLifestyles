@@ -59,6 +59,8 @@ export interface LifestyleAgeResult {
   factors: FactorResult[];
   /** The 3 biggest drivers (by absolute impact). */
   topDrivers: FactorResult[];
+  /** Medical-review notice for a resting pulse below 40 or above 100 bpm. */
+  pulseNotice?: string;
 }
 
 /** Maximum total +/- swing in years (keeps the estimate conservative). */
@@ -70,11 +72,15 @@ function fHeart(hr: number): FactorResult {
   let years: number;
   let detail: string;
   let tip: string;
-  if (hr < 60) { years = -2; detail = `${hr} bpm — excellent`; tip = 'A low resting heart rate points to strong cardio fitness. Keep it up.'; }
+  // Below 40 or above 100 bpm is not scored as a fitness signal; it gets the same
+  // medical-review guidance as the site's Resting Heart Rate Checker.
+  if (hr < 40) { years = 0; detail = `${hr} bpm — markedly low`; tip = 'A waking resting pulse below 40 bpm is markedly low. If it is new or unexplained, seek prompt medical advice, even if you are an athlete.'; }
+  else if (hr < 60) { years = -2; detail = `${hr} bpm — low`; tip = 'A low resting heart rate often reflects cardio fitness, but some medicines and heart conditions also slow the pulse. If you are not trained, or feel dizzy or faint, check with a clinician.'; }
   else if (hr < 70) { years = -0.5; detail = `${hr} bpm — good`; tip = 'Solid. Regular cardio keeps your resting heart rate low.'; }
   else if (hr < 80) { years = 1; detail = `${hr} bpm — average`; tip = 'Regular aerobic exercise can gradually lower your resting heart rate.'; }
   else if (hr < 90) { years = 2; detail = `${hr} bpm — a little high`; tip = 'Building cardio fitness with steady activity tends to lower resting heart rate.'; }
-  else { years = 3.5; detail = `${hr} bpm — high`; tip = 'A high resting rate can reflect low fitness or stress; gentle, regular cardio helps most.'; }
+  else if (hr <= 100) { years = 3.5; detail = `${hr} bpm — high`; tip = 'A high resting rate can reflect low fitness or stress; gentle, regular cardio helps most.'; }
+  else { years = 3.5; detail = `${hr} bpm — above 100`; tip = 'A resting pulse above 100 bpm deserves a medical review if it is persistent or unexplained.'; }
   return { key: 'heart', label: 'Resting heart rate', years, detail, tip, good: years <= 0 };
 }
 
@@ -188,5 +194,8 @@ export function computeLifestyleAge(i: LifestyleAgeInputs): LifestyleAgeResult {
     totalAdjustment,
     factors: sorted,
     topDrivers: sorted.slice(0, 3),
+    pulseNotice: i.restingHr < 40 || i.restingHr > 100
+      ? 'Your resting pulse is outside 40–100 bpm. If it is new, persistent or unexplained, talk to a clinician. Call emergency services for chest pain, fainting or severe shortness of breath.'
+      : undefined,
   };
 }

@@ -113,7 +113,7 @@
   transition: background 0.15s ease, color 0.15s ease;
 }
 .seg__btn.is-active {
-  background: var(--green-primary);
+  background: var(--green-700);
   color: #fff;
 }
 
@@ -160,7 +160,7 @@
   font-size: 0.85rem;
   padding: 0.35rem 0.8rem;
   border-radius: var(--radius-pill);
-  color: var(--badge);
+  color: color-mix(in srgb, var(--badge) 55%, #000); /* 4.5:1+ on its tint for every band color */
   background: color-mix(in srgb, var(--badge) 14%, white);
   border: 1px solid color-mix(in srgb, var(--badge) 30%, white);
 }
@@ -279,7 +279,7 @@
   position: absolute;
   top: -1px;
   bottom: -1px;
-  background: var(--green-primary);
+  background: var(--green-700);
   border-radius: var(--radius-pill);
 }
 .rangebar__labels {
@@ -359,6 +359,12 @@
 }
 .calc__cta {
   margin-top: 1.1rem;
+  /* .btn is nowrap; a long result CTA must wrap inside narrow screens
+     (recovery-time CTA was 18px wider than a 390px viewport). */
+  max-width: 100%;
+  white-space: normal;
+  line-height: 1.3;
+  text-align: center;
 }
 
 /* Select field */
@@ -568,7 +574,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #fff;
-  background: var(--zone);
+  background: color-mix(in srgb, var(--zone) 55%, #000); /* white text 4.5:1+ for every zone color */
   padding: 0.15rem 0.5rem;
   border-radius: var(--radius-pill);
 }
@@ -688,7 +694,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #fff;
-  background: #6366f1;
+  background: #4338ca; /* indigo-700: 7.9:1 (was #6366f1, 4.47:1) */
   padding: 0.1rem 0.45rem;
   border-radius: var(--radius-pill);
 }
@@ -795,7 +801,7 @@
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 .quiz__opt:has(input:checked) span {
-  background: var(--green-primary);
+  background: var(--green-700);
   border-color: var(--green-primary);
   color: #fff;
 }
@@ -829,6 +835,35 @@
   font-weight: 600;
   color: #991b1b;
 }
+/* Item-level flags (PHQ-9 item 9, WHO-5 low item): shown above the score. */
+.quiz__flag {
+  margin: 0 0 0.9rem;
+  padding: 0.8rem 0.95rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.quiz__flag--urgent {
+  background: #fef2f2;
+  border: 2px solid #dc2626;
+  color: #7f1d1d;
+}
+.quiz__flag--info {
+  background: #fffbeb;
+  border: 1px solid #f59e0b;
+  color: #78350f;
+}
+.quiz__hold {
+  margin: 0 0 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.quiz__progress {
+  margin: 0;
+  font-weight: 600;
+  color: var(--muted);
+}
 
 /* ---------- Mental Wellness: breathing ---------- */
 .breathe {
@@ -845,7 +880,8 @@
   width: 200px;
   height: 200px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #7dd3fc, #0ea5e9);
+  /* Same sky hue, darker: the white phase label (large text) needs 3:1 across the circle. */
+  background: radial-gradient(circle at 35% 30%, #0ea5e9, #0369a1);
   box-shadow: 0 16px 40px rgba(14, 165, 233, 0.35);
   transition-property: transform;
   transition-timing-function: ease-in-out;
@@ -888,7 +924,8 @@
 
 @media (max-width: 760px) {
   .calc {
-    grid-template-columns: 1fr;
+    /* Explicit zero minimum: long result rows must wrap, not widen the mobile viewport. */
+    grid-template-columns: minmax(0, 1fr);
   }
   .calc__result {
     position: static;

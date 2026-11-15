@@ -79,7 +79,7 @@ export default function Chronotype() {
           <span class="ch__hero-emoji">{t.emoji}</span>
           <span class="ch__hero-cap">You’re a</span>
           <h2 class="ch__hero-name">{t.name}</h2>
-          <p class="ch__hero-tag">{t.tagline} · about {t.share}% of people</p>
+          <p class="ch__hero-tag">{t.tagline}</p>
           <p class="ch__hero-desc">{t.description}</p>
         </div>
 

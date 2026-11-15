@@ -1,0 +1,104 @@
+{
+  "purpose": "Coordinated-release content lock for the 16 unique article records (5 article-tool gates + 12 coupled to PR #56; ID 32 is in both). The build preflight fails unless every record equals exactly one reviewed version: pre-release (today's production) or release (the reviewed corrections). Digest = documentProof editorial fingerprint without updatedAt. See docs/release/RELEASE_PROCEDURE_20261115.md. preReleaseDigest values: reference-audit run 43675339644 (2026-11-15; host-independent media digest), matching the coupled-manifest updated_at baselines.",
+  "cmsOrigin": "https://cms.healthylifesstyles.com",
+  "enabled": true,
+  "mode": "pre-release",
+  "records": [
+    {
+      "id": 5,
+      "slug": "how-to-keep-muscle-while-losing-weight",
+      "preReleaseDigest": "33fbcb60964bdda3e1a0b688a89ef2aa10a586a9f504d2a07417b0f35de5fcf3",
+      "releaseDigest": null
+    },
+    {
+      "id": 7,
+      "slug": "intermittent-fasting-for-beginners",
+      "preReleaseDigest": "a9ee316eefae628fb89802ff1d5d0c6f630074a288af4260384ca29d83e35a3a",
+      "releaseDigest": null
+    },
+    {
+      "id": 8,
+      "slug": "sleep-chronotypes-explained",
+      "preReleaseDigest": "2414bbb1f3a8fcc3cb96b533b96ea212cc7adc37381cafb526ddae8b820e0745",
+      "releaseDigest": null
+    },
+    {
+      "id": 10,
+      "slug": "how-long-does-it-take-to-lose-weight",
+      "preReleaseDigest": "476b5666958449ceb7881de679687b9a275748191eb9892fd62defa6efe519ee",
+      "releaseDigest": null
+    },
+    {
+      "id": 21,
+      "slug": "what-is-an-anti-inflammatory-diet",
+      "preReleaseDigest": "d71f6381714eba6e842f3c9cc8d446e65c2fd93fd4ffa4ae96fdfc6e2a64594f",
+      "releaseDigest": null
+    },
+    {
+      "id": 25,
+      "slug": "alcohol-units-calculator",
+      "preReleaseDigest": "0b9b141c93b8e645a16784f4cf0ab32671c3448cc658a24e4b5f3efce2e6597e",
+      "releaseDigest": null
+    },
+    {
+      "id": 27,
+      "slug": "how-to-read-your-hrv-trend",
+      "preReleaseDigest": "4441fde3398cc46f932c8fdbed46374a96b2ac1d2e5a89b90d7005a880780ed0",
+      "releaseDigest": null
+    },
+    {
+      "id": 28,
+      "slug": "can-sun-exposure-tell-you-if-you-need-vitamin-d",
+      "preReleaseDigest": "d166ac72c324e96cfe95036330bb56d2abafeba67e2bc4b4db56c60594d809b3",
+      "releaseDigest": null
+    },
+    {
+      "id": 29,
+      "slug": "what-calorie-deficit-calculator-can-tell-you",
+      "preReleaseDigest": "a93fee7bc04d736122e5734d6d7781287207b427f2ca052e4ee0ab82860d4b4c",
+      "releaseDigest": null
+    },
+    {
+      "id": 32,
+      "slug": "waist-to-hip-ratio-how-to-measure-it-and-what-it-means",
+      "preReleaseDigest": "971e080d5372da1005fdb8949b73cfde84c738f0618be533c15e87e73a1dcb37",
+      "releaseDigest": null
+    },
+    {
+      "id": 37,
+      "slug": "healthy-waist-to-height-ratio",
+      "preReleaseDigest": "c0017f8eda74a40223f0fb9e6dd4d0368ed0afd620b5a48311d1854b5ee3052a",
+      "releaseDigest": null
+    },
+    {
+      "id": 46,
+      "slug": "what-does-your-vo2-max-score-mean",
+      "preReleaseDigest": "f140d6002c43bd34e96c57a0c26e535cbcf7e647a17fe2b2749a659a156fe439",
+      "releaseDigest": null
+    },
+    {
+      "id": 56,
+      "slug": "how-blue-light-affects-sleep-evening-habits-score",
+      "preReleaseDigest": "d17cecda467896561e1f1b447fe0d4c84ed878109e974183083e497617a535b0",
+      "releaseDigest": null
+    },
+    {
+      "id": 57,
+      "slug": "what-time-should-you-go-to-bed-sleep-cycles-explained",
+      "preReleaseDigest": "010aed47644c8b6e7af3716b49dca5bcfb52e9cd77650647aa83841dd8667eb0",
+      "releaseDigest": null
+    },
+    {
+      "id": 58,
+      "slug": "how-much-sleep-debt-do-you-have-weekly-recovery",
+      "preReleaseDigest": "ecd35216691062a281a9b1f6f900a10d16c262b3757eb2958c59a640c8d22b55",
+      "releaseDigest": null
+    },
+    {
+      "id": 69,
+      "slug": "what-does-your-lifestyle-age-test-mean",
+      "preReleaseDigest": "bc91caa826d7f7a9077124c84bc63a5bd00d2b7e04d6cf3cae3b03c32b2b8298",
+      "releaseDigest": null
+    }
+  ]
+}

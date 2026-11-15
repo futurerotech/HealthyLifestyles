@@ -19,6 +19,7 @@
   gap: 0.7rem;
   padding: 0.85rem 1.1rem;
   background: var(--dark);
+  --focus-outline: var(--green-accent);
   color: #fff;
 }
 .chat__avatar {
@@ -28,7 +29,7 @@
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  background: var(--green-primary);
+  background: var(--green-700);
   color: #fff;
   flex-shrink: 0;
 }
@@ -66,7 +67,7 @@
   align-self: flex-end;
 }
 .chat__msg--user p {
-  background: var(--green-primary);
+  background: var(--green-700);
   color: #fff;
   border-bottom-right-radius: 5px;
 }

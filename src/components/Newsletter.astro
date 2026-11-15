@@ -19,7 +19,7 @@ const inputId = `nl-email-${variant}`;
 >
   <div class="newsletter__copy">
     <strong>Get new calculators &amp; guides</strong>
-    <span>Occasional, evidence-based wellness tips. No spam — unsubscribe anytime.</span>
+    <span>Occasional, evidence-based wellness tips. No spam.</span>
   </div>
   <div class="newsletter__field">
     <label class="sr-only" for={inputId}>Email address</label>
@@ -35,6 +35,7 @@ const inputId = `nl-email-${variant}`;
       Subscribe <Icon name="arrow-right" size={16} />
     </button>
   </div>
+  <p class="newsletter__privacy">How we use and store your email: <a href="/privacy">Privacy Policy</a>.</p>
   <p class="newsletter__status" data-newsletter-status role="status" aria-live="polite"></p>
 </form>
 
@@ -136,7 +137,7 @@ const inputId = `nl-email-${variant}`;
     padding: 0.7rem 1.2rem;
     border: 0;
     border-radius: var(--radius-pill);
-    background: var(--green-primary);
+    background: var(--green-700);
     color: #fff;
     font-family: var(--font-display);
     font-weight: 700;
@@ -152,6 +153,18 @@ const inputId = `nl-email-${variant}`;
     cursor: not-allowed;
   }
 
+  .newsletter__privacy {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .newsletter__privacy a {
+    color: inherit;
+    text-decoration: underline;
+  }
+  .newsletter__privacy a:hover {
+    text-decoration-thickness: 2px;
+  }
   .newsletter__status {
     margin: 0;
     font-size: 0.88rem;
@@ -180,11 +193,17 @@ const inputId = `nl-email-${variant}`;
   }
   .newsletter--footer .newsletter__field input {
     background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(148, 163, 184, 0.25);
+    border-color: rgba(148, 163, 184, 0.6); /* SC 1.4.11 field boundary 3.3:1 on --dark */
     color: #fff;
   }
   .newsletter--footer .newsletter__field input::placeholder {
     color: #94a3b8;
+  }
+  .newsletter--footer .newsletter__privacy {
+    color: #94a3b8;
+  }
+  .newsletter--footer .newsletter__privacy a {
+    color: #fff;
   }
   .newsletter--footer .newsletter__status[data-state='loading'] {
     color: #94a3b8;

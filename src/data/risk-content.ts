@@ -31,13 +31,13 @@ export const RISK_CONTENT: Record<string, ToolContent> = {
     directAnswer: {
       question: 'What is a healthspan score?',
       answer:
-        'It’s a 0–100 summary of the everyday habits — physical activity, diet, sleep, smoking, alcohol, stress, and social connection — that public-health guidance links with more healthy, disease-free years. On this tool, 80+ is excellent, 50–79 good, and under 50 needs attention. It reflects habits only, never a medical prediction.',
+        'It’s a 0–100 summary of the everyday habits — physical activity, diet, sleep, smoking, alcohol, stress, and social connection — that public-health guidance links with more healthy, disease-free years. The point bands are labels defined by this tool, not validated clinical grades. The score is not a medical prediction.',
     },
     seoTitle: 'Healthspan Score – Free Healthy-Habits Calculator',
     metaDescription:
-      'Score your everyday habits (0–100) against WHO and CDC lifestyle guidance and see your 2–3 highest-impact next steps. Educational — not a lifespan prediction.',
+      'Score everyday habits (0–100) against WHO and CDC guidance and see which habits have the most model points left. Educational, not a lifespan prediction.',
     intro:
-      'Answer ten quick questions about your everyday habits and get a transparent 0–100 healthspan-habits score — with a bar for every factor and your highest-impact next steps. It reflects habits linked with more healthy years, not a prediction of your lifespan.',
+      'Answer ten quick questions about your everyday habits and get a transparent 0–100 healthspan-habits score — with a bar for every factor and your largest remaining point gaps. It reflects habits linked with more healthy years, not a prediction of your lifespan.',
     notice:
       'Educational habits score only. It is NOT a lifespan prediction, biological-age measurement, or medical diagnosis — it summarizes everyday habits that public-health guidance links with more healthy, disease-free years. Talk to a qualified professional about your health.',
     sections: [
@@ -51,18 +51,18 @@ export const RISK_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'How the score is calculated',
         paragraphs: [
-          'The score is a transparent points model over nine habit factors, anchored to public guidance on modifiable risk: physical activity (20 points, full credit at the WHO’s 150 minutes of moderate activity a week), fruit & vegetables (12 points, full credit at 5 servings — roughly the WHO’s 400 g a day), ultra-processed food (8), smoking (15), alcohol (10, using the Dietary Guidelines’ moderation thresholds by sex), sleep (15, full credit for 7–9 hours), self-rated stress (6), social connection (4), and — optionally — waist-to-height ratio (10, full credit under 0.5).',
-          'The weights sum to exactly 100, so with every factor answered the visible points literally add up to your score. If you skip the optional waist-to-height factor the score is rescaled from 90, so skipping never counts against you. Age and sex are context only: sex sets the alcohol guideline, and age doesn’t change the score at all — good habits count at every age.',
+          'The score is a transparent points model over nine habit factors, anchored to public guidance on modifiable risk: physical activity (20 points, full credit at the WHO’s 150 minutes of moderate activity a week), fruit & vegetables (12 points, full credit at 5 servings — roughly the WHO’s 400 g a day), ultra-processed food (8), smoking (15), alcohol (10 illustrative points using weekly bands that are not official Dietary Guidelines limits), sleep (15, full credit for 7–9 hours), self-rated stress (6), social connection (4), and — optionally — waist-to-height ratio (10, full credit under 0.5).',
+          'The weights sum to exactly 100, so with every factor answered the visible points literally add up to your score. If you skip the optional waist-to-height factor, the remaining 90 possible points are rescaled to 100. Because the denominator changes, scores with and without waist measurements are not directly comparable. Age does not change the score. Sex affects only this tool’s illustrative alcohol points, not any official weekly drinking limit. All points and overall bands are editorial heuristics, not health-risk predictions.',
         ],
       },
       {
         h2: 'How to read your result',
         list: {
-          intro: 'Three bands, always shown as color plus text:',
+          intro: 'Three descriptive point bands defined by this tool, not clinical risk categories:',
           items: [
-            '80–100 · Excellent — your habits strongly match healthy-aging guidance; protect them.',
-            '50–79 · Good — a solid base with clear room to gain points; check your top next steps.',
-            '0–49 · Needs attention — the good news: these are the habits with the biggest, best-evidenced payoff for change.',
+            '80–100 · Excellent (tool-defined) — reflects more earned model points, not a medical clearance.',
+            '50–79 · Good (tool-defined) — use factor details to see how these points were assigned.',
+            '0–49 · Needs attention (tool-defined) — this label does not classify clinical risk or determine which changes matter most for your health.',
           ],
         },
       },
@@ -70,7 +70,7 @@ export const RISK_CONTENT: Record<string, ToolContent> = {
         h2: 'A worked example',
         paragraphs: [
           'Sam, 42: 60 minutes of activity a week (8/20), 3 servings of fruit & veg (7/12), ultra-processed food some days (4/8), never smoked (15/15), 5 drinks a week (8/10), 6.5 hours of sleep (9/15), high stress (0/6), some social connection (2/4), waist-to-height 0.54 (5/10). Total: 58/100 — Good.',
-          'Sam’s top next steps, straight from the biggest point gaps: physical activity (+12 available), stress (+6), and sleep (+6). That’s the point of the tool — not the number, but knowing which two or three habits pay off most.',
+          'Sam’s largest unearned model points are physical activity (+12), sleep (+6), and stress (+6). These gaps do not rank expected medical benefits or substitute for personalized advice.',
         ],
       },
     ],
@@ -81,7 +81,7 @@ export const RISK_CONTENT: Record<string, ToolContent> = {
       },
       {
         q: 'Why doesn’t my age change the score?',
-        a: 'Because the score reflects habits, not biology — and the evidence says improving these habits pays off at every age. Age is collected only as context; sex is used solely to apply the correct alcohol guideline.',
+        a: 'Because the score reflects habits, not biology — and the evidence says improving these habits pays off at every age. Age is collected only as context; sex affects only the illustrative alcohol points in this tool; its weekly bands are not current official guidelines.',
       },
       {
         q: 'What counts as a "standard drink" and a "serving" of fruit or veg?',
@@ -89,11 +89,11 @@ export const RISK_CONTENT: Record<string, ToolContent> = {
       },
       {
         q: 'Is skipping the waist-to-height question a disadvantage?',
-        a: 'No. The score is rescaled to 0–100 without that factor, so skipping it never lowers your result. If you can measure, though, it adds a useful body-shape signal — a waist under half your height is the common healthy guide.',
+        a: 'Skipping is allowed. The score rescales the remaining factors to 100, but the number can be higher or lower than a score that includes your waist-to-height measurement; do not compare the two versions directly. A waist-to-height ratio below 0.5 is a general screening guide, not a diagnosis.',
       },
       {
         q: 'Where do the point values come from?',
-        a: 'Each factor is anchored to public guidance: the WHO physical-activity and healthy-diet fact sheets, CDC activity and sleep guidance, and the Dietary Guidelines for Americans for alcohol. The weights themselves are editorial simplifications so the score stays transparent — they are documented on this page, not hidden.',
+        a: 'Public guidance informs the physical activity, diet and sleep examples. The 2025–2030 Dietary Guidelines for Americans advise consuming less alcohol but do not set the weekly point bands shown here. All weights, score bands and alcohol point thresholds are this tool’s editorial choices, not validated health outcomes.',
       },
     ],
     sources: [
@@ -110,8 +110,8 @@ export const RISK_CONTENT: Record<string, ToolContent> = {
         url: 'https://www.cdc.gov/physical-activity-basics/guidelines/adults.html',
       },
       {
-        citation: 'U.S. Dietary Guidelines for Americans — including moderation guidance on alcoholic beverages.',
-        url: 'https://odphp.health.gov/our-work/nutrition-physical-activity/dietary-guidelines',
+        citation: 'U.S. Dietary Guidelines for Americans, 2025–2030 — consume less alcohol for better overall health.',
+        url: 'https://odphp.health.gov/our-work/nutrition-physical-activity/dietary-guidelines/current-dietary-guidelines',
       },
     ],
   },
@@ -174,7 +174,7 @@ export const RISK_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'The research areas behind it',
         paragraphs: [
-          'The adjustments reflect the general direction of findings in cardiovascular fitness (resting heart rate and mortality), physical activity and longevity, sleep and health, and metabolic health (waist-to-height ratio), along with the well-documented effects of smoking, heavy alcohol use, diet quality and chronic stress. These are population-level associations, not individual predictions — your real health depends on much more than nine inputs.',
+          'The adjustments reflect the general direction of findings in cardiovascular fitness (resting heart rate and mortality), physical activity and longevity, sleep and health, and metabolic health (waist-to-height ratio), along with the well-documented effects of smoking, heavy alcohol use, diet quality and chronic stress. These are population-level associations, not individual predictions — your real health depends on much more than these ten inputs.',
         ],
       },
     ],
@@ -195,151 +195,159 @@ export const RISK_CONTENT: Record<string, ToolContent> = {
   },
   // ============================================================
   'waist-health-risk-calculator': {
-    seoTitle: 'Waist-Based Health Risk Calculator',
+    seoTitle: 'BMI and Waist-to-Height Ratio Calculator',
     metaDescription:
-      'Combine your BMI and waist-to-height ratio into a clear, educational health-risk level. Free, metric or imperial — not a medical diagnosis.',
+      'Calculate BMI and waist-to-height ratio side by side. Learn what each measure means and its limits, without an unvalidated combined risk score.',
     intro:
-      'BMI and waist size each tell part of the story; together they paint a fuller picture. Enter your measurements to see a combined, educational risk level — and what it means.',
-    notice: NOTICE,
+      'BMI and waist-to-height ratio describe different aspects of body size. Compare both measurements and learn when a healthcare professional can help interpret them; this calculator does not predict your personal disease risk.',
+    notice:
+      'Educational body measurements only, not a medical diagnosis or a validated heart-disease/diabetes risk score. A lower BMI or waist-to-height ratio cannot rule out health conditions.',
     sections: [
       {
-        h2: 'Why combine BMI and waist?',
+        h2: 'Why look at both BMI and waist-to-height ratio?',
         paragraphs: [
-          'BMI compares your weight to your height, but it can’t tell muscle from fat or show where fat is stored. Waist-to-height ratio fills that gap by flagging abdominal (visceral) fat — the type most strongly linked to heart disease and type 2 diabetes.',
-          'Using both is more informative than either alone. Someone with a "normal" BMI but a large waist can still carry elevated risk, while a muscular person with a high BMI but a trim waist may not. This tool blends the two into a single, easy-to-read level.',
+          'BMI compares body weight with height, but it does not measure body fat or distinguish muscle from fat. Waist-to-height ratio gives another practical measurement related to central adiposity; it does not directly measure visceral fat or determine your medical risk.',
+          'The [NICE overweight and obesity guideline](https://www.nice.org.uk/guidance/ng246/chapter/Identifying-and-assessing-overweight-obesity-and-central-adiposity) recommends using waist-to-height ratio alongside BMI in adults with BMI below 35. These are separate measures, not a validated combined four-level risk score.',
         ],
       },
       {
-        h2: 'Reading your risk level',
+        h2: 'Understanding the measurements',
         list: {
-          intro: 'Your level reflects how far your BMI and waist-to-height ratio each sit above the healthy range:',
+          intro: 'Interpret both values in context, rather than treating a custom combined band as a clinical prediction:',
           items: [
-            'Low — BMI under 25 and waist under half your height.',
-            'Increased — one measure is moderately raised.',
-            'High — both measures are raised, or one is substantially so.',
-            'Very high — both BMI and waist are well above healthy levels.',
+            'BMI is a weight-for-height measure, not a direct measurement of fat distribution or a diagnosis.',
+            'For adults with BMI below 35, NICE describes waist-to-height ratio 0.4–0.49 as healthy central adiposity, 0.5–0.59 as increased, and 0.6 or above as high central adiposity.',
+            'The simple waist guidance is to keep waist circumference below half of height, but a low ratio does not rule out all cardiometabolic risk.',
+            'The NICE ratio classifications are not intended as a stand-alone classification when adult BMI is 35 or above; seek individualized clinical assessment.',
           ],
         },
       },
       {
-        h2: 'What to do with the result',
+        h2: 'What to do with your results',
         paragraphs: [
-          'A higher level is a prompt to look at habits, not a verdict on your health. Even modest changes help: losing 5–10% of body weight, trimming your waist, moving more and improving diet quality all lower risk meaningfully.',
-          'Crucially, this is a screening-style estimate, not a diagnosis. Many things this tool can’t see — blood pressure, cholesterol, blood sugar, family history and fitness — shape your true risk. Share any concerns with your doctor, who can run the right checks.',
+          'Changes to physical activity, nutrition and other behaviors may support cardiovascular and metabolic health. Health goals should fit your medical history and circumstances rather than a single body measurement.',
+          'Blood pressure, glucose, cholesterol, family history and other factors affect health independently of these measurements. A clinician can interpret your waist measurement, BMI and individual risks; do not treat these results as a diagnosis or a guaranteed safe range.',
         ],
       },
     ],
     faq: [
       {
-        q: 'Is a high risk level a diagnosis?',
-        a: 'No. This is an educational estimate based on two body measurements. It cannot diagnose any condition. Only a healthcare professional can assess your real health risk.',
+        q: 'Does this calculator measure my heart-disease or diabetes risk?',
+        a: 'No. It calculates BMI and waist-to-height ratio, not a validated combined risk probability. A medical assessment needs additional individual health information.',
       },
       {
-        q: 'Why use waist-to-height instead of waist alone?',
-        a: 'Scaling waist to height makes the measure fairer across different body sizes. The simple guide is to keep your waist under half your height.',
+        q: 'Why measure waist-to-height ratio as well as BMI?',
+        a: 'Waist-to-height ratio adds information about central adiposity that BMI alone cannot directly show. For adults with BMI below 35, NICE recommends assessing both.',
       },
       {
-        q: 'My BMI is fine but my waist is large — should I worry?',
-        a: 'A large waist can signal raised risk even at a normal BMI, because abdominal fat is metabolically harmful. It’s worth discussing with your doctor.',
+        q: 'What if my BMI is lower but my waist-to-height ratio is high?',
+        a: 'Waist-to-height ratio can indicate increased central adiposity even when BMI alone seems reassuring. Discuss concerns and appropriate screening with a healthcare professional.',
       },
     ],
-    sources: [WHO_OBESITY, { citation: 'Ashwell M, Hsieh SD. "Six reasons why the waist-to-height ratio is a rapid and effective global indicator for health risks of obesity." Int J Food Sci Nutr. 2005;56(5):303–307.', url: pubmed('Six reasons waist-to-height ratio rapid effective global indicator') }],
+    sources: [WHO_OBESITY, {
+      citation: 'NICE NG246 (2025; updated 2026), identifying and assessing overweight, obesity and central adiposity.',
+      url: 'https://www.nice.org.uk/guidance/ng246/chapter/Identifying-and-assessing-overweight-obesity-and-central-adiposity',
+    }],
   },
 
   // ============================================================
   'heart-disease-risk-calculator': {
-    seoTitle: 'Heart Disease Risk Calculator (Educational)',
+    seoTitle: 'Heart Disease Risk Factors Checklist (Educational)',
     metaDescription:
-      'An educational, lifestyle-based heart disease risk estimate from age, smoking, activity, BMI and blood pressure. Not a diagnosis — see your doctor.',
+      'Review five heart-health factors using illustrative points, not a validated heart disease risk score. Ask your clinician about AHA PREVENT.',
     intro:
-      'Several everyday factors shape your heart health. This educational tool turns them into a simple risk band, with guidance on what helps — it is not a clinical risk score or a diagnosis.',
-    notice: NOTICE,
+      'Explore five factors associated with cardiovascular health using an illustrative point tally. It does not classify your personal heart disease risk or predict cardiovascular events.',
+    notice: 'Educational factor checklist only. The point total does NOT measure personal risk of heart disease, stroke or heart failure. A low tally cannot rule out cardiovascular disease or replace clinical assessment.',
     sections: [
       {
         h2: 'What this tool does',
         paragraphs: [
-          'It adds up points from five well-established lifestyle factors — age, smoking, physical activity, BMI and blood pressure — to place you in a low, moderate or elevated band. The breakdown shows how each factor contributes, so you can see what’s driving the result.',
-          'This is deliberately simple and for education only. It is not the Framingham Risk Score, the ASCVD estimator, or any validated clinical tool — those also use cholesterol, diabetes status and other data, and should be run by a clinician.',
+          'This checklist adds illustrative points for age, smoking, physical activity, BMI and a broad blood-pressure category. The weights and total are not validated cardiovascular predictions, and no point cutoff can classify medical risk. Review the individual factors rather than interpreting the tally as a diagnosis or percentage.',
+          'The [American Heart Association PREVENT calculator](https://professional.heart.org/en/guidelines-and-statements/prevent-calculator) uses clinical measurements including sex, measured systolic blood pressure, cholesterol, kidney function, BMI, diabetes, smoking and medication status. This checklist lacks these inputs and cannot substitute for a validated risk estimate.',
         ],
       },
       {
         h2: 'The factors that matter',
         paragraphs: [
           'Smoking is one of the most powerful and most reversible risk factors — quitting begins to lower risk within a year. Regular physical activity, a healthy weight and well-controlled blood pressure all protect the heart, while age is a factor you can’t change but which makes the others matter more.',
-          'The American Heart Association summarises the controllable pieces as "Life’s Essential 8": diet, activity, not smoking, healthy sleep, weight, cholesterol, blood sugar and blood pressure.',
+          'The American Heart Association summarizes the controllable pieces as "Life’s Essential 8": diet, activity, not smoking, healthy sleep, weight, cholesterol, blood sugar and blood pressure.',
         ],
       },
       {
         h2: 'Lowering your risk',
         paragraphs: [
-          'If your band is moderate or elevated, the good news is that most heart disease risk is modifiable. Not smoking, moving more, eating more whole foods and less salt, and keeping blood pressure in range can dramatically cut your real risk over time.',
-          'Because this estimate leaves out key clinical data, treat it as a conversation-starter. Ask your doctor for a proper cardiovascular risk assessment, including a blood-pressure check and a cholesterol (lipid) test.',
+          'Regardless of checklist points, avoiding tobacco, being active, choosing nutritious foods and managing blood pressure are useful preventive steps. A low tally is not proof that no further assessment is needed.',
+          'This checklist cannot estimate 10-year or 30-year risk. Ask your clinician whether a formal cardiovascular assessment is appropriate, especially with personal risk factors, a family history or symptoms.',
         ],
       },
     ],
     faq: [
       {
         q: 'Is this a real heart disease risk score?',
-        a: 'No. It’s an educational, simplified estimate. Clinical scores such as Framingham or ASCVD also use cholesterol and other data and must be run by a healthcare professional.',
+        a: 'No. The checklist points are neither a probability nor validated clinical categories. AHA PREVENT requires additional clinical measurements and supports conversations with healthcare professionals.',
       },
       {
         q: 'What’s the single best thing I can do for my heart?',
         a: 'If you smoke, quitting has the biggest impact. Otherwise, regular activity, a healthy weight, good diet and controlled blood pressure all strongly protect your heart.',
       },
       {
-        q: 'Should I see a doctor if my result is elevated?',
-        a: 'Yes. An elevated educational band is a good reason to ask your doctor for a full cardiovascular check, including blood pressure and cholesterol testing.',
+        q: 'Can a low point tally rule out heart disease risk?',
+        a: 'No. Even a tally of 0 out of 12 cannot rule out cardiovascular disease. Discuss individual assessment with your clinician; the checklist omits important factors and measurements.',
       },
     ],
-    sources: [CDC_HEART, AHA_LE8],
+    sources: [CDC_HEART, AHA_LE8, { citation: 'American Heart Association. PREVENT Equations and required clinical inputs.', url: 'https://professional.heart.org/en/guidelines-and-statements/prevent-calculator' }],
   },
 
   // ============================================================
   'diabetes-risk-calculator': {
-    seoTitle: 'Type 2 Diabetes Risk Calculator (Educational)',
+    seoTitle: 'Type 2 Diabetes Factors Checklist (Educational)',
     metaDescription:
-      'An educational type 2 diabetes risk band from age, BMI, waist, family history and activity. Non-diagnostic — get a blood test from your doctor.',
+      'Explore factors linked to type 2 diabetes with illustrative points, not a validated screening risk score. Learn about laboratory testing.',
     intro:
-      'Type 2 diabetes often develops silently over years. This educational tool flags your risk level from a few key factors and points you toward proper screening — it cannot diagnose diabetes.',
-    notice: NOTICE,
+      'Diabetes and prediabetes may have no symptoms. Review five relevant factors as a discussion aid, not a validated disease-risk category or a substitute for laboratory testing.',
+    notice:
+      'Illustrative points only — not the validated CDC/ADA risk test and not a diagnosis. A tally of 0 does not rule out prediabetes or diabetes. Ask a healthcare professional about screening based on your health, symptoms and risk factors.',
     sections: [
       {
-        h2: 'How the estimate works',
+        h2: 'How the illustrative checklist works',
         paragraphs: [
-          'It scores five factors strongly linked to type 2 diabetes: age, BMI, waist-to-height ratio, family history, and physical activity. The total places you in a low, moderate or high band, and the breakdown shows each factor’s contribution.',
-          'The approach is inspired by validated screening questionnaires such as FINDRISC, but it is simplified for education and is not the official test. It does not measure blood sugar — and only a blood test can.',
+          'This checklist adds custom points for age, BMI, waist-to-height ratio, family history and activity. The weights and total are illustrative only; they do not correspond to validated low, moderate or high risk categories. Review each factor rather than relying on the tally.',
+          'The [CDC/ADA validated prediabetes risk test](https://www.cdc.gov/diabetes/widgets/risktest/how-your-test-is-scored.html) uses different questions, points and thresholds. This checklist is not that test, does not measure blood glucose and cannot establish disease probability. A1C or plasma-glucose testing evaluates glycemic status.',
         ],
       },
       {
         h2: 'Why screening matters',
         paragraphs: [
-          'Up to a third of people with type 2 diabetes don’t know they have it, and many more have prediabetes — higher-than-normal blood sugar that often has no symptoms. Caught early, prediabetes can frequently be reversed through diet, activity and weight loss.',
-          'If your band is moderate or high, we strongly recommend asking your doctor for a simple blood test such as HbA1c or fasting glucose. It’s quick, and knowing early gives you the best chance to act.',
+          'Prediabetes often has no clear symptoms; a reassuring checklist total cannot exclude it. The [CDC](https://www.cdc.gov/prediabetes/risktest/about-the-test.html) recommends appropriate screening, while evidence-based lifestyle programs can help prevent or delay type 2 diabetes.',
+          'Ask a healthcare professional about A1C or fasting-plasma-glucose testing when recommended for your age, history, symptoms or clinical risk factors, regardless of this checklist total.',
         ],
       },
       {
         h2: 'Lowering your risk',
         paragraphs: [
-          'Risk factors like age and family history can’t be changed, but the most powerful ones can. Losing even 5–7% of body weight, being active for about 150 minutes a week, and eating more fibre and fewer refined carbohydrates substantially cut the risk of developing type 2 diabetes.',
-          'This tool is a nudge toward those habits and toward a conversation with your doctor — not a diagnosis. Whatever your score, a professional screening is the only way to know your actual blood-sugar status.',
+          'Age and family history cannot be changed, but prevention can still help. For adults with excess weight and elevated diabetes risk, evidence-based programs often target 5–7% sustained weight reduction and at least 150 minutes per week of moderate physical activity, adjusted to individual needs.',
+          'This checklist is a conversation aid, not a diagnosis or a validated screening result. Laboratory testing may be needed even if its tally is low; follow clinical screening recommendations.',
         ],
       },
     ],
     faq: [
       {
         q: 'Can this calculator diagnose diabetes?',
-        a: 'No. It is an educational risk estimate only. Diabetes and prediabetes can only be detected with a blood test ordered by a healthcare professional.',
+        a: 'No. These are illustrative points, not the validated CDC/ADA risk test. Diabetes and prediabetes are assessed using laboratory A1C or plasma-glucose criteria.',
       },
       {
         q: 'What blood test should I ask for?',
-        a: 'Common screening tests are HbA1c (average blood sugar) and fasting plasma glucose. Your doctor will advise which is right for you, especially if your risk band is moderate or high.',
+        a: 'Common screening tests are A1C and fasting plasma glucose. Your clinician can advise which is appropriate based on your health and screening guidance; a low checklist tally cannot exclude the need for testing.',
       },
       {
         q: 'Can type 2 diabetes risk be reduced?',
-        a: 'Yes. Modest weight loss, regular activity and a higher-fibre, lower-refined-carb diet markedly reduce risk, and can even reverse prediabetes when caught early.',
+        a: 'Evidence-based lifestyle changes, including physical activity and weight management when indicated, can prevent or delay type 2 diabetes in people at elevated risk. Ask a clinician about screening and individual prevention options.',
       },
     ],
-    sources: [CDC_DIABETES, ADA],
+    sources: [CDC_DIABETES, ADA,
+      { citation: 'CDC. How Your Prediabetes Risk Test Is Scored.', url: 'https://www.cdc.gov/diabetes/widgets/risktest/how-your-test-is-scored.html' },
+      { citation: 'ADA. Standards of Care in Diabetes—2026: Diagnosis and Classification.', url: 'https://doi.org/10.2337/dc26-s002' },
+    ],
   },
 
   // ============================================================

@@ -1,0 +1,385 @@
+# HealthyLifeStyles — engineering continuity record (2026-11-14)
+
+Durable resume point for the next session. Evidence only; nothing here is a
+merge, deployment, publication, legal or clinical approval.
+
+## Frontend — PR #56 `integration/calculator-safety-20261114`
+
+| Commit | What | CI |
+|---|---|---|
+| `a054092` | Integrated calculator safety work (#53–#55), screener engine fix, pregnancy dating, focus styles | 43565044508 ✅ |
+| `a0aef49` | Review #6873310811: future raw dates rejected per method; strict dates and integer bounds; no sharing of PHQ-9/GAD-7/WHO-5 results; WHO-5 licence hold | 43568758128 ✅ |
+| `e936b48` | Phase 2: BMI, body fat, ideal weight, calorie and BMR audit fixes | 43569328123 ❌ (Chrome debugger start timeout before any page; unit 267/267) |
+| `8a6d942` | Browser QA: 60 s Chrome debugger wait plus one logged relaunch (no assertion relaxed) | 43569710818 ✅ (unit 267/267; browser QA 0 failures; no relaunch needed) |
+| `b1c9614` | Phase 2 group 2: ratio thresholds, macro and keto consistency, American-English copy | 43570406469 ❌ (tsc: untyped test tuple) |
+| `58f641f` | Typed test tuple | 43570774734 ✅ (unit 273/273; browser QA 0 failures) |
+| `47e0d0d` | Heart group: BP gaps vs. the 2025 AHA/ACC guideline | 43575235796 ❌ (browser QA: BP page 560px wide at 390px) |
+| `6a81aad` | Source lists wrap long citation tokens; overflow detector scans `<main>` | 43575635618 ✅ |
+| `db53357` | Last untested calculators: alcohol units, smoking cost, anti-inflammatory score, blue light (+ weight-loss %, deficit pins) | 43576208355 ✅ (unit 284/284; browser QA 0 failures) |
+| `6bc4db1` | Weight-loss timeline: no plan to a goal below BMI 18.5 or an impossible weight (goal 0 kg had a date) | 43576743663 ✅ (288/288; new browser scenario passed) |
+| `ff0eee3` | Fasting medicine caution; caffeine 400 mg wording, >400 mg single-dose flag, pregnancy <200 mg | 43577338507 ✅ (unit 294/294; browser QA 0 failures) |
+| `7a2b3fe` | Muscle preservation: always-visible kidney-disease caution beside the 1.6–2.4 g/kg target; weight bounds | 43577837753 ✅ (unit 297/297; browser QA 0 failures) |
+| `b2d1ded` | Last six standalone tools: lifestyle age, strength program, chronotype, sleep, breathing timer, recipe analyzer | 43583898160 ✅ (306/306; new browser scenarios passed) |
+| `e2fd47f` | Preflight verifies article tool embeds render a live calculator (Roadmap 6.3); embed/page engine parity guard | 43584650891 ✅ (307/307; live-content preflight `errors: []`) |
+| `52f393c` | Article embeds pass the tool name (share text bug found in the editorial audit) | **43601997553 ✅** (308/308; browser QA 0 failures; live preflight `errors: []`) |
+
+### Phase 2 findings fixed at `e936b48`
+- **BMI:** category bounds were inclusive (18.5 → Underweight, 25.0 → Normal, 30.0 → Overweight). Now WHO/CDC "under Y", classified on the displayed value. Adds an adult-use note.
+- **Body fat (U.S. Navy):** same boundary defect against the page's ACE table. Out-of-range results (outside 2–60%) were clamped and are now withheld.
+- **Ideal weight:** Devine is not defined below 5 ft (it previously showed a flat 50/45.5 kg).
+- **Calorie:** when TDEE is at or below the floor, the "lose" figure exceeded maintenance. No deficit is now offered. A clamped target shows its real weekly loss.
+- **BMR:** formula verified exact. An accuracy note was added.
+- **Tests:** `scripts/seo/__tests__/body-metrics-audit.test.ts`.
+
+### Phase 2 group 2 findings fixed at `b1c9614`
+- **Waist-to-height:** 0.50 was "Healthy". Bands are now <0.4 / 0.4–0.49 / 0.5–0.59 / ≥0.6, and the page copy matches.
+- **Waist-to-hip:** 0.90 (men) and 0.85 (women) were "Low risk", and the copy said "above". The cited WHO 2008 report sets risk **at or above** these values. Tool and copy now match, and the invented second tiers are removed.
+- **Macro:** a cut could exceed maintenance, and the cut message appeared on Maintain. At high weights the macros were larger than the calories shown and the meal-plan link carried those numbers. Fat is now reduced to fit and the totals always match.
+- **Keto:** carbs are capped at the tool's own 50 g ceiling. The caution now names pregnancy and diabetes or blood-pressure medicine.
+- **Copy:** British spellings converted to American English. Cited titles are kept. `american-english-copy.test.mjs` guards this.
+- **Open question for clinical review:** per-kg protein and fat use total body weight even at a high BMI. A goal or adjusted weight may suit better. This is not changed without a clinical decision.
+
+Audited with no defect found: weight-loss %, calorie deficit (3,500 kcal/lb rule labelled as an estimate, with unsafe-pace warnings), protein intake.
+
+### Heart-health group (`47e0d0d`, `6a81aad`)
+- **Reused, not repeated:** #37 (BP, AHA 2025), #39 (resting HR), #40 (Karvonen), #41 (max HR) are ancestors of #56, and their tests run in CI.
+- **#38 (one-rep max) is superseded** by #53's `83eab50` and the `one-rep-max-integrity` test (comment 6874535056). Close it after #56 merges.
+- **BP gaps vs. 2025 AHA/ACC (Jones et al., Hypertension 2025):**
+  - zone labels now say "and"/"or" exactly (the classification itself was already right);
+  - added validated upper-arm cuff advice and the cuffless/smartwatch non-recommendation;
+  - categories are based on the average of 2+ readings on 2+ occasions;
+  - the primary guideline is now cited.
+- The new citation's 60-character token overflowed the page at 390px. Fixed site-wide: source-list items get `min-width:0; overflow-wrap:anywhere`.
+
+### Remaining calculators (`db53357`)
+All 38 calculators in `defs.ts` now have dedicated audit tests.
+- **Alcohol:** the unsourced, sex-blind 35-unit tier is removed.
+- **Smoking:** the off-step stepper is fixed.
+- **Anti-inflammatory:** claims reworded to associations.
+- **Blue light:** no penalty for an unused device or filter.
+
+### Standalone tools (`6bc4db1`, `ff0eee3`)
+- **Weight-loss timeline:** any goal was accepted, and 0 kg got a "Goal reached" date. It now takes a height field and plausible bounds (25–350 kg, 120–230 cm). Goals below BMI 18.5 are not planned; the user is offered a doctor or dietitian instead. Covered by `weight-timeline-safety.test.ts` and a browser scenario.
+- **Fasting:** arithmetic verified. The safety notice now names medicine that lowers blood sugar or must be taken with food. Covered by `fasting-schedule.test.ts`.
+- **Muscle preservation:** the high-protein targets (highest for ages 60+) had no kidney caution. Non-dialysis CKD is usually protein-limited (KDOQI 2020: about 0.55–0.8 g/kg). An always-visible note and a page notice were added, and the weight input now uses the site bounds. Covered by `muscle-preservation-safety.test.ts`.
+- **Caffeine:** half-life maths verified. A dose over 400 mg is now flagged. "Safe limit" became the FDA's "general daily amount for healthy adults", and pregnancy is stated as under 200 mg a day (ACOG). Covered by `caffeine-plan.test.ts`.
+
+### Last six standalone tools (`b2d1ded`)
+- **Lifestyle age:** the pulse scoring now matches the RHR checker. Below 40 bpm is not rewarded; above 100 bpm prompts a medical review.
+- **Strength:** below-bar weights are flagged, and warm-ups are always lighter than the working sets.
+- **Chronotype:** the framework is attributed to Breus and described as not validated (MEQ/MCTQ are used in research). The unsourced population shares are removed, and the Dolphin profile points to insomnia care.
+- **Sleep debt:** blank or out-of-range nights are reported. The contradictory tips are fixed, and cycle variability is stated.
+- **Breathing:** pause now resumes; only phase changes are announced; the heading is correct; a breath-hold caution was added.
+- **Recipe:** no silent 5,000-character truncation; the visitor address is forwarded, so the CMS limit is per visitor.
+- **Security review item (CMS not changed):** the CMS rate limiter trusts a client-supplied `X-Forwarded-For` on direct calls to `/api/analyze-recipe`. That endpoint calls a paid AI parser, so the limit can be bypassed (cost risk). Fixing it needs a trusted-proxy or shared-secret design and belongs to the independent security review.
+
+### Phase 2 acceptance (§6.1 inventory, §6.3 article-to-tool) — from live content
+- CI run 43584650891 built against the production CMS (read-only).
+- **Tools:** 70 routes, of which 68 are rendered pages. The other 2 are intentional permanent aliases: `body-fat-percentage-calculator` → `body-fat-calculator` and `how-much-protein-do-i-need` → `protein-intake-calculator`.
+- **Articles:** 60 published. Three legacy `/articles/` URLs redirect permanently to rendered canonical pages.
+  - *Correction:* commit `e2fd47f`'s message says "30 Wellness Hub articles". The preflight count is 60; history was not rewritten.
+- **Release preflight:** `errors: []`. It now also requires every article `toolEmbed` to render its canonical tool with a live calculator island, and that check passed on all live articles.
+- **Embed parity:** article embeds render the same engines as tool pages, guarded by a test.
+- **Phase 2 engineering is complete.** Clinical sign-off, owner merge and real staging remain external gates.
+
+### Phase 3 started
+- `docs/editorial/PHASE3_RISK_CLASSIFICATION_20261114.md` classifies all 60 published articles (12 high / 33 moderate / 15 lower) and names the §7.2 ten-article audit sample.
+- **Blocker:** article bodies exist only in the CMS, and this session's shell cannot reach the CMS host. Fetching the public article pages needs owner approval, which was requested and went unanswered.
+
+### Phase 3 §7.2 — initial ten-article audit (`docs/editorial/PHASE3_AUDIT_10_ARTICLES_20261114.md`)
+- **Access:** public published pages, read-only, under the owner's authorization of 2026-11-14. No CMS records, drafts or credentials were touched.
+- **High (4):**
+  - Blood-pressure article: 2017-era "hypertensive crisis/urgency" wording; "/" in place of "or"; 46% prevalence (CDC now 47.7%); no validated-cuff or cuffless guidance; follow-up only at 140/90.
+  - Pregnancy week-by-week: omits CDC's "thoughts of harming yourself or your baby" urgent sign.
+  - Due date: omits ACOG CO 700's rule that IVF dates are not ultrasound-re-dated, and the re-dating thresholds; thin; unrelated related-guides.
+  - Intermittent fasting: no medication warning (article and tool now disagree); comparison table not rendering.
+- **Low (4):** optional ADA screening note (diabetes); missing source entry (ovulation); taxonomy tags (resting HR, Karvonen).
+- **No defect (2):** heart-disease risk; pregnancy weight gain. Every worked example in the ten articles was recomputed.
+- **Attribution:** all ten are bylined "Editorial Team" with no reviewer claimed, which complies with §7.3.
+- **Offline draft corrections are in the report; nothing was written to the CMS.**
+- **Lower-risk audit, all 15 articles** (`docs/editorial/PHASE3_AUDIT_LOWER_ARTICLES_20261114.md`): 2 moderate (metabolic-age overclaims; chronotypes framework presented as research), 9 low, 4 none. **§7.2 is complete for all 60 published articles:** 8 high, 15 moderate, 25 low, 12 none.
+- **Moderate-risk audit, all 33 articles** (`docs/editorial/PHASE3_AUDIT_MODERATE_ARTICLES_20261114.md`): 4 high (waist-to-height embeds the wrong tool; waist-to-hip uses the WHO cutoffs as 'above'; VO2 max fitness age; three numerical errors in alcohol units), 13 moderate, 10 low, 6 none. Release coupling X3: seven article drafts must ship with #56.
+- **Addendum, the remaining high-risk pair:** maximum heart rate is low (taxonomy tag only; all numbers verified); caffeine is low (FDA wording; add an ACOG pregnancy source; energy-drink can size; large-dose warning; missing source entry). All 12 high-risk articles are now audited.
+
+### Tooling note
+`/home/claude/tools/tsdiag.cjs` is syntax-only and missed the `b1c9614` type error. `tscheck.cjs` (semantic; drops unresolved-module noise) reproduces it and is now used before pushing.
+
+## CMS
+- **PR #64** `codex/indexnow-draft-safety-20261114` @ `906070a`: CI 43559981416 ✅ (31/31).
+- **PR #65** `codex/hostinger-runtime-evidence-20261114` @ `50a9358`: CI 43561621197 ✅ (31/31).
+- The offline SEO title corrections are in `docs/content/CMS_SEO_CORRECTIONS_20261114.md`. No live record was changed.
+
+## External gates (pending; not claimed)
+0. Phase 1 infrastructure verification remains pending until real Hostinger/Neon/R2 evidence exists. WHO-5 remains suspended pending licensing clearance.
+1. Owner merge authorization: frontend #56; CMS #65 → #64 → #34 → main.
+2. WHO-5 reuse decision (WHO CC BY-NC-SA 3.0 IGO vs. an ad-supported site) or written WHO permission. The hold stays until then.
+3. Independent clinical review: screeners, pregnancy and cycle tools, body-metric categories and wording.
+4. Independent security review. The expired audit baseline is untouched.
+5. Real Hostinger staging access and R2 token scope. Phase 1 staging runtime is unverified.
+6. Owner authorization for draft CMS SEO updates.
+
+GO/NO-GO: **NO-GO for release** until gates 1–4 are closed.
+
+## Phase 3 §7.4 reference integrity (done; read-only)
+- Audit: `scripts/content/reference-audit.mjs` + `.github/workflows/reference-audit.yml` (non-blocking; `contents: read`; `workflow_dispatch`). Tests: `scripts/seo/__tests__/reference-audit.test.mjs`.
+- Run 43607716809 @ e2d561f: 60 articles, 405 citations, 223 unique URLs.
+- Verified defects: 6 wrong destinations, 4 dead URLs, 3 generic/redirected, 1 search link, 2 outdated-edition (DGA) citations, 1 inconclusive (NBK459351). 21 access-only URLs are temporary bot blocks, not defects.
+- Exact offline corrections: `docs/editorial/PHASE3_REFERENCE_AUDIT_20261114.md`. No CMS record changed.
+
+## Phase 3 §7.3/§7.5 editorial quality (done; read-only)
+- Lint: `scripts/content/editorial-lint.mjs` (same workflow; tests `scripts/seo/__tests__/editorial-lint.test.mjs`). Run 43609387700 @ 9e6f218.
+- Manual verdicts:
+  - British spelling: 2 articles.
+  - Responsible language: 2 genuine issues (12 of 14 flags were cautions).
+  - Coherence: 1 new defect (protein FAQ range) plus the 5 existing §6.3 gates.
+  - Sources: 2 articles need added sources.
+  - Body links: 4 articles lack in-copy links (no orphans, no broken links).
+  - Thin content: 10 articles under 700 words, with offline expansion drafts.
+- Report with exact replacements and drafts: `docs/editorial/PHASE3_EDITORIAL_QUALITY_20261114.md`. No CMS record changed.
+- Phase 3 engineering and offline editorial work is complete. Remaining Phase 3 items are gates: independent clinical review, then owner-authorized CMS application.
+
+## Phase 4 §8.3 site-wide responsive/accessibility QA (done; CI-blocking)
+- `scripts/seo/__tests__/site-qa-browser.test.mjs` runs against the dev server and against the production build (`dist/client`): 68 tools + 13 templates × 390/1440.
+- Eight UX/accessibility defects fixed (see `docs/release/PHASE4_SITE_QA_20261114.md`).
+- Green: run 43616480371 @ 025e00f (dev 162/0, prod 162/0, unit 314/314, content 17/17, preflight, Lighthouse).
+
+## Phase 4 §8.2 lab performance (done)
+- `lighthouserc.json` blocking budget (LCP ≤ 2.0 s, CLS ≤ 0.05; TBT and score as warnings) now covers 8 URLs: home, /tools, two articles (including the longest), BMI tool, meal-plan tool, a category hub and the Wellness Hub index.
+- Run 43617438318 @ 60f041c ✅: 24 runs, all assertions pass, no warnings.
+- Field CWV prioritization (GA4/GSC/CrUX) remains gated on authorized data access.
+
+## Phase 4 §8.2 meal-plan LCP follow-up and §8.1 contrast (done)
+- Review 6881556185: the meal-plan LCP failure was a reproducible bottleneck (client:load island JS before LCP), not only variance. Fixed with client:visible in f51c070; the meal plan is now 1959/1963/1964 ms with 0 KB JS. The budget is unchanged. A first hypothesis (inlined CSS, 008e0f7) was disproved and is recorded.
+- A latent island crash was fixed (process.env in consts.ts) with a regression test.
+- §8.1 WCAG 2.2 AA contrast: the audit covers text, placeholders, field boundaries, focus and hover. 2,137 failures went to 0 in dev and in the production build. Details: `docs/release/PHASE4_SITE_QA_20261114.md`.
+- Green: run 43630591566 @ f51c070 (unit 315/315, content 17/17, preflight, site QA 162/0 ×2, Lighthouse 8 URLs).
+
+## Phase 5 §9.2 Candidate 1 research (steps 1–9 and 11 done; 10 and 12 gated)
+- `docs/research/PHASE5_CANDIDATE1_MEALPLAN_BUDGET_20261114.md`: extend the existing meal-plan generator (no new tool). Recommended scope: quantities, a dated public-domain BLS price snapshot, household multiplier with the USDA food-plan benchmark, and budget-aware swaps. Recurring cost $0.
+- Gated: GSC/GA4 demand evidence; owner authorization of the scope.
+
+## Phase 6 Innovation Lab research (done; research only)
+- `docs/research/PHASE6_INNOVATION_LAB_EVALUATION_20261114.md`. Board criteria and weights were used; repeat-use/organic discovery is insufficient evidence for all three.
+- Provisional weighted scores over the 90% with evidence: A 2.2, B 3.5, C 3.7. The lead is C (Shift Work Explorer, reusing existing sleep, nap, caffeine and chronotype engines). B is credible only if differentiated from AHRQ QuestionBuilder. A is not recommended.
+- No prototype built. The owner decision, search-demand evidence and clinical review are gates.
+
+## Phase 7 §11.3 overlap and cannibalization screen (done; read-only)
+- `docs/research/PHASE7_OVERLAP_CANNIBALIZATION_20261114.md`, run 43638753080 @ 886d52b.
+- No article cannibalization. Flagged tool pairs are distinct intents. Two legacy alias tool records are already 301-redirected (retiring them needs a CMS write). The shared-tool flag is the known §6.3 ID 37 gate.
+
+## Phase 4 addendum
+- Fasting timer contrast defect, found in a time-dependent state; it and two more dark cards were hardened. Green: run 43639598217 @ 407131f (site QA 162/0 ×2, Lighthouse 8/8).
+
+## Session 2026-11-15 (owner directive: finish the remaining engineering)
+
+The authoritative per-item status is `MASTER_ROADMAP_COMPLETION_MATRIX_20261114.md` (updated 2026-11-15).
+
+Frontend PR #56 commits:
+- `46ec638`: read-only BLS and ERS price inventory. Data snapshots run 43654292892.
+- `6dcdc68`: Phase 5 coverage.
+  - Added ERS produce prices with preparation yields, and current BLS butter and yogurt.
+  - Comparable recipes: 2 → 14 of 67.
+  - 12 grocery tests.
+- `f7c563b`, `d6d4895`: newsletter frontend.
+  - `/unsubscribe` page and `/api/unsubscribe` proxy.
+  - Non-revealing duplicate signups.
+  - Copy no longer promises unsubscribe.
+- `476ce8d`: stricter correction-package verification.
+  - Fixed: ID 37's wrong-primary finding was not being evaluated.
+  - The live dry run returns 0 problems and no drift.
+- `fc9e96f`: contrast audit skips closed overlays. Manual cases: 94 → 13.
+  - Verify 43657706598: 27/27 passed.
+
+CMS PR #66 `codex/newsletter-suppression-20261115` @ `22a25c8`, stacked on #65:
+- CI 43656222398: 31/31 passed.
+- Signed, expiring unsubscribe tokens.
+- `subscriber-unsubscribe` and `subscriber-send-check` endpoints, on collision-free paths.
+- Consent evidence fields, stamped by the server.
+- Additive migration, with the October ledger rehearsal counts updated.
+- One defect fixed during review: send-check did not normalize addresses (`8c5f3a7`).
+
+## Session 2026-11-15 (b): consent provenance review on CMS #66 (comment 6886950310)
+
+CMS #66 @ `51d001c`, CI 43661483884: 31/31 passed, 268 unit tests. Reply posted as comment 6887177977.
+- `131242c`: `isSuppressed` and `isEligibleForMarketing` are now separate functions.
+  - `subscriber-send-check` and the n8n forward fail closed for legacy, imported and unknown-consent records.
+  - Consent is captured only for a trusted proxy request: the internal key (constant-time compare) plus `x-consent-capture`. A client `source` or any body field cannot set it.
+  - New field `consentMethod`, value `form-single-opt-in`. It records a form submission, not a verified mailbox.
+  - Consent evidence is frozen; `unsubscribedAt` is one-way.
+  - `consent_method` is added to the same unreleased additive migration.
+- `51d001c`: fixed a test-helper defect. The no-key case was not actually being exercised.
+
+Frontend `cb47f50`, Verify 43661108618: 27/27 passed.
+- `/api/subscribe` now:
+  - sends the capture header;
+  - ignores any browser-supplied `source` and consent fields;
+  - accepts the first-party Origin only.
+- `/api/lead` never requests consent capture.
+
+Integration sequence #34 → #64 → #65 → #66 → frontend #56 is documented in the CMS doc `docs/release/NEWSLETTER_SUPPRESSION_20261115.md`. It has not been executed. Newsletter delivery stays NO-GO.
+
+## Session 2026-11-15 (c): cutover-order review on #56 (comment 6887842807)
+
+Frontend `ff446b5`, Verify 43667966676: 27/27 passed. The preflight ran with the pre-release lock enabled against live production: `contentComplete: true`.
+
+- **Verified behavior**
+  - Article pages are static; only `/api/*` routes are server-rendered.
+  - A merge into `main` deploys to production automatically.
+  - Production CMS main pings IndexNow and Google on every article save, drafts included. The chain removes this.
+  - Publishing on the chain triggers no deploy, and no push is sent for records that are already published.
+- `9eeb9bc`, `ff446b5`: release content lock for the 16 records (`scripts/content/release-content-lock.*`).
+  - It uses the editorial digest without `updatedAt` (`content-integrity.mjs`: `documentContent` and `editorialDigest`).
+  - It is now enabled in pre-release mode, with digests from run 43667642490.
+- `vercel.json` now pins `buildCommand: npm run build`, so the preflight runs on Vercel.
+- `release-rehearsal.test.mjs`: 6 tests covering partial publish, drift and rollback.
+- `RELEASE_PROCEDURE_20261115.md` is the single cutover order. Both conflicting sections now point to it.
+- **Staging re-checked (read-only):** Neon `small-hall-15225012` has 0 tools, 0 articles and none of the 16 IDs.
+  - A staging content bootstrap, through a writable and isolated path, is an external gate.
+
+## Session 2026-11-15 (d): release-state CI deadlock (review comment 6888386743)
+
+Frontend `c8fdd37`, Verify 43672232995: 27/27 passed. The preflight reported `scope: production-promotion` and `contentComplete: true`.
+
+- `476bc62`: the deadlock is resolved with two separate, labeled gates.
+  - **Release-candidate acceptance**: `release-candidate.yml`, run against an allowlisted staging mirror. A production build refuses a mirror origin.
+  - **Production promotion gate**: the unchanged Verify build. It is red for release commit R until production publication, and is never suppressed.
+  - R is promoted by fast-forwarding `main` to the tested SHA.
+  - The lifecycle tests accept both committed states and reject mixed commits (release-rehearsal: 8 tests).
+  - preflight-origin: 3 tests. staging-bootstrap: 3 tests; the exporter is prepared but has not been run.
+  - Vercel previews are disabled for `release/rc-**`.
+- `c8fdd37`: the contrast audit now finishes animations before measuring.
+  - Run 43671636111 had measured the cookie banner mid-fade at 4.38:1. Its final `#15803d` on white is 5.0:1.
+  - Thresholds are unchanged.
+- **Verified:** frontend `main` has no branch protection or rulesets, so GitHub would allow merging a red PR.
+  - Requiring the Verify check on `main` is an owner decision.
+- Not runnable yet: RC acceptance, because the staging mirror is empty and its bootstrap needs owner authorization and isolation proof.
+
+## Session 2026-11-15 (e): two-platform release architecture (owner directive; review comment 6888834079)
+
+- **Frontend #56** @ `dbb624e`: Verify 43676076920 passed 27/27. The lock now uses the host-independent media digest; pre-release digests come from read-only run 43675339644, and the baselines are unchanged.
+  - Added `scripts/release/verify-promotion.mjs` (4 tests on a real git repository) and `release-attestation.yml`.
+  - Proposed ruleset: `docs/release/branch-ruleset-main.json` (not applied).
+  - The staging export now scans nested text and fails closed. The read-only dry run (run 43676076826) exported 60 articles, 70 tools, 19 categories, 2 authors, 28 tags and 60 media. It dropped 1 key (`settings.contactEmail`) and flagged one phone-like string in one article, repeated through nested related-article copies. That string needs human review before any import.
+  - `RELEASE_PROCEDURE_20261115.md` has been rewritten as the single procedure.
+- **Guard PR #57** `codex/guard-content-lock-20261115` @ `66b7e92`, based on main `57f72ee`, 7 files. It is not merged.
+  - Its Verify fails only at the pre-existing `Audit delta` step (baseline expired 2026-10-08, Issue #52), exactly as main's own CI does.
+  - The evidence branch `codex/guard-evidence-20261115` @ `438e109` passed in run 43675781623: guard tests 3/3, then a production-data `npm run build` with prebuild `npm audit --audit-level=high` passing and the preflight reporting `contentComplete: true` with the guard lock.
+- **CMS #67** `codex/staging-mirror-import-20261115` @ `d5dc9e5`, stacked on #66: the staging importer. CI 43675263717 passed 31/31, including 7 unit tests and 5 synthetic integration tests in isolated-staging mode.
+- **Verified facts:**
+  - frontend `main` is unprotected, owned by a user account (no merge queue), and the default branch is `dev`;
+  - production CMS `main` pings IndexNow and Google on every article save.
+- **BLOCKED_EXTERNAL_EVIDENCE:**
+  - Hostinger: running SHA and deploy branch;
+  - Vercel: project settings, failure and alias semantics, Redeploy and hooks (403);
+  - Cloudflare: R2 token scope;
+  - a real staging import.
+
+## Session 2026-11-15 (f): importer review (CMS #67 comment 6889363674)
+
+**CMS #67** @ `e561944`: CI 43678580938 passed 31/31, with 20 importer unit tests and 9 synthetic integration tests in isolated-staging mode.
+
+1. **Guard at the entrypoint.** `importBundle` calls `assertImportTarget` before any query, flag change or transaction. It checks both the environment and the database the adapter is actually connected to.
+   - Ten denied paths (production URI or connection, mismatched host, unknown connection, missing flags, wrong staging host, IndexNow, Google or deploy credentials) make zero DB calls (unit spies).
+   - Against the real DB they write nothing (integration).
+2. **Checksums.**
+   - Checksums are canonical: sha256 over sorted-key JSON, identical in the frontend exporter (`71d44df`, Verify 43678587048 27/27) and in the CMS. Both suites share a fixed test vector.
+   - Every checksum is recomputed. The bundle is rejected for tampering, a missing or orphan checksum, unknown fields, a wrong source or scope, unreviewed findings, secret keys at any depth, or missing required records.
+3. **Transaction.**
+   - Sequence reconciliation now runs inside the import transaction. A failure there rolls back all content (integration).
+   - A failure after commit raises `ImportCommittedError` carrying the exact report, and `cleanupImport` removes exactly those records (integration).
+4. **`allowIDOnCreate` restore.** The flag is restored by an outer try/finally, including when `beginTransaction` fails or returns nothing (unit and integration).
+
+**Still blocked:**
+- guard PR #57 (Issue #52 audit baseline);
+- Vercel access;
+- Hostinger runtime identity;
+- R2 IAM;
+- a real staging import (owner authorization);
+- qualified human reviews.
+
+## Session 2026-11-15 (g): guarded cleanup (CMS #67 comment 6889642696)
+
+**CMS #67** @ `67cffb5`: CI 43680747911 passed 31/31, with 32 importer unit tests and 9 synthetic integration tests in isolated-staging mode.
+
+- `importBundle` now requires `HLS_STAGING_IMPORT_JOURNAL_KEY` and a durable `writeJournal` sink, both checked before any DB access.
+  - It writes an HMAC-signed creation journal **before commit**. The journal lists only the records it created, each with its stored checksum.
+- `cleanupImport(payload, journal, { env })` is a compensating delete after commit only; a rollback before commit needs no cleanup.
+  - It runs the same runtime and connected-DB gate as import, before any DB access.
+  - It verifies the signature, the target host, allowlisted collections and unique entries.
+  - It pre-checks every record. If any record changed, nothing is deleted and the changed records are named.
+  - It re-verifies each record before deleting it.
+  - It is resumable and idempotent.
+  - It never deletes skipped or pre-existing records.
+- **Unit tests:** every denied environment, connection and journal type makes zero DB calls. An edited record gives zero deletions. A partial cleanup can be resumed.
+- **Integration tests:** a forged journal and a production environment are refused. An editor change blocks cleanup. A partial failure resumes. A re-run deletes nothing.
+
+Frontend #56 exact head `619a23f`: Verify 43679583586 **completed**, success 27/27.
+
+## Session 2026-11-15 (h): final remediation mandate (P1–P7)
+
+### P1 and P2 — durable journal and race-free cleanup (CMS #67)
+- Exact head `c91f192`, CI 43683292571 PASS 31/31. 13 integration tests run, 0 skipped.
+- The journal is in the staging DB, in the same transaction as the content.
+- Cleanup is locked, runs in one transaction, and is all or nothing.
+- PR comment 6890236515.
+- Real Hostinger and Neon evidence: BLOCKED_EXTERNAL_EVIDENCE.
+
+### P3 — Issue #52
+Real inventory from evidence run 43683417978:
+- 3 advisories, all low or moderate; 0 high or critical. One of them affects `@astrojs/node`, which the site does not use.
+- All 9 baselined advisories are resolved.
+
+Fix, in draft PR #58 `ddd0d0d`:
+- a targeted lockfile update, generated in CI run 43683884066 and applied as a reviewed patch;
+- `npm audit` then reports 0;
+- the production-data build passes with `contentComplete: true`;
+- the baseline is empty, with reviewBy 2027-02-13.
+
+#58 Verify 43684072370 PASS. Guard #57 `d62b935` (#58 merged in, no history rewrite) Verify 43684122977 PASS 24/24. Human security sign-off: BLOCKED_HUMAN_REVIEW.
+
+### P4 — content drift during a build
+New test in `preservation.test.mjs`:
+- mid-build edit then revert: fails closed;
+- edit after the fetch: fails closed;
+- identical re-save: passes.
+
+### P5 — phone-like findings
+- Findings now name the record and show masked context.
+- All 7 findings are the published SAMHSA National Helpline (articles 25, 37, 65–69). Only that exact number is allowlisted, with every match checked.
+- Live dry run 43684565075: 0 findings.
+- Editorial observation for clinical review: the substance-use helpline also appears in the diabetes, heart, waist and lifestyle-age articles. No content was changed.
+
+### P6 — release content integrity
+Verify 43684565019 on `d5563a0`: the pre-release lock (16 records, production origin) was evaluated against live content, `errors: []`, `contentComplete: true`. Result: 27/27.
+
+## Session 2026-11-15 (i): staging readiness (continuous-execution mandate)
+
+**Real read-only provider evidence** (Neon; SELECT and catalog only):
+- Staging `small-hall-15225012`: PG 18.7; content, subscribers, push subscriptions and leads all 0; no journal table.
+- Staging and production column schemas are identical (md5 `4d256b4c…`).
+- Staging lacks only the consent migration.
+- **13 staging tables had no RLS** (production has 0 such tables). The new CMS migration `20261115_170000` fixes this.
+- The `audience` and `lead_gen` globals are empty on staging.
+- R2: both buckets exist, but token scope is not visible.
+
+**CMS #67** exact head `ff97411`: CI 43737251112 PASS 31/31. The code head `3009a4c` passed CI 43736779154 31/31. Changes:
+- RLS parity migration, with RLS also enabled on the journal tables;
+- runtime checker: secret separation via production fingerprints, the email recipient, empty outbound globals and empty private audience;
+- import runner CLI, not executed;
+- `docs/staging/STAGING_IMPORT_RUNBOOK_20261115.md`.
+
+PR comment 6897969375.
+
+**#58 → #56:** #58 was merged into #56. The lockfile is #56's own plus the CI-generated targeted update (43736394790), giving `@astrojs/vercel` 11.0.22; npm audit reports 0. #56 `1ed6e44` Verify 43736590726 PASS 27/27, with 0 tests skipped. That run included calculator browser QA, site-wide QA, Lighthouse and the content lock. Security package: #58 comment 6897969656.
+
+**Guard #57** `c369eb7`: Verify 43737339368 PASS 24/24. New tests: drift during a build, and the other-origin bypass. PR comment 6897969885.
+
+**Still blocked:**
+- Hostinger QA app: not reachable or identified;
+- R2 token scope;
+- Vercel settings (this session gets 403 on the team scope);
+- human reviews;
+- owner authorizations.
+
+## Next main-roadmap milestone
+Blocked on access or owner decisions: Phase 7 and 8 query-level work needs Search Console data (owner to grant read access or provide an export). No further roadmap work can proceed without new authorization or data. The pending owner decisions are listed in the external gates above and in the Phase 5, 6 and 7 research docs.

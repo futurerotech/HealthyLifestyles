@@ -84,7 +84,7 @@
 }
 
 .diary__btn--primary {
-  background: var(--green-primary, #16a34a);
+  background: var(--green-700, #15803d);
   color: #fff;
 }
 
@@ -189,7 +189,7 @@
 }
 
 .diary__chip--on {
-  background: var(--green-primary, #16a34a);
+  background: var(--green-700, #15803d);
   border-color: var(--green-primary, #16a34a);
   color: #fff;
 }
@@ -316,7 +316,7 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: var(--green-primary, #16a34a);
+  background: var(--green-700, #15803d);
   border: 2px solid #fff;
   box-shadow: 0 0 0 2px var(--green-primary, #16a34a);
   flex-shrink: 0;

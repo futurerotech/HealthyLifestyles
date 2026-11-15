@@ -129,3 +129,77 @@ test('subscription proxies authenticate CMS creates with the internal key only',
     assert.equal(headers.get('authorization'), null);
   }
 });
+
+const unsubscribe = (await import('../src/pages/api/unsubscribe.ts')).POST;
+const UNIQUE = () => Response.json({ errors: [{ message: 'The following field is invalid: email', data: { errors: [{ path: 'email', message: 'Value must be unique' }] } }] }, { status: 400 });
+
+test('an existing address gets the same answer as a new signup and is never forwarded again', async () => {
+  env.N8N_WEBHOOK_URL = 'https://workflow.example.test/lead';
+  respond = async (url) => (url.endsWith('/api/subscribers') ? UNIQUE() : Response.json({ ok: true }));
+  const fresh = await subscribe(request({ email: 'a@b.com' }));
+  assert.equal(fresh.status, 200);
+  assert.deepEqual(await fresh.json(), { ok: true });
+  const leadDup = await lead(request({ email: 'a@b.com' }));
+  assert.equal(leadDup.status, 200);
+  assert.deepEqual(await leadDup.json(), { ok: true, message: 'Subscribed!' });
+  assert.equal(calls.filter((c) => c.url.startsWith('https://workflow.example.test')).length, 0, 'duplicate must not re-enter email automation');
+  delete env.N8N_WEBHOOK_URL;
+});
+
+test('subscribe never echoes upstream error text', async () => {
+  respond = async () => Response.json({ message: 'private-upstream-secret' }, { status: 500 });
+  const r = await subscribe(request({ email: 'a@b.com' }));
+  assert.equal(r.status, 502);
+  assert.doesNotMatch(await r.text(), /private-upstream-secret/);
+  respond = async () => { throw new Error('private-upstream-secret'); };
+  const r2 = await subscribe(request({ email: 'a@b.com' }));
+  assert.equal(r2.status, 502);
+  assert.doesNotMatch(await r2.text(), /private-upstream-secret/);
+});
+
+test('unsubscribe proxy: first-party origin, token shape check, generic answers, no email anywhere', async () => {
+  const token = 'v1.' + 'a'.repeat(60) + '.' + 'b'.repeat(43);
+  const cross = await unsubscribe({ request: new Request('https://www.healthylifesstyles.com/api/unsubscribe', { method: 'POST', headers: { Origin: 'https://attacker.example' }, body: JSON.stringify({ token }) }) } as any);
+  assert.equal(cross.status, 403);
+  for (const bad of [{}, { token: 1 }, { token: 'v1.x.y' }, { token: 'a@b.com' }]) assert.equal((await unsubscribe(request(bad))).status, 400);
+  assert.equal(calls.length, 0, 'malformed tokens never reach the CMS');
+  respond = async () => Response.json({ ok: true, message: 'cms text' });
+  const ok = await unsubscribe(request({ token }));
+  assert.equal(ok.status, 200);
+  assert.equal(calls.at(-1)!.url, 'https://cms.example.test/api/subscriber-unsubscribe');
+  assert.deepEqual(JSON.parse(String(calls.at(-1)!.init.body)), { token });
+  assert.equal(new Headers(calls.at(-1)!.init.headers).get('x-internal-key'), null, 'the token is the only credential');
+  assert.equal(ok.headers.get('cache-control'), 'no-store');
+  respond = async () => Response.json({ ok: false }, { status: 400 });
+  assert.equal((await unsubscribe(request({ token }))).status, 400);
+  respond = async () => new Response('not found', { status: 404 });
+  assert.equal((await unsubscribe(request({ token }))).status, 503, 'CMS without the endpoint is reported as unavailable, not as success');
+  respond = async () => { throw new Error('down'); };
+  assert.equal((await unsubscribe(request({ token }))).status, 503);
+  env.CMS_URL = '';
+  assert.equal((await unsubscribe(request({ token }))).status, 503);
+});
+
+test('consent provenance: only the newsletter proxy requests consent capture, and the browser cannot steer it', async () => {
+  await subscribe(request({ email: 'a@b.com', source: 'csv-import', consentAt: '1999-01-01', consentMethod: 'x' }));
+  const sent = calls.at(-1)!;
+  const h = new Headers(sent.init.headers);
+  assert.equal(h.get('x-consent-capture'), 'newsletter-form-v1');
+  assert.equal(h.get('x-internal-key'), 'internal-test');
+  const body = JSON.parse(String(sent.init.body));
+  assert.equal(body.source, 'web-form', 'client source is ignored');
+  for (const k of ['consentAt', 'consentNoticeVersion', 'consentMethod']) assert.equal(k in body, false, `${k} must never be forwarded`);
+  await lead(request({ email: 'a@b.com' }));
+  const leadHeaders = new Headers(calls.find((c) => c.url.endsWith('/api/subscribers') && c !== sent)!.init.headers);
+  assert.equal(leadHeaders.get('x-consent-capture'), null, 'lead-offer signups do not attest newsletter consent');
+});
+
+test('subscribe rejects cross-site, null and missing Origins before any CMS call', async () => {
+  for (const origin of ['https://attacker.example', 'null', '']) {
+    const headers = new Headers({ 'Content-Type': 'application/json' });
+    if (origin) headers.set('Origin', origin);
+    const r = await subscribe({ request: new Request('https://www.healthylifesstyles.com/api/subscribe', { method: 'POST', headers, body: JSON.stringify({ email: 'victim@example.com' }) }) } as any);
+    assert.equal(r.status, 403, origin || 'missing');
+  }
+  assert.equal(calls.length, 0);
+});

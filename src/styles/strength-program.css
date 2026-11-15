@@ -45,7 +45,7 @@
   color: var(--muted);
 }
 .sp__units button.is-on {
-  background: var(--green-primary);
+  background: var(--green-700);
   color: #fff;
 }
 .sp__lifts-hint {
@@ -68,7 +68,8 @@
   border-radius: var(--radius-sm);
   background: var(--surface-2);
 }
-.sp__lift.is-off {
+.sp__lift.is-off .sp__lift-input {
+  /* Only the inactive 1RM field dims; the lift's toggle label stays legible (4.5:1). */
   opacity: 0.55;
 }
 .sp__lift-toggle {

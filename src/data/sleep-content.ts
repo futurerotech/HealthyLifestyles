@@ -25,7 +25,7 @@ export const SLEEP_CONTENT: Record<string, ToolContent> = {
         h2: 'What is a chronotype?',
         paragraphs: [
           'A chronotype is your natural tendency toward being a morning person, a night person, or somewhere in between — set largely by your internal body clock. Working with it (rather than against it) can make your energy, focus, and sleep noticeably better.',
-          'The popular four-animal framework sorts people into Lions (early birds), Bears (in sync with the sun — the most common), Wolves (night owls), and Dolphins (light, restless sleepers).',
+          'The four-animal framework, popularized by sleep psychologist Michael Breus in his book The Power of When, sorts people into Lions (early birds), Bears (in sync with the sun), Wolves (night owls), and Dolphins (light, restless sleepers). It is a simple, memorable guide, but it has not been validated in research. Sleep studies use questionnaires such as the Morningness–Eveningness Questionnaire (MEQ) and the Munich ChronoType Questionnaire, which place people along a continuum from early to late.',
         ],
       },
       {
@@ -37,9 +37,9 @@ export const SLEEP_CONTENT: Record<string, ToolContent> = {
     ],
     faq: [
       { q: 'What are the 4 sleep chronotypes?', a: 'Lion (early riser, morning peak), Bear (follows the sun, the most common), Wolf (night owl, evening peak), and Dolphin (light, easily-woken sleeper).' },
-      { q: 'What’s the most common chronotype?', a: 'The Bear — roughly half of people. Bears wake and sleep with the sun and do well on a typical 9-to-5 schedule.' },
+      { q: 'What’s the most common chronotype?', a: 'In research, most people fall between the extremes, with an intermediate chronotype; clear early and late types are less common. In this quiz’s framework that middle group is called the Bear.' },
       { q: 'Can my chronotype change?', a: 'It shifts with age (teens trend later, older adults earlier) and can be nudged with light and routine, but your underlying tendency is fairly stable.' },
-      { q: 'Is this a medical sleep test?', a: 'No — it’s a quick, educational guide for self-awareness. If you have ongoing sleep problems, talk to a healthcare professional.' },
+      { q: 'Is this a medical sleep test?', a: 'No — it’s a quick, educational guide for self-awareness, based on a popular framework rather than a validated questionnaire. If you have ongoing sleep problems, talk to a healthcare professional.' },
     ],
     sources: [
       NSF_DURATION,
@@ -54,7 +54,7 @@ export const SLEEP_CONTENT: Record<string, ToolContent> = {
     intro:
       'Tap in the coffees, teas, and energy drinks you’ve had today to total your caffeine in milligrams — and see how it stacks up against the roughly 400 mg considered safe for most healthy adults.',
     notice:
-      'General wellness education, not medical advice. The ~400 mg figure is for healthy adults; pregnant people and those sensitive to caffeine should aim considerably lower.',
+      'General wellness education, not medical advice. The ~400 mg figure is the FDA’s general amount for healthy adults, not a target. If you are pregnant, keep to under 200 mg a day (ACOG); children, teens and people sensitive to caffeine should have less.',
     sections: [
       {
         h2: 'How much caffeine is too much?',

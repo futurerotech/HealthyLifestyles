@@ -1,0 +1,28 @@
+name: Promotion attestation (main)
+
+# After any change lands on main, prove that the landed tree is exactly the tree that passed
+# the required checks (see scripts/release/verify-promotion.mjs). A failure means an untested
+# tree reached main and must be treated as a release incident (see RELEASE_PROCEDURE).
+# Read-only: it never deploys, promotes or writes.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  attest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify exact-tree promotion
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/release/verify-promotion.mjs "$GITHUB_SHA"

@@ -23,13 +23,14 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
     metaDescription:
       'How long to lose the weight? Get a realistic goal date and a weight-over-time chart at a safe, sustainable pace — no crash diets. Free.',
     intro:
-      'Enter your current weight, goal weight, and a weekly pace to see a realistic date you’d reach your goal — with a weight-over-time chart and milestone markers along the way.',
+      'Enter your current weight, goal weight, height, and a weekly pace to see a realistic date you’d reach your goal — with a weight-over-time chart and milestone markers along the way.',
     sections: [
       {
         h2: 'How the timeline works',
         paragraphs: [
           'The planner projects your weight forward week by week at the pace you choose, estimates the number of weeks to your goal, and turns that into a target date. It also marks milestones — including the first 5% lost, which already brings real health benefits — so the journey feels concrete and motivating.',
           'To keep things healthy, the tool caps the pace at about 1% of your body weight per week. If you ask for something faster, it plans at that safe maximum instead and tells you — it won’t generate a crash-diet timeline.',
+          'Your height is used for one safety check: the planner won’t build a timeline to a goal below the healthy adult weight range for your height (a BMI under 18.5). It tells you where that range starts instead. If you’re worried about your weight or your eating, talk to a doctor or a registered dietitian.',
         ],
       },
       {
@@ -49,6 +50,7 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
       { q: 'How long will it take to lose the weight?', a: 'At a safe pace of about 0.5–1 kg (1–2 lb) per week, you can estimate it as your total to lose divided by your weekly pace. The calculator does this and gives you a target date and chart.' },
       { q: 'What is a safe weekly weight-loss pace?', a: 'Around 1–2 pounds (0.5–1 kg) per week, or up to about 1% of your body weight. The tool caps faster requests at that safe maximum.' },
       { q: 'Why won’t it let me lose weight faster?', a: 'Very fast loss usually means losing muscle and tends to rebound. To keep results healthy and realistic, the planner won’t build a crash-diet timeline — it plans at a safe maximum pace instead.' },
+      { q: 'Why does it ask for my height?', a: 'Only to check that your goal is not below the healthy weight range for your height (BMI under 18.5). The planner does not create a timeline to a goal below that range.' },
       { q: 'Is the projected date a guarantee?', a: 'No — it’s a motivating estimate. Real loss isn’t linear and slows over time, so treat the date as a target to aim for, not a promise.' },
     ],
     sources: [
@@ -80,7 +82,7 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
         h2: 'Reading your BMI category',
         list: {
           intro:
-            'The World Health Organization groups adult BMI into four broad bands. The coloured gauge above shows where your value sits:',
+            'The World Health Organization groups adult BMI into four broad bands. The colored gauge above shows where your value sits:',
           items: [
             'Under 18.5 — underweight, which can signal undernutrition or other health issues.',
             '18.5 to 24.9 — a healthy weight for most adults.',
@@ -188,7 +190,7 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
         h2: 'Two ways to estimate ideal weight',
         paragraphs: [
           'The first method is BMI-based. A healthy BMI is 18.5–24.9, so the healthy weight range is simply 18.5 × height (m)² to 24.9 × height (m)². This gives a realistic band rather than one rigid figure, which better reflects how healthy bodies actually vary.',
-          'The second is the Devine formula, created in the 1970s to standardise medication dosing. For men it is 50 kg + 2.3 kg for every inch over 5 feet; for women, 45.5 kg + 2.3 kg per inch over 5 feet. It returns a single reference weight and is still used in clinical settings, though it tends to under-estimate for very tall or very short people.',
+          'The second is the Devine formula, created in the 1970s to standardize medication dosing. For men it is 50 kg + 2.3 kg for every inch over 5 feet; for women, 45.5 kg + 2.3 kg per inch over 5 feet. It returns a single reference weight and is still used in clinical settings, though it tends to under-estimate for very tall or very short people.',
         ],
       },
       {
@@ -245,7 +247,7 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'How the U.S. Navy method works',
         paragraphs: [
-          'The U.S. Navy formula estimates body fat from body circumferences rather than skinfold callipers or lab equipment. It uses your height and neck and waist measurements (plus hip measurement for women), all in centimetres, inside a logarithmic equation:',
+          'The U.S. Navy formula estimates body fat from body circumferences rather than skinfold callipers or lab equipment. It uses your height and neck and waist measurements (plus hip measurement for women), all in centimeters, inside a logarithmic equation:',
           'For men: %fat = 495 ÷ (1.0324 − 0.19077 × log₁₀(waist − neck) + 0.15456 × log₁₀(height)) − 450. For women: %fat = 495 ÷ (1.29579 − 0.35004 × log₁₀(waist + hip − neck) + 0.22100 × log₁₀(height)) − 450. For accuracy, measure relaxed and breathe out before reading the tape; take each measurement twice and average it.',
         ],
       },
@@ -297,28 +299,29 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
   'lean-body-mass-calculator': {
     seoTitle: 'Lean Body Mass Calculator (Boer Formula)',
     metaDescription:
-      'Estimate your lean body mass and fat mass with the Boer formula. Free LBM calculator in metric or imperial — see your muscle-to-fat split.',
+      'Estimate fat-free body mass using Boer (1984), with safeguards when a regression gives a physically impossible result. Educational, not clinical.',
     intro:
-      'Lean body mass is everything in your body that is not fat — muscle, bone, organs and water. Enter your details to estimate it with the Boer formula and see how it splits from your fat mass.',
+      'Explore a population-based fat-free-mass estimate from height, body weight, and sex. The Boer equation does not observe your muscle or body fat, and a numerical estimate is not a direct body-composition measurement.',
+    notice: 'If the Boer equation predicts fat-free mass above total weight, the tool withholds the result rather than reporting negative fat. It does not diagnose metabolic health or measure muscle.',
     sections: [
       {
         h2: 'How lean body mass is estimated',
         paragraphs: [
-          'This calculator uses the Boer formula, a well-regarded equation derived for estimating lean mass in adults. It is based on weight, height and sex:',
-          'For men: LBM = (0.407 × weight kg) + (0.267 × height cm) − 19.2. For women: LBM = (0.252 × weight kg) + (0.473 × height cm) − 48.3. Your estimated fat mass is then simply your total weight minus your lean body mass. The split bar above shows the two side by side.',
+          'The [original Boer 1984 study](https://pubmed.ncbi.nlm.nih.gov/6496691/) investigated estimates for normalizing fluid volumes in 66 adults. It was not a validation of individual muscle mass across all height-weight combinations. The historical regression uses weight, height and sex:',
+          'For men: LBM = (0.407 × kg) + (0.267 × cm) − 19.2. For women: LBM = (0.252 × kg) + (0.473 × cm) − 48.3. These unconstrained formulas can produce lean-mass estimates greater than body weight at extreme inputs. In that case the calculator shows no numeric result, instead of presenting a negative fat mass or over 100% lean tissue.',
         ],
       },
       {
         h2: 'Why lean body mass matters',
         paragraphs: [
-          'Lean mass — particularly muscle — drives your metabolism, strength and physical resilience. People with more lean mass burn more calories at rest, manage blood sugar better, and tend to recover and age more robustly. Preserving lean mass is especially important during weight loss: a sharp, crash diet can strip away muscle along with fat, which is one reason adequate protein and resistance training are so widely recommended.',
-          'Tracking LBM alongside body weight tells you whether changes on the scale are coming from fat or from muscle. Losing weight while keeping (or gaining) lean mass is the goal of a healthy body-recomposition plan.',
+          'Fat-free mass includes body water, muscles, organs, bone and connective tissue. A higher predicted fat-free mass by itself is not evidence of better metabolic health or more skeletal muscle. The formula does not directly measure body composition.',
+          'Since the Boer output is mechanically derived from weight and height, it cannot reveal whether a weight change came from fat, water or muscle. If your goal is tracking body composition, use consistent measurement methods with appropriate professional interpretation.',
         ],
       },
       {
         h2: 'Reading your result',
         paragraphs: [
-          'The Boer formula gives a population estimate, not a direct measurement, and it does not "see" your actual muscle. Very lean, very muscular or very high-body-fat individuals will see less accurate figures. For precise lean-mass measurement, a DEXA scan or bioelectrical impedance analysis is needed. As with body fat, the most reliable use is to track the trend under consistent conditions rather than to treat a single number as exact.',
+          'The Boer formula is a population regression, not a direct lean-mass measurement. At some allowed but extreme height-weight combinations, the predicted lean mass exceeds total weight. The calculator correctly refuses to display those nonphysical results rather than hiding them with a zero-fat clamp. If reliable body composition is needed for health decisions, discuss suitable assessment methods with a qualified clinician.',
         ],
       },
     ],
@@ -329,7 +332,7 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
       },
       {
         q: 'Why is the Boer formula used?',
-        a: 'The Boer formula is a validated equation for estimating lean mass from height, weight and sex, and is commonly used in clinical and fitness settings where a direct scan is not available.',
+        a: 'It is a historical empirical equation originally studied for normalizing body fluid measurements. Its outputs are not individually validated at every possible height-weight combination and do not replace a body-composition assessment.',
       },
       {
         q: 'How can I increase my lean body mass?',
@@ -340,7 +343,7 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
       {
         citation:
           'Boer P. "Estimated lean body mass as an index for normalization of body fluid volumes in humans." Am J Physiol. 1984;247(4 Pt 2):F632–F636.',
-        url: pubmed('Estimated lean body mass as an index for normalization of body fluid volumes'),
+        url: 'https://pubmed.ncbi.nlm.nih.gov/6496691/',
       },
     ],
   },
@@ -366,9 +369,9 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
           intro: 'The gauge above places your ratio into broad bands:',
           items: [
             'Below 0.4 — low, and occasionally a sign of being underweight.',
-            '0.4 to 0.5 — healthy; this is the target zone for most adults.',
-            '0.5 to 0.6 — increased risk, indicating excess central fat.',
-            'Above 0.6 — high risk, strongly linked to heart and metabolic disease.',
+            '0.4 to 0.49 — healthy; this is the target zone for most adults.',
+            '0.5 to 0.59 — increased risk, indicating excess central fat.',
+            '0.6 or above — high risk, strongly linked to heart and metabolic disease.',
           ],
         },
       },
@@ -376,14 +379,14 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
         h2: 'Why central fat matters',
         paragraphs: [
           'Fat stored around the abdomen (visceral fat) is more metabolically harmful than fat on the hips and thighs. It is associated with higher risk of type 2 diabetes, high blood pressure and cardiovascular disease — even in people whose BMI looks normal, sometimes described as "normal weight obesity." That is why a waist-based measure adds information that BMI alone misses.',
-          'Measure your waist at the midpoint between the bottom of your ribs and the top of your hip bones, directly against the skin, after breathing out normally. If your ratio is above 0.5, reducing waist size through diet quality, regular activity and better sleep can lower your risk substantially.',
+          'Measure your waist at the midpoint between the bottom of your ribs and the top of your hip bones, directly against the skin, after breathing out normally. If your ratio is 0.5 or above, reducing waist size through diet quality, regular activity and better sleep can lower your risk substantially.',
         ],
       },
     ],
     faq: [
       {
         q: 'What is a healthy waist-to-height ratio?',
-        a: 'A ratio below 0.5 is considered healthy for most adults — in other words, your waist should be less than half your height. Ratios above 0.5 indicate increasing central-fat risk.',
+        a: 'A ratio below 0.5 is considered healthy for most adults — in other words, your waist should be less than half your height. Ratios of 0.5 or above indicate increasing central-fat risk.',
       },
       {
         q: 'Is waist-to-height ratio better than BMI?',
@@ -423,10 +426,10 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
         h2: 'WHO risk thresholds',
         list: {
           intro:
-            'The World Health Organization considers abdominal obesity — and substantially increased health risk — to begin above these ratios:',
+            'The World Health Organization considers abdominal obesity — and substantially increased health risk — to begin at these ratios:',
           items: [
-            'Men: a ratio above 0.90 indicates increased risk.',
-            'Women: a ratio above 0.85 indicates increased risk.',
+            'Men: a ratio of 0.90 or above indicates substantially increased risk.',
+            'Women: a ratio of 0.85 or above indicates substantially increased risk.',
             'Lower ratios (at or below those thresholds) are associated with lower risk.',
           ],
         },
@@ -435,14 +438,14 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
         h2: 'What your ratio tells you',
         paragraphs: [
           'A high WHR is associated with greater risk of type 2 diabetes, high blood pressure, heart disease and stroke, independent of overall weight. Some large studies have found WHR predicts heart-attack risk more strongly than BMI, because it captures dangerous abdominal fat directly.',
-          'WHR does have limits: it can be skewed by a naturally wide or narrow pelvis, and it is less reliable at very high BMIs. For a rounded view of central-fat risk, consider it alongside waist-to-height ratio and your BMI, and speak to a clinician if your ratio is above the WHO threshold.',
+          'WHR does have limits: it can be skewed by a naturally wide or narrow pelvis, and it is less reliable at very high BMIs. For a rounded view of central-fat risk, consider it alongside waist-to-height ratio and your BMI, and speak to a clinician if your ratio is at or above the WHO threshold.',
         ],
       },
     ],
     faq: [
       {
         q: 'What is a healthy waist-to-hip ratio?',
-        a: 'The World Health Organization links increased health risk to a ratio above 0.90 for men and above 0.85 for women. Ratios at or below these levels are considered lower risk.',
+        a: 'The World Health Organization links substantially increased health risk to a ratio of 0.90 or above for men and 0.85 or above for women. Ratios below these levels are considered lower risk.',
       },
       {
         q: 'Is waist-to-hip ratio better than BMI?',

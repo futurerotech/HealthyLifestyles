@@ -2,22 +2,25 @@
 import ToolPageLayout from '../../components/ToolPageLayout.astro';
 import { getLiveTools } from '../../lib/cms';
 import { getToolContent } from '../../data/tool-content';
-import style0 from '../../styles/caffeine-curfew.css?url';
-import style1 from '../../styles/caffeine-tracker.css?url';
-import style2 from '../../styles/diary.css?url';
-import style3 from '../../styles/healthspan.css?url';
-import style4 from '../../styles/hrv.css?url';
-import style5 from '../../styles/fasting.css?url';
-import style6 from '../../styles/lifestyle-age.css?url';
-import style7 from '../../styles/meal-plan.css?url';
-import style8 from '../../styles/muscle-preservation.css?url';
-import style9 from '../../styles/recipe-analyzer.css?url';
-import style10 from '../../styles/sitting-reversal.css?url';
-import style11 from '../../styles/chronotype.css?url';
-import style12 from '../../styles/strength-program.css?url';
-import style13 from '../../styles/walk-it-off.css?url';
-import style14 from '../../styles/weight-timeline.css?url';
+import style0 from '../../styles/caffeine-curfew.css?inline';
+import style1 from '../../styles/caffeine-tracker.css?inline';
+import style2 from '../../styles/diary.css?inline';
+import style3 from '../../styles/healthspan.css?inline';
+import style4 from '../../styles/hrv.css?inline';
+import style5 from '../../styles/fasting.css?inline';
+import style6 from '../../styles/lifestyle-age.css?inline';
+import style7 from '../../styles/meal-plan.css?inline';
+import style8 from '../../styles/muscle-preservation.css?inline';
+import style9 from '../../styles/recipe-analyzer.css?inline';
+import style10 from '../../styles/sitting-reversal.css?inline';
+import style11 from '../../styles/chronotype.css?inline';
+import style12 from '../../styles/strength-program.css?inline';
+import style13 from '../../styles/walk-it-off.css?inline';
+import style14 from '../../styles/weight-timeline.css?inline';
 
+// Engine CSS is inlined (Vite ?inline = processed, minified CSS). A separate <link> was a
+// render-blocking request on the critical path: run 43627861871 measured these pages ~150 ms
+// later FCP/LCP than CSS-inlined templates (meal plan LCP 1965/1968/2268 ms vs 2000 ms budget).
 const styles: Record<string, string> = {
   'caffeine-curfew-calculator': style0,
   'caffeine-intake-calculator': style1,
@@ -48,4 +51,4 @@ export async function getStaticPaths() {
 const { tool, content } = Astro.props;
 ---
 
-<ToolPageLayout tool={tool} content={content} stylesheet={styles[tool.slug]} />
+<ToolPageLayout tool={tool} content={content} inlineCss={styles[tool.slug]} />

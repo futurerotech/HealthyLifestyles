@@ -1,0 +1,70 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+// Confirmation page for newsletter unsubscribe links. The link carries a signed token
+// (?t=…); nothing happens until the person presses the button, so link scanners and
+// prefetchers cannot unsubscribe anyone. No email address is shown, stored or sent.
+---
+
+<BaseLayout
+  title="Unsubscribe from the newsletter | HealthyLifeStyles"
+  description="Confirm that you want to stop receiving the HealthyLifeStyles newsletter."
+  noindex={true}
+  noHeaderAd={true}
+>
+  <section class="section">
+    <div class="container container-narrow unsub">
+      <h1>Unsubscribe from the newsletter</h1>
+      <div data-unsub-ready hidden>
+        <p class="lead">Press the button to stop receiving newsletter emails from HealthyLifeStyles.</p>
+        <button type="button" class="btn btn-primary" data-unsub-confirm>Unsubscribe</button>
+      </div>
+      <p class="lead" data-unsub-missing>
+        This page needs the unsubscribe link from one of our emails. Open the link from the email, or
+        <a href="/contact">contact us</a> and we will remove your address.
+      </p>
+      <p class="unsub__status" role="status" aria-live="polite" data-unsub-status></p>
+      <p class="unsub__note">
+        Unsubscribing stops newsletter emails only. It does not affect anything saved on your own device.
+        See our <a href="/privacy">Privacy Policy</a> for how we handle email addresses.
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .unsub { padding-block: 2rem; }
+  .unsub__status { min-height: 1.5em; font-weight: 600; }
+  .unsub__note { color: var(--muted); font-size: 0.92rem; }
+</style>
+
+<script>
+  const token = new URLSearchParams(location.search).get('t');
+  const ready = document.querySelector<HTMLElement>('[data-unsub-ready]');
+  const missing = document.querySelector<HTMLElement>('[data-unsub-missing]');
+  const status = document.querySelector<HTMLElement>('[data-unsub-status]');
+  const button = document.querySelector<HTMLButtonElement>('[data-unsub-confirm]');
+  if (token && ready && missing) {
+    ready.hidden = false;
+    missing.hidden = true;
+    // Remove the token from the address bar so it is not kept in history or shared by accident.
+    history.replaceState(null, '', location.pathname);
+  }
+  button?.addEventListener('click', async () => {
+    if (!token || !status) return;
+    button.disabled = true;
+    status.textContent = 'Working…';
+    try {
+      const res = await fetch('/api/unsubscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+      const data = await res.json().catch(() => ({}));
+      status.textContent = data.message || 'Unsubscribe is temporarily unavailable. Please try again later.';
+      if (!res.ok && res.status >= 500) button.disabled = false;
+    } catch {
+      status.textContent = 'Unsubscribe is temporarily unavailable. Please try again later.';
+      button.disabled = false;
+    }
+  });
+</script>

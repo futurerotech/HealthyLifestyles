@@ -135,6 +135,14 @@ export interface CalcDef {
 const bandFor = (value: number, segments: Segment[]): Segment =>
   segments.find((s) => value <= s.upTo) ?? segments[segments.length - 1];
 
+/**
+ * Band for a published "from X to under Y" category table: the first segment
+ * whose upper bound the value is BELOW (so 25.0 is the first overweight BMI).
+ * Callers pass the value rounded as displayed, so the label matches the number.
+ */
+const bandBelow = (value: number, segments: Segment[]): Segment =>
+  segments.find((s) => value < s.upTo) ?? segments[segments.length - 1];
+
 const massScale = (kg: number, units: UnitSystem): number =>
   units === 'metric' ? kg : kgToLb(kg);
 
@@ -230,7 +238,8 @@ export const DEFS: Record<string, CalcDef> = {
         { upTo: 30, label: 'Overweight', color: C.amber },
         { upTo: 40, label: 'Obese', color: C.red },
       ];
-      const band = bandFor(bmi, segments);
+      // WHO/CDC adult categories: <18.5, 18.5–24.9, 25–29.9, ≥30 (classified on the shown value).
+      const band = bandBelow(round(bmi, 1), segments);
       const lowKg = 18.5 * m * m;
       const highKg = 24.9 * m * m;
       return {
@@ -242,7 +251,7 @@ export const DEFS: Record<string, CalcDef> = {
         rows: [
           { label: 'Healthy weight for your height', value: `${fmtMass(lowKg, units, 0)} – ${fmtMass(highKg, units, 0)}`, strong: true },
         ],
-        note: 'BMI is a screening tool — it does not distinguish muscle from fat. Very muscular people may read high.',
+        note: 'BMI is a screening tool for adults (18+) — it does not distinguish muscle from fat, so very muscular people may read high. Children and teens use BMI-for-age percentiles instead.',
       };
     },
   },
@@ -272,7 +281,7 @@ export const DEFS: Record<string, CalcDef> = {
           label,
           value: `${fmt(bmr * mult, 0)} kcal/day`,
         })),
-        note: 'BMR is the energy you burn at complete rest. The table estimates total daily calories (TDEE) once activity is added.',
+        note: 'BMR is the energy you burn at complete rest. Mifflin-St Jeor is usually within about 10% of a measured BMR, but can be further off for some people. The table estimates total daily calories (TDEE) once activity is added.',
       };
     },
   },
@@ -288,8 +297,8 @@ export const DEFS: Record<string, CalcDef> = {
       const lowKg = 18.5 * m * m;
       const highKg = 24.9 * m * m;
       const inches = vals.height / 2.54;
-      const over5ft = Math.max(0, inches - 60);
-      const devineKg = (sex === 'male' ? 50 : 45.5) + 2.3 * over5ft;
+      // Devine is defined from 5 ft (60 in, 152.4 cm) upward; below that it has no value.
+      const devineKg = inches >= 60 ? (sex === 'male' ? 50 : 45.5) + 2.3 * (inches - 60) : null;
       const unit = units === 'metric' ? 'kg' : 'lb';
       return {
         ok: true,
@@ -304,7 +313,7 @@ export const DEFS: Record<string, CalcDef> = {
           unit,
         },
         rows: [
-          { label: 'Devine formula ideal weight', value: fmtMass(devineKg, units, 1), strong: true },
+          { label: 'Devine formula ideal weight', value: devineKg === null ? 'Not defined below 5 ft (152 cm)' : fmtMass(devineKg, units, 1), strong: true },
         ],
         note: 'There is no single "ideal" weight. A healthy BMI range and the Devine clinical formula give complementary targets.',
       };
@@ -338,7 +347,13 @@ export const DEFS: Record<string, CalcDef> = {
         }
         bf = 495 / (1.29579 - 0.35004 * log10(waist + hip - neck) + 0.22100 * log10(height)) - 450;
       }
-      bf = Math.max(2, Math.min(60, bf));
+      // Outside 2–60% the circumference equation is not producing a plausible
+      // estimate; show nothing rather than a clamped, invented number.
+      if (!Number.isFinite(bf) || bf < 2 || bf > 60) {
+        return { ok: false, error: 'These measurements give a result outside the range the U.S. Navy method can estimate (2–60%). Re-check your measurements.', primaryLabel: 'Body fat', primaryValue: '—', visual: { kind: 'none' } };
+      }
+      // ACE categories as published on this page: men 2–5 / 6–13 / 14–17 / 18–24 / 25+,
+      // women 10–13 / 14–20 / 21–24 / 25–31 / 32+ (classified on the shown value).
       const segments: Segment[] = sex === 'male'
         ? [
             { upTo: 6, label: 'Essential fat', color: C.blue },
@@ -354,7 +369,7 @@ export const DEFS: Record<string, CalcDef> = {
             { upTo: 32, label: 'Average', color: C.amber },
             { upTo: 45, label: 'Above average', color: C.red },
           ];
-      const band = bandFor(bf, segments);
+      const band = bandBelow(round(bf, 1), segments);
       return {
         ok: true,
         primaryLabel: 'Estimated body fat',
@@ -377,7 +392,21 @@ export const DEFS: Record<string, CalcDef> = {
       const lbm = sex === 'male'
         ? 0.407 * weight + 0.267 * height - 19.2
         : 0.252 * weight + 0.473 * height - 48.3;
-      const fatMass = Math.max(0, weight - lbm);
+      // The empirical Boer regression can exceed actual body weight for some
+      // combinations within our allowed form bounds. Do not conceal this by
+      // clipping negative estimated fat mass to zero or show >100% lean mass.
+      if (!Number.isFinite(weight) || !Number.isFinite(height) ||
+          weight <= 0 || height <= 0 || !Number.isFinite(lbm) ||
+          lbm <= 0 || lbm >= weight) {
+        return {
+          ok: false,
+          error: 'The Boer formula gives a physically implausible lean-mass estimate for these measurements. Recheck height and weight; the model may not fit this body-size combination. No fat-mass result is shown.',
+          primaryLabel: 'Lean body mass',
+          primaryValue: '—',
+          visual: { kind: 'none' },
+        };
+      }
+      const fatMass = weight - lbm;
       const unit = massUnitLabel(units);
       return {
         ok: true,
@@ -397,7 +426,7 @@ export const DEFS: Record<string, CalcDef> = {
           { label: 'Estimated fat mass', value: fmtMass(fatMass, units, 1) },
           { label: 'Lean mass as % of weight', value: `${fmt((lbm / weight) * 100, 1)}%`, strong: true },
         ],
-        note: 'Lean body mass is everything that is not fat — muscle, bone, organs and water. Estimated with the Boer formula.',
+        note: 'Boer (1984) predicts fat-free mass from total weight, height and sex; it does not measure muscle or diagnose health. Predictions outside physical mass bounds are withheld instead of clipped. Even a plausible output may have substantial individual error.',
       };
     },
   },
@@ -416,7 +445,8 @@ export const DEFS: Record<string, CalcDef> = {
         { upTo: 0.6, label: 'Increased risk', color: C.amber },
         { upTo: 0.7, label: 'High risk', color: C.red },
       ];
-      const band = bandFor(ratio, segments);
+      // <0.4, 0.4–0.49, 0.5–0.59, ≥0.6 (classified on the shown 2-decimal value).
+      const band = bandBelow(round(ratio, 2), segments);
       return {
         ok: true,
         primaryLabel: 'Waist-to-height ratio',
@@ -436,25 +466,21 @@ export const DEFS: Record<string, CalcDef> = {
     fields: [F.waist(85), F.hip()],
     compute: ({ vals, sex }) => {
       const ratio = vals.waist / vals.hip;
-      const segments: Segment[] = sex === 'male'
-        ? [
-            { upTo: 0.9, label: 'Low risk', color: C.green },
-            { upTo: 1.0, label: 'Increased risk', color: C.amber },
-            { upTo: 1.3, label: 'High risk', color: C.red },
-          ]
-        : [
-            { upTo: 0.85, label: 'Low risk', color: C.green },
-            { upTo: 0.9, label: 'Increased risk', color: C.amber },
-            { upTo: 1.3, label: 'High risk', color: C.red },
-          ];
-      const band = bandFor(ratio, segments);
+      // WHO (2008 expert consultation): substantially increased risk at ≥0.90 (men)
+      // or ≥0.85 (women). WHO defines no further tier, so none is invented here.
+      const cutoff = sex === 'male' ? 0.9 : 0.85;
+      const segments: Segment[] = [
+        { upTo: cutoff, label: 'Lower risk', color: C.green },
+        { upTo: 1.3, label: 'Substantially increased risk', color: C.red },
+      ];
+      const band = bandBelow(round(ratio, 2), segments);
       return {
         ok: true,
         primaryLabel: 'Waist-to-hip ratio',
         primaryValue: fmt(ratio, 2),
         category: { label: band.label, color: band.color },
         visual: { kind: 'gauge', value: ratio, min: 0.6, max: 1.1, segments },
-        note: `WHO links higher abdominal fat with greater health risk above ${sex === 'male' ? '0.90 for men' : '0.85 for women'}.`,
+        note: `WHO links a substantially increased risk of metabolic complications to a ratio of ${sex === 'male' ? '0.90 or above for men' : '0.85 or above for women'}.`,
       };
     },
   },
@@ -506,25 +532,40 @@ export const DEFS: Record<string, CalcDef> = {
     heading: 'Calculate your daily calories',
     hasSex: true,
     fields: [F.weight(72), F.height(175), F.age(30), activityField()],
-    compute: ({ vals, selects, sex }) => {
+    compute: ({ vals, selects, sex, units }) => {
       const factor = parseFloat(selects.activity) || 1.375;
       const bmr = mifflin(vals.weight, vals.height, vals.age, sex);
       const tdee = bmr * factor;
       const floor = calorieFloor(sex);
       const loseRaw = tdee - 500;
+      // If maintenance is already at or below the floor, no unsupervised
+      // deficit is offered (previously the "lose" figure exceeded maintenance).
+      const noDeficit = tdee <= floor;
       const lose = Math.max(loseRaw, floor);
-      const clamped = loseRaw < floor;
+      const clamped = !noDeficit && loseRaw < floor;
+      // ~7,700 kcal per kg of body weight lost (common approximation).
+      const weeklyKg = ((tdee - lose) * 7) / 7700;
+      const loseCard: GoalCard = noDeficit
+        ? { label: 'Lose weight', value: '—', sub: 'Talk to a healthcare professional', tone: 'warn' }
+        : clamped
+          ? { label: 'Lose weight', value: `${fmt(lose, 0)} kcal`, sub: `≈ ${fmtMass(weeklyKg, units, 1)}/week`, tone: 'warn' }
+          : { label: 'Lose weight', value: `${fmt(lose, 0)} kcal`, sub: '≈ 0.5 kg (1 lb)/week', tone: 'good' };
       return {
         ok: true,
         primaryLabel: 'Maintenance calories (TDEE)',
         primaryValue: `${fmt(tdee, 0)} kcal/day`,
         visual: { kind: 'none' },
         cards: [
-          { label: 'Lose weight', value: `${fmt(lose, 0)} kcal`, sub: '≈ 0.5 kg (1 lb)/week', tone: clamped ? 'warn' : 'good' },
+          loseCard,
           { label: 'Maintain', value: `${fmt(tdee, 0)} kcal`, sub: 'Stay at current weight', tone: 'neutral' },
           { label: 'Gain weight', value: `${fmt(tdee + 500, 0)} kcal`, sub: '≈ 0.5 kg (1 lb)/week', tone: 'good' },
         ],
-        callout: clamped
+        callout: noDeficit
+          ? {
+              tone: 'warn',
+              text: `Your estimated maintenance intake is already at or below ${fmt(floor, 0)} kcal/day, the usual minimum for ${sex === 'female' ? 'women' : 'men'} without medical supervision, so we don’t suggest a deficit. Please talk to a healthcare professional before trying to lose weight.`,
+            }
+          : clamped
           ? {
               tone: 'warn',
               text: `A 500 kcal deficit would drop you below the safe minimum of ${floor} kcal/day for ${sex === 'female' ? 'women' : 'men'}. We’ve set your weight-loss target to ${fmt(floor, 0)} kcal — for faster loss, work with a healthcare professional.`,
@@ -566,13 +607,24 @@ export const DEFS: Record<string, CalcDef> = {
       if (goal === 'cut') { calories = tdee - 500; pPerKg = 2.2; fPerKg = 0.8; goalLabel = 'Cut'; }
       else if (goal === 'bulk') { calories = tdee + 300; pPerKg = 1.6; fPerKg = 1.0; goalLabel = 'Bulk'; }
       else { calories = tdee; pPerKg = 1.8; fPerKg = 0.9; goalLabel = 'Maintain'; }
-      const clamped = calories < floor;
-      if (clamped) calories = floor;
-      const proteinG = pPerKg * vals.weight;
-      const fatG = fPerKg * vals.weight;
+      // The minimum applies only to a cut, and never lifts a cut above maintenance.
+      const noDeficit = goal === 'cut' && tdee <= floor;
+      const clamped = goal === 'cut' && !noDeficit && calories < floor;
+      if (noDeficit) calories = tdee;
+      else if (clamped) calories = floor;
+      // Protein is set first, then fat, then carbs take the remainder (as the page
+      // describes). If protein + fat alone exceed the calorie target, fat is
+      // reduced so the three macros always add up to the calories shown.
+      let proteinG = pPerKg * vals.weight;
+      let fatG = fPerKg * vals.weight;
       let carbsG = (calories - proteinG * 4 - fatG * 9) / 4;
       let lowCarb = false;
-      if (carbsG < 0) { carbsG = 0; lowCarb = true; }
+      if (carbsG < 0) {
+        carbsG = 0;
+        lowCarb = true;
+        fatG = Math.max(0, (calories - proteinG * 4) / 9);
+        if (proteinG * 4 > calories) proteinG = calories / 4;
+      }
       return {
         ok: true,
         primaryLabel: `Daily calories (${goalLabel})`,
@@ -583,10 +635,12 @@ export const DEFS: Record<string, CalcDef> = {
           { label: 'Carbs', value: `${fmt(carbsG, 0)} g · ${fmt(carbsG * 4, 0)} kcal` },
           { label: 'Fat', value: `${fmt(fatG, 0)} g · ${fmt(fatG * 9, 0)} kcal` },
         ],
-        callout: clamped
-          ? { tone: 'warn', text: `Your cut target was raised to the safe minimum of ${fmt(floor, 0)} kcal/day.` }
+        callout: noDeficit
+          ? { tone: 'warn', text: `Your estimated maintenance intake is already at or below ${fmt(floor, 0)} kcal/day, the usual minimum without medical supervision, so these macros are for maintenance, not a cut. Please talk to a healthcare professional before trying to lose weight.` }
+          : clamped
+          ? { tone: 'warn', text: `A 500 kcal deficit would drop you below ${fmt(floor, 0)} kcal/day, the usual minimum without medical supervision, so your cut target was raised to ${fmt(floor, 0)} kcal/day.` }
           : lowCarb
-          ? { tone: 'info', text: 'Your protein and fat targets already use all your calories, so carbs are set to zero. Consider a smaller deficit.' }
+          ? { tone: 'info', text: `At your body weight, the per-kilogram protein and fat targets would use more than your ${fmt(calories, 0)} kcal, so carbs are set to zero and fat was reduced to fit. A registered dietitian can help set targets for your situation.` }
           : undefined,
         note: `Protein set at ${pPerKg} g/kg and fat at ${fPerKg} g/kg of body weight; the rest of your calories go to carbs (protein & carbs = 4 kcal/g, fat = 9 kcal/g).`,
         cta: {
@@ -653,22 +707,40 @@ export const DEFS: Record<string, CalcDef> = {
       },
     ],
     compute: ({ vals, selects }) => {
-      const baselineMl = 35 * vals.weight;
+      // 35 ml/kg is a rough rule of thumb. We found no evidence establishing it
+      // at high body weights, and scaling it linearly produced 6–12 L/day
+      // "recommendations". The site therefore stops scaling at 100 kg. That cut-off
+      // is a site design choice, NOT a clinically validated threshold and NOT a
+      // maximum safe or needed intake (no upper limit is set for water).
+      const SCALING_LIMIT_KG = 100;
+      const held = vals.weight > SCALING_LIMIT_KG;
+      const baselineMl = 35 * Math.min(vals.weight, SCALING_LIMIT_KG);
       const extraMl = parseFloat(selects.activity) || 0;
       const totalMl = baselineMl + extraMl;
       const liters = totalMl / 1000;
       const oz = totalMl / 29.5735;
+      // Food typically supplies ~20% of the baseline. The activity allowance
+      // replaces sweat losses, so it is counted as drinks in full.
+      const drinksMl = baselineMl * 0.8 + extraMl;
       return {
         ok: true,
-        primaryLabel: 'Recommended water intake',
+        primaryLabel: 'Estimated total daily fluid (drinks + food)',
         primaryValue: `${fmt(liters, 1)} L/day`,
         visual: { kind: 'none' },
+        callout: held
+          ? {
+              tone: 'info',
+              text: 'The 35 ml/kg rule of thumb has not been established for higher body weights, so this site stops scaling it above 100 kg (220 lb). That cut-off is a site choice, not a clinically validated threshold, and not a maximum — your needs may be higher or lower. Thirst, urine color and your doctor’s advice are better guides.',
+            }
+          : undefined,
         rows: [
           { label: 'In fluid ounces', value: `${fmt(oz, 0)} oz`, strong: true },
           { label: 'Roughly in cups (8 oz)', value: `${fmt(oz / 8, 0)} cups` },
-          { label: 'Baseline (35 ml/kg)', value: `${fmt(baselineMl / 1000, 1)} L` },
+          { label: 'Of which from drinks', value: `${fmt(drinksMl / 1000, 1)} L · ${fmt(drinksMl / 29.5735, 0)} oz` },
+          { label: held ? 'Baseline (35 ml/kg, held at 100 kg)' : 'Baseline (35 ml/kg)', value: `${fmt(baselineMl / 1000, 1)} L` },
+          { label: 'U.S. reference intake, total water', value: '3.7 L men · 2.7 L women' },
         ],
-        note: 'Based on ~35 ml per kg of body weight plus an activity adjustment. Drink more in heat, illness or pregnancy; food provides roughly 20% of your fluids.',
+        note: 'A rule-of-thumb estimate of total fluid — all drinks plus food, which typically supplies about 20% of the baseline; the activity allowance is counted as drinks — not a prescription or a limit. The U.S. reference figures are adequate intakes for healthy adults in temperate climates, also counted from drinks and food together; they are not maximums, and people who are very active or in hot weather can need considerably more. If you have a heart, kidney or liver condition or have been told to limit fluids, follow your doctor’s advice instead. Spread fluids through the day — drinking very large amounts quickly can be dangerous.',
       };
     },
   },
@@ -728,25 +800,32 @@ export const DEFS: Record<string, CalcDef> = {
       const factor = parseFloat(selects.activity) || 1.375;
       const bmr = mifflin(vals.weight, vals.height, vals.age, sex);
       const tdee = bmr * factor;
-      const fatG = (tdee * 0.7) / 9;
-      const proteinG = (tdee * 0.25) / 4;
-      const carbsG = (tdee * 0.05) / 4;
+      // 70 / 25 / 5 split, but carbs never exceed the 50 g upper end of the net-carb
+      // range this tool states; any calories above that move to fat.
+      const CARB_CAP_G = 50;
+      const proteinKcal = tdee * 0.25;
+      const carbsG = Math.min((tdee * 0.05) / 4, CARB_CAP_G);
+      const carbsKcal = carbsG * 4;
+      const fatKcal = tdee - proteinKcal - carbsKcal;
+      const fatG = fatKcal / 9;
+      const proteinG = proteinKcal / 4;
+      const pct = (k: number) => fmt((k / tdee) * 100, 0);
       return {
         ok: true,
         primaryLabel: 'Daily calories (keto)',
         primaryValue: `${fmt(tdee, 0)} kcal/day`,
         visual: macroDonut(proteinG, carbsG, fatG),
         rows: [
-          { label: 'Fat (70%)', value: `${fmt(fatG, 0)} g · ${fmt(tdee * 0.7, 0)} kcal`, strong: true },
-          { label: 'Protein (25%)', value: `${fmt(proteinG, 0)} g · ${fmt(tdee * 0.25, 0)} kcal` },
-          { label: 'Carbs (5%)', value: `${fmt(carbsG, 0)} g · ${fmt(tdee * 0.05, 0)} kcal` },
+          { label: `Fat (${pct(fatKcal)}%)`, value: `${fmt(fatG, 0)} g · ${fmt(fatKcal, 0)} kcal`, strong: true },
+          { label: `Protein (${pct(proteinKcal)}%)`, value: `${fmt(proteinG, 0)} g · ${fmt(proteinKcal, 0)} kcal` },
+          { label: `Carbs (${pct(carbsKcal)}%)`, value: `${fmt(carbsG, 0)} g · ${fmt(carbsKcal, 0)} kcal` },
           { label: 'Net carb cap', value: '≤ 20–50 g', strong: true },
         ],
         callout: {
           tone: 'info',
-          text: `To reach and stay in ketosis, keep net carbs (total carbs minus fibre) under about 20–50 g per day. Your 5% target is ${fmt(carbsG, 0)} g.`,
+          text: `To reach and stay in ketosis, keep net carbs (total carbs minus fiber) under about 20–50 g per day. Your carb target is ${fmt(carbsG, 0)} g${carbsG >= CARB_CAP_G ? ' (capped at 50 g; the rest moved to fat)' : ''}.`,
         },
-        note: 'A standard ketogenic split is roughly 70% fat, 25% protein and 5% carbohydrate. Talk to your doctor before starting keto, especially with a medical condition.',
+        note: 'A standard ketogenic split is roughly 70% fat, 25% protein and 5% carbohydrate. Talk to your doctor before starting keto, especially if you are pregnant or breastfeeding, have a medical condition, or take medicine for diabetes or blood pressure.',
       };
     },
   },
@@ -761,8 +840,8 @@ export const DEFS: Record<string, CalcDef> = {
     heading: 'Find your heart rate zones',
     hasSex: false,
     fields: [
-      F.age(30),
-      { key: 'rest', label: 'Resting heart rate', type: 'number', metricDefault: 65, min: 30, max: 120, suffix: 'bpm', help: 'Your pulse at rest, ideally measured first thing in the morning.' },
+      { ...F.age(30), min: 18, help: 'For adults 18+. An age-predicted maximum is an estimate, not an exercise safety clearance.' },
+      { key: 'rest', label: 'Resting heart rate', type: 'number', metricDefault: 65, min: 30, max: 120, suffix: 'bpm', help: 'Use a calm waking reading. Very low or high resting values may need medical assessment before training.' },
       {
         key: 'formula', label: 'Max HR formula', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '220',
@@ -778,13 +857,37 @@ export const DEFS: Record<string, CalcDef> = {
       const formula = selects.formula || '220';
       const hrMax = formula === 'tanaka' ? 208 - 0.7 * age : 220 - age;
       const reserve = hrMax - rest;
+      const emergency = 'Stop exercise and call emergency services immediately for chest pain, severe shortness of breath, fainting, or other serious new symptoms, regardless of the calculated heart-rate zone.';
+      // Each of the five displayed zones spans 10% of reserve. With fewer
+      // than 10 bpm in reserve, whole-bpm rounding cannot show five
+      // distinguishable zones. This is a display/math check, NOT a diagnosis.
+      if (!Number.isFinite(reserve) || reserve < 10) {
+        const reason = reserve <= 0
+          ? 'The resting pulse must be lower than the estimated maximum heart rate.'
+          : 'The calculated reserve is under 10 bpm and cannot display five distinct whole-bpm zones.';
+        return {
+          ok: false,
+          error: `${emergency} ${reason} Please verify your age and resting pulse. If an unexpectedly high or low resting rate persists, ask a healthcare professional before using training targets.`,
+          primaryLabel: 'Heart-rate zones unavailable',
+          primaryValue: '—',
+          visual: { kind: 'none' },
+        };
+      }
+      let callout: CalcResult['callout'];
+      if (rest < 40) {
+        callout = { tone: 'danger', text: `${emergency} A waking resting pulse below 40 bpm is markedly low. If it is new or unexplained, seek prompt medical advice even if you are an athlete; do not rely on predicted training zones to judge safety.` };
+      } else if (rest > 100) {
+        callout = { tone: 'warn', text: `${emergency} A resting pulse above 100 bpm deserves a medical review if persistent or unexplained. Do not use this estimate as clearance for vigorous exercise.` };
+      } else if (rest < 60) {
+        callout = { tone: 'info', text: 'Resting rates below 60 bpm can occur in trained people or with certain medicines, but are not automatically safe. Discuss a new or unexplained low rate with a clinician.' };
+      }
       const Z = ['#3b82f6', '#14b8a6', '#16a34a', '#f59e0b', '#ef4444'];
       const bands = [
         { lo: 0.5, hi: 0.6, name: 'Zone 1 · Very light', desc: 'Warm-up & recovery' },
-        { lo: 0.6, hi: 0.7, name: 'Zone 2 · Light', desc: 'Fat burning' },
+        { lo: 0.6, hi: 0.7, name: 'Zone 2 · Light', desc: 'Easy steady effort, not a unique fat-loss threshold' },
         { lo: 0.7, hi: 0.8, name: 'Zone 3 · Moderate', desc: 'Aerobic endurance' },
         { lo: 0.8, hi: 0.9, name: 'Zone 4 · Hard', desc: 'Anaerobic threshold' },
-        { lo: 0.9, hi: 1.0, name: 'Zone 5 · Maximum', desc: 'Peak effort' },
+        { lo: 0.9, hi: 1.0, name: 'Zone 5 · Maximum', desc: 'Near estimated peak; not a recommended target' },
       ];
       const items = bands.map((b, i) => {
         const lo = Math.round(reserve * b.lo + rest);
@@ -797,15 +900,16 @@ export const DEFS: Record<string, CalcDef> = {
       });
       return {
         ok: true,
-        primaryLabel: 'Maximum heart rate',
+        primaryLabel: 'Estimated maximum heart rate',
         primaryValue: `${fmt(hrMax, 0)} bpm`,
         visual: { kind: 'zones', items },
+        callout,
         rows: [
           { label: 'Resting heart rate', value: `${fmt(rest, 0)} bpm` },
           { label: 'Heart-rate reserve', value: `${fmt(reserve, 0)} bpm` },
           { label: 'Method', value: formula === 'tanaka' ? 'Tanaka (208 − 0.7 × age)' : '220 − age' },
         ],
-        note: 'Zones use the Karvonen method: target = ((max − resting) × intensity) + resting. These are estimates; your true maximum can vary by 10–12 bpm.',
+        note: `Karvonen: target = resting + ((estimated max − resting) × intensity). These five bands are estimates, not measured physiological thresholds, a safe exercise ceiling or a prescription; age-predicted maximum heart rate varies by individual. Zone 5 is near an estimated peak and is not a goal for unprepared exercisers. ${emergency} If you have a heart condition or take heart-rate-altering medicine, discuss suitable training targets with your clinician.`,
       };
     },
   },
@@ -816,7 +920,7 @@ export const DEFS: Record<string, CalcDef> = {
     heading: 'Estimate your maximum heart rate',
     hasSex: false,
     fields: [
-      F.age(30),
+      { ...F.age(30), min: 18, help: 'For adults 18+. Age-based equations estimate population averages; they cannot determine a personal safe exercise limit.' },
       {
         key: 'formula', label: 'Formula', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '220',
@@ -832,16 +936,18 @@ export const DEFS: Record<string, CalcDef> = {
       const tanaka = 208 - 0.7 * age;
       const formula = selects.formula || '220';
       const hrMax = formula === 'tanaka' ? tanaka : standard;
+      const safety = 'If you develop chest pain or pressure, severe difficulty breathing, fainting, or other serious new symptoms during exercise, stop and call emergency services immediately. Predicted maximum heart rate is not a personal safe upper limit. Heart conditions, certain medications (including beta-blockers), and individual differences can change your exercise response; ask your clinician for appropriate targets.';
       return {
         ok: true,
         primaryLabel: 'Estimated maximum heart rate',
         primaryValue: `${fmt(hrMax, 0)} bpm`,
         visual: { kind: 'none' },
+        callout: { tone: 'warn', text: safety },
         rows: [
           { label: '220 − age', value: `${fmt(standard, 0)} bpm`, strong: formula !== 'tanaka' },
           { label: 'Tanaka (208 − 0.7 × age)', value: `${fmt(tanaka, 0)} bpm`, strong: formula === 'tanaka' },
         ],
-        note: 'The simple 220 − age formula is widely used but has a wide error margin (±10–12 bpm). The Tanaka equation is often more accurate, especially for older adults.',
+        note: 'These are population-based estimates, not measured maximums or a test of fitness. Individual prediction errors vary and may exceed 10–12 bpm. Tanaka can improve average accuracy in older healthy adults, but neither formula is an exact limit, exercise prescription, or a guarantee of safety.',
       };
     },
   },
@@ -859,14 +965,14 @@ export const DEFS: Record<string, CalcDef> = {
       const s = vals.systolic;
       const d = vals.diastolic;
       const cats = [
-        { key: 'normal', label: 'Normal', color: '#16a34a', detail: 'Below 120 / below 80 mmHg' },
-        { key: 'elevated', label: 'Elevated', color: '#f59e0b', detail: '120–129 / below 80 mmHg' },
-        { key: 'stage1', label: 'High — Stage 1', color: '#f97316', detail: '130–139 / 80–89 mmHg' },
-        { key: 'stage2', label: 'High — Stage 2', color: '#ef4444', detail: '140+ / 90+ mmHg' },
-        { key: 'crisis', label: 'Hypertensive crisis', color: '#b91c1c', detail: 'Over 180 / over 120 mmHg' },
+        { key: 'normal', label: 'Normal', color: '#16a34a', detail: 'Below 120 and below 80 mmHg' },
+        { key: 'elevated', label: 'Elevated', color: '#f59e0b', detail: '120–129 and below 80 mmHg' },
+        { key: 'stage1', label: 'High — Stage 1', color: '#f97316', detail: '130–139 or 80–89 mmHg' },
+        { key: 'stage2', label: 'High — Stage 2', color: '#ef4444', detail: '140+ or 90+ mmHg' },
+        { key: 'severe', label: 'Severe hypertension', color: '#b91c1c', detail: 'Above 180 systolic or above 120 diastolic (mmHg)' },
       ];
       let key: string;
-      if (s > 180 || d > 120) key = 'crisis';
+      if (s > 180 || d > 120) key = 'severe';
       else if (s >= 140 || d >= 90) key = 'stage2';
       else if (s >= 130 || d >= 80) key = 'stage1';
       else if (s >= 120) key = 'elevated';
@@ -874,10 +980,30 @@ export const DEFS: Record<string, CalcDef> = {
       const cat = cats.find((c) => c.key === key)!;
       const items = cats.map((c) => ({ label: c.label, detail: c.detail, color: c.color, active: c.key === key }));
       let callout: CalcResult['callout'];
-      if (key === 'crisis') {
-        callout = { tone: 'danger', text: 'A reading this high may be a hypertensive crisis. If you also have chest pain, shortness of breath, weakness, or trouble speaking, call emergency services now. Otherwise, wait 5 minutes, take it again, and contact your doctor urgently.' };
+      if (key === 'severe') {
+        callout = { tone: 'danger', text: 'This is in the severe hypertension range. If you have chest pain, shortness of breath, back pain, numbness, weakness, changes in vision, difficulty speaking, or other new concerning symptoms, call emergency services immediately; do not wait to recheck. Without emergency symptoms, wait at least 1 minute, measure again, and contact your healthcare professional promptly if the reading remains this high.' };
       } else if (key === 'stage2') {
         callout = { tone: 'warn', text: 'Stage 2 high blood pressure usually needs medical treatment. Please see your doctor to discuss these readings.' };
+      }
+      // Pregnancy and the first six weeks postpartum have lower urgent-care thresholds.
+      // These are conditional SAFETY advisories, not diagnoses or altered AHA adult categories.
+      const pregnancyWarning = s >= 160 || d >= 110
+        ? 'Pregnant or within 6 weeks after childbirth? A systolic reading of 160 or higher OR a diastolic reading of 110 or higher requires urgent obstetric or emergency medical assessment, even without symptoms. Seek immediate care; this checker cannot assess pregnancy-related emergencies.'
+        : s >= 140 || d >= 90
+          ? 'Pregnant or within 6 weeks after childbirth? A systolic reading of 140 or higher OR a diastolic reading of 90 or higher means you should call your obstetric care team right away, even if you feel well.'
+          : '';
+      const reversedWarning = s <= d
+        ? 'Check the numbers entered: systolic (top) is normally higher than diastolic (bottom). The values may have been reversed or the measurement may be inaccurate. Repeat the measurement.'
+        : '';
+      // With a severe adult reading, emergency-symptom advice MUST precede any
+      // remeasurement/entry-check guidance, including if the input seems reversed.
+      if (key === 'severe') {
+        callout = { tone: 'danger', text: [callout?.text, pregnancyWarning, reversedWarning].filter(Boolean).join(' ') };
+      } else if (pregnancyWarning || reversedWarning) {
+        callout = {
+          tone: s >= 160 || d >= 110 ? 'danger' : 'warn',
+          text: [pregnancyWarning, callout?.text, reversedWarning].filter(Boolean).join(' '),
+        };
       }
       return {
         ok: true,
@@ -886,7 +1012,7 @@ export const DEFS: Record<string, CalcDef> = {
         category: { label: cat.label, color: cat.color },
         visual: { kind: 'zones', items },
         callout,
-        note: 'Categories follow American Heart Association guidelines. A single reading is not a diagnosis — blood pressure varies through the day, so take several readings while seated and at rest.',
+        note: 'General AHA adult categories (2025) are not a pregnancy/postpartum risk assessment. If pregnant or within 6 weeks after childbirth, contact your obstetric care team right away for systolic 140+ OR diastolic 90+; systolic 160+ OR diastolic 110+ needs urgent assessment. Severe headache, vision changes, upper-abdominal pain or trouble breathing need immediate medical attention at any reading. One reading is not a diagnosis. Use a validated upper-arm cuff: the 2025 guideline does not recommend cuffless devices such as smartwatches for diagnosing or managing blood pressure.',
       };
     },
   },
@@ -898,7 +1024,7 @@ export const DEFS: Record<string, CalcDef> = {
     hasSex: true,
     fields: [
       { key: 'rhr', label: 'Resting heart rate', type: 'number', metricDefault: 65, min: 30, max: 130, suffix: 'bpm', help: 'Measure at rest, ideally first thing in the morning before getting up.' },
-      F.age(30),
+      { ...F.age(30), min: 18, help: 'For adults 18+. Age adjusts only this tool’s illustrative comparison; the usual adult pulse reference is 60–100 bpm.' },
       {
         key: 'fitness', label: 'Fitness level (optional)', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'unknown',
@@ -912,6 +1038,9 @@ export const DEFS: Record<string, CalcDef> = {
     ],
     compute: ({ vals, sex, selects }) => {
       const rhr = vals.rhr;
+      // Preserve the site’s documented age/sex illustration for consistency
+      // with the existing article. These offsets are NOT validated medical
+      // reference limits, measures of fitness, or AHA clinical thresholds.
       const sexAdj = sex === 'female' ? 4 : 0;
       const ageAdj = vals.age >= 65 ? 2 : vals.age >= 45 ? 1 : 0;
       const t = (b: number) => b + sexAdj + ageAdj;
@@ -920,40 +1049,50 @@ export const DEFS: Record<string, CalcDef> = {
         { upTo: t(61), label: 'Excellent', color: C.green },
         { upTo: t(65), label: 'Good', color: C.teal },
         { upTo: t(73), label: 'Average', color: C.amber },
-        { upTo: 110, label: 'Below average', color: C.red },
+        { upTo: 130, label: 'Below average', color: C.slate },
       ];
       let cat: { label: string; color: string };
       if (rhr <= t(55)) cat = { label: 'Athlete', color: C.blue };
       else if (rhr <= t(61)) cat = { label: 'Excellent', color: C.green };
       else if (rhr <= t(65)) cat = { label: 'Good', color: C.teal };
       else if (rhr <= t(73)) cat = { label: 'Average', color: C.amber };
-      else cat = { label: 'Below average', color: C.red };
+      else cat = { label: 'Below average', color: C.slate };
       const meanings: Record<string, string> = {
-        Athlete: 'Typical of well-trained endurance athletes — a very efficient heart.',
-        Excellent: 'Excellent cardiovascular fitness.',
-        Good: 'Good fitness — better than the average adult.',
-        Average: 'Within the normal adult range (60–100 bpm).',
-        'Below average': 'Higher than ideal; regular aerobic exercise usually brings it down over time.',
+        Athlete: 'An illustrative low-pulse band; this label does not establish athletic conditioning or a healthy heart.',
+        Excellent: 'An illustrative comparison band, not a validated cardiovascular fitness rating.',
+        Good: 'An illustrative comparison band, not proof of better cardiovascular health.',
+        Average: 'An illustrative comparison band; compare your reading with the usual 60–100 bpm adult reference.',
+        'Below average': 'This illustrative band can include readings within the usual 60–100 bpm adult range; it does not diagnose poor health or fitness.',
       };
+      const emergency = 'If you have chest pain, severe difficulty breathing, fainting, or other serious new symptoms, call emergency services immediately regardless of the number shown.';
       let callout: CalcResult['callout'];
-      if (rhr < 40) callout = { tone: 'warn', text: 'A resting heart rate under 40 bpm is unusual unless you are a trained athlete. If you also feel dizzy, faint or breathless, see a doctor.' };
-      else if (rhr > 100) callout = { tone: 'warn', text: 'A resting rate persistently above 100 bpm (tachycardia) is worth checking with a doctor — especially alongside palpitations, dizziness or chest discomfort.' };
+      if (rhr < 40) {
+        callout = { tone: 'danger', text: `${emergency} A waking resting pulse under 40 bpm is markedly slow; contact a healthcare professional promptly if it is new or unexplained, even if you are a trained athlete.` };
+      } else if (rhr > 100) {
+        callout = { tone: 'warn', text: `${emergency} If your resting pulse stays above 100 bpm, arrange a medical assessment; temporary causes and medications may affect the reading.` };
+      } else if (rhr < 60) {
+        callout = { tone: 'info', text: 'A resting pulse below 60 bpm can occur in athletes or with certain medications, but it is not automatically healthy. If this is new, unexplained, or repeatedly low, discuss it with a healthcare professional.' };
+      }
       const fit = selects.fitness;
-      const fitNote = fit === 'athlete' ? ' As a highly trained athlete, a low resting rate is expected and healthy.'
-        : fit === 'sedentary' ? ' Building regular cardio is the most reliable way to lower a resting heart rate.' : '';
+      const fitNote = fit === 'athlete'
+        ? ' Athletic training can lower resting pulse, but does not guarantee that a low reading is safe or that symptoms can be ignored.'
+        : fit === 'sedentary'
+          ? ' Fitness and other factors can influence pulse, but one reading cannot measure your fitness.'
+          : '';
       return {
         ok: true,
         primaryLabel: 'Your resting heart rate',
         primaryValue: `${fmt(rhr, 0)} bpm`,
-        category: cat,
-        visual: { kind: 'gauge', value: Math.min(rhr, 110), min: 40, max: 110, segments },
+        category: { label: `${cat.label} (illustrative)`, color: rhr < 40 || rhr > 100 ? C.red : cat.color },
+        visual: { kind: 'gauge', value: rhr, min: 30, max: 130, segments },
         callout,
         rows: [
-          { label: 'General normal adult range', value: '60–100 bpm', strong: true },
-          { label: 'Well-trained athletes', value: '~40–60 bpm' },
-          { label: `Your benchmark (${sex === 'female' ? 'women' : 'men'}${vals.age >= 45 ? `, ${vals.age >= 65 ? '65+' : '45–64'}` : ''})`, value: `Athlete ≤${t(55)} · Average ${t(66)}–${t(73)}` },
+          { label: 'General adult reference range', value: '60–100 bpm', strong: true },
+          { label: 'Your reading vs. this adult reference', value: rhr < 60 ? 'Below the usual adult range' : rhr > 100 ? 'Above the usual adult range' : 'Within the usual adult range', strong: true },
+          { label: 'Well-trained athletes', value: '~40–60 bpm (not a guarantee of health)' },
+          { label: `Illustrative band (${sex === 'female' ? 'women' : 'men'}${vals.age >= 45 ? `, ${vals.age >= 65 ? '65+' : '45–64'}` : ''})`, value: `Athlete ≤${t(55)} · Average ${t(66)}–${t(73)}` },
         ],
-        note: `${meanings[cat.label] ?? ''}${fitNote} Resting heart rate is informational only — a persistently very low or high rate, or symptoms such as dizziness or palpitations, means see a doctor. Ranges per the American Heart Association and Mayo Clinic.`,
+        note: `${meanings[cat.label] ?? ''}${fitNote} The sex/age offsets and five fitness bands are this site's unvalidated illustrations, NOT American Heart Association or Mayo Clinic clinical cutoffs. The adult reference is 60–100 bpm, but even a reading in that range does not rule out a rhythm problem. ${emergency} Discuss persistently unusual readings or a new change with a healthcare professional.`,
       };
     },
   },
@@ -965,7 +1104,7 @@ export const DEFS: Record<string, CalcDef> = {
   // ---- Metabolic Age (illustrative, BMR-based) ----
   'metabolic-age-calculator': {
     slug: 'metabolic-age-calculator',
-    heading: 'Estimate your metabolic age',
+    heading: 'Explore an illustrative BMR-based age',
     hasSex: true,
     fields: [F.weight(72), F.height(175), F.age(30)],
     compute: ({ vals, sex }) => {
@@ -976,23 +1115,19 @@ export const DEFS: Record<string, CalcDef> = {
       let metAge = Math.round(vals.age - diff / 40);
       metAge = Math.max(vals.age - 12, Math.min(vals.age + 12, metAge));
       metAge = Math.max(16, Math.min(90, metAge));
-      const delta = metAge - vals.age;
-      const cat = delta <= -3 ? { label: 'Younger than your age', color: C.green }
-        : delta >= 3 ? { label: 'Older than your age', color: C.amber }
-        : { label: 'About your age', color: C.teal };
+
       return {
         ok: true,
-        primaryLabel: 'Estimated metabolic age',
+        primaryLabel: 'Illustrative BMR-age index (not health)',
         primaryValue: `${metAge} years`,
-        category: cat,
-        visual: { kind: 'split', aLabel: 'Real age', aValue: vals.age, bLabel: 'Metabolic age', bValue: metAge, aColor: C.slate, bColor: delta <= 0 ? C.green : C.amber, unit: 'yrs' },
+        visual: { kind: 'none' },
         rows: [
           { label: 'Your BMR (Mifflin-St Jeor)', value: `${fmt(userBMR, 0)} kcal/day`, strong: true },
-          { label: `Typical BMR around age ${fmt(vals.age, 0)}`, value: `${fmt(avgForAge, 0)} kcal/day` },
+          { label: `Custom illustrative reference for age ${fmt(vals.age, 0)}`, value: `${fmt(avgForAge, 0)} kcal/day` },
           { label: 'Difference', value: `${diff >= 0 ? '+' : ''}${fmt(diff, 0)} kcal/day` },
         ],
-        callout: { tone: 'info', text: 'This is a simplified, illustrative estimate — not a medical measurement. It compares your BMR with a rough average for your age: a higher BMR maps to a "younger" number. Muscle and activity raise BMR, but body size also influences it, so read this as a fun motivator, not a diagnosis.' },
-        note: 'Method: we calculate your Basal Metabolic Rate with the Mifflin-St Jeor equation, then compare it to a typical BMR for your age and sex and map the gap onto an illustrative age (capped at ±12 years). Building muscle and staying active raise your BMR — see the BMR and Calorie calculators for the underlying numbers.',
+        callout: { tone: 'info', text: 'This fictional age index is not a validated measurement of biological age, metabolic health or fitness. Increasing body weight alone can yield a younger-looking result without improving health. Do not use the age number to guide weight, food or treatment decisions.' },
+        note: 'Mifflin-St Jeor predicts resting energy needs from weight, height, age and sex. Male reference 1700 - 6 × (age - 25), female reference 1400 - 5 × (age - 25), and 40 kcal per model year are custom illustrative constants, not validated age-specific population norms. Body size itself changes predicted BMR; a lower displayed age is not better health.',
       };
     },
   },
@@ -1016,7 +1151,6 @@ export const DEFS: Record<string, CalcDef> = {
       const cockK = vals.cocktail * KCAL.cocktail;
       const weekly = beerK + wineK + spiritK + cockK;
       const yearly = weekly * 52;
-      const fatLb = yearly / 3500;
       const totalDrinks = vals.beer + vals.wine + vals.spirits + vals.cocktail;
       const parts = [
         { label: 'Beer', kcal: beerK, color: C.amber },
@@ -1036,11 +1170,10 @@ export const DEFS: Record<string, CalcDef> = {
         rows: [
           { label: 'Per month', value: `${fmt(weekly * 4.345, 0)} kcal` },
           { label: 'Per year', value: `${fmt(yearly, 0)} kcal`, strong: true },
-          { label: '≈ body fat per year, if unburned', value: `${fmt(fatLb, 1)} lb` },
           { label: 'Total drinks per week', value: `${fmt(totalDrinks, 1)}` },
         ],
-        callout: { tone: 'info', text: 'Low-risk guidance: the CDC suggests up to 1 drink/day for women and 2 for men; the UK NHS advises 14 units a week or less, spread over 3+ days with drink-free days. Alcohol carries 7 kcal per gram — "empty" calories with no nutrition, and that\'s before sugary mixers.' },
-        note: 'Calories per drink are typical values (beer 12 oz ≈ 150, wine 5 oz ≈ 125, spirit 1.5 oz ≈ 97, cocktail ≈ 225) and climb with stronger or larger servings and mixers. The body-fat equivalent uses the 3,500 kcal-per-pound rule and assumes the calories are not offset by activity. Educational and non-judgmental — small cutbacks add up.',
+        callout: { tone: 'info', text: 'These are beverage-calorie estimates, not a health-risk score. Even moderate drinking can increase risks, including some cancers; less alcohol is better for health. U.S. moderation limits (up to 1 drink/day for women, 2 for men) are not a risk-free dose. Do not start drinking for health reasons, and avoid alcohol during pregnancy or when contraindicated.' },
+        note: 'Typical calories per drink: beer 12 oz ≈ 150, wine 5 oz ≈ 125, spirits 1.5 oz ≈ 97, cocktail ≈ 225; stronger or larger servings and mixers differ. Weekly, monthly and yearly totals are simple intake projections, not predicted fat gain or weight loss. Real body-weight change cannot be inferred by dividing these calories by 3,500. Educational estimates only.',
       };
     },
   },
@@ -1063,29 +1196,39 @@ export const DEFS: Record<string, CalcDef> = {
     compute: ({ vals, units }) => {
       const m = vals.height / 100;
       const bmi = vals.weight / (m * m);
-      let cat: string; let loLb: number; let hiLb: number; let rLo: number; let rHi: number; let color: string;
-      if (bmi < 18.5) { cat = 'Underweight'; loLb = 28; hiLb = 40; rLo = 1.0; rHi = 1.3; color = '#3b82f6'; }
-      else if (bmi < 25) { cat = 'Normal weight'; loLb = 25; hiLb = 35; rLo = 0.8; rHi = 1.0; color = '#16a34a'; }
-      else if (bmi < 30) { cat = 'Overweight'; loLb = 15; hiLb = 25; rLo = 0.5; rHi = 0.7; color = '#f59e0b'; }
-      else { cat = 'Obese'; loLb = 11; hiLb = 20; rLo = 0.4; rHi = 0.6; color = '#ef4444'; }
+      // IOM (2009) Table S-1, singleton pregnancy. Both unit columns are the
+      // published values — the kg figures are not conversions of the lb ones.
+      // [total low, total high, weekly rate low, weekly rate high] for trimesters 2–3.
+      const IOM = {
+        under: { cat: 'Underweight', color: '#3b82f6', lb: [28, 40, 1.0, 1.3], kg: [12.5, 18, 0.44, 0.58] },
+        normal: { cat: 'Normal weight', color: '#16a34a', lb: [25, 35, 0.8, 1.0], kg: [11.5, 16, 0.35, 0.5] },
+        over: { cat: 'Overweight', color: '#f59e0b', lb: [15, 25, 0.5, 0.7], kg: [7, 11.5, 0.23, 0.33] },
+        obesity: { cat: 'Obesity', color: '#ef4444', lb: [11, 20, 0.4, 0.6], kg: [5, 9, 0.17, 0.27] },
+      } as const;
+      const row = bmi < 18.5 ? IOM.under : bmi < 25 ? IOM.normal : bmi < 30 ? IOM.over : IOM.obesity;
+      const metric = units === 'metric';
+      const [totalLo, totalHi, rLo, rHi] = metric ? row.kg : row.lb;
+      // First-trimester gain assumed by the IOM: 0.5–2 kg (1.1–4.4 lb).
+      const firstLo = metric ? 0.5 : 1.1;
+      const firstHi = metric ? 2 : 4.4;
+      const cat = row.cat; const color = row.color;
       const w = Math.max(1, Math.min(42, vals.week));
-      const firstLo = 1.1; const firstHi = 4.4;
-      const byLoLb = w <= 13 ? firstLo * (w / 13) : firstLo + rLo * (w - 13);
-      const byHiLb = w <= 13 ? firstHi * (w / 13) : firstHi + rHi * (w - 13);
-      const toDisp = (lb: number) => (units === 'metric' ? lb * 0.45359237 : lb);
+      // By-week range: our interpolation (linear across the first trimester, then
+      // the IOM weekly rate), never allowed to exceed the IOM total range.
+      const byLo = Math.min(totalLo, w <= 13 ? firstLo * (w / 13) : firstLo + rLo * (w - 13));
+      const byHi = Math.min(totalHi, w <= 13 ? firstHi * (w / 13) : firstHi + rHi * (w - 13));
       const gainKg = vals.current - vals.weight;
-      const gainDisp = units === 'metric' ? gainKg : kgToLb(gainKg);
+      const gainDisp = metric ? gainKg : kgToLb(gainKg);
       const unit = massUnitLabel(units);
-      const totalLo = toDisp(loLb); const totalHi = toDisp(hiLb);
-      const byLo = toDisp(byLoLb); const byHi = toDisp(byHiLb);
       const maxScale = totalHi * 1.3;
       let callout: CalcResult['callout'];
-      if (gainDisp < byLo * 0.9) callout = { tone: 'info', text: `You're tracking below the recommended gain for week ${Math.round(w)}. Week-to-week gain varies — your OB-GYN can confirm whether you're on track.` };
-      else if (gainDisp > byHi * 1.1) callout = { tone: 'warn', text: `You're tracking above the recommended gain for week ${Math.round(w)}. It's worth discussing your weight gain with your OB-GYN.` };
+      if (gainDisp < 0) callout = { tone: 'warn', text: 'Your current weight is below your pre-pregnancy weight. A small loss can happen early on with nausea, but tell your OB-GYN or midwife — especially after the first trimester or if you are struggling to eat or drink.' };
+      else if (gainDisp < byLo * 0.9) callout = { tone: 'info', text: `You're tracking below the estimated range for week ${Math.round(w)}. Week-to-week gain varies — your OB-GYN can confirm whether you're on track.` };
+      else if (gainDisp > byHi * 1.1) callout = { tone: 'warn', text: `You're tracking above the estimated range for week ${Math.round(w)}. It's worth discussing your weight gain with your OB-GYN.` };
       return {
         ok: true,
         primaryLabel: 'Recommended total gain',
-        primaryValue: `${fmt(totalLo, 0)}–${fmt(totalHi, 0)} ${unit}`,
+        primaryValue: `${fmt(totalLo, 1)}–${fmt(totalHi, 1)} ${unit}`,
         category: { label: cat, color },
         visual: {
           kind: 'gauge',
@@ -1101,10 +1244,10 @@ export const DEFS: Record<string, CalcDef> = {
         callout,
         rows: [
           { label: 'Pre-pregnancy BMI', value: `${fmt(bmi, 1)} (${cat})` },
-          { label: `Recommended by week ${Math.round(w)}`, value: `${fmt(byLo, 1)}–${fmt(byHi, 1)} ${unit}`, strong: true },
+          { label: `Estimated range by week ${Math.round(w)}`, value: `${fmt(byLo, 1)}–${fmt(byHi, 1)} ${unit}`, strong: true },
           { label: "You've gained so far", value: `${fmt(gainDisp, 1)} ${unit}` },
         ],
-        note: 'Ranges follow Institute of Medicine (IOM) guidance for single pregnancies and depend on your starting BMI. Always confirm your targets with your OB-GYN.',
+        note: 'Total ranges are the 2009 Institute of Medicine (IOM) recommendations for a single baby, by pre-pregnancy BMI. The by-week range is our estimate from the IOM’s assumed first-trimester gain and weekly rates — it is a guide, not a target for any one week. These ranges do not apply to twins or other multiples, which have different guidance. Always confirm your targets with your OB-GYN.',
       };
     },
   },
@@ -1123,7 +1266,7 @@ export const DEFS: Record<string, CalcDef> = {
         key: 'activity', label: 'Activity', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'running',
         options: [
-          { value: 'walking', label: 'Walking, 3.5 mph (MET 3.5)' },
+          { value: 'walking', label: 'Walking for pleasure (MET 3.5)' },
           { value: 'running', label: 'Running, 6 mph (MET 9.8)' },
           { value: 'cycling', label: 'Cycling, moderate (MET 7.5)' },
           { value: 'swimming', label: 'Swimming (MET 8.0)' },
@@ -1145,20 +1288,42 @@ export const DEFS: Record<string, CalcDef> = {
         walking: 3.5, running: 9.8, cycling: 7.5, swimming: 8.0, hiit: 8.0, yoga: 3.0,
         weights: 5.0, hiking: 6.0, rowing: 7.0, dancing: 7.8, tennis: 7.3, jumprope: 12.3,
       };
-      const met = METS[selects.activity] ?? 9.8;
-      const hours = vals.minutes / 60;
-      const cal = met * vals.weight * hours;
+      const met = METS[selects.activity];
+      const { weight, minutes } = vals;
+      // The published input bounds are 25–300 kg and 1–600 minutes.
+      // Do not silently relabel an unknown activity as 9.8-MET running.
+      if (!Number.isFinite(met) || !Number.isFinite(weight) ||
+          !Number.isFinite(minutes) || weight < 25 || weight > 300 ||
+          minutes < 1 || minutes > 600) {
+        return {
+          ok: false,
+          error: 'Select a listed activity, enter a body weight between 25 and 300 kg (or the equivalent in lb), and an activity duration from 1 to 600 minutes. These are calculator input limits, not exercise recommendations.',
+          primaryLabel: 'Estimated activity energy',
+          primaryValue: '',
+          visual: { kind: 'none' },
+        };
+      }
+      const hours = minutes / 60;
+      const gross = met * weight * hours;
+      // Approximate energy above standardized 1-MET rest, NOT a measured
+      // personal net expenditure or an exercise/food compensation rule.
+      const aboveRest = Math.max(0, met - 1) * weight * hours;
       return {
         ok: true,
-        primaryLabel: `Calories burned in ${fmt(vals.minutes, 0)} min`,
-        primaryValue: `${fmt(cal, 0)} kcal`,
+        primaryLabel: `Estimated gross activity energy in ${fmt(minutes, 1)} min`,
+        primaryValue: `${fmt(gross, 0)} kcal`,
         visual: { kind: 'none' },
         rows: [
-          { label: 'Per hour', value: `${fmt(met * vals.weight, 0)} kcal`, strong: true },
-          { label: 'Per 30 minutes', value: `${fmt(met * vals.weight * 0.5, 0)} kcal` },
-          { label: 'MET value', value: `${met}` },
+          { label: 'Gross per hour', value: `${fmt(met * weight, 0)} kcal`, strong: true },
+          { label: 'Gross per 30 minutes', value: `${fmt(met * weight * 0.5, 0)} kcal` },
+          { label: 'Approx. above-rest energy for this duration', value: `${fmt(aboveRest, 0)} kcal` },
+          { label: 'Selected MET value', value: `${met}` },
         ],
-        note: 'Calories = METs × weight (kg) × hours. MET values are population averages; your real burn varies with intensity, fitness and terrain.',
+        callout: {
+          tone: 'info',
+          text: 'Gross energy includes estimated resting expenditure during the activity. Above-rest energy subtracts a standardized 1 MET for the same duration; neither figure measures your metabolism or predicts food-calorie compensation.',
+        },
+        note: 'Gross kcal = MET × kg × hours; approximate above-rest kcal = (MET − 1) × kg × hours. These are standardized activity examples, not additional calories that must be eaten or earned. Actual intensity, fitness, age, terrain and resting metabolism vary.',
       };
     },
   },
@@ -1169,25 +1334,56 @@ export const DEFS: Record<string, CalcDef> = {
     heading: 'Estimate your one-rep max',
     hasSex: false,
     fields: [
-      { key: 'weight', label: 'Weight lifted', type: 'mass', metricDefault: 80, min: 1, max: 500 },
-      { key: 'reps', label: 'Reps performed', type: 'number', metricDefault: 5, min: 1, max: 15, suffix: 'reps' },
+      { key: 'weight', label: 'Weight lifted', type: 'mass', metricDefault: 80, min: 1, max: 500, help: 'Enter the actual load moved for one exercise. Record whether dumbbell weight is per hand or combined.' },
+      { key: 'reps', label: 'Reps performed', type: 'number', metricDefault: 5, min: 1, max: 15, suffix: 'reps', help: 'Whole completed reps, not reps left in reserve. Above 10 reps the estimate is less reliable.' },
     ],
     compute: ({ vals, units }) => {
       const w = vals.weight;
-      const reps = Math.max(1, Math.min(15, vals.reps));
-      const epley = w * (1 + reps / 30);
-      const brzycki = w * 36 / (37 - reps);
+      const reps = vals.reps;
+      // The form already specifies 1–500 kg and 1–15 whole repetitions.
+      // The compute boundary must reject invalid direct calls as well,
+      // never clamp a bogus value into an apparently credible estimate.
+      if (!Number.isFinite(w) || w < 1 || w > 500 ||
+          !Number.isInteger(reps) || reps < 1 || reps > 15) {
+        return {
+          ok: false,
+          error: 'Enter a finite load from 1 to 500 kg (or equivalent in lb) and a whole-number rep count from 1 to 15. These are form limits, not safe lifting recommendations.',
+          primaryLabel: 'Estimated one-rep max',
+          primaryValue: '',
+          visual: { kind: 'none' },
+        };
+      }
+      // A single completed repetition is a recorded load, not a prediction.
+      // Epley's algebraic expression is not applicable to 1 rep; applying
+      // it there would spuriously add 3.33% to the weight actually lifted.
+      // One completed rep is NOT proof that the attempt was truly maximal.
+      const isSingle = reps === 1;
+      const epley = isSingle ? w : w * (1 + reps / 30);
+      const brzycki = isSingle ? w : w * 36 / (37 - reps);
       const pcts = [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50];
       return {
         ok: true,
-        primaryLabel: 'Estimated 1-rep max (Epley)',
+        primaryLabel: isSingle ? 'Completed single-rep load (not verified 1RM)' : 'Estimated 1-rep max (Epley)',
         primaryValue: fmtMass(epley, units, 1),
         visual: { kind: 'none' },
         rows: [
-          { label: 'Brzycki estimate', value: fmtMass(brzycki, units, 1) },
-          ...pcts.map((p) => ({ label: `${p}% of 1RM`, value: fmtMass(epley * (p / 100), units, 1), strong: p === 100 })),
+          { label: isSingle ? 'Recorded one-rep load (Brzycki boundary)' : 'Brzycki estimate', value: fmtMass(brzycki, units, 1) },
+          ...pcts.map((p) => ({ label: isSingle ? p + '% of completed single-rep load' : p + '% of estimated 1RM', value: fmtMass(epley * (p / 100), units, 1), strong: p === 100 })),
         ],
-        note: 'Epley: weight × (1 + reps ÷ 30). Brzycki: weight × 36 ÷ (37 − reps). Most accurate at 10 reps or fewer.',
+        callout: isSingle
+          ? {
+              tone: 'info',
+              text: 'One completed repetition records the load you lifted. It is not a verified maximum unless the effort really was maximal with controlled technique. The table uses percentages of that completed load, not an approved max-lift target.',
+            }
+          : reps > 10
+            ? {
+                tone: 'warn',
+                text: '11–15 repetitions lie beyond the lower-rep range where these simple prediction equations are most dependable. Treat both estimates and the percentage table as low-confidence planning examples, not permission to attempt the predicted weight.',
+              }
+            : undefined,
+        note: isSingle
+          ? 'For one completed rep, the tool displays the lifted weight instead of extrapolating Epley, which would otherwise overstate that load by 3.33%. A nonmaximal single is not a measured 1RM. Do not attempt a maximal lift just to use this tool.'
+          : 'For 2–15 whole reps: Epley = weight × (1 + reps / 30); Brzycki = weight × 36 / (37 − reps). These are submaximal-set predictions, usually more useful after relatively low-rep sets close to technical failure. Formula accuracy depends on exercise, technique, and effort; all percentage loads are illustrative, not a prescription.',
       };
     },
   },
@@ -1203,30 +1399,35 @@ export const DEFS: Record<string, CalcDef> = {
       { key: 'bodyfat', label: 'Body fat', type: 'number', metricDefault: 15, min: 2, max: 60, suffix: '%', help: 'Not sure? Estimate it with the Body Fat Calculator.' },
     ],
     compute: ({ vals, units }) => {
-      const heightM = vals.height / 100;
-      const lbm = vals.weight * (1 - vals.bodyfat / 100);
+      // Keep existing FORM bounds. They are not medical reference ranges.
+      const { weight, height, bodyfat } = vals;
+      if (![weight, height, bodyfat].every(Number.isFinite) ||
+          weight < 25 || weight > 300 || height < 120 || height > 230 ||
+          bodyfat < 2 || bodyfat > 60) {
+        return { ok: false, error: 'Check weight (25–300 kg), height (120–230 cm), and body fat (2–60%). These are calculator input limits, not healthy reference ranges.', primaryLabel: 'Estimated FFMI', primaryValue: '', visual: { kind: 'none' } };
+      }
+      const heightM = height / 100;
+      const lbm = weight * (1 - bodyfat / 100);
       const ffmi = lbm / (heightM * heightM);
+      // Original site/Article 43 explicitly use 6.1; Kouri's study used 6.3.
       const normalized = ffmi + 6.1 * (1.8 - heightM);
-      const segments: Segment[] = [
-        { upTo: 18, label: 'Below average', color: C.blue },
-        { upTo: 20, label: 'Average', color: C.green },
-        { upTo: 22, label: 'Above average', color: C.teal },
-        { upTo: 25, label: 'High', color: C.amber },
-        { upTo: 30, label: 'Very high', color: C.red },
-      ];
-      const band = bandFor(ffmi, segments);
       return {
         ok: true,
-        primaryLabel: 'Your FFMI',
+        primaryLabel: 'Estimated FFMI (raw)',
         primaryValue: fmt(ffmi, 1),
-        category: { label: band.label, color: band.color },
-        visual: { kind: 'gauge', value: ffmi, min: 14, max: 30, segments },
+        // Previous bands falsely graded all ages/sexes and clipped results
+        // outside the hard-coded 14–30 scale. Keep raw values, not false grades.
+        visual: { kind: 'none' },
         rows: [
-          { label: 'Normalized FFMI (height-adjusted)', value: fmt(normalized, 1), strong: true },
-          { label: 'Lean body mass (LBM)', value: fmtMass(lbm, units, 1) },
-          { label: 'Body fat mass', value: fmtMass(vals.weight - lbm, units, 1) },
+          { label: 'Normalized FFMI (site formula, height-adjusted)', value: fmt(normalized, 1), strong: true },
+          { label: 'Estimated fat-free mass (includes water, bone, organs)', value: fmtMass(lbm, units, 1) },
+          { label: 'Estimated fat mass', value: fmtMass(weight - lbm, units, 1) },
         ],
-        note: 'FFMI = lean body mass ÷ height². Normalized FFMI adds a height correction so shorter and taller lifters can be compared fairly. Values above ~25 are uncommon for natural athletes and often point to a body-fat measurement error — treat extreme numbers as a prompt to re-check your input, not as a judgment.',
+        callout: {
+          tone: 'info',
+          text: 'No population grade is assigned: FFMI reference distributions vary by sex, age, population, and measurement method. Neither a high nor a low score diagnoses health or muscle mass, or proves use of anabolic steroids.',
+        },
+        note: 'FFMI = estimated fat-free mass ÷ height². This site preserves its published +6.1 × (1.80 − height in meters) adjustment; the original small male-athlete study used 6.3. The often-quoted value of 25 concerns normalized FFMI in that study, not a universal raw FFMI limit or a steroid test. Body-fat measurement and hydration uncertainty affect both values.',
       };
     },
   },
@@ -1284,11 +1485,22 @@ export const DEFS: Record<string, CalcDef> = {
       const trainingAge = selects.trainingAge || 'intermediate';
       const sleep = selects.sleep || 'good';
       const soreness = selects.soreness || 'mild';
+      // Significant pain that impairs ordinary movement is not a validated
+      // recovery-clock input. Never imply a numeric return-to-training clearance.
+      if (soreness === 'severe') {
+        return {
+          ok: false,
+          error: 'Severe soreness affecting normal movement is outside this time estimator. Avoid another hard workout of the affected area. Get medical advice for severe or worsening pain, marked swelling, weakness, or trouble moving normally. Dark (tea- or cola-colored) urine after intense exercise needs urgent medical care.',
+          primaryLabel: 'Recovery time cannot be estimated',
+          primaryValue: '',
+          visual: { kind: 'none' },
+        };
+      }
       const rpe = vals.rpe;
       const duration = vals.duration;
 
-      // Base recovery (hours) by workout type — general sports-science guidance:
-      // heavy resistance needs ~48-72h per muscle group; HIIT/endurance less.
+      // These starting values are site-defined planning assumptions, not
+      // measured biological recovery times or validated by workout category.
       const BASE: Record<string, number> = {
         strength: 48,
         hiit: 36,
@@ -1307,7 +1519,7 @@ export const DEFS: Record<string, CalcDef> = {
       else if (duration <= 90) durMult = 1.15;
       else durMult = 1.3;
 
-      // Training age: beginners need more recovery; advanced recover faster.
+      // Training history adjustment is illustrative; people of every level vary.
       const AGE_MULT: Record<string, number> = {
         beginner: 1.3,
         intermediate: 1.0,
@@ -1315,7 +1527,7 @@ export const DEFS: Record<string, CalcDef> = {
       };
       const ageMult = AGE_MULT[trainingAge] ?? 1.0;
 
-      // Sleep quality: poor sleep impairs muscle repair and recovery.
+      // Sleep-related adjustment is heuristic, not a measured tissue-repair rate.
       const SLEEP_MULT: Record<string, number> = {
         poor: 1.25,
         fair: 1.1,
@@ -1324,7 +1536,7 @@ export const DEFS: Record<string, CalcDef> = {
       };
       const sleepMult = SLEEP_MULT[sleep] ?? 1.0;
 
-      // Soreness (DOMS): more soreness = more recovery needed.
+      // Mild/moderate soreness is a planning input, not a tissue-healing assay.
       const SORENESS_MULT: Record<string, number> = {
         none: 0.9,
         mild: 1.0,
@@ -1343,7 +1555,7 @@ export const DEFS: Record<string, CalcDef> = {
 
       return {
         ok: true,
-        primaryLabel: 'Suggested recovery window',
+        primaryLabel: 'Illustrative recovery planning window',
         primaryValue: `${fmtWindow(low)} – ${fmtWindow(high)}`,
         visual: { kind: 'none' },
         rows: [
@@ -1356,100 +1568,114 @@ export const DEFS: Record<string, CalcDef> = {
         ],
         callout: {
           tone: 'info',
-          text: 'Listen to your body. These are general guidance ranges from sports-science principles, not a prescription. If you\'re still sore, fatigued, or your performance is down, rest longer. Sharp or joint pain is never normal — stop and see a qualified professional.',
+          text: 'This hour range is an illustrative planning aid, not medical clearance or proof that muscles have healed. Check your movement and performance before training hard again. Stop for sharp or joint pain; seek medical advice if symptoms persist or worsen.',
         },
         cta: {
           label: 'Check your protein target for recovery →',
           href: '/tools/protein-intake-calculator',
         },
-        note: 'Method: a transparent heuristic. We start from a base recovery time for your workout type (e.g. ~48h for heavy resistance training, per the general 48–72h guideline), then adjust it up or down for intensity (RPE), duration, training age, sleep quality, and current soreness. The ±15% window reflects individual variation. This is general fitness guidance, not medical advice.',
+        note: 'Method: this site uses illustrative starting hours and fixed multipliers for session type, RPE, duration, training history, sleep, and mild/moderate soreness. The ±15% display margin is chosen by the model, NOT a measured confidence interval, validated biological recovery time, or a guarantee that hard exercise is safe on that day.',
       };
     },
   },
 
-  // ---- Push-Up Test (muscular endurance norms) ----
+  // ---- Push-Up Test (ACSM Guidelines, 10th ed., Table 4.11; separate protocols) ----
   'push-up-test-calculator': {
     slug: 'push-up-test-calculator',
     heading: 'Score your push-up test',
     hasSex: true,
     fields: [
       F.age(30),
-      { key: 'pushups', label: 'Push-ups completed', type: 'number', metricDefault: 20, min: 0, max: 200, suffix: 'reps', allowZero: true, help: 'Count strict reps: chest to fist height, body straight, full extension at the top.' },
-      { key: 'plank', label: 'Plank hold (optional)', type: 'number', metricDefault: 0, min: 0, max: 600, suffix: 'sec', allowZero: true, help: 'If you also held a forearm plank, enter your time in seconds.' },
+      { key: 'pushups', label: 'Push-ups completed', type: 'number', metricDefault: 20, min: 0, max: 200, step: 1, suffix: 'reps', allowZero: true, help: 'Count whole, consecutive repetitions without rest. Men: standard from toes; women: modified from knees for the ACSM comparison. Stop if your form breaks.' },
+      { key: 'plank', label: 'Plank hold (optional)', type: 'number', metricDefault: 0, min: 0, max: 600, step: 1, suffix: 'sec', allowZero: true, help: 'Optional whole seconds for a separate forearm plank; no normative fitness grade is calculated.' },
     ],
     compute: ({ vals, sex }) => {
       const age = vals.age;
       const pushups = vals.pushups;
+      const invalid = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Push-up score', primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (!Number.isInteger(age) || age < 15 || age > 100) return invalid('Enter your age as a whole number from 15 to 100 years.');
+      if (!Number.isInteger(pushups) || pushups < 0 || pushups > 200) return invalid('Enter a whole number of completed push-ups from 0 to 200.');
+      if (!Number.isInteger(vals.plank) || vals.plank < 0 || vals.plank > 600) return invalid('Enter a whole number of plank seconds from 0 to 600.');
 
-      // Normative thresholds (inclusive max per band) by sex and age bracket.
-      // Source: ACSM push-up test norms. bands = [belowAvg, avg, aboveAvg, good] upTo values.
+      // ACSM Guidelines for Exercise Testing and Prescription, 10th ed., Table 4.11.
+      // Five age-specific categories; men's standard/toes and women's modified/knees
+      // are DIFFERENT test protocols, and cannot be compared interchangeably.
+      // Each tuple gives the inclusive max for Poor, Fair, Good and Very good.
       const NORMS: Record<Sex, Array<{ ageMax: number; bands: [number, number, number, number] }>> = {
         male: [
-          { ageMax: 29, bands: [21, 28, 36, 44] },
-          { ageMax: 39, bands: [16, 23, 29, 38] },
-          { ageMax: 49, bands: [12, 18, 24, 30] },
-          { ageMax: 59, bands: [9, 13, 18, 24] },
-          { ageMax: 200, bands: [7, 10, 14, 20] },
+          { ageMax: 29, bands: [16, 21, 28, 35] },
+          { ageMax: 39, bands: [11, 16, 21, 29] },
+          { ageMax: 49, bands: [9, 12, 16, 24] },
+          { ageMax: 59, bands: [6, 9, 12, 20] },
+          { ageMax: 69, bands: [4, 7, 10, 17] },
         ],
         female: [
-          { ageMax: 29, bands: [9, 14, 20, 25] },
-          { ageMax: 39, bands: [7, 12, 16, 21] },
-          { ageMax: 49, bands: [5, 10, 13, 17] },
-          { ageMax: 59, bands: [4, 7, 10, 13] },
-          { ageMax: 200, bands: [3, 5, 8, 12] },
+          { ageMax: 29, bands: [9, 14, 20, 29] },
+          { ageMax: 39, bands: [7, 12, 19, 26] },
+          { ageMax: 49, bands: [4, 10, 14, 23] },
+          { ageMax: 59, bands: [1, 6, 10, 20] },
+          { ageMax: 69, bands: [1, 4, 11, 16] },
         ],
       };
+      const protocol = sex === 'male' ? 'standard push-ups (toes)' : 'modified push-ups (knees)';
+      const rows: ResultRow[] = [{ label: 'Test protocol', value: protocol }];
+      const isReferenceAge = age >= 20 && age <= 69;
+      let category: CalcResult['category'];
+      let visual: Visual = { kind: 'none' };
+      let note: string;
 
-      const norms = NORMS[sex];
-      const bracket = norms.find((b) => age <= b.ageMax) ?? norms[norms.length - 1];
-      const [below, avg, above, good] = bracket.bands;
-
-      const segments: Segment[] = [
-        { upTo: below, label: 'Below average', color: C.red },
-        { upTo: avg, label: 'Average', color: C.amber },
-        { upTo: above, label: 'Above average', color: C.teal },
-        { upTo: good, label: 'Good', color: C.green },
-        { upTo: 200, label: 'Excellent', color: C.blue },
-      ];
-      const band = bandFor(pushups, segments);
-      const gaugeMax = Math.max(good + 15, pushups + 5);
-
-      const ageBracketLabel = age <= 29 ? '20–29' : age <= 39 ? '30–39' : age <= 49 ? '40–49' : age <= 59 ? '50–59' : '60+';
-
-      const rows: ResultRow[] = [
-        { label: 'Percentile band', value: band.label, strong: true },
-        { label: `Norm for ${sex === 'male' ? 'men' : 'women'} aged ${ageBracketLabel}`, value: `Excellent ≥ ${good + 1} reps` },
-        { label: 'Average starts at', value: `${below + 1} reps` },
-      ];
-
-      // Optional plank assessment (general guidance, no formal age/sex norms).
-      if (vals.plank > 0) {
-        const plankBands: Array<{ upTo: number; label: string }> = [
-          { upTo: 30, label: 'Needs improvement' },
-          { upTo: 45, label: 'Average' },
-          { upTo: 60, label: 'Good' },
-          { upTo: 90, label: 'Very good' },
+      if (isReferenceAge) {
+        const ageIndex = Math.min(4, Math.floor((age - 20) / 10));
+        const [poor, fair, good, veryGood] = NORMS[sex][ageIndex].bands;
+        const ageBracket = ['20–29', '30–39', '40–49', '50–59', '60–69'][ageIndex];
+        const gaugeMax = Math.max(veryGood + 15, pushups + 5);
+        const segments: Segment[] = [
+          { upTo: poor, label: 'Poor', color: C.red },
+          { upTo: fair, label: 'Fair', color: C.amber },
+          { upTo: good, label: 'Good', color: C.teal },
+          { upTo: veryGood, label: 'Very good', color: C.green },
+          { upTo: gaugeMax, label: 'Excellent', color: C.blue },
         ];
-        const plankBand = plankBands.find((b) => vals.plank <= b.upTo) ?? { label: 'Excellent' };
-        rows.push({ label: 'Plank hold', value: `${fmt(vals.plank, 0)} sec — ${plankBand.label}`, strong: true });
+        const band = bandFor(pushups, segments);
+        category = { label: band.label, color: band.color };
+        visual = { kind: 'gauge', value: pushups, min: 0, max: gaugeMax, segments };
+        rows.push(
+          { label: 'ACSM reference category (not a percentile)', value: band.label, strong: true },
+          { label: 'Reference age group', value: ageBracket },
+          { label: 'Excellent starts at', value: String(veryGood + 1) + ' reps' },
+        );
+        note = 'ACSM 10th ed., Table 4.11, adult ages 20–69. ' +
+          'The male comparison uses toe-supported push-ups and the female comparison uses knee-supported push-ups. ' +
+          'These are separate reference tests, not equivalent workloads. Count consecutive complete reps without resting; stop when form fails. ' +
+          'The category is not an exact percentile, diagnosis, or personal health prediction. Repeat the same protocol to follow your own progress.';
+      } else {
+        rows.push({ label: 'ACSM reference category', value: 'Not available for ages outside 20–69', strong: true });
+        category = { label: 'Not graded for this age', color: C.slate };
+        note = 'Your completed repetitions are recorded, but the ACSM 10th ed. Table 4.11 adult norms cover ages 20–69 only. ' +
+          'No category or percentile can be assigned for this age. Continue tracking your own repeated tests using the same technique, if exercise is appropriate for you.';
       }
+      if (vals.plank > 0) rows.push({ label: 'Optional plank hold (not graded)', value: fmt(vals.plank, 0) + ' sec' });
 
       return {
         ok: true,
-        primaryLabel: 'Push-up score',
-        primaryValue: `${fmt(pushups, 0)} reps`,
-        category: { label: band.label, color: band.color },
-        visual: { kind: 'gauge', value: pushups, min: 0, max: gaugeMax, segments },
+        primaryLabel: 'Push-up repetitions',
+        primaryValue: fmt(pushups, 0) + ' reps',
+        category,
+        visual,
         rows,
         callout: {
-          tone: 'info',
-          text: 'Stop immediately if you feel chest pain, dizziness, or severe shortness of breath. These are red flags — seek medical care, not another rep.',
+          tone: 'warn',
+          text: 'Stop testing for chest pain, faintness, unusual severe breathlessness, palpitations, or sharp shoulder/wrist pain. ' +
+            'Call emergency services for persistent chest pain or possible heart attack symptoms. ' +
+            'If you have a known heart condition, a recent injury or surgery, or exercise restrictions, seek qualified clinical advice before maximal-effort testing.',
         },
         cta: {
           label: 'Build a strength program to improve →',
           href: '/tools/strength-program-builder',
         },
-        note: `Norms are from the ACSM push-up test (reps to failure with proper form) for ${sex === 'male' ? 'men' : 'women'} in the ${ageBracketLabel} age bracket. Retest every 4–6 weeks under the same conditions to track progress. To improve: train push-ups or bench press 2–3× per week at 8–15 reps, progress with the Strength Program Builder, and manage recovery with the Recovery Time Calculator.`,
+        note,
       };
     },
   },
@@ -1458,7 +1684,8 @@ export const DEFS: Record<string, CalcDef> = {
   'flexibility-mobility-score': {
     slug: 'flexibility-mobility-score',
     heading: 'Score your flexibility & mobility',
-    hasSex: true,
+    // These movement checkboxes do not use sex-dependent formulas or norms.
+    hasSex: false,
     fields: [
       F.age(30),
       {
@@ -1503,7 +1730,7 @@ export const DEFS: Record<string, CalcDef> = {
         ],
       },
     ],
-    compute: ({ vals, sex, selects }) => {
+    compute: ({ vals, selects }) => {
       const age = vals.age;
 
       // Points per test.
@@ -1518,11 +1745,13 @@ export const DEFS: Record<string, CalcDef> = {
       const hipPts = HIP[selects.hip] ?? 1;
       const raw = sitPts + shldrPts + anklePts + hipPts;
 
-      // Age bonus — flexibility naturally declines with age, so older adults
-      // get a small upward adjustment (transparent, not a penalty).
+      // This is an educational, site-defined index, NOT standardized age/sex norms.
+      // The four tasks have a raw maximum of 9 points. The age adjustment can
+      // add at most 1 point, so its separate adjusted index has a maximum of 10.
       const ageBonus = age >= 50 ? 1 : age >= 40 ? 0.5 : 0;
-      const adjusted = Math.min(10, raw + ageBonus);
-      const maxScore = 9;
+      const rawMax = 9;
+      const adjustedMax = 10;
+      const adjusted = Math.min(adjustedMax, raw + ageBonus);
 
       const segments: Segment[] = [
         { upTo: 3, label: 'Below average', color: C.red },
@@ -1575,19 +1804,19 @@ export const DEFS: Record<string, CalcDef> = {
 
       return {
         ok: true,
-        primaryLabel: 'Mobility score',
-        primaryValue: `${fmt(adjusted, 1)}/${maxScore}`,
+        primaryLabel: 'Illustrative adjusted mobility index',
+        primaryValue: `${fmt(adjusted, 1)}/${adjustedMax}`,
         category: { label: band.label, color: band.color },
         visual: { kind: 'zones', items: zones },
         rows: [
-          { label: 'Raw score', value: `${raw}/${maxScore}` },
+          { label: 'Four-test raw points', value: `${raw}/${rawMax}` },
           { label: 'Age adjustment', value: ageBonus > 0 ? `+${fmt(ageBonus, 1)} (age ${fmt(age, 0)})` : 'None', strong: ageBonus > 0 },
         ],
         callout: {
           tone: 'info',
           text: 'Never force a range of motion. Stretch to mild tension, not pain. Sharp pain means stop immediately — it signals strain, not progress. Mobility improves with consistent, gentle work, not aggressive forcing.',
         },
-        note: `${suggestionText} Method: each test scores points (sit-reach 0–3, shoulder/ankle/hip 0–2 each, max 9). An age bonus of +0.5 (40–49) or +1 (50+) adjusts for natural flexibility decline. This is a general self-assessment, not a clinical range-of-motion measurement.`,
+        note: `${suggestionText} Method: four tasks total up to 9 raw points (sit-reach 0–3, shoulder/ankle/hip 0–2 each). This site adds an illustrative age adjustment of +0.5 (40–49) or +1 (50+) for a separate adjusted index out of 10. The adjustment and category labels are not validated age- or sex-based population norms and do not estimate injury risk or diagnose a condition. Compare your task-level results using the same technique over time.`,
       };
     },
   },
@@ -1945,7 +2174,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'fattyFish', label: 'Fatty fish', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'Salmon, sardines, mackerel — omega-3s (EPA/DHA) are powerfully anti-inflammatory.',
+        help: 'Salmon, sardines, mackerel — omega-3 fats (EPA/DHA) are linked with lower markers of inflammation.',
         options: FREQ_OPTIONS,
       },
       {
@@ -1969,7 +2198,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'redMeat', label: 'Red / processed meat', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'Beef, pork, bacon, sausage — high in saturated fat and inflammatory compounds. Less is better.',
+        help: 'Beef, pork, bacon, sausage — higher intakes, especially of processed meat, are linked with higher inflammatory markers. Less is better.',
         options: FREQ_OPTIONS,
       },
       {
@@ -1981,7 +2210,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'sugaryDrinks', label: 'Sugary drinks', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'Soda, energy drinks, sweet juice — liquid sugar drives inflammation. Less is better.',
+        help: 'Soda, energy drinks, sweet juice — high added-sugar intake is linked with higher inflammatory markers. Less is better.',
         options: FREQ_OPTIONS,
       },
       {
@@ -1998,7 +2227,7 @@ export const DEFS: Record<string, CalcDef> = {
       const PRO: Record<string, number> = { rarely: 3, '1-2': 2, '3-5': 1, daily: 0 };
 
       const antiFoods = [
-        { name: 'Vegetables', freq: selects.vegetables, pts: ANTI[selects.vegetables] ?? 1, add: 'Add more vegetables — aim for 5+ servings/day, varied colours.' },
+        { name: 'Vegetables', freq: selects.vegetables, pts: ANTI[selects.vegetables] ?? 1, add: 'Add more vegetables — aim for 5+ servings/day, varied colors.' },
         { name: 'Fruit', freq: selects.fruit, pts: ANTI[selects.fruit] ?? 1, add: 'Add 2–3 fruit servings/day, especially berries and citrus.' },
         { name: 'Whole grains', freq: selects.wholeGrains, pts: ANTI[selects.wholeGrains] ?? 1, add: 'Swap refined grains for oats, brown rice, quinoa.' },
         { name: 'Fatty fish', freq: selects.fattyFish, pts: ANTI[selects.fattyFish] ?? 1, add: 'Aim for 2+ servings of fatty fish/week (salmon, sardines).' },
@@ -2069,7 +2298,7 @@ export const DEFS: Record<string, CalcDef> = {
         ],
         callout: {
           tone: 'info',
-          text: 'This pattern closely overlaps with the Mediterranean diet (vegetables, fruit, whole grains, fatty fish, olive oil, legumes, nuts) and the DASH diet (which additionally emphasizes low sodium for blood pressure). Following any of these patterns gives similar anti-inflammatory benefits.',
+          text: 'This pattern closely overlaps with the Mediterranean diet (vegetables, fruit, whole grains, fatty fish, olive oil, legumes, nuts) and the DASH diet (which additionally emphasizes low sodium for blood pressure). In studies, people who follow these patterns tend to have lower inflammatory markers; this score does not measure inflammation.',
         },
         note: `${suggestionText} Method: 11 foods scored 0-3 each (anti-inflammatory foods: rarely=0->daily=3; pro-inflammatory foods: rarely=3->daily=0, inverted). Max 33 points -> 0-100 score. Inspired by published research on Mediterranean and anti-inflammatory dietary patterns - this is a transparent adherence score, not a licensed dietary index. Educational only.`,
       };
@@ -2178,11 +2407,18 @@ export const DEFS: Record<string, CalcDef> = {
       const DEVICE_LABEL: Record<string, string> = { phone: 'Phone', tablet: 'Tablet', laptop: 'Laptop', tv: 'TV', ereader: 'E-reader', none: 'No screen' };
       const btLabel = BEDTIME_LABEL[selects.bedtime] ?? 'bedtime';
 
+      // No screen in the hour before bed → the pre-bed device is irrelevant.
+      // No screen at all in the evening → a night-mode filter is irrelevant.
+      // Neither is then penalized nor followed by a tip to change it.
+      const noPreBedScreen = selects.device === 'none' || selects.preBed === '0';
+      const noEveningScreen = selects.device === 'none' && selects.evening === '0' || selects.preBed === '0' && selects.evening === '0';
+      const devicePts = noPreBedScreen ? 6 : DEVICE[selects.device] ?? 0;
+      const nightPts = noEveningScreen ? 8 : NIGHT[selects.nightMode] ?? 4;
       const factors = [
         { name: 'Pre-bed screen', pts: PREBED[selects.preBed] ?? 2, max: 10 },
         { name: 'Evening screen total', pts: EVENING[selects.evening] ?? 4, max: 8 },
-        { name: 'Device type', pts: DEVICE[selects.device] ?? 0, max: 6 },
-        { name: 'Night mode / filter', pts: NIGHT[selects.nightMode] ?? 4, max: 8 },
+        { name: 'Device type', pts: devicePts, max: 6 },
+        { name: 'Night mode / filter', pts: nightPts, max: 8 },
         { name: 'Room lighting', pts: ROOM[selects.roomLight] ?? 2, max: 5 },
         { name: 'Screen curfew', pts: CURFEW[selects.curfew] ?? 0, max: 3 },
       ];
@@ -2217,9 +2453,9 @@ export const DEFS: Record<string, CalcDef> = {
       const tips: string[] = [];
       if ((PREBED[selects.preBed] ?? 2) <= 5)
         tips.push(`Try a 30-min screen curfew before ${btLabel} — even a short break helps your wind-down.`);
-      if ((DEVICE[selects.device] ?? 0) === 0)
+      if (devicePts === 0)
         tips.push('Phones are held closest to the eyes — switch to a larger screen further away, or use audio-only.');
-      if ((NIGHT[selects.nightMode] ?? 4) <= 2)
+      if (nightPts <= 2)
         tips.push(`Enable night mode or a blue-light filter (Night Shift, f.lux, Twilight) starting 2h before ${btLabel}.`);
       if ((ROOM[selects.roomLight] ?? 2) <= 2)
         tips.push('Dim overhead lights after dinner — warm lamp light signals evening to your brain.');
@@ -2255,36 +2491,52 @@ export const DEFS: Record<string, CalcDef> = {
     heading: 'Convert your steps',
     hasSex: true,
     fields: [
-      { key: 'steps', label: 'Steps taken', type: 'number', metricDefault: 8000, min: 100, max: 60000, suffix: 'steps' },
+      { key: 'steps', label: 'Steps taken', type: 'number', metricDefault: 8000, min: 0, max: 60000, allowZero: true, suffix: 'steps', help: 'Enter whole steps. Daily activity bands apply only to a full-day step total.' },
       F.height(170),
       F.weight(72),
     ],
     compute: ({ vals, sex, units }) => {
+      // Step counts are nonnegative integers; the public input limit is 60,000.
+      if (!Number.isInteger(vals.steps) || vals.steps < 0 || vals.steps > 60000) {
+        return { ok: false, error: 'Enter a whole-number step count from 0 to 60,000.', primaryLabel: '', primaryValue: '', visual: { kind: 'none' } };
+      }
       const strideCm = vals.height * (sex === 'female' ? 0.413 : 0.415);
       const distanceKm = (vals.steps * (strideCm / 100)) / 1000;
       const hours = distanceKm / 4.8; // assume ~moderate walking pace
+      // Gross MET kcal include a 1-MET resting component; this site-defined
+      // comparison is not measured active energy or an added food allowance.
       const cal = 3.5 * vals.weight * hours;
-      const distStr = units === 'metric' ? `${fmt(distanceKm, 2)} km` : `${fmt(distanceKm * 0.621371, 2)} mi`;
+      const aboveRestCal = (3.5 - 1) * vals.weight * hours;
+      const gaugeMax = Math.max(15000, Math.ceil(vals.steps / 1000) * 1000);
+      // Round only the displayed distance through micro-km precision before
+      // two-decimal formatting to avoid binary half-step artifacts (7.055 km
+      // must display as 7.06 km). Keep the full distance for calorie math.
+      const displayKm = Math.round(distanceKm * 1e6) / 1e6;
+      const distStr = units === 'metric' ? `${fmt(displayKm, 2)} km` : `${fmt(displayKm * 0.621371, 2)} mi`;
       const strideStr = units === 'metric' ? `${fmt(strideCm, 0)} cm` : `${fmt(strideCm / 2.54, 1)} in`;
+      // Adult pedometer bands are defined for FULL-DAY steps, not one walk.
       const segments: Segment[] = [
-        { upTo: 5000, label: 'Sedentary', color: C.red },
-        { upTo: 7500, label: 'Low active', color: C.amber },
-        { upTo: 10000, label: 'Somewhat active', color: C.teal },
-        { upTo: 12000, label: 'Active', color: C.green },
+        { upTo: 4999, label: 'Sedentary', color: C.red },
+        { upTo: 7499, label: 'Low active', color: C.amber },
+        { upTo: 9999, label: 'Somewhat active', color: C.teal },
+        { upTo: 12499, label: 'Active', color: C.green },
+        { upTo: gaugeMax, label: 'Highly active', color: C.blue },
       ];
       const band = bandFor(vals.steps, segments);
       return {
         ok: true,
-        primaryLabel: 'Calories burned',
+        primaryLabel: 'Estimated gross walking calories',
         primaryValue: `${fmt(cal, 0)} kcal`,
-        category: { label: band.label, color: band.color },
-        visual: { kind: 'gauge', value: vals.steps, min: 0, max: 12000, segments },
+        category: { label: 'If full-day total: ' + band.label, color: band.color },
+        visual: { kind: 'gauge', value: vals.steps, min: 0, max: gaugeMax, segments },
         rows: [
           { label: 'Distance walked', value: distStr, strong: true },
-          { label: 'Your stride length', value: strideStr },
-          { label: 'Daily goal', value: '10,000 steps' },
+          { label: 'Estimated step length', value: strideStr },
+          { label: 'Assumed walking time', value: fmt(hours * 60, 0) + ' min' },
+          { label: 'Approx. above-rest walking energy', value: fmt(aboveRestCal, 0) + ' kcal' },
+          { label: 'Optional daily goal', value: '10,000 steps' },
         ],
-        note: 'Stride length is estimated as height × 0.413 (women) or 0.415 (men). Calories assume a moderate walking pace and will vary with speed and terrain.',
+        note: 'Gross calories include estimated resting energy during this assumed walk. Above-rest energy uses (3.5 - 1) MET as an illustrative difference, not measured active calories or extra calories to eat. The model estimates step length as height × 0.413 (women) or 0.415 (men) and assumes every step was taken at 4.8 km/h (3 mph) on level ground at 3.5 MET. Actual pace, stride, hills, stops and terrain affect energy use. Adult daily activity-band labels apply only if these steps represent your FULL-day total, never a single walk or a health diagnosis.',
       };
     },
   },
@@ -2295,42 +2547,49 @@ export const DEFS: Record<string, CalcDef> = {
     heading: 'Estimate your VO₂ max',
     hasSex: false,
     fields: [
-      F.age(30),
-      { key: 'rest', label: 'Resting heart rate', type: 'number', metricDefault: 60, min: 30, max: 120, suffix: 'bpm', help: 'Measure your pulse at rest, ideally just after waking.' },
+      { ...F.age(30), min: 18, help: 'For adults 18+. This estimate is extrapolated from research in well-trained men aged 21–51; its validity for other ages and sexes is not established.' },
+      { key: 'rest', label: 'Resting heart rate', type: 'number', metricDefault: 60, min: 30, max: 120, suffix: 'bpm', help: 'Measure a calm waking pulse. A new, repeatedly unusual or irregular resting pulse needs medical context; this number alone cannot verify fitness.' },
     ],
     compute: ({ vals }) => {
       const hrMax = 220 - vals.age;
+      const urgent = 'If you have chest pain, severe breathing difficulty, fainting, or other serious new symptoms, call emergency services immediately regardless of this calculator result.';
+      // A predicted exercise maximum is not a measured safety ceiling. A resting
+      // pulse equal to (or above) it cannot support a meaningful HR ratio.
+      if (!Number.isFinite(hrMax) || !Number.isFinite(vals.rest) || vals.rest <= 0 || vals.rest >= hrMax) {
+        return {
+          ok: false,
+          error: `${urgent} Resting heart rate must be below the estimated maximum for this ratio. Recheck the entries and seek professional advice if your resting pulse is persistently unusual or unexplained.`,
+          primaryLabel: 'VO2 max estimate unavailable',
+          primaryValue: '—',
+          visual: { kind: 'none' },
+        };
+      }
+      // Uth–Sørensen 15.3 ratio. No grading: the former five bands were not
+      // age- or sex-adjusted norms, and the former "fitness age" formula had no
+      // published source. The estimate is shown as a number with its inputs.
       const vo2 = 15.3 * (hrMax / vals.rest);
-      const fitnessAge = Math.max(18, Math.min(90, Math.round(0.5 * vals.age + 50 - vo2)));
-      const segments: Segment[] = [
-        { upTo: 30, label: 'Below average', color: C.red },
-        { upTo: 40, label: 'Fair', color: C.amber },
-        { upTo: 50, label: 'Good', color: C.teal },
-        { upTo: 60, label: 'Excellent', color: C.green },
-        { upTo: 80, label: 'Superior', color: C.blue },
-      ];
-      const band = bandFor(vo2, segments);
+      const unusuallyLow = vals.rest < 40;
+      const unusuallyHigh = vals.rest > 100;
+      const outsideStudyAge = vals.age < 21 || vals.age > 51;
+      const pulseWarning = unusuallyLow
+        ? `${urgent} A waking resting pulse under 40 bpm warrants clinical context, even in endurance-trained adults. If new or unexplained, arrange a prompt medical review rather than treating a high estimate as proof of health.`
+        : unusuallyHigh
+          ? `${urgent} A resting pulse over 100 bpm should be discussed with a healthcare professional if persistent or unexplained. Do not infer poor aerobic fitness from this ratio alone.`
+          : vals.rest < 60
+            ? 'A resting rate below 60 bpm can occur with athletic training or certain medications, but does not by itself establish fitness or safety. Discuss a new or unexplained low pulse with a clinician.'
+            : 'This is a rough numerical illustration, not a laboratory VO₂ max measurement, a fitness age or a diagnosis. The method was studied in well-trained men, and predicting maximum heart rate from age adds uncertainty. Symptoms or heart-rate-altering medication can change how the result should be interpreted.';
       return {
         ok: true,
-        primaryLabel: 'Estimated VO2 max',
+        primaryLabel: 'Rough VO₂ max estimate (heart-rate ratio)',
         primaryValue: `${fmt(vo2, 1)} ml/kg/min`,
-        category: { label: band.label, color: band.color },
-        visual: { kind: 'gauge', value: vo2, min: 20, max: 70, segments },
+        visual: { kind: 'none' },
+        callout: { tone: unusuallyLow ? 'danger' : unusuallyHigh ? 'warn' : 'info', text: pulseWarning },
         rows: [
-          { label: 'Fitness age', value: `${fmt(fitnessAge, 0)} years`, strong: true },
-          { label: 'Chronological age', value: `${fmt(vals.age, 0)} years` },
-          { label: 'Estimated max heart rate', value: `${fmt(hrMax, 0)} bpm` },
-          { label: 'Resting heart rate', value: `${fmt(vals.rest, 0)} bpm` },
+          { label: 'Assumed max heart rate (220 − age)', value: `${fmt(hrMax, 0)} bpm` },
+          { label: 'Entered resting heart rate', value: `${fmt(vals.rest, 0)} bpm` },
+          { label: 'Heart-rate ratio (assumed max ÷ resting)', value: fmt(hrMax / vals.rest, 2) },
         ],
-        callout: {
-          tone: 'info',
-          text: fitnessAge < vals.age
-            ? `Your VO2 max is typical of someone about ${fitnessAge} years old — ${vals.age - fitnessAge} years younger than your actual age. This suggests above-average cardio fitness for your age.`
-            : fitnessAge > vals.age
-              ? `Your VO2 max is typical of someone about ${fitnessAge} years old — ${fitnessAge - vals.age} years older than your actual age. This suggests room to improve cardio fitness.`
-              : `Your VO2 max is typical for your actual age (${vals.age}).`,
-        },
-        note: 'Uses the Uth-Sorensen estimate: VO2 max ~ 15.3 x (max HR / resting HR). Fitness age compares your VO2 max to age-normative averages (approx 50 - 0.5 x age). Both are rough estimates — healthy ranges depend on age and sex. Educational only.',
+        note: `Uth–Sørensen: 15.3 × ((220 − age) ÷ resting pulse). This was studied in well-trained men aged 21–51; it is NOT validated equally for other ages, women, or all health conditions.${outsideStudyAge ? ' Your age is outside the original sample range.' : ''} It is not graded against age- or sex-specific norms and does not produce a fitness age. ${urgent} Beta-blockers, other medicines and rhythm conditions can change resting pulse without an equivalent change in measured VO2 max.`,
       };
     },
   },
@@ -2343,45 +2602,38 @@ export const DEFS: Record<string, CalcDef> = {
   // ---- Waist-based Health Risk ----
   'waist-health-risk-calculator': {
     slug: 'waist-health-risk-calculator',
-    heading: 'Check your waist-based risk',
+    heading: 'Review BMI and waist-to-height ratio',
     hasSex: false,
     fields: [F.weight(78), F.height(172), F.waist(92)],
     compute: ({ vals, units }) => {
       const m = vals.height / 100;
       const bmi = vals.weight / (m * m);
       const whtr = vals.waist / vals.height;
-      const bmiScore = bmi < 25 ? 0 : bmi < 30 ? 1 : bmi < 35 ? 2 : 3;
-      const whtrScore = whtr < 0.5 ? 0 : whtr < 0.6 ? 1 : 2;
-      const total = bmiScore + whtrScore;
-      const bands = [
-        { label: 'Low', color: C.green },
-        { label: 'Increased', color: C.amber },
-        { label: 'High', color: C.red },
-        { label: 'Very high', color: '#b91c1c' },
-      ];
-      const idx = total === 0 ? 0 : total <= 2 ? 1 : total <= 4 ? 2 : 3;
-      const band = bands[idx];
       const lowKg = 18.5 * m * m;
       const highKg = 24.9 * m * m;
       const waistTarget = units === 'metric' ? `${fmt(vals.height / 2, 0)} cm` : `${fmt(vals.height / 2 / 2.54, 0)} in`;
+      // NICE waist-to-height classifications apply to adults with BMI below 35.
+      // They are not a validated combined BMI/waist disease-risk score.
+      const waistGuidance = bmi >= 35
+        ? 'NICE waist-to-height categories are not recommended as a standalone classification at BMI 35 or above; seek individualized assessment.'
+        : whtr >= 0.6
+          ? 'NICE guidance: high central adiposity (ratio 0.6 or above); consider professional health assessment.'
+          : whtr >= 0.5
+            ? 'NICE guidance: increased central adiposity (ratio 0.5–0.59); consider professional health assessment.'
+            : 'Ratio under 0.5 meets the usual waist-under-half-height advice, but cannot rule out health risks.';
       return {
         ok: true,
-        primaryLabel: 'Your BMI',
+        primaryLabel: 'Your BMI (kg/m²)',
         primaryValue: fmt(bmi, 1),
-        category: { label: `${band.label} risk`, color: band.color },
-        visual: {
-          kind: 'zones',
-          items: bands.map((b, i) => ({ label: `${b.label} risk`, detail: '', color: b.color, active: i === idx })),
-        },
-        callout: idx >= 2
-          ? { tone: 'warn', text: 'Your combined measurements suggest higher health risk. This is not a diagnosis — please talk to your doctor about your weight and waist.' }
-          : undefined,
+        visual: { kind: 'none' },
+        callout: { tone: 'info', text: 'BMI and waist-to-height ratio are screening measurements, not a diagnosis or a validated combined disease-risk score. A lower value does not rule out cardiovascular or metabolic conditions. BMI is limited in muscular adults and some age and ancestry groups; ask a healthcare professional if you have concerns.' },
         rows: [
           { label: 'Waist-to-height ratio', value: fmt(whtr, 2), strong: true },
-          { label: 'Healthy weight for height', value: `${fmtMass(lowKg, units, 0)} – ${fmtMass(highKg, units, 0)}` },
-          { label: 'Keep waist under', value: waistTarget },
+          { label: 'Waist-to-height interpretation', value: waistGuidance },
+          { label: 'BMI reference weight range (18.5–24.9)', value: `${fmtMass(lowKg, units, 0)} – ${fmtMass(highKg, units, 0)}` },
+          { label: 'Waist under half your height', value: waistTarget },
         ],
-        note: 'Combines BMI with waist-to-height ratio. This is an educational estimate, not a diagnosis — see a doctor for a proper assessment.',
+        note: 'This tool displays BMI and waist-to-height ratio individually. It does not use a validated four-level combined health-risk model. NICE recommends assessing the ratio alongside BMI in adults with BMI below 35; a clinician must consider the full health picture.',
       };
     },
   },
@@ -2389,7 +2641,7 @@ export const DEFS: Record<string, CalcDef> = {
   // ---- Heart Disease Risk (educational) ----
   'heart-disease-risk-calculator': {
     slug: 'heart-disease-risk-calculator',
-    heading: 'Estimate your heart disease risk',
+    heading: 'Review heart-health factors',
     hasSex: false,
     fields: [
       F.age(50), F.weight(82), F.height(172),
@@ -2409,16 +2661,12 @@ export const DEFS: Record<string, CalcDef> = {
       const bmiP = bmi < 25 ? 0 : bmi < 30 ? 1 : 2;
       const bpP = parseInt(selects.bp) || 0;
       const score = ageP + smokeP + actP + bmiP + bpP;
-      const bands = [{ label: 'Lower', color: C.green }, { label: 'Moderate', color: C.amber }, { label: 'Elevated', color: C.red }];
-      const idx = score <= 3 ? 0 : score <= 7 ? 1 : 2;
-      const band = bands[idx];
       return {
         ok: true,
-        primaryLabel: 'Educational risk score',
+        primaryLabel: 'Illustrative checklist points (not clinical risk)',
         primaryValue: `${score} / 12`,
-        category: { label: `${band.label} risk`, color: band.color },
-        visual: { kind: 'zones', items: bands.map((b, i) => ({ label: `${b.label} risk`, detail: '', color: b.color, active: i === idx })) },
-        callout: { tone: idx === 2 ? 'warn' : 'info', text: 'This is an educational estimate, not a diagnosis or a clinical risk score. Talk to your doctor, who can assess your real heart disease risk and check your cholesterol and blood pressure.' },
+        visual: { kind: 'none' },
+        callout: { tone: 'info', text: 'These are unvalidated checklist points, NOT your chance of developing heart disease. Even 0 points cannot rule out cardiovascular disease. This tool omits cholesterol, diabetes, kidney function, blood-pressure medication use and other clinical inputs. Ask your healthcare professional about a validated cardiovascular risk assessment.' },
         rows: [
           { label: 'Age', value: `+${ageP}` },
           { label: 'Smoking', value: `+${smokeP}` },
@@ -2426,7 +2674,7 @@ export const DEFS: Record<string, CalcDef> = {
           { label: 'BMI', value: `+${bmiP} (${fmt(bmi, 1)})` },
           { label: 'Blood pressure', value: `+${bpP}` },
         ],
-        note: 'A simple lifestyle-based estimate for education only — it is not the Framingham or any clinical score. Not smoking, staying active, and managing blood pressure and weight all lower real risk. Sources: CDC and American Heart Association.',
+        note: 'Point weights are for self-reflection, not a validated cardiovascular risk model, percentage, low-risk clearance or AHA PREVENT estimate. Clinical assessment requires more measured information. Not smoking, physical activity and healthy blood pressure support cardiovascular health.',
       };
     },
   },
@@ -2434,7 +2682,7 @@ export const DEFS: Record<string, CalcDef> = {
   // ---- Type 2 Diabetes Risk (educational) ----
   'diabetes-risk-calculator': {
     slug: 'diabetes-risk-calculator',
-    heading: 'Estimate your type 2 diabetes risk',
+    heading: 'Review factors linked to type 2 diabetes',
     hasSex: false,
     fields: [
       F.age(50), F.weight(85), F.height(172), F.waist(96),
@@ -2453,16 +2701,12 @@ export const DEFS: Record<string, CalcDef> = {
       const famP = parseInt(selects.family) || 0;
       const actP = parseInt(selects.activity) || 0;
       const score = ageP + bmiP + waistP + famP + actP;
-      const bands = [{ label: 'Low', color: C.green }, { label: 'Moderate', color: C.amber }, { label: 'High', color: C.red }];
-      const idx = score <= 6 ? 0 : score <= 11 ? 1 : 2;
-      const band = bands[idx];
       return {
         ok: true,
-        primaryLabel: 'Educational risk score',
+        primaryLabel: 'Illustrative diabetes factor points (not screening)',
         primaryValue: `${score} / 18`,
-        category: { label: `${band.label} risk`, color: band.color },
-        visual: { kind: 'zones', items: bands.map((b, i) => ({ label: `${b.label} risk`, detail: '', color: b.color, active: i === idx })) },
-        callout: { tone: 'warn', text: 'This does not diagnose diabetes. Please ask your doctor about a simple blood-sugar screening test (such as HbA1c or fasting glucose) — strongly recommended if your score is moderate or high, or if you have any symptoms.' },
+        visual: { kind: 'none' },
+        callout: { tone: 'info', text: 'These custom points are NOT a validated CDC/ADA prediabetes risk test and cannot diagnose diabetes. Even 0 points cannot rule out elevated blood glucose. Ask your healthcare professional whether A1C or plasma-glucose testing is appropriate, regardless of this total.' },
         rows: [
           { label: 'Age', value: `+${ageP}` },
           { label: 'BMI', value: `+${bmiP} (${fmt(bmi, 1)})` },
@@ -2470,7 +2714,7 @@ export const DEFS: Record<string, CalcDef> = {
           { label: 'Family history', value: `+${famP}` },
           { label: 'Inactivity', value: `+${actP}` },
         ],
-        note: 'An educational, non-diagnostic estimate inspired by tools like FINDRISC. Only a blood test can detect prediabetes or diabetes. Sources: CDC and American Diabetes Association.',
+        note: 'An illustrative checklist, not FINDRISC or the validated CDC/ADA risk test. Its point weights and cutoffs have not been validated for predicting disease. A1C and plasma-glucose testing assess glycemic status; a low tally does not exclude prediabetes or diabetes.',
       };
     },
   },
@@ -2481,7 +2725,8 @@ export const DEFS: Record<string, CalcDef> = {
     heading: 'Calculate your smoking cost',
     hasSex: false,
     fields: [
-      { key: 'packs', label: 'Packs per day', type: 'number', metricDefault: 1, min: 0.1, max: 10, step: 0.5 },
+      // step 0.1 so the default (1) and typical values (0.5, 1.5) are valid steps from min 0.1.
+      { key: 'packs', label: 'Packs per day', type: 'number', metricDefault: 1, min: 0.1, max: 10, step: 0.1 },
       { key: 'price', label: 'Price per pack', type: 'number', metricDefault: 10, min: 1, max: 50, step: 0.5, suffix: 'your currency' },
       { key: 'years', label: 'Years smoking', type: 'number', metricDefault: 10, min: 1, max: 70, suffix: 'years' },
     ],
@@ -2493,7 +2738,7 @@ export const DEFS: Record<string, CalcDef> = {
         primaryLabel: `Spent over ${fmt(vals.years, 0)} years (your currency)`,
         primaryValue: fmt(total, 0),
         visual: { kind: 'none' },
-        callout: { tone: 'info', text: 'Quitting pays off fast: heart rate drops within 20 minutes, carbon-monoxide levels normalise within a day, and your risk of heart disease falls sharply within a year. Free help: call a quitline (US 1-800-QUIT-NOW; UK 0300 123 1044; or your national service).' },
+        callout: { tone: 'info', text: 'Quitting pays off fast: heart rate drops within 20 minutes, carbon-monoxide levels return to normal within a day, and your risk of heart disease falls sharply within a year. Free help: call a quitline (US 1-800-QUIT-NOW; UK 0300 123 1044; or your national service).' },
         rows: [
           { label: 'Per year', value: fmt(perYear, 0), strong: true },
           { label: 'Per month', value: fmt(perYear / 12, 0) },
@@ -2517,15 +2762,21 @@ export const DEFS: Record<string, CalcDef> = {
     ],
     compute: ({ vals }) => {
       const units = vals.beer * 2.3 + vals.wine * 2.1 + vals.spirits * 1.0;
-      const bands = [{ label: 'Low risk', color: C.green }, { label: 'Increasing risk', color: C.amber }, { label: 'High risk', color: C.red }];
-      const idx = units <= 14 ? 0 : units <= 35 ? 1 : 2;
+      // UK CMO low-risk guideline: no more than 14 units a week, for men and women.
+      // A former 35-unit "high risk" tier was unsourced on the page, ignored sex
+      // (older NHS higher-risk bands differ for men and women) and is removed.
+      const bands = [
+        { label: 'Within the low-risk guideline', color: C.green, detail: '14 units a week or fewer — lower risk, not zero risk' },
+        { label: 'Above the low-risk guideline', color: C.amber, detail: 'More than 14 units a week — health risks rise as you drink more' },
+      ];
+      const idx = units <= 14 ? 0 : 1;
       const band = bands[idx];
       return {
         ok: true,
         primaryLabel: 'Weekly alcohol units',
         primaryValue: `${fmt(units, 1)} units`,
         category: { label: band.label, color: band.color },
-        visual: { kind: 'zones', items: bands.map((b, i) => ({ label: b.label, detail: '', color: b.color, active: i === idx })) },
+        visual: { kind: 'zones', items: bands.map((b, i) => ({ label: b.label, detail: b.detail, color: b.color, active: i === idx })) },
         callout: idx > 0
           ? { tone: 'warn', text: 'You are drinking above the low-risk guideline. Cutting down lowers your risk — try several drink-free days a week, and speak to your doctor if you find it hard to cut back.' }
           : undefined,

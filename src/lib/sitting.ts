@@ -1,12 +1,11 @@
 /**
  * Sitting Disease Reversal — pure logic (UI-free, testable).
  *
- * Helps desk workers offset prolonged sitting with micro-breaks and NEAT
- * (non-exercise activity thermogenesis). Computes a break cadence, an extra
- * daily step target, and a rough estimate of calories "reclaimed". General
- * wellness education — not medical advice. Calorie figures are MET-based
- * estimates and use an assumed average walking cadence, so treat them as
- * ballpark, not precise measurement.
+ * Offers optional short-movement and daily-step ideas based on reported sitting.
+ * The planned cadence and step increments are unvalidated heuristics, not a
+ * medical risk score or a guaranteed way to reverse sedentary-health effects.
+ * Legacy calorie fields contain approximate GROSS MET energy; steps may occur
+ * during movement breaks, so adding both estimates can DOUBLE-COUNT activity.
  */
 
 export type JobType = 'desk' | 'mixed' | 'active' | '';
@@ -15,6 +14,7 @@ export interface SittingInputs {
   sittingHours: number;
   weightKg: number;
   currentSteps: number;
+  /** Kept only for API compatibility; this heuristic does not use job type. */
   job: JobType;
 }
 
@@ -41,6 +41,16 @@ export interface SittingResult {
   sittingLevel: 'moderate' | 'high' | 'very high';
   sittingNote: string;
   ideas: string[];
+}
+
+/** Validate user-entered values before showing or sharing movement estimates. */
+export function validSittingInputs(input: SittingInputs): boolean {
+  return Number.isFinite(input.sittingHours) &&
+    input.sittingHours >= 0 && input.sittingHours <= 18 &&
+    Number.isFinite(input.weightKg) &&
+    input.weightKg >= 1 && input.weightKg <= 300 &&
+    Number.isFinite(input.currentSteps) &&
+    input.currentSteps >= 0 && input.currentSteps <= 100000;
 }
 
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
@@ -70,10 +80,12 @@ export function computeSitting(input: SittingInputs): SittingResult {
   const movementMinutes = breaksPerDay * BREAK_DURATION_MIN;
 
   // Extra NEAT steps: scales with sitting time, bounded to the ~3,000–4,500 range.
-  const addedSteps = Math.round(clamp(2500 + sittingHours * 200, 3000, 4500) / 100) * 100;
+  // No sitting time entered means no sitting-related target is warranted.
+  // Preserve the original optional planning heuristic for positive inputs.
+  const addedSteps = sittingHours === 0 ? 0 : Math.round(clamp(2500 + sittingHours * 200, 3000, 4500) / 100) * 100;
   const newDailySteps = currentSteps + addedSteps;
 
-  // Calories reclaimed (MET-based estimates).
+  // Legacy estimated gross activity energy: includes rest, and summed movements may overlap.
   const walkMinutes = Math.round(addedSteps / CADENCE_SPM);
   const kcalSteps = Math.round((WALK_MET * weightKg * walkMinutes) / 60);
   const kcalBreaks = Math.round((BREAK_MET * weightKg * movementMinutes) / 60);
@@ -83,15 +95,18 @@ export function computeSitting(input: SittingInputs): SittingResult {
   // Sitting level (qualitative, non-alarmist).
   let sittingLevel: SittingResult['sittingLevel'];
   let sittingNote: string;
-  if (sittingHours < 6) {
+  if (sittingHours === 0) {
     sittingLevel = 'moderate';
-    sittingNote = `About ${sittingHours} hours sitting is moderate — these habits keep you in a good place.`;
+    sittingNote = 'No sitting hours entered, so no added-step or movement-break target is calculated. This tool is not a health-risk score.';
+  } else if (sittingHours < 6) {
+    sittingLevel = 'moderate';
+    sittingNote = `You entered ${sittingHours} hours of sitting. These are optional movement ideas, not a validated health-risk category.`;
   } else if (sittingHours < 9) {
     sittingLevel = 'high';
-    sittingNote = `About ${sittingHours} hours sitting is on the high side, common for desk jobs — breaking it up matters more than any single workout.`;
+    sittingNote = `You entered ${sittingHours} hours of sitting. Consider feasible movement breaks; no precise safe-hour threshold is established.`;
   } else {
     sittingLevel = 'very high';
-    sittingNote = `About ${sittingHours} hours sitting is very high — frequent breaks and added steps are the priority.`;
+    sittingNote = `You entered ${sittingHours} hours of sitting. Consider moving more and sitting less where feasible; this is not a clinical risk score.`;
   }
 
   // Pick 3 movement ideas (rotate the start point by sitting hours for variety).

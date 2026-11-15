@@ -1,9 +1,9 @@
 /** @jsxImportSource preact */
 import { useState } from 'preact/hooks';
-import { computeSitting, type JobType, type SittingResult } from '../lib/sitting';
+import { computeSitting, validSittingInputs, type SittingResult } from '../lib/sitting';
+import { kgToLb, lbToKg, round } from '../lib/units';
 
 type Units = 'kg' | 'lb';
-const LB = 2.20462;
 const num = (v: string, fb: number) => {
   const n = parseFloat(v);
   return Number.isFinite(n) ? n : fb;
@@ -12,19 +12,22 @@ const num = (v: string, fb: number) => {
 export default function SittingReversal() {
   const [units, setUnits] = useState<Units>('kg');
   const [sittingHours, setSittingHours] = useState(8);
-  const [weight, setWeight] = useState(75);
+  // Canonical kg storage: toggling display units never changes the result.
+  const [weightKg, setWeightKg] = useState(75);
   const [steps, setSteps] = useState(5000);
-  const [job, setJob] = useState<JobType>('desk');
   const [shareMsg, setShareMsg] = useState('');
 
   const switchUnits = (next: Units) => {
     if (next === units) return;
-    setWeight((w) => Math.round(w * (next === 'lb' ? LB : 1 / LB)));
     setUnits(next);
   };
 
-  const weightKg = units === 'kg' ? weight : weight / LB;
-  const r = computeSitting({ sittingHours, weightKg, currentSteps: steps, job });
+  const displayedWeight = round(units === 'kg' ? weightKg : kgToLb(weightKg), 2);
+  // The historical job category was not used by the formula; do not present
+  // an inert personalization control. Preserve the pure function's input shape.
+  const calculationInput = { sittingHours, weightKg, currentSteps: steps, job: 'desk' as const };
+  const validInputs = validSittingInputs(calculationInput);
+  const r = computeSitting(calculationInput);
 
   // ---- Shareable card ----
   const makeCardBlob = (res: SittingResult): Promise<Blob | null> =>
@@ -53,11 +56,11 @@ export default function SittingReversal() {
       ctx.fillText(`+${res.addedSteps.toLocaleString('en-US')} steps/day`, 60, 240);
       ctx.fillStyle = '#cbd5e1';
       ctx.font = `600 30px ${sans}`;
-      ctx.fillText(`to offset ${res.sittingHours} h of sitting`, 64, 288);
+      ctx.fillText(`for a day with ${res.sittingHours} h of sitting`, 64, 288);
       const rows = [
         `Move every ${res.breakIntervalMin} min  ·  ${res.breaksPerDay} breaks/day`,
         `${res.movementMinutes} min on your feet`,
-        `~${res.caloriesReclaimed} kcal reclaimed daily  (~${res.caloriesWeekly.toLocaleString('en-US')}/week)`,
+        `~${res.caloriesReclaimed} gross kcal estimate/day (may overlap)`,
         `New step goal: ${res.newDailySteps.toLocaleString('en-US')}/day`,
       ];
       ctx.font = `500 30px ${sans}`;
@@ -83,6 +86,7 @@ export default function SittingReversal() {
   }
 
   const shareCard = async () => {
+    if (!validInputs) return;
     setShareMsg('');
     const blob = await makeCardBlob(r);
     if (!blob) return;
@@ -90,7 +94,7 @@ export default function SittingReversal() {
     const nav = navigator as Navigator & { canShare?: (d: any) => boolean };
     if (nav.share && nav.canShare && nav.canShare({ files: [file] })) {
       try {
-        await nav.share({ files: [file], title: 'My Movement Recipe', text: `My plan to offset ${r.sittingHours}h of sitting: +${r.addedSteps} steps/day and a break every ${r.breakIntervalMin} min.` });
+        await nav.share({ files: [file], title: 'My Movement Recipe', text: `Optional movement ideas for ${r.sittingHours}h of sitting: +${r.addedSteps} steps and a break about every ${r.breakIntervalMin} min. Not a risk-reversal prediction.` });
         return;
       } catch { /* cancelled */ }
     }
@@ -118,31 +122,30 @@ export default function SittingReversal() {
           <label class="sr__field">
             <span>Body weight</span>
             <div class="sr__input-unit">
-              <input type="number" min="1" value={weight} onInput={(e) => setWeight(num((e.target as HTMLInputElement).value, 0))} />
+              <input type="number" min={units === 'kg' ? 1 : 2.2} max={units === 'kg' ? 300 : 661.4} step="any" value={displayedWeight}
+                onInput={(e) => {
+                  const entered = num((e.target as HTMLInputElement).value, 0);
+                  setWeightKg(units === 'kg' ? entered : lbToKg(entered));
+                }} />
               <small>{units}</small>
             </div>
           </label>
           <label class="sr__field">
             <span>Current daily steps</span>
-            <input type="number" min="0" step="500" value={steps}
+            <input type="number" min="0" max="100000" step="500" value={steps}
               onInput={(e) => setSteps(num((e.target as HTMLInputElement).value, 0))} />
           </label>
-          <label class="sr__field">
-            <span>Job type (optional)</span>
-            <select value={job} onChange={(e) => setJob((e.target as HTMLSelectElement).value as JobType)}>
-              <option value="desk">Desk / office</option>
-              <option value="mixed">Mixed (some moving)</option>
-              <option value="active">On my feet a lot</option>
-            </select>
-          </label>
         </div>
-        <p class={`sr__level sr__level--${r.sittingLevel.replace(' ', '-')}`}>{r.sittingNote}</p>
+        {validInputs ? <p class={`sr__level sr__level--${r.sittingLevel.replace(' ', '-')}`}>{r.sittingNote}</p> :
+          <p class="sr__level" role="alert">Enter 0–18 sitting hours, a weight of 1–300 kg (2.2–661.4 lb), and 0–100,000 daily steps to see a movement illustration.</p>}
       </div>
 
       <p class="sr-only" role="status" aria-live="polite">
-        {r.breaksPerDay} micro-breaks and {r.addedSteps.toLocaleString('en-US')} extra steps a day; about {r.caloriesReclaimed} calories reclaimed.
+        {validInputs ? `${r.breaksPerDay} optional movement breaks and ${r.addedSteps.toLocaleString('en-US')} suggested steps daily. Gross activity-energy estimate, possibly overlapping: ${r.caloriesReclaimed} kcal. No health-risk reversal is calculated.` : 'Enter valid sitting hours, body weight and daily steps to view or share an estimate.'}
       </p>
 
+      {validInputs && (
+        <>
       {/* ---------------- Movement recipe ---------------- */}
       <section class="sr__recipe card">
         <h2 class="sr__h">Your movement recipe</h2>
@@ -155,18 +158,18 @@ export default function SittingReversal() {
           <div class="sr__stat sr__stat--accent">
             <span class="sr__stat-num">+{r.addedSteps.toLocaleString('en-US')}</span>
             <span class="sr__stat-label">steps/day (NEAT)</span>
-            <span class="sr__stat-sub">new goal ~{r.newDailySteps.toLocaleString('en-US')}/day</span>
+            <span class="sr__stat-sub">illustrative total ~{r.newDailySteps.toLocaleString('en-US')}/day</span>
           </div>
           <div class="sr__stat">
             <span class="sr__stat-num">~{r.caloriesReclaimed}</span>
-            <span class="sr__stat-label">kcal reclaimed/day</span>
+            <span class="sr__stat-label">gross kcal illustration/day</span>
             <span class="sr__stat-sub">≈ {r.caloriesWeekly.toLocaleString('en-US')} kcal/week</span>
           </div>
         </div>
         <p class="sr__recipe-line">
-          Aim to stand and move for about <strong>{r.breakDurationMin} minutes</strong> every <strong>30–60 minutes</strong>
-          ({r.breaksPerDay} breaks across your day = <strong>{r.movementMinutes} minutes</strong> on your feet), and add
-          roughly <strong>{r.addedSteps.toLocaleString('en-US')} steps</strong> of everyday movement outside structured exercise.
+          One optional plan is to stand and move for <strong>{r.breakDurationMin} minutes</strong> about every <strong>30–60 minutes</strong>
+          ({r.breaksPerDay} breaks across your day = <strong>{r.movementMinutes} minutes</strong> on your feet), and
+          consider adding roughly <strong>{r.addedSteps.toLocaleString('en-US')} steps</strong> of everyday movement outside structured exercise.
         </p>
       </section>
 
@@ -183,11 +186,11 @@ export default function SittingReversal() {
       {/* ---------------- Calories detail ---------------- */}
       <section class="sr__cal card">
         <h2 class="sr__h">Where the calories come from</h2>
-        <p class="sr__cal-sub">A rough, MET-based estimate of the extra energy you’d burn — small per day, but it adds up.</p>
+        <p class="sr__cal-sub">These are rough GROSS MET energy estimates (including rest), not extra calories earned. Added steps may include walking during breaks, so the summed number can double-count activity.</p>
         <div class="sr__cal-rows">
           <div><span>Added steps ({r.addedSteps.toLocaleString('en-US')} ≈ {r.walkMinutes} min walking)</span><strong>~{r.kcalSteps} kcal</strong></div>
           <div><span>Movement breaks ({r.movementMinutes} min on your feet)</span><strong>~{r.kcalBreaks} kcal</strong></div>
-          <div class="sr__cal-total"><span>Reclaimed per day</span><strong>~{r.caloriesReclaimed} kcal</strong></div>
+          <div class="sr__cal-total"><span>Illustrative sum (may overlap)</span><strong>~{r.caloriesReclaimed} kcal</strong></div>
         </div>
       </section>
 
@@ -198,14 +201,15 @@ export default function SittingReversal() {
           <p class="sr__share-sub">Post your movement plan — or send it to a desk-bound friend.</p>
         </div>
         <div class="sr__share-btns">
-          <button type="button" class="btn btn-primary" onClick={shareCard}>Share my recipe</button>
+          <button type="button" class="btn btn-primary" onClick={shareCard} disabled={!validInputs}>Share my recipe</button>
         </div>
         {shareMsg && <p class="sr__share-msg">{shareMsg}</p>}
       </section>
+        </>
+      )}
 
       <p class="sr__note">
-        General wellness education, not medical advice. Calorie figures are rough MET-based estimates that assume an
-        average walking pace. If you have a health condition, check with a professional before changing your activity.
+        Optional general movement suggestions, not a clinical risk score or a method for reversing sitting-related health effects. Gross calorie estimates may overlap and should not be added to daily calorie targets. Choose accessible activity that works for you; ask a qualified professional about individual restrictions.
       </p>
     </div>
   );

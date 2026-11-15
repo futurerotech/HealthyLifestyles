@@ -420,14 +420,38 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
   const [units, setUnits] = useState<UnitSystem>('metric');
   const [sex, setSex] = useState<Sex>('male');
   const [disp, setDisp] = useState<Disp>(() => (def ? initialDisplay(def, 'metric') : {}));
+  // FFMI only: preserve the true metric weight/height despite rounded imperial
+  // display fields. Editing a field removes that field's precision override.
+  const [ffmiExact, setFfmiExact] = useState<{ weight?: number; height?: number } | null>(null);
+  // Calories Burned only: preserve exact physical kg and the user-entered
+  // original weight string across rounded metric/imperial display toggles.
+  const [caloriesWeightOrigin, setCaloriesWeightOrigin] = useState<{
+    kg: number; unit: UnitSystem; text: string;
+  } | null>(null);
+  // One-Rep Max only: retain exact physical load and the original entered
+  // text across unit changes. The generic converter rounds to 0.1 lb/kg.
+  const [oneRepLoad, setOneRepLoad] = useState<{
+    kg: number; enteredUnit: UnitSystem; enteredText: string;
+  } | null>(null);
   const [selects, setSelects] = useState<Record<string, string>>(() => (def ? initialSelects(def) : {}));
 
   if (!def) return null;
 
-  const ctx = useMemo(
-    () => ({ vals: toMetric(def, disp, units), selects, sex, units }),
-    [def, disp, units, sex, selects]
-  );
+  const ctx = useMemo(() => {
+    const vals = toMetric(def, disp, units);
+    if (slug === 'ffmi-calculator' && ffmiExact) {
+      if (ffmiExact.weight !== undefined) vals.weight = ffmiExact.weight;
+      if (ffmiExact.height !== undefined) vals.height = ffmiExact.height;
+    }
+    if (slug === 'calories-burned-calculator' && caloriesWeightOrigin &&
+        disp.weight !== '' && Number.isFinite(vals.weight) && vals.weight > 0) {
+      vals.weight = caloriesWeightOrigin.kg;
+    }
+    if (slug === 'one-rep-max-calculator' && oneRepLoad && disp.weight !== '') {
+      vals.weight = oneRepLoad.kg;
+    }
+    return { vals, selects, sex, units };
+  }, [def, disp, units, sex, selects, slug, ffmiExact, caloriesWeightOrigin, oneRepLoad]);
   const visible = def.fields.filter((f) => !f.showIf || f.showIf(ctx));
   // Only show the metric/imperial toggle if some field actually converts.
   const showUnits = def.fields.some((f) => f.type === 'mass' || f.type === 'length' || f.type === 'height');
@@ -589,11 +613,66 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
     !!(result && result.ok),
   );
 
-  const setField = (key: string, val: string) => setDisp((d) => ({ ...d, [key]: val }));
+  const setField = (key: string, val: string) => {
+    setDisp((d) => ({ ...d, [key]: val }));
+    if (slug === 'ffmi-calculator' && (key === 'weight' || key === 'height' || key === 'height_ft' || key === 'height_in')) {
+      const edited: 'weight' | 'height' = key === 'weight' ? 'weight' : 'height';
+      setFfmiExact((old) => {
+        if (!old) return null;
+        const next = { ...old };
+        delete next[edited];
+        return Object.keys(next).length ? next : null;
+      });
+    }
+    if (slug === 'calories-burned-calculator' && key === 'weight') {
+      // Direct edits become the new physical measurement.
+      setCaloriesWeightOrigin(null);
+    }
+    if (slug === 'one-rep-max-calculator' && key === 'weight') {
+      const entered = Number(val);
+      setOneRepLoad(val.trim() !== '' && Number.isFinite(entered)
+        ? { kg: units === 'metric' ? entered : lbToKg(entered), enteredUnit: units, enteredText: val }
+        : null);
+    }
+  };
   const setSelect = (key: string, val: string) => setSelects((s) => ({ ...s, [key]: val }));
   const switchUnits = (to: UnitSystem) => {
     if (to === units) return;
-    setDisp((d) => convertDisplay(def, d, to));
+    if (slug === 'ffmi-calculator') {
+      setFfmiExact({ weight: ctx.vals.weight, height: ctx.vals.height });
+    }
+    if (slug === 'calories-burned-calculator') {
+      const preserved = caloriesWeightOrigin ?? {
+        kg: ctx.vals.weight,
+        unit: units,
+        text: disp.weight ?? '',
+      };
+      const valid = Number.isFinite(preserved.kg) && preserved.kg > 0;
+      setCaloriesWeightOrigin(valid ? preserved : null);
+      setDisp((d) => {
+        const converted = convertDisplay(def, d, to);
+        if (valid) {
+          converted.weight = to === preserved.unit
+            ? preserved.text
+            : String(round(to === 'metric' ? preserved.kg : kgToLb(preserved.kg), 1));
+        }
+        return converted;
+      });
+    } else if (slug === 'one-rep-max-calculator') {
+      const load = oneRepLoad ?? {
+        kg: ctx.vals.weight, enteredUnit: units, enteredText: disp.weight ?? '',
+      };
+      setOneRepLoad(load);
+      setDisp((d) => {
+        const next = convertDisplay(def, d, to);
+        next.weight = to === load.enteredUnit
+          ? load.enteredText
+          : String(round(to === 'metric' ? load.kg : kgToLb(load.kg), 1));
+        return next;
+      });
+    } else {
+      setDisp((d) => convertDisplay(def, d, to));
+    }
     setUnits(to);
   };
 
@@ -707,7 +786,7 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
               onChange={setSex}
               options={[{ value: 'male', label: 'Male' }, { value: 'female', label: 'Female' }]}
             />
-            <p class="calc__help">Used because the formula differs for men and women.</p>
+            <p class="calc__help">{slug === 'resting-heart-rate-checker' ? 'Sex changes only the illustrative comparison bands. The usual adult 60–100 bpm reference does not change.' : slug === 'push-up-test-calculator' ? 'For the ACSM comparison: men use standard push-ups from the toes; women use modified push-ups from the knees. These are different test protocols.' : 'Used because the formula differs for men and women.'}</p>
           </div>
         )}
 
@@ -744,10 +823,20 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
               )}
             </div>
 
+            {slug === 'vo2-max-calculator' && result.callout && (
+              <p class={`calc__callout calc__callout--${result.callout.tone}`}>
+                {result.callout.text}
+              </p>
+            )}
             {result.visual.kind === 'gauge' && <Gauge v={result.visual} />}
             {result.visual.kind === 'range' && <Range v={result.visual} />}
             {result.visual.kind === 'split' && <Split v={result.visual} />}
             {result.visual.kind === 'donut' && <Donut v={result.visual} />}
+            {slug === 'target-heart-rate-calculator' && result.callout && (
+              <p class={`calc__callout calc__callout--${result.callout.tone}`}>
+                {result.callout.text}
+              </p>
+            )}
             {result.visual.kind === 'zones' && <Zones v={result.visual} />}
 
             {result.cards && result.cards.length > 0 && (
@@ -762,7 +851,7 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
               </div>
             )}
 
-            {result.callout && (
+            {slug !== 'target-heart-rate-calculator' && slug !== 'vo2-max-calculator' && result.callout && (
               <p class={`calc__callout calc__callout--${result.callout.tone}`}>
                 {result.callout.text}
               </p>

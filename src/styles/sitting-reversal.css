@@ -45,7 +45,7 @@
   color: var(--muted);
 }
 .sr__units button.is-on {
-  background: var(--green-primary);
+  background: var(--green-700);
   color: #fff;
 }
 .sr__grid {

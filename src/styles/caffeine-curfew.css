@@ -52,7 +52,7 @@
 .cc__dose-val {
   font-family: var(--font-display);
   font-weight: 800;
-  color: var(--c-sleep);
+  color: #4338ca; /* indigo-700, as in .cc__preset.is-on: 7.9:1 (was 4.47:1) */
 }
 .cc__presets {
   display: grid;
@@ -82,7 +82,7 @@
   color: #4338ca;
 }
 .cc__preset.is-on small {
-  color: #6366f1;
+  color: #4338ca; /* 7:1 on #eef2ff (was 3.99:1) */
 }
 .cc__mg {
   margin-top: 0.85rem;
@@ -90,7 +90,8 @@
 }
 
 /* ---------- Hero ---------- */
-.cc__hero {
+/* .card also sets a background; the compound selector keeps the dark hero regardless of stylesheet order. */
+.cc__hero, .cc__hero.card {
   text-align: center;
   padding: clamp(1.75rem, 5vw, 2.75rem) 1.25rem;
   border: 0;
@@ -130,7 +131,7 @@
   margin: 1rem auto 0;
   max-width: 56ch;
   font-size: 0.85rem;
-  color: #94a3b8;
+  color: var(--muted); /* was #94a3b8, 2.56:1 on white */
 }
 
 /* ---------- Timeline ---------- */

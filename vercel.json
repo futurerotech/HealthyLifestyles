@@ -1,7 +1,9 @@
 {
+  "buildCommand": "npm run build",
   "git": {
     "deploymentEnabled": {
-      "codex/**": false
+      "codex/**": false,
+      "release/rc-**": false
     }
   },
   "headers": [

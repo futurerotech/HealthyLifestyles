@@ -96,7 +96,7 @@
   white-space: nowrap;
 }
 
-.hrv__btn--primary { background: var(--green-primary, #16a34a); color: #fff; }
+.hrv__btn--primary { background: var(--green-700, #15803d); color: #fff; }
 .hrv__btn--primary:hover { background: var(--green-700, #15803d); }
 
 .hrv__btn--danger {

@@ -1,26 +1,6 @@
 /** @jsxImportSource preact */
 import { useState } from 'preact/hooks';
-
-type Unit = 'km' | 'mi';
-type Mode = 'time' | 'pace' | 'distance';
-
-const n = (s: string): number => {
-  const v = parseFloat(s);
-  return Number.isFinite(v) && v >= 0 ? v : 0;
-};
-const pad = (x: number): string => String(x).padStart(2, '0');
-
-const formatHMS = (sec: number): string => {
-  sec = Math.max(0, Math.round(sec));
-  const h = Math.floor(sec / 3600);
-  const m = Math.floor((sec % 3600) / 60);
-  const s = sec % 60;
-  return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
-};
-const formatMS = (sec: number): string => {
-  sec = Math.max(0, Math.round(sec));
-  return `${Math.floor(sec / 60)}:${pad(sec % 60)}`;
-};
+import { calculateRunningPace, convertDistance, convertPaceSeconds, distanceInput, formatHMS, formatMS, paceInputParts, parseDistance, parseElapsedSeconds, parsePaceSeconds, type PaceMode as Mode, type PaceUnit as Unit } from '../lib/running-pace';
 
 function Seg({ value, options, onChange, label }: { value: Mode; options: { value: Mode; label: string }[]; onChange: (v: Mode) => void; label: string }) {
   return (
@@ -43,37 +23,46 @@ export default function PaceCalculator(_: { slug: string }) {
   const [tS, setTS] = useState('0');
   const [pM, setPM] = useState('5');
   const [pS, setPS] = useState('0');
+  // Keep exact physical values across unit toggles; inputs show rounded units.
+  // Once the user edits an input directly, the override is cleared.
+  const [exactDistance, setExactDistance] = useState<number | null>(null);
+  const [exactPace, setExactPace] = useState<number | null>(null);
+
+  function changeUnit(next: Unit) {
+    if (next === unit) return;
+    const originalDistance = exactDistance ?? parseDistance(distance);
+    if (Number.isFinite(originalDistance)) {
+      const converted = convertDistance(originalDistance, unit, next);
+      setDistance(distanceInput(converted));
+      setExactDistance(converted);
+    }
+    const originalPace = exactPace ?? parsePaceSeconds(pM, pS);
+    if (Number.isFinite(originalPace)) {
+      const converted = convertPaceSeconds(originalPace, unit, next);
+      const shown = paceInputParts(converted);
+      setPM(shown.minutes);
+      setPS(shown.seconds);
+      setExactPace(converted);
+    }
+    setUnit(next);
+  }
 
   const id = (k: string) => `pace-${k}`;
-  const dist = n(distance);
-  const timeSec = n(tH) * 3600 + n(tM) * 60 + n(tS);
-  const paceSecIn = n(pM) * 60 + n(pS);
-
-  // Resolve all three values from the two inputs that apply to the chosen mode.
-  let outDist = dist;
-  let outTime = timeSec;
-  let outPace = paceSecIn;
-  let valid = true;
-  if (mode === 'time') { outTime = dist * paceSecIn; valid = dist > 0 && paceSecIn > 0; }
-  else if (mode === 'pace') { outPace = dist > 0 ? timeSec / dist : 0; valid = dist > 0 && timeSec > 0; }
-  else { outDist = paceSecIn > 0 ? timeSec / paceSecIn : 0; valid = timeSec > 0 && paceSecIn > 0; }
-
-  const speed = outTime > 0 ? outDist / (outTime / 3600) : 0;
-
-  // Splits at each whole unit, cumulative time.
-  const splits: { mark: number; label: string; time: number }[] = [];
-  if (valid && outPace > 0 && outDist > 0) {
-    const whole = Math.min(60, Math.floor(outDist));
-    for (let k = 1; k <= whole; k++) splits.push({ mark: k, label: `${k} ${unit}`, time: outPace * k });
-    if (outDist - whole > 0.01 && whole < 60) splits.push({ mark: outDist, label: `${outDist.toFixed(2)} ${unit} (finish)`, time: outPace * outDist });
-  }
+  const dist = exactDistance ?? parseDistance(distance);
+  const timeSec = parseElapsedSeconds(tH,tM,tS);
+  const paceSecIn = exactPace ?? parsePaceSeconds(pM,pS);
+  const { valid, outDist, outTime, outPace, speed, splits } =
+    calculateRunningPace(mode,unit,dist,timeSec,paceSecIn);
+  const clockInvalid =
+    (mode !== 'time' && !Number.isFinite(timeSec)) ||
+    (mode !== 'pace' && !Number.isFinite(paceSecIn));
 
   const distLabel = `Distance`;
   const Field = (
     <div class="calc__field">
       <label class="calc__label" for={id('dist')}>{distLabel}</label>
       <div class="calc__input">
-        <input type="number" inputMode="decimal" min="0" step="0.1" id={id('dist')} value={distance} onInput={(e) => setDistance((e.target as HTMLInputElement).value)} />
+        <input type="number" inputMode="decimal" min="0" step="0.1" id={id('dist')} value={distance} onInput={(e) => { setDistance((e.target as HTMLInputElement).value); setExactDistance(null); }} />
         <span class="calc__suffix">{unit}</span>
       </div>
     </div>
@@ -92,8 +81,8 @@ export default function PaceCalculator(_: { slug: string }) {
     <div class="calc__field">
       <span class="calc__label" id={id('pace-grp')}>Pace (per {unit})</span>
       <div class="calc__triple calc__triple--two" role="group" aria-labelledby={id('pace-grp')}>
-        <div class="calc__input"><input type="number" inputMode="numeric" min="0" id={id('pm')} aria-label="Minutes" value={pM} onInput={(e) => setPM((e.target as HTMLInputElement).value)} /><span class="calc__suffix">min</span></div>
-        <div class="calc__input"><input type="number" inputMode="numeric" min="0" max="59" id={id('ps')} aria-label="Seconds" value={pS} onInput={(e) => setPS((e.target as HTMLInputElement).value)} /><span class="calc__suffix">sec</span></div>
+        <div class="calc__input"><input type="number" inputMode="numeric" min="0" id={id('pm')} aria-label="Minutes" value={pM} onInput={(e) => { setPM((e.target as HTMLInputElement).value); setExactPace(null); }} /><span class="calc__suffix">min</span></div>
+        <div class="calc__input"><input type="number" inputMode="numeric" min="0" max="59" id={id('ps')} aria-label="Seconds" value={pS} onInput={(e) => { setPS((e.target as HTMLInputElement).value); setExactPace(null); }} /><span class="calc__suffix">sec</span></div>
       </div>
     </div>
   );
@@ -105,7 +94,7 @@ export default function PaceCalculator(_: { slug: string }) {
           <h2 class="calc__heading">Running Pace</h2>
           <div class="seg" role="group" aria-label="Unit">
             {(['km', 'mi'] as Unit[]).map((u) => (
-              <button type="button" class={`seg__btn${unit === u ? ' is-active' : ''}`} aria-pressed={unit === u} onClick={() => setUnit(u)}>{u}</button>
+              <button type="button" class={`seg__btn${unit === u ? ' is-active' : ''}`} aria-pressed={unit === u} onClick={() => changeUnit(u)}>{u}</button>
             ))}
           </div>
         </div>
@@ -121,7 +110,9 @@ export default function PaceCalculator(_: { slug: string }) {
 
       <div class="calc__result" aria-live="polite">
         {!valid ? (
-          <p class="calc__placeholder">Enter the two values above to calculate the third.</p>
+          <p class={clockInvalid ? 'calc__error' : 'calc__placeholder'}>{clockInvalid
+            ? 'Use whole-number hours/minutes and seconds from 0 to 59 for each clock field.'
+            : 'Enter two valid positive values above to calculate the third.'}</p>
         ) : (
           <>
             <div class="calc__headline">
@@ -149,7 +140,7 @@ export default function PaceCalculator(_: { slug: string }) {
                 </ul>
               </>
             )}
-            <p class="calc__note">Splits assume an even (constant) pace across the whole distance.</p>
+            <p class="calc__note">Splits assume constant pace. For distances above 60 {unit}, the first 60 split checkpoints and the final finish time are shown. Switching units converts the same physical distance and pace; displayed input seconds are rounded, while calculations preserve full conversion precision until you edit them.</p>
           </>
         )}
       </div>
