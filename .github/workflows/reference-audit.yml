@@ -13,6 +13,7 @@ on:
       - 'scripts/content/correction-packages/**'
       - 'scripts/content/release-content-lock.*'
       - 'src/lib/content-integrity.mjs'
+      - 'scripts/content/staging-bootstrap-export.mjs'
       - '.github/workflows/reference-audit.yml'
   workflow_dispatch:
 
@@ -42,6 +43,9 @@ jobs:
       - name: Release content lock digests for the 16 records (read-only)
         if: always()
         run: node scripts/content/release-content-lock.mjs
+      - name: Staging bootstrap export dry run (read-only; counts, dropped paths and findings only)
+        if: always()
+        run: node scripts/content/staging-bootstrap-export.mjs --dry-run
       - uses: actions/upload-artifact@v4
         if: always()
         with:

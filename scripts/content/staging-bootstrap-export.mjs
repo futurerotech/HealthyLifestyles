@@ -12,7 +12,17 @@
 // credentials.
 import { createHash } from 'node:crypto';
 
-export const COLLECTIONS = ['articles', 'tools', 'categories', 'authors', 'tags', 'pages', 'pseo-pages', 'redirects'];
+export const COLLECTIONS = ['articles', 'tools', 'categories', 'authors', 'tags', 'media', 'pages', 'pseo-pages', 'redirects'];
+/** Collections without drafts: read in full (they have no _status). */
+export const UNVERSIONED = ['categories', 'authors', 'tags', 'redirects'];
+
+/** Media rows referenced by the exported content (populated upload relations), deduplicated by ID. */
+export function referencedMedia(collections) {
+  const found = new Map();
+  const walk = (v) => { if (Array.isArray(v)) v.forEach(walk); else if (v && typeof v === 'object') { if (v.id !== undefined && typeof v.mimeType === 'string' && typeof v.filename === 'string') found.set(String(v.id), v); Object.values(v).forEach(walk); } };
+  walk(collections);
+  return [...found.values()].sort((a, b) => Number(a.id) - Number(b.id));
+}
 export const GLOBALS = ['settings', 'ad-management', 'lead-gen'];
 /** Never exported, whatever a public endpoint returns. */
 export const EXCLUDED_COLLECTIONS = ['users', 'subscribers', 'leads', 'push-subscriptions', 'push-history', 'profiles', 'tool-usage',
@@ -20,6 +30,32 @@ export const EXCLUDED_COLLECTIONS = ['users', 'subscribers', 'leads', 'push-subs
   'site-audits', 'prompt-registry', 'personas', 'pseo-templates', 'pseo-datasets', 'leads-config'];
 const SECRET_KEY = /(secret|token|password|passwd|api[-_]?key|apikey|private[-_]?key|privatekey|webhook|vapid|credential|auth(?!or))/i;
 const EMAIL_VALUE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/** Sensitive values embedded in longer text: never copied silently, always reported for review. */
+const EMBEDDED = [
+  ['email address', /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/],
+  ['bearer or JWT token', /\b(?:Bearer\s+[A-Za-z0-9._-]{20,}|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,})/],
+  ['API key pattern', /\b(?:sk|pk|rk)_(?:live|test)_[A-Za-z0-9]{10,}|\bAKIA[0-9A-Z]{16}\b|\bghp_[A-Za-z0-9]{30,}/],
+  ['credentialed URL', /\b[a-z][a-z0-9+.-]*:\/\/[^\s/:@]+:[^\s/@]+@/i],
+  ['phone number', /(?:\+?\d[\d\s().-]{8,}\d)/],
+];
+/** Public site addresses already published on every page; reviewed and allowed. */
+export const REVIEWED_PUBLIC_EMAILS = ['hello@healthylifesstyles.com'];
+
+/** Report embedded sensitive values (path + kind only, never the value itself). */
+export function scanEmbedded(value, path = '', findings = []) {
+  if (typeof value === 'string') {
+    for (const [kind, re] of EMBEDDED) {
+      const m = value.match(re);
+      if (!m) continue;
+      if (kind === 'email address' && REVIEWED_PUBLIC_EMAILS.includes(m[0].toLowerCase())) continue;
+      // ISO dates, times and numeric ranges are not phone numbers.
+      if (kind === 'phone number' && (/^\d{4}-\d{2}-\d{2}/.test(value) || !/[\s().+-]/.test(m[0]) || /\d{4}-\d{2}-\d{2}T/.test(m[0]))) continue;
+      findings.push({ path, kind });
+    }
+  } else if (Array.isArray(value)) value.forEach((v, i) => scanEmbedded(v, `${path}[${i}]`, findings));
+  else if (value && typeof value === 'object') for (const [k, v] of Object.entries(value)) scanEmbedded(v, path ? `${path}.${k}` : k, findings);
+  return findings;
+}
 
 /**
  * Deep-copies a value, dropping secret-looking keys and email-address values. It returns
@@ -43,7 +79,7 @@ export function sanitize(value, path = '', dropped = []) {
 const sha = (v) => createHash('sha256').update(JSON.stringify(v)).digest('hex');
 
 /** Build the bundle from already-fetched public data (pure, so it can be tested offline). */
-export function buildBundle({ cmsOrigin, collections, globals, capturedAt }) {
+export function buildBundle({ cmsOrigin, collections, globals, capturedAt, allowFindings = false }) {
   for (const c of Object.keys(collections)) if (!COLLECTIONS.includes(c)) throw Error(`collection not allowed in a staging bootstrap: ${c}`);
   for (const g of Object.keys(globals)) if (!GLOBALS.includes(g)) throw Error(`global not allowed in a staging bootstrap: ${g}`);
   const dropped = [];
@@ -58,6 +94,26 @@ export function buildBundle({ cmsOrigin, collections, globals, capturedAt }) {
   }
   for (const [g, data] of Object.entries(globals)) { out.globals[g] = sanitize(data, `global:${g}`, dropped).value; out.checksums[`global:${g}`] = sha(out.globals[g]); }
   out.dropped = dropped;
+  // Fail closed: embedded sensitive values need a human decision; they are never silently copied.
+  out.findings = scanEmbedded({ collections: out.collections, globals: out.globals });
+  if (out.findings.length && !allowFindings) throw Object.assign(new Error(`${out.findings.length} embedded sensitive value(s) need review before any import`), { findings: out.findings });
   out.counts = Object.fromEntries(Object.entries(out.collections).map(([c, d]) => [c, d.length]));
   return out;
+}
+
+// CLI (read-only): --dry-run prints counts, dropped key paths and embedded findings only,
+// never content. --out <file> writes the bundle for owner review before any import.
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const { readPublishedCollection } = await import('./inventory.mjs');
+  const origin = 'https://cms.healthylifesstyles.com';
+  const collections = {};
+  const readAll = async (c) => { const docs = []; for (let page = 1; ; page++) { const r = await fetch(`${origin}/api/${c}?depth=0&limit=100&page=${page}&sort=id`); if (!r.ok) throw new Error(`${c}: HTTP ${r.status}`); const d = await r.json(); docs.push(...d.docs); if (!d.hasNextPage) return docs; } };
+  for (const c of COLLECTIONS) if (c !== 'media') collections[c] = UNVERSIONED.includes(c) ? await readAll(c) : await readPublishedCollection(origin, c);
+  collections.media = referencedMedia(collections);
+  const globals = {};
+  for (const g of GLOBALS) { const r = await fetch(`${origin}/api/globals/${g}?depth=1`); if (!r.ok) throw new Error(`global ${g}: HTTP ${r.status}`); globals[g] = await r.json(); }
+  const bundle = buildBundle({ cmsOrigin: origin, collections, globals, capturedAt: new Date().toISOString(), allowFindings: true });
+  console.log('[STAGING_EXPORT_DRYRUN] ' + JSON.stringify({ counts: bundle.counts, globals: Object.keys(bundle.globals), dropped: bundle.dropped, findings: bundle.findings }));
+  const out = process.argv.indexOf('--out');
+  if (out > 0) (await import('node:fs/promises')).writeFile(process.argv[out + 1], JSON.stringify(bundle));
 }
