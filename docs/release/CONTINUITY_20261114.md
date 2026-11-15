@@ -254,5 +254,25 @@ Frontend `c8fdd37`, Verify 43672232995: 27/27 passed. The preflight reported `sc
   - Requiring the Verify check on `main` is an owner decision.
 - Not runnable yet: RC acceptance, because the staging mirror is empty and its bootstrap needs owner authorization and isolation proof.
 
+## Session 2026-11-15 (e): two-platform release architecture (owner directive; review comment 6888834079)
+
+- **Frontend #56** @ `dbb624e`: Verify 43676076920 passed 27/27. The lock now uses the host-independent media digest; pre-release digests come from read-only run 43675339644, and the baselines are unchanged.
+  - Added `scripts/release/verify-promotion.mjs` (4 tests on a real git repository) and `release-attestation.yml`.
+  - Proposed ruleset: `docs/release/branch-ruleset-main.json` (not applied).
+  - The staging export now scans nested text and fails closed. The read-only dry run (run 43676076826) exported 60 articles, 70 tools, 19 categories, 2 authors, 28 tags and 60 media. It dropped 1 key (`settings.contactEmail`) and flagged one phone-like string in one article, repeated through nested related-article copies. That string needs human review before any import.
+  - `RELEASE_PROCEDURE_20261115.md` has been rewritten as the single procedure.
+- **Guard PR #57** `codex/guard-content-lock-20261115` @ `66b7e92`, based on main `57f72ee`, 7 files. It is not merged.
+  - Its Verify fails only at the pre-existing `Audit delta` step (baseline expired 2026-10-08, Issue #52), exactly as main's own CI does.
+  - The evidence branch `codex/guard-evidence-20261115` @ `438e109` passed in run 43675781623: guard tests 3/3, then a production-data `npm run build` with prebuild `npm audit --audit-level=high` passing and the preflight reporting `contentComplete: true` with the guard lock.
+- **CMS #67** `codex/staging-mirror-import-20261115` @ `d5dc9e5`, stacked on #66: the staging importer. CI 43675263717 passed 31/31, including 7 unit tests and 5 synthetic integration tests in isolated-staging mode.
+- **Verified facts:**
+  - frontend `main` is unprotected, owned by a user account (no merge queue), and the default branch is `dev`;
+  - production CMS `main` pings IndexNow and Google on every article save.
+- **BLOCKED_EXTERNAL_EVIDENCE:**
+  - Hostinger: running SHA and deploy branch;
+  - Vercel: project settings, failure and alias semantics, Redeploy and hooks (403);
+  - Cloudflare: R2 token scope;
+  - a real staging import.
+
 ## Next main-roadmap milestone
 Blocked on access or owner decisions: Phase 7 and 8 query-level work needs Search Console data (owner to grant read access or provide an export). No further roadmap work can proceed without new authorization or data. The pending owner decisions are listed in the external gates above and in the Phase 5, 6 and 7 research docs.

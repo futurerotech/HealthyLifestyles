@@ -1,7 +1,10 @@
 # Master Roadmap completion matrix (updated 2026-11-15)
 
-**Frontend:** `integration/calculator-safety-20261114` (PR #56, draft, not merged). Last code head `c8fdd37`:
-- Verify 43672232995: 27/27 passed. The preflight ran in production-promotion scope with the pre-release lock: `contentComplete: true`.
+**Frontend:** `integration/calculator-safety-20261114` (PR #56, draft, not merged). Last code head `dbb624e`:
+- Verify 43676076920: 27/27 passed.
+- Guard PR #57: blocked only by the pre-existing audit-baseline gate (Issue #52). Its evidence run 43675781623 passed.
+- CMS staging importer #67: CI 43675263717 passed 31/31.
+- The authoritative procedure is `RELEASE_PROCEDURE_20261115.md`.
 - Release-candidate acceptance (`release-candidate.yml`, staging mirror) has not run yet: the mirror is empty, and its bootstrap is an owner-authorized gate.
 - Release order: `RELEASE_PROCEDURE_20261115.md` (the single authoritative order).
 
