@@ -146,6 +146,10 @@ test('site-wide 390px and desktop QA: overflow, names, target size, images, head
         if (a.skips.length) fail('heading levels skipped ' + JSON.stringify(a.skips));
         if (s.exceptions.length) fail('uncaught exceptions ' + JSON.stringify([...new Set(s.exceptions)]));
 
+        // Measure the settled page, not a mid-animation frame. For example, the cookie banner fades
+        // in over 0.35 s, and its text measured at partial opacity reads lighter than it renders.
+        // Finishing animations shows each element's final state; thresholds are unchanged.
+        await s.js('document.getAnimations().forEach((a) => { try { a.finish(); } catch {} })');
         const c = await s.js(CONTRAST_AUDIT);
         contrastChecked += c.checked;
         for (const x of c.indeterminate) indeterminate.add(path + ' ' + x);
