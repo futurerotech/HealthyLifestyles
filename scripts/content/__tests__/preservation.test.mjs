@@ -178,3 +178,20 @@ test('production gates never apply to a fixture or synthetic CMS inventory', asy
   const prod = await verifyContent({ inventory: { ...inventory, cmsOrigin: g.cmsOrigin }, baseline: { ...baseline, cmsOrigin: g.cmsOrigin }, manifest: { ...manifest(), cmsOrigin: g.cmsOrigin }, readHtml: async () => html(), toolGates: g });
   assert.ok(prod.errors.some((e) => /does not match any published article/.test(e)));
 });
+
+// P4 (release-path review): an editor saving while Vercel builds. The pages and the build
+// manifest come from the content fetched at build time; postbuild preflight re-reads the live
+// CMS and compares both. Every drift shape must fail closed.
+test('content drift during a build fails closed (edit mid-build, and edit then revert)', async () => {
+  const edited = { ...article, updatedAt: '2026-10-15T10:05:00.000Z', layout: [{ blockType: 'text', style: 'p', text: 'Unreviewed mid-build edit.' }] };
+  // 1. Built from the edited version; live CMS reverted to the reviewed version before postbuild.
+  const reverted = await verify({ manifest: manifest([edited]), readHtml: async () => html(edited) });
+  assert.ok(reverted.errors.length, 'edited-then-reverted build must fail');
+  assert.ok(reverted.errors.some((e) => /fingerprint|CMS text missing/.test(e)), reverted.errors.join('\n'));
+  // 2. Built from the reviewed version; live CMS edited during the build.
+  const later = await verify({ inventory: { ...inventory, collections: { ...inventory.collections, articles: [edited] } } });
+  assert.ok(later.errors.length, 'edited-during-build must fail');
+  // 3. Same content, only a timestamp-free re-save: still passes (no false alarm).
+  const resaved = await verify({ inventory: { ...inventory, collections: { ...inventory.collections, articles: [{ ...article }] } } });
+  assert.deepEqual(resaved.errors, []);
+});
