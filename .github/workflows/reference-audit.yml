@@ -11,6 +11,7 @@ on:
       - 'scripts/content/overlap-audit.mjs'
       - 'scripts/content/verify-correction-packages.mjs'
       - 'scripts/content/correction-packages/**'
+      - 'scripts/content/release-content-lock.*'
       - '.github/workflows/reference-audit.yml'
   workflow_dispatch:
 
@@ -37,6 +38,9 @@ jobs:
       - name: Verify draft correction packages against live records (in memory only)
         if: always()
         run: node scripts/content/verify-correction-packages.mjs
+      - name: Release content lock digests for the 16 records (read-only)
+        if: always()
+        run: node scripts/content/release-content-lock.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -2,6 +2,7 @@ import { readFile, readdir, access } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { documentProof } from '../../src/lib/content-integrity.mjs';
+import { checkContentLock, loadLock } from './release-content-lock.mjs';
 import { readPublishedInventory } from './inventory.mjs';
 
 const contract = JSON.parse(await readFile(new URL('../../src/lib/site-contract.json', import.meta.url), 'utf8'));
@@ -176,7 +177,7 @@ export function hasPermanentRedirect(config, from, to) {
   return (config?.routes || []).some((route) => route.src === `^${from}$` && [301, 308].includes(route.status) && (route.headers?.Location || route.headers?.location) === to);
 }
 
-export async function verifyContent({ inventory, manifest, readHtml, readRedirect, baseline, requireReleaseProvenance = true, toolGates = { gates: [], editorialPrimary: {} } }) {
+export async function verifyContent({ inventory, manifest, readHtml, readRedirect, baseline, requireReleaseProvenance = true, toolGates = { gates: [], editorialPrimary: {} }, contentLock = null }) {
   const errors = [], documents = [];
   if (requireReleaseProvenance && (manifest.version !== 1 || manifest.source !== 'cms' || manifest.buildKind !== 'cms' || manifest.cmsOrigin !== inventory.cmsOrigin)) errors.push('Build is not a direct, complete build from the expected production CMS (fixture/offline/diagnostic builds cannot pass).');
   if (!Array.isArray(manifest.records) || !Array.isArray(manifest.collections)) return { errors: ['Missing/incomplete content manifest'], documents, counts: {} };
@@ -226,6 +227,8 @@ export async function verifyContent({ inventory, manifest, readHtml, readRedirec
   // Gates and editorial expectations describe production records only.
   const forThisCms = toolGates.cmsOrigin === undefined || toolGates.cmsOrigin === inventory.cmsOrigin;
   errors.push(...checkArticleToolGates(inventory.collections.articles || [], forThisCms ? toolGates.gates : [], forThisCms ? toolGates.editorialPrimary : {}));
+  // Coordinated-release content lock (16 records): one reviewed set only, never a mix.
+  if (contentLock && (contentLock.cmsOrigin === undefined || contentLock.cmsOrigin === inventory.cmsOrigin)) errors.push(...checkContentLock(inventory.collections.articles || [], contentLock));
   // Article-to-tool map (id, slug, primaryTool, embeds) for review and audits.
   const articleTools = (inventory.collections.articles || []).map((d) => ({ id: d.id, slug: d.slug, primaryTool: canon(relSlug(d.primaryTool)) || null, embeds: embeddedTools(d) }));
   return { articleTools, checkedAt: new Date().toISOString(), scope: ['published articles', 'published enabled tools and legacy redirects', 'published CMS pages', 'published pSEO pages'], cmsOrigin: inventory.cmsOrigin, errors, documents, counts };
@@ -239,7 +242,8 @@ export async function verifyOutput({ dist = 'dist/client', inventory, baseline, 
   // Reviewed list of known live article-to-tool defects (Roadmap 6.3). Each entry is a
   // release gate for a CMS content correction; it is not an exemption.
   const toolGates = JSON.parse(await readFile(new URL('./article-tool-gates.json', import.meta.url), 'utf8'));
-  const result = await verifyContent({ inventory, manifest, readHtml, readRedirect: (from, to) => hasPermanentRedirect(config, from, to), baseline, requireReleaseProvenance, toolGates });
+  const contentLock = await loadLock();
+  const result = await verifyContent({ inventory, manifest, readHtml, readRedirect: (from, to) => hasPermanentRedirect(config, from, to), baseline, requireReleaseProvenance, toolGates, contentLock });
   if (providerDir) {
     const receipt = await readFile(join(providerDir, 'content-manifest.json'), 'utf8').catch(() => null);
     if (!receipt || receipt !== await readFile(join(root, 'content-manifest.json'), 'utf8')) result.errors.push('Provider content manifest missing or different from verified output');

@@ -1,0 +1,24 @@
+{
+  "purpose": "Coordinated-release content lock for the 16 unique article records (5 article-tool gates + 12 coupled to PR #56; ID 32 is in both). The build preflight fails unless every record equals exactly one reviewed version: pre-release (today's production) or release (the reviewed corrections). Digest = documentProof editorial fingerprint without updatedAt. See docs/release/RELEASE_PROCEDURE_20261115.md.",
+  "cmsOrigin": "https://cms.healthylifesstyles.com",
+  "enabled": false,
+  "mode": "pre-release",
+  "records": [
+    { "id": 5, "slug": "how-to-keep-muscle-while-losing-weight", "preReleaseDigest": null, "releaseDigest": null },
+    { "id": 7, "slug": "intermittent-fasting-for-beginners", "preReleaseDigest": null, "releaseDigest": null },
+    { "id": 8, "slug": "sleep-chronotypes-explained", "preReleaseDigest": null, "releaseDigest": null },
+    { "id": 10, "slug": "how-long-does-it-take-to-lose-weight", "preReleaseDigest": null, "releaseDigest": null },
+    { "id": 21, "slug": "what-is-an-anti-inflammatory-diet", "preReleaseDigest": null, "releaseDigest": null },
+    { "id": 25, "slug": "alcohol-units-calculator", "preReleaseDigest": null, "releaseDigest": null },
+    { "id": 27, "slug": "how-to-read-your-hrv-trend", "preReleaseDigest": null, "releaseDigest": null },
+    { "id": 28, "slug": "can-sun-exposure-tell-you-if-you-need-vitamin-d", "preReleaseDigest": null, "releaseDigest": null },
+    { "id": 29, "slug": "what-calorie-deficit-calculator-can-tell-you", "preReleaseDigest": null, "releaseDigest": null },
+    { "id": 32, "slug": "waist-to-hip-ratio-how-to-measure-it-and-what-it-means", "preReleaseDigest": null, "releaseDigest": null },
+    { "id": 37, "slug": "healthy-waist-to-height-ratio", "preReleaseDigest": null, "releaseDigest": null },
+    { "id": 46, "slug": "what-does-your-vo2-max-score-mean", "preReleaseDigest": null, "releaseDigest": null },
+    { "id": 56, "slug": "how-blue-light-affects-sleep-evening-habits-score", "preReleaseDigest": null, "releaseDigest": null },
+    { "id": 57, "slug": "what-time-should-you-go-to-bed-sleep-cycles-explained", "preReleaseDigest": null, "releaseDigest": null },
+    { "id": 58, "slug": "how-much-sleep-debt-do-you-have-weekly-recovery", "preReleaseDigest": null, "releaseDigest": null },
+    { "id": 69, "slug": "what-does-your-lifestyle-age-test-mean", "preReleaseDigest": null, "releaseDigest": null }
+  ]
+}
