@@ -57,16 +57,24 @@ export function maskedContext(text, kind) {
 export const valueAt = (root, path) => path.split(/\.|\[(\d+)\]/).filter(Boolean).reduce((v, k) => (v == null ? v : v[k]), root);
 /** Public site addresses already published on every page; reviewed and allowed. */
 export const REVIEWED_PUBLIC_EMAILS = ['hello@healthylifesstyles.com'];
+/**
+ * Published public helplines, reviewed 2026-11-15 from the masked dry-run context. SAMHSA
+ * National Helpline, 1-800-662-4357 (articles 25, 37, 65-69). The scanner matches the part
+ * after the "1-" prefix. Exact match only: any other number still fails closed.
+ */
+export const REVIEWED_PUBLIC_PHONES = ['800-662-4357'];
 
 /** Report embedded sensitive values (path + kind only, never the value itself). */
 export function scanEmbedded(value, path = '', findings = []) {
   if (typeof value === 'string') {
     for (const [kind, re] of EMBEDDED) {
-      const m = value.match(re);
-      if (!m) continue;
-      if (kind === 'email address' && REVIEWED_PUBLIC_EMAILS.includes(m[0].toLowerCase())) continue;
+      // Every match counts: one reviewed public value must not hide a second, unreviewed one.
+      const matches = [...value.matchAll(new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g'))].map((m) => m[0]);
+      if (!matches.length) continue;
       // ISO dates, times and numeric ranges are not phone numbers.
       if (kind === 'phone number' && (/^https?:\/\//i.test(value.trim()) || /^\d{4}-\d{2}-\d{2}/.test(value))) continue;
+      const reviewed = kind === 'email address' ? REVIEWED_PUBLIC_EMAILS : kind === 'phone number' ? REVIEWED_PUBLIC_PHONES : [];
+      if (matches.every((v) => reviewed.includes(v.toLowerCase()))) continue;
       findings.push({ path, kind });
     }
   } else if (Array.isArray(value)) value.forEach((v, i) => scanEmbedded(v, `${path}[${i}]`, findings));

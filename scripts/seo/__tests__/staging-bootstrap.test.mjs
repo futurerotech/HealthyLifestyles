@@ -56,6 +56,13 @@ test('masked review context shows words and the number shape, never a digit or a
   assert.equal(valueAt({ collections: { articles: [{ layout: [{ text }] }] } }, 'collections.articles[0].layout[0].text'), text);
 });
 
+test('the reviewed public helpline passes, but never hides a second unreviewed number', () => {
+  assert.deepEqual(scanEmbedded({ t: 'Contact the SAMHSA National Helpline at 1-800-662-4357.' }), []);
+  assert.deepEqual(scanEmbedded({ t: 'Helpline 1-800-662-4357, or my cell 555-010-2030.' }), [{ path: 't', kind: 'phone number' }]);
+  assert.deepEqual(scanEmbedded({ t: 'Call 800-662-4358.' }), [{ path: 't', kind: 'phone number' }]);
+  assert.deepEqual(scanEmbedded({ t: 'hello@healthylifesstyles.com or jane@example.org' }), [{ path: 't', kind: 'email address' }]);
+});
+
 test('media rows are derived from populated references only, deduplicated', () => {
   const m = { id: 9, filename: 'a.png', mimeType: 'image/png', url: 'https://media/a.png', alt: 'A' };
   const media = referencedMedia({ articles: [{ id: 1, heroImage: m }, { id: 2, layout: [{ image: m }, { image: { id: 10, filename: 'b.png', mimeType: 'image/png' } }] }] });
