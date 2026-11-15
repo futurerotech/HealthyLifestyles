@@ -1,0 +1,30 @@
+name: Lockfile update evidence for #56 (not for merge)
+
+# Evidence only: generates the same targeted, in-range dependency update that PR #58 applied
+# to main, but on the #56 lockfile, and prints it as a reviewable patch. Nothing is deployed.
+on:
+  push:
+    branches: ['codex/lock-evidence-56-20261115']
+
+permissions:
+  contents: read
+
+jobs:
+  lock:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Targeted update and audit
+        run: |
+          node -e 'console.log("before", require("./package-lock.json").packages["node_modules/astro"].version)'
+          npm audit --json --package-lock-only > before.json || true
+          node -e 'console.log("before audit", JSON.stringify(require("./before.json").metadata.vulnerabilities))'
+          npm update astro @astrojs/vercel fast-xml-parser --package-lock-only --ignore-scripts
+          git diff --stat
+          npm audit --json --package-lock-only > after.json || true
+          node -e 'console.log("after audit", JSON.stringify(require("./after.json").metadata.vulnerabilities)); const l=require("./package-lock.json").packages; for (const k of ["astro","@astrojs/vercel","fast-xml-parser"]) console.log("version", k, l["node_modules/"+k]?.version)'
+          echo "PATCH_B64_BEGIN"; git diff -- package.json package-lock.json | gzip -9 | base64 -w0; echo; echo "PATCH_B64_END"
