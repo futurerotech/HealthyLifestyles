@@ -52,8 +52,24 @@ export function documentProof(collection, doc) {
   return { id: String(doc.id), slug: doc.slug, title: doc.title || doc.name || doc.headline, digest: contentDigest(documentContent(collection, doc)) };
 }
 
-/** Editorial fingerprint without updatedAt: identical content gives an identical digest across publishes. */
+/** A media document or media summary (not an editorial link): its URL depends on the serving bucket. */
+const isMediaObject = (o) => typeof o.url === 'string' && ('mimeType' in o || 'filename' in o || ('alt' in o && 'id' in o && ('width' in o || 'height' in o)));
+/** Media are identified by ID and file name, not by the host that serves them (production or staging bucket). */
+function hostIndependentMedia(value) {
+  if (Array.isArray(value)) return value.map(hostIndependentMedia);
+  if (!value || typeof value !== 'object') return value;
+  const out = {};
+  for (const [k, v] of Object.entries(value)) out[k] = hostIndependentMedia(v);
+  if (isMediaObject(value)) { let name = value.url; try { name = new URL(value.url, 'https://x.invalid').pathname.split('/').pop(); } catch {} out.url = name; }
+  return out;
+}
+
+/**
+ * Editorial fingerprint for the release content lock: identical content gives an identical
+ * digest across publishes (no updatedAt) and across an ID-preserving staging mirror (media by
+ * ID and file name). Editorial link URLs stay exact. documentProof is unchanged.
+ */
 export function editorialDigest(collection, doc) {
   const { updatedAt: _ignored, ...content } = documentContent(collection, doc);
-  return contentDigest(content);
+  return contentDigest(hostIndependentMedia(content));
 }
