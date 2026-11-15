@@ -68,7 +68,14 @@ These five operations are distinct and are never combined:
 
 ## 4. Vercel controls and owner-assisted verification (BLOCKED_EXTERNAL_EVIDENCE)
 
-The session's Vercel access returns 403. **None of these are verified.** The owner, or someone with authorized access, must record:
+**Access status (2026-11-15):**
+- Another authenticated client could read team `healthy-lifestyles`, project `healthy-lifestyles` and the deployment history (PR #56 comment 6897103459):
+  - production READY `dpl_7gu6eaTEhXWNkQui2kpoiut1J34a` from main `57f72ee`;
+  - #56 builds appear only as READY **previews**.
+- This session's Vercel connection returns 403 for that team scope (`team_DuQjbVToWiyUCDUl2CUYK9qx`). The smallest fix is one consent approval on a link generated on request.
+- Deployment history does not prove any item below, so **items 1–6 remain unverified**.
+
+The owner, or someone with authorized access, must record:
 
 1. Production branch is `main`. Ignored Build Step is empty, or a value confirmed not to skip builds. The build command is not overridden in the dashboard (`vercel.json` pins it).
 2. In a preview, a deliberately failing preflight keeps the previous production deployment serving, and the failed deployment never gets the alias.

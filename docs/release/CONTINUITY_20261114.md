@@ -352,5 +352,34 @@ New test in `preservation.test.mjs`:
 ### P6 — release content integrity
 Verify 43684565019 on `d5563a0`: the pre-release lock (16 records, production origin) was evaluated against live content, `errors: []`, `contentComplete: true`. Result: 27/27.
 
+## Session 2026-11-15 (i): staging readiness (continuous-execution mandate)
+
+**Real read-only provider evidence** (Neon; SELECT and catalog only):
+- Staging `small-hall-15225012`: PG 18.7; content, subscribers, push subscriptions and leads all 0; no journal table.
+- Staging and production column schemas are identical (md5 `4d256b4c…`).
+- Staging lacks only the consent migration.
+- **13 staging tables had no RLS** (production has 0 such tables). The new CMS migration `20261115_170000` fixes this.
+- The `audience` and `lead_gen` globals are empty on staging.
+- R2: both buckets exist, but token scope is not visible.
+
+**CMS #67** exact head `ff97411`: CI 43737251112 PASS 31/31. The code head `3009a4c` passed CI 43736779154 31/31. Changes:
+- RLS parity migration, with RLS also enabled on the journal tables;
+- runtime checker: secret separation via production fingerprints, the email recipient, empty outbound globals and empty private audience;
+- import runner CLI, not executed;
+- `docs/staging/STAGING_IMPORT_RUNBOOK_20261115.md`.
+
+PR comment 6897969375.
+
+**#58 → #56:** #58 was merged into #56. The lockfile is #56's own plus the CI-generated targeted update (43736394790), giving `@astrojs/vercel` 11.0.22; npm audit reports 0. #56 `1ed6e44` Verify 43736590726 PASS 27/27, with 0 tests skipped. That run included calculator browser QA, site-wide QA, Lighthouse and the content lock. Security package: #58 comment 6897969656.
+
+**Guard #57** `c369eb7`: Verify 43737339368 PASS 24/24. New tests: drift during a build, and the other-origin bypass. PR comment 6897969885.
+
+**Still blocked:**
+- Hostinger QA app: not reachable or identified;
+- R2 token scope;
+- Vercel settings (this session gets 403 on the team scope);
+- human reviews;
+- owner authorizations.
+
 ## Next main-roadmap milestone
 Blocked on access or owner decisions: Phase 7 and 8 query-level work needs Search Console data (owner to grant read access or provide an export). No further roadmap work can proceed without new authorization or data. The pending owner decisions are listed in the external gates above and in the Phase 5, 6 and 7 research docs.
