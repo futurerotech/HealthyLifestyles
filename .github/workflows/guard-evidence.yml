@@ -38,10 +38,19 @@ jobs:
             for (const r of cur) console.log([base.has(r.id) ? "BASELINED" : "NEW", r.severity, r.id, r.package, r.range, typeof r.fix === "object" ? "fix:" + r.fix.name + "@" + r.fix.version + (r.fix.isSemVerMajor ? " (major)" : "") : "fix:" + r.fix, r.url, r.title].join(" | "));
             for (const id of base) if (!rows.has(id)) console.log("RESOLVED since baseline |", id, "|", b.advisories.find((x) => x.id === id).package);
           '
+      - name: Non-breaking audit fix candidate (lockfile only; reviewed and committed by hand)
+        run: |
+          cp package.json package.json.orig; cp package-lock.json package-lock.json.orig
+          npm audit fix --package-lock-only --ignore-scripts || true
+          git diff --stat -- package.json package-lock.json
+          npm audit --json --package-lock-only > audit-after.json || true
+          node -e 'console.log("after fix:", JSON.stringify(require("./audit-after.json").metadata.vulnerabilities))'
+          mkdir -p fix && cp package.json package-lock.json audit.json audit-after.json fix/
+          mv package.json.orig package.json; mv package-lock.json.orig package-lock.json
       - uses: actions/upload-artifact@v4
         with:
           name: audit-inventory
-          path: audit.json
+          path: fix/
       - name: Guard unit tests
         run: node --test scripts/seo/__tests__/release-guard.test.mjs
       - name: Production-data build exactly as Vercel runs it (npm run build lifecycle)
