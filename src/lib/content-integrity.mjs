@@ -28,7 +28,7 @@ const relation = (value) => value && typeof value === 'object' ? { id: value.id,
 const media = (value) => value && typeof value === 'object' ? { id: value.id, url: value.url, alt: value.alt, width: value.width, height: value.height } : value ?? null;
 
 /** Public editorial fields only. Never hash or expose private global settings. */
-export function documentProof(collection, doc) {
+export function documentContent(collection, doc) {
   const seo = { ...(doc.seo || {}), ogImage: media(doc.seo?.ogImage), twitterImage: media(doc.seo?.twitterImage) };
   const common = { id: String(doc.id), slug: doc.slug, title: doc.title || doc.name || doc.headline, updatedAt: doc.updatedAt, seo, category: relation(doc.category) };
   const content = collection === 'pseo-pages' ? {
@@ -45,5 +45,15 @@ export function documentProof(collection, doc) {
     ...common, enabled: doc.enabled, whatItIs: doc.whatItIs, howCalculated: doc.howCalculated, howToRead: doc.howToRead,
     faq: doc.faq, sources: doc.sources, related: (doc.related || []).map(relation), semanticEntities: doc.semanticEntities,
   };
-  return { id: String(doc.id), slug: doc.slug, title: doc.title || doc.name || doc.headline, digest: contentDigest(content) };
+  return content;
+}
+
+export function documentProof(collection, doc) {
+  return { id: String(doc.id), slug: doc.slug, title: doc.title || doc.name || doc.headline, digest: contentDigest(documentContent(collection, doc)) };
+}
+
+/** Editorial fingerprint without updatedAt: identical content gives an identical digest across publishes. */
+export function editorialDigest(collection, doc) {
+  const { updatedAt: _ignored, ...content } = documentContent(collection, doc);
+  return contentDigest(content);
 }
