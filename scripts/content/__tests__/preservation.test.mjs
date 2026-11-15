@@ -101,3 +101,26 @@ test('an unverified pSEO baseline cannot be turned into an assumed zero count', 
   const result = await verify({ baseline: { ...baseline, unverifiedCollections: ['pseo-pages'] } });
   assert.ok(result.errors.some((e) => e.includes('still unverified for pseo-pages')));
 });
+
+// Guard-only release (#57): content changing while Vercel builds must fail closed, and the
+// content lock cannot be skipped silently by building against another CMS origin.
+test('content drift during a build fails closed (edit mid-build, and edit then revert)', async () => {
+  const edited = { ...article, updatedAt: '2026-10-15T10:05:00.000Z', layout: [{ blockType: 'text', style: 'p', text: 'Unreviewed mid-build edit.' }] };
+  const reverted = await verify({ manifest: manifest([edited]), readHtml: async () => html(edited) });
+  assert.ok(reverted.errors.some((e) => /fingerprint|CMS text missing/.test(e)), reverted.errors.join('\n'));
+  const later = await verify({ inventory: { ...inventory, collections: { ...inventory.collections, articles: [edited] } } });
+  assert.ok(later.errors.length, 'edited-during-build must fail');
+  assert.deepEqual((await verify({ inventory: { ...inventory, collections: { ...inventory.collections, articles: [{ ...article }] } } })).errors, []);
+});
+
+test('a lock for the production CMS cannot be bypassed by building against another origin', async () => {
+  const lock = { cmsOrigin, enabled: true, mode: 'pre-release', records: [{ id: 999, slug: 'locked', preReleaseDigest: 'a'.repeat(64) }] };
+  // Same origin: the lock applies and the missing locked record fails.
+  assert.ok((await verify({ contentLock: lock })).errors.length);
+  // Another origin: the lock is not evaluated, but the build still fails on CMS provenance.
+  // A real build against another CMS writes that origin into both the inventory and the manifest.
+  const otherOrigin = 'https://other-cms.example.test';
+  const other = { ...inventory, cmsOrigin: otherOrigin };
+  const r = await verify({ inventory: other, manifest: { ...manifest(), cmsOrigin: otherOrigin }, readHtml: async () => html(), contentLock: lock });
+  assert.ok(r.errors.some((e) => /wrong-origin preservation baseline for articles/.test(e)), r.errors.join('\n'));
+});
