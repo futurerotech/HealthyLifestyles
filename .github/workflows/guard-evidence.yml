@@ -1,0 +1,33 @@
+name: Guard evidence (not for merge)
+
+# Evidence-only branch: runs the guard PR's own unit tests and its full production-data
+# build (prebuild npm audit --audit-level=high, astro build, postbuild preflight with the
+# pre-release content lock) against the live production CMS. It does not replace, skip or
+# alter the main CI security gates; the guard PR (#57) still runs them unchanged.
+on:
+  push:
+    branches: ['codex/guard-evidence-20261115']
+
+permissions:
+  contents: read
+
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Guard unit tests
+        run: node --test scripts/seo/__tests__/release-guard.test.mjs
+      - name: Production-data build exactly as Vercel runs it (npm run build lifecycle)
+        env:
+          CMS_URL: 'https://cms.healthylifesstyles.com'
+          CMS_DISABLE: '0'
+          VERCEL_ENV: 'production'
+          INDEXNOW_DISABLE: 'true'
+        run: npm run build
