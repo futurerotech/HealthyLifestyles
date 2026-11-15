@@ -33,15 +33,15 @@ The per-item status is in `MASTER_ROADMAP_COMPLETION_MATRIX_20261114.md`. Nothin
 
 **The single authoritative order is `RELEASE_PROCEDURE_20261115.md`.** It replaces the order previously written here, which was publish-first, and the coupled-plan order, which was merge-first. Neither of those was dependency-safe.
 
-Summary of the corrected order:
-1. Prove in a Vercel preview that the lock blocks a release build.
-2. Deploy the CMS chain #34 → #64 → #65 → #66 (code and migration only).
+Summary of the corrected order (revised after review comment 6888386743, which found that the earlier order deadlocked CI):
+1. Deploy the CMS chain #34 → #64 → #65 → #66 (code and migration only).
+2. Bootstrap and verify the isolated staging mirror. Its pre-release digests must equal production's.
 3. Freeze.
-4. Save the 16 corrections as drafts and verify their digests.
-5. Prepare release commit R: gates emptied, lock set to release mode.
-6. Merge R. The production build fails closed while the content is still pre-release.
-7. Publish the 16 records.
-8. Redeploy. This single atomic cutover happens only when all 16 match the release digests.
+4. Save the 16 corrections as drafts on production and verify their digests.
+5. Prepare release commit R and prove it with **release-candidate acceptance** against the mirror. This gives a green exact SHA without touching production content.
+6. Publish the 16 records on production. Visitors see no change, because the site is static.
+7. **Production promotion gate:** re-run Verify on R against production. It must be green.
+8. Fast-forward `main` to R. Production then builds the same SHA, and Vercel switches only on success.
 9. Run acceptance checks.
 10. Submit IndexNow only with approval.
 

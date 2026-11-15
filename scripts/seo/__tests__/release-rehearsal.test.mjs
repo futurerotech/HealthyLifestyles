@@ -45,6 +45,19 @@ function releaseVersion(doc) {
   return d;
 }
 
+/** Invariants for a committed lock: pre-release keeps the gates; release clears them and needs every release digest. */
+function assertCommittedStateConsistent(lock, gates) {
+  const hex = (v) => /^[0-9a-f]{64}$/.test(String(v || ''));
+  assert.ok(lock.records.every((r) => hex(r.preReleaseDigest)), 'pre-release digests are the rollback target and must always be recorded');
+  if (lock.mode === 'pre-release') {
+    assert.ok(gates.gates.length > 0, 'pre-release: the five article-tool gates stay in force');
+  } else {
+    assert.equal(lock.mode, 'release');
+    assert.ok(lock.records.every((r) => hex(r.releaseDigest) && r.releaseDigest !== r.preReleaseDigest), 'release: every record has a reviewed, different release digest');
+    assert.equal(gates.gates.length, 0, 'release: gates are removed only together with release mode');
+  }
+}
+
 /** A tiny CMS: published state, draft state and version history per record. */
 class Cms {
   constructor(docs) { this.pub = new Map(docs.map((d) => [d.id, structuredClone(d)])); this.drafts = new Map(); this.history = new Map(docs.map((d) => [d.id, [structuredClone(d)]])); this.clock = 0; }
@@ -85,11 +98,10 @@ test('fixture covers the 16 unique records; the lock template lists exactly thos
   const { cms } = setup();
   assert.equal(cms.published().length, 16);
   assert.deepEqual(lockTemplate.records.map((r) => r.id).sort((a, b) => a - b), cms.published().map((d) => d.id));
-  // Committed state: pre-release lock enabled with reviewed production digests; release digests
-  // are filled only after the corrected drafts are reviewed on isolated staging.
+  // The committed lifecycle state must be internally consistent, in EITHER state, so the
+  // release commit R passes this test as well as today's pre-release commit.
   assert.equal(lockTemplate.enabled, true);
-  assert.equal(lockTemplate.mode, 'pre-release');
-  assert.ok(lockTemplate.records.every((r) => /^[0-9a-f]{64}$/.test(r.preReleaseDigest) && r.releaseDigest === null));
+  assertCommittedStateConsistent(lockTemplate, gatesFile);
 });
 
 test('baseline and drafts: #56 builds, the release commit fails closed (drafts are invisible)', () => {
@@ -140,4 +152,29 @@ test('an incomplete or unknown lock never passes', () => {
   assert.ok(checkContentLock(cms.published(), { ...lockTemplate, enabled: true, mode: 'release' }).some((e) => /lock is incomplete/.test(e)));
   assert.ok(checkContentLock(cms.published(), { ...lockTemplate, enabled: true, mode: 'later' }).length === 1);
   assert.deepEqual(checkContentLock(cms.published(), { ...lockTemplate, enabled: false }), [], 'disabled lock is a no-op');
+});
+
+test('lifecycle: the consistency rule accepts both explicit states and rejects every mixed commit', () => {
+  const { locks } = setup();
+  const noGates = { ...gatesFile, gates: [] };
+  assert.doesNotThrow(() => assertCommittedStateConsistent(locks.pre, gatesFile));
+  assert.doesNotThrow(() => assertCommittedStateConsistent(locks.release, noGates));
+  assert.throws(() => assertCommittedStateConsistent(locks.release, gatesFile), /gates are removed only together/);
+  assert.throws(() => assertCommittedStateConsistent(locks.pre, noGates), /gates stay in force/);
+  const halfFilled = { ...locks.release, records: locks.release.records.map((r, i) => (i === 3 ? { ...r, releaseDigest: null } : r)) };
+  assert.throws(() => assertCommittedStateConsistent(halfFilled, noGates), /every record has a reviewed/);
+  const unchanged = { ...locks.release, records: locks.release.records.map((r) => ({ ...r, releaseDigest: r.preReleaseDigest })) };
+  assert.throws(() => assertCommittedStateConsistent(unchanged, noGates), /different release digest/);
+});
+
+test('lifecycle: release commit R is rejected on production content and accepted only on release content', () => {
+  const { cms, rel, locks } = setup();
+  // Production promotion gate before publication: R fails closed (expected, never suppressed).
+  assert.ok(checkContentLock(cms.published(), locks.release).length === 16);
+  // Release-candidate acceptance: a staging mirror holding the reviewed release versions.
+  const mirror = new Cms([...rel.values()]);
+  assert.deepEqual([...checkArticleToolGates(mirror.published(), [], gatesFile.editorialPrimary), ...checkContentLock(mirror.published(), locks.release)], []);
+  // After production publication the same R passes the production gate.
+  for (const d of rel.values()) { cms.saveDraft(d); cms.publish(d.id); }
+  assert.deepEqual(checkContentLock(cms.published(), locks.release), []);
 });

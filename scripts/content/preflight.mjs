@@ -234,7 +234,7 @@ export async function verifyContent({ inventory, manifest, readHtml, readRedirec
   return { articleTools, checkedAt: new Date().toISOString(), scope: ['published articles', 'published enabled tools and legacy redirects', 'published CMS pages', 'published pSEO pages'], cmsOrigin: inventory.cmsOrigin, errors, documents, counts };
 }
 
-export async function verifyOutput({ dist = 'dist/client', inventory, baseline, requireReleaseProvenance = true, providerDir } = {}) {
+export async function verifyOutput({ dist = 'dist/client', inventory, baseline, requireReleaseProvenance = true, providerDir, mirrorOrigin = null } = {}) {
   const root = resolve(dist);
   const manifest = JSON.parse(await readFile(join(root, 'content-manifest.json'), 'utf8'));
   const readHtml = (path) => readFile(join(root, path.replace(/^\//, ''), 'index.html'), 'utf8');
@@ -243,6 +243,9 @@ export async function verifyOutput({ dist = 'dist/client', inventory, baseline, 
   // release gate for a CMS content correction; it is not an exemption.
   const toolGates = JSON.parse(await readFile(new URL('./article-tool-gates.json', import.meta.url), 'utf8'));
   const contentLock = await loadLock();
+  // Release-candidate acceptance on an isolated staging mirror: the mirror holds the same
+  // records (same IDs and slugs), so the production-scoped gates and lock apply to it unchanged.
+  if (mirrorOrigin) { toolGates.cmsOrigin = mirrorOrigin; if (contentLock) contentLock.cmsOrigin = mirrorOrigin; }
   const result = await verifyContent({ inventory, manifest, readHtml, readRedirect: (from, to) => hasPermanentRedirect(config, from, to), baseline, requireReleaseProvenance, toolGates, contentLock });
   if (providerDir) {
     const receipt = await readFile(join(providerDir, 'content-manifest.json'), 'utf8').catch(() => null);
@@ -292,12 +295,32 @@ export function cmsToolCopyReport(inventory) {
   };
 }
 
+/**
+ * Which CMS the preflight verifies. Default: the production origin in the preservation
+ * baseline (production promotion gate). With HLS_PREFLIGHT_CMS_ORIGIN set to an allowlisted
+ * staging mirror, it runs release-candidate acceptance against that mirror instead. That is
+ * refused in any production build, so a staging pass can never stand in for production.
+ */
+export function resolvePreflightOrigin(env, baseline, mirrors) {
+  const requested = env.HLS_PREFLIGHT_CMS_ORIGIN?.trim();
+  if (!requested) return { origin: baseline.cmsOrigin, scope: 'production-promotion', mirrorOrigin: null };
+  if (env.VERCEL_ENV === 'production') throw new Error('A staging mirror origin is not allowed in a production build.');
+  const origin = new URL(requested).origin;
+  if (requested.replace(/\/$/, '') !== origin || !(mirrors?.mirrorOrigins || []).includes(origin)) throw new Error(`${requested} is not an allowlisted staging mirror origin.`);
+  if (origin === baseline.cmsOrigin) throw new Error('The mirror origin must differ from the production origin.');
+  const cmsUrl = env.CMS_URL ? new URL(env.CMS_URL).origin : null;
+  if (cmsUrl !== origin) throw new Error('CMS_URL must build from the same staging mirror that is verified.');
+  return { origin, scope: 'release-candidate (staging mirror)', mirrorOrigin: origin };
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   try {
     const baseline = JSON.parse(await readFile(new URL('./production-baseline.json', import.meta.url), 'utf8'));
-    const inventory = await readPublishedInventory(baseline.cmsOrigin);
-    const result = await verifyOutput({ inventory, baseline, providerDir: resolve('.vercel/output/static') });
-    console.log(JSON.stringify({ contentComplete: result.contentComplete, counts: result.counts, errors: result.errors, articleTools: result.articleTools, cmsToolCopy: cmsToolCopyReport(inventory) }, null, 2));
+    const mirrors = JSON.parse(await readFile(new URL('./staging-mirror.json', import.meta.url), 'utf8'));
+    const target = resolvePreflightOrigin(process.env, baseline, mirrors);
+    const inventory = await readPublishedInventory(target.origin);
+    const result = await verifyOutput({ inventory, baseline: target.mirrorOrigin ? { ...baseline, cmsOrigin: target.mirrorOrigin } : baseline, providerDir: resolve('.vercel/output/static'), mirrorOrigin: target.mirrorOrigin });
+    console.log(JSON.stringify({ scope: target.scope, cmsOrigin: target.origin, contentComplete: result.contentComplete, counts: result.counts, errors: result.errors, articleTools: result.articleTools, cmsToolCopy: cmsToolCopyReport(inventory) }, null, 2));
     if (!result.contentComplete) process.exitCode = 1;
   } catch (error) { console.error(`CONTENT PREFLIGHT BLOCKED: ${error.message}`); process.exitCode = 1; }
 }

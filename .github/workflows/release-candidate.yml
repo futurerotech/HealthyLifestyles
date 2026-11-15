@@ -1,0 +1,50 @@
+name: Release-candidate acceptance (isolated staging mirror)
+
+# Proves a release commit (content lock in release mode, gates removed) against an
+# ISOLATED staging CMS that mirrors the published production records (same IDs, slugs and
+# relations) plus the reviewed release versions. A pass is release-candidate evidence ONLY.
+# It never authorizes production promotion: the production gate is the normal Verify build
+# against the production CMS, re-run after the 16 records are published there.
+# Manual trigger only. It writes nothing, deploys nothing, and never uses production
+# credentials.
+on:
+  # workflow_dispatch only works once this file is on the default branch. Before that,
+  # push the exact release commit to a release/rc-* branch to run it.
+  push:
+    branches: ['release/rc-**']
+  workflow_dispatch:
+    inputs:
+      mirror_origin:
+        description: 'Allowlisted staging mirror origin (scripts/content/staging-mirror.json)'
+        required: true
+        default: 'https://cms-qa.healthylifesstyles.com'
+        type: choice
+        options: ['https://cms-qa.healthylifesstyles.com']
+
+permissions:
+  contents: read
+
+jobs:
+  rc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Unit tests
+        run: npm run test:seo
+      - name: Build from the staging mirror and run release-candidate preflight
+        env:
+          CMS_URL: ${{ inputs.mirror_origin || 'https://cms-qa.healthylifesstyles.com' }}
+          HLS_PREFLIGHT_CMS_ORIGIN: ${{ inputs.mirror_origin || 'https://cms-qa.healthylifesstyles.com' }}
+          CMS_DISABLE: '0'
+          VERCEL_ENV: 'preview'
+          INDEXNOW_DISABLE: 'true'
+        run: npm run build
+      - name: Record scope and exact SHA
+        if: always()
+        run: echo "[RC_ACCEPTANCE] sha=${GITHUB_SHA} mirror=${{ inputs.mirror_origin || 'https://cms-qa.healthylifesstyles.com' }} scope=release-candidate (not production promotion)"
