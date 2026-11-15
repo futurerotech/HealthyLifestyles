@@ -1,12 +1,12 @@
 # Master Roadmap completion matrix (updated 2026-11-15)
 
-**Frontend:** `integration/calculator-safety-20261114` (PR #56, draft, not merged). Head `fc9e96f`:
-- Verify 43657706598: 27/27 passed.
-- Reference audit 43657706573: passed.
-- Data snapshots 43657706709: passed.
+**Frontend:** `integration/calculator-safety-20261114` (PR #56, draft, not merged). Last code head `cb47f50`:
+- Verify 43661108618: 27/27 passed.
+- Reference audit 43661108588: passed.
+- Data snapshots 43661108626: passed.
 
 **CMS:** chain #65 → #64 → #34, plus #66 stacked on #65. All four are draft and not merged.
-- #66 `codex/newsletter-suppression-20261115` @ `22a25c8`, CI 43656222398: 31/31 passed.
+- #66 `codex/newsletter-suppression-20261115` @ `51d001c`, CI 43661483884: 31/31 passed (268 unit tests). Ancestry is verified as main `1637680` ← #34 `603f192` ← #64 `906070a` ← #65 `50a9358` ← #66 (6 commits).
 - The chain heads are unchanged since their green runs: #34 `603f192`, #64 `906070a`, #65 `50a9358`. CMS main is still `1637680`, and frontend main is still `57f72ee`.
 - GitHub shows "unstable" on #34 and #64 only because the external Vercel preview status failed. Their `ci` checks are green. The Vercel team returns 403 from this session, so the preview failure cannot be inspected here.
 
@@ -39,8 +39,8 @@ Nothing has been merged, deployed, published, written to a CMS or submitted for 
 | 7.1 | Overlap, technical SEO, intent classification | VERIFIED_COMPLETE | — |
 | 7.2 | Query-level demand | BLOCKED_EXTERNAL_ACCESS (DATA UNAVAILABLE) | No GSC or GA4 connector |
 | 8.1 | Privacy notice at signup | IMPLEMENTED_AWAITING_REVIEW | — |
-| 8.2a | Unsubscribe and suppression (provider-independent) | IMPLEMENTED_AWAITING_REVIEW | CMS #66: signed, expiring tokens with no email inside; idempotent, non-revealing unsubscribe; RFC 8058 one-click; authenticated pre-send `subscriber-send-check`; n8n forward limited to sendable records; server-stamped consent fields; additive offline migration. Frontend: `/unsubscribe` page, `/api/unsubscribe` proxy, duplicate signups non-revealing and never re-forwarded, and signup copy no longer promises unsubscribe before it exists. |
-| 8.2b | Email delivery, double opt-in, retention policy, emailing records that have no consent | BLOCKED_OWNER_RELEASE (provider choice, legal) | — |
+| 8.2a | Unsubscribe, suppression and consent provenance (provider-independent) | IMPLEMENTED_AWAITING_REVIEW | CMS #66 and frontend `cb47f50`. Covers signed, expiring unsubscribe links; suppression kept separate from marketing eligibility; and fail-closed handling of legacy, imported and unknown-consent records. Consent is captured only by the trusted proxy, which sends the internal key and the capture header; a client `source` cannot set it. The newsletter proxy accepts the first-party Origin only. Consent evidence is frozen, and suppression is one-way. Review comment 6886950310 is addressed. |
+| 8.2b | Email delivery, single versus double opt-in, retention, legacy-record policy, end-to-end proof in staging that the sender enforces send-check | BLOCKED_OWNER_RELEASE + BLOCKED_SECURITY_REVIEW (independent security and privacy approval) | Newsletter delivery is **NO-GO**. Integration sequence: `docs/release/NEWSLETTER_SUPPRESSION_20261115.md` (CMS). |
 | 8.3 | UTM convention, Pinterest and Shorts briefs | VERIFIED_COMPLETE (preparatory) | — |
 | 9.1 | Consent gating for GA4 and AdSense | VERIFIED_COMPLETE (code) | — |
 | 9.2 | Certified TCF CMP for EEA/UK/CH | BLOCKED_OWNER_RELEASE | — |
