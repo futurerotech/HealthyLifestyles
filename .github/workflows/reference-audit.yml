@@ -17,6 +17,11 @@ on:
       - '.github/workflows/reference-audit.yml'
   workflow_dispatch:
 
+# Abort obsolete audits for the same PR/ref; preserve the complete final-head audit.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
