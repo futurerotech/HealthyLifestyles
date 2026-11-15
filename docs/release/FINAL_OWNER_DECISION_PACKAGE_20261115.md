@@ -32,31 +32,21 @@ The per-item status is in `MASTER_ROADMAP_COMPLETION_MATRIX_20261114.md`. Nothin
 
 ## 3. Release coupling and integration sequence
 
-Dependency order: `main` ← #34 ← #64 ← #65 ← #66. Frontend #56 follows #66.
+**The single authoritative order is `RELEASE_PROCEDURE_20261115.md`.** It replaces the order previously written here, which was publish-first, and the coupled-plan order, which was merge-first. Neither of those was dependency-safe.
 
-1. Merge #34 into CMS `main`. Retarget #64, re-run CI, and require exact-head green. Repeat for #64 → #65 and #65 → #66.
-2. Run the migration on isolated staging first. It is additive: three nullable columns, `IF NOT EXISTS`, and `down` keeps the data. The October ledger rehearsal expects 18 entries, or 16 after removing the two October entries.
-3. Deploy the CMS to staging. Rehearse #56 built against staging, with the release preflight `contentComplete` true.
-4. Apply the 16 article corrections as **drafts** on staging (§6). Re-run the preflight with the five gates removed, in the release branch only.
-5. Production, only after §4 and §5 are closed:
-   1. Merge and deploy the CMS chain and run the migration.
-   2. Publish the 16 drafts in one session.
-   3. Merge #56 and trigger one rebuild.
-   4. Run post-deploy reconciliation.
-   5. Submit IndexNow only for the changed URLs, with explicit approval.
-6. **Rollback:**
-   - Revert #56.
-   - Restore the previous version of each of the 16 records; the `updated_at` baselines identify them.
-   - Redeploy the previous CMS build.
-   - Leave the migration columns in place (`down` is a no-op by design).
-   - Do not resubmit for indexing.
-7. **Acceptance after release:**
-   - Every changed URL renders and has its canonical and correct indexing status.
-   - The five gated articles embed their primary tool.
-   - PHQ-9 item 9 alerts.
-   - WHO-5 stays unavailable.
-   - No lab route exists in production.
-   - The newsletter signup creates records with consent evidence, and nothing is sent.
+Summary of the corrected order:
+1. Prove in a Vercel preview that the lock blocks a release build.
+2. Deploy the CMS chain #34 → #64 → #65 → #66 (code and migration only).
+3. Freeze.
+4. Save the 16 corrections as drafts and verify their digests.
+5. Prepare release commit R: gates emptied, lock set to release mode.
+6. Merge R. The production build fails closed while the content is still pre-release.
+7. Publish the 16 records.
+8. Redeploy. This single atomic cutover happens only when all 16 match the release digests.
+9. Run acceptance checks.
+10. Submit IndexNow only with approval.
+
+Rollback: Vercel instant rollback first, then restore the 16 records verified by pre-release digest, then revert `main`. Never build pre-#56 code against release content.
 
 ## 4. Required staging evidence (Hostinger / Neon / R2)
 

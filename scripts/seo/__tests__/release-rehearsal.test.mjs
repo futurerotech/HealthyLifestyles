@@ -85,7 +85,11 @@ test('fixture covers the 16 unique records; the lock template lists exactly thos
   const { cms } = setup();
   assert.equal(cms.published().length, 16);
   assert.deepEqual(lockTemplate.records.map((r) => r.id).sort((a, b) => a - b), cms.published().map((d) => d.id));
-  assert.equal(lockTemplate.enabled, false, 'committed disabled until reviewed digests are filled');
+  // Committed state: pre-release lock enabled with reviewed production digests; release digests
+  // are filled only after the corrected drafts are reviewed on isolated staging.
+  assert.equal(lockTemplate.enabled, true);
+  assert.equal(lockTemplate.mode, 'pre-release');
+  assert.ok(lockTemplate.records.every((r) => /^[0-9a-f]{64}$/.test(r.preReleaseDigest) && r.releaseDigest === null));
 });
 
 test('baseline and drafts: #56 builds, the release commit fails closed (drafts are invisible)', () => {
@@ -133,7 +137,7 @@ test('rollback after release restores the exact pre-release digests (timestamps 
 
 test('an incomplete or unknown lock never passes', () => {
   const { cms } = setup();
-  assert.ok(checkContentLock(cms.published(), { ...lockTemplate, enabled: true }).some((e) => /lock is incomplete/.test(e)));
+  assert.ok(checkContentLock(cms.published(), { ...lockTemplate, enabled: true, mode: 'release' }).some((e) => /lock is incomplete/.test(e)));
   assert.ok(checkContentLock(cms.published(), { ...lockTemplate, enabled: true, mode: 'later' }).length === 1);
-  assert.deepEqual(checkContentLock(cms.published(), lockTemplate), [], 'disabled lock is a no-op');
+  assert.deepEqual(checkContentLock(cms.published(), { ...lockTemplate, enabled: false }), [], 'disabled lock is a no-op');
 });

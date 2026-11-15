@@ -1,24 +1,104 @@
 {
-  "purpose": "Coordinated-release content lock for the 16 unique article records (5 article-tool gates + 12 coupled to PR #56; ID 32 is in both). The build preflight fails unless every record equals exactly one reviewed version: pre-release (today's production) or release (the reviewed corrections). Digest = documentProof editorial fingerprint without updatedAt. See docs/release/RELEASE_PROCEDURE_20261115.md.",
+  "purpose": "Coordinated-release content lock for the 16 unique article records (5 article-tool gates + 12 coupled to PR #56; ID 32 is in both). The build preflight fails unless every record equals exactly one reviewed version: pre-release (today's production) or release (the reviewed corrections). Digest = documentProof editorial fingerprint without updatedAt. See docs/release/RELEASE_PROCEDURE_20261115.md. preReleaseDigest values: reference-audit run 43667642490 (2026-11-15), matching the coupled-manifest updated_at baselines.",
   "cmsOrigin": "https://cms.healthylifesstyles.com",
-  "enabled": false,
+  "enabled": true,
   "mode": "pre-release",
   "records": [
-    { "id": 5, "slug": "how-to-keep-muscle-while-losing-weight", "preReleaseDigest": null, "releaseDigest": null },
-    { "id": 7, "slug": "intermittent-fasting-for-beginners", "preReleaseDigest": null, "releaseDigest": null },
-    { "id": 8, "slug": "sleep-chronotypes-explained", "preReleaseDigest": null, "releaseDigest": null },
-    { "id": 10, "slug": "how-long-does-it-take-to-lose-weight", "preReleaseDigest": null, "releaseDigest": null },
-    { "id": 21, "slug": "what-is-an-anti-inflammatory-diet", "preReleaseDigest": null, "releaseDigest": null },
-    { "id": 25, "slug": "alcohol-units-calculator", "preReleaseDigest": null, "releaseDigest": null },
-    { "id": 27, "slug": "how-to-read-your-hrv-trend", "preReleaseDigest": null, "releaseDigest": null },
-    { "id": 28, "slug": "can-sun-exposure-tell-you-if-you-need-vitamin-d", "preReleaseDigest": null, "releaseDigest": null },
-    { "id": 29, "slug": "what-calorie-deficit-calculator-can-tell-you", "preReleaseDigest": null, "releaseDigest": null },
-    { "id": 32, "slug": "waist-to-hip-ratio-how-to-measure-it-and-what-it-means", "preReleaseDigest": null, "releaseDigest": null },
-    { "id": 37, "slug": "healthy-waist-to-height-ratio", "preReleaseDigest": null, "releaseDigest": null },
-    { "id": 46, "slug": "what-does-your-vo2-max-score-mean", "preReleaseDigest": null, "releaseDigest": null },
-    { "id": 56, "slug": "how-blue-light-affects-sleep-evening-habits-score", "preReleaseDigest": null, "releaseDigest": null },
-    { "id": 57, "slug": "what-time-should-you-go-to-bed-sleep-cycles-explained", "preReleaseDigest": null, "releaseDigest": null },
-    { "id": 58, "slug": "how-much-sleep-debt-do-you-have-weekly-recovery", "preReleaseDigest": null, "releaseDigest": null },
-    { "id": 69, "slug": "what-does-your-lifestyle-age-test-mean", "preReleaseDigest": null, "releaseDigest": null }
+    {
+      "id": 5,
+      "slug": "how-to-keep-muscle-while-losing-weight",
+      "preReleaseDigest": "1ca72bdd4ef47b9b4916a842496b90b4da4dbc6f7381c6d842bc4b19c9f60c8a",
+      "releaseDigest": null
+    },
+    {
+      "id": 7,
+      "slug": "intermittent-fasting-for-beginners",
+      "preReleaseDigest": "fb4c50389f7268ab97089134281d9f098d61564a903e826c9470cd6cf299141f",
+      "releaseDigest": null
+    },
+    {
+      "id": 8,
+      "slug": "sleep-chronotypes-explained",
+      "preReleaseDigest": "83a691fe91768ffdc5eb785095408466255e9262aa390b80eb613fc93251718b",
+      "releaseDigest": null
+    },
+    {
+      "id": 10,
+      "slug": "how-long-does-it-take-to-lose-weight",
+      "preReleaseDigest": "2cc2904b5d4ce91420b89980548e8ff2d8a30cb6e3b177133e0ff4aefb8e302c",
+      "releaseDigest": null
+    },
+    {
+      "id": 21,
+      "slug": "what-is-an-anti-inflammatory-diet",
+      "preReleaseDigest": "d9fbcc8f31caf0e0af8d553e35633088a1ba506a28cc66a896c4e662969e2780",
+      "releaseDigest": null
+    },
+    {
+      "id": 25,
+      "slug": "alcohol-units-calculator",
+      "preReleaseDigest": "3e23e7bc26bf3d52ddd37649102a22e3c213016012ffc606965a2b67fc3f3d15",
+      "releaseDigest": null
+    },
+    {
+      "id": 27,
+      "slug": "how-to-read-your-hrv-trend",
+      "preReleaseDigest": "7eb16c0c376519ebdfe388df66e295b8a101af835acb5aecd63502ddf8ba043b",
+      "releaseDigest": null
+    },
+    {
+      "id": 28,
+      "slug": "can-sun-exposure-tell-you-if-you-need-vitamin-d",
+      "preReleaseDigest": "fc11d868a17c93e40c66f52d7e433c3e719efc6bf8e47e532c37946e233bfcf8",
+      "releaseDigest": null
+    },
+    {
+      "id": 29,
+      "slug": "what-calorie-deficit-calculator-can-tell-you",
+      "preReleaseDigest": "5670f2b616a61a410da8cb909b85cb912d89f61156da37a2656e435c5e163fd2",
+      "releaseDigest": null
+    },
+    {
+      "id": 32,
+      "slug": "waist-to-hip-ratio-how-to-measure-it-and-what-it-means",
+      "preReleaseDigest": "0813cf12e1a512dd270028e69f20a29324a1ca0138daffd81ecea34ffa06fb1c",
+      "releaseDigest": null
+    },
+    {
+      "id": 37,
+      "slug": "healthy-waist-to-height-ratio",
+      "preReleaseDigest": "ff42cbf2dc361da324f731023acfc92f0872e2778eeefdc0edab83d74674fe57",
+      "releaseDigest": null
+    },
+    {
+      "id": 46,
+      "slug": "what-does-your-vo2-max-score-mean",
+      "preReleaseDigest": "5c7677df80e578f5ca93cbf4a64ad7498321a158e8bb4eca21a9667485702d98",
+      "releaseDigest": null
+    },
+    {
+      "id": 56,
+      "slug": "how-blue-light-affects-sleep-evening-habits-score",
+      "preReleaseDigest": "17ea73493b31d2b4c1915df9eb777b3f6bab0d1ccf62e592e77ce83bde3f85d2",
+      "releaseDigest": null
+    },
+    {
+      "id": 57,
+      "slug": "what-time-should-you-go-to-bed-sleep-cycles-explained",
+      "preReleaseDigest": "b5e0e6e32bcce324db4f21ada221bbdd19ba1af9ac7b414e28e4a3c57ea3dc88",
+      "releaseDigest": null
+    },
+    {
+      "id": 58,
+      "slug": "how-much-sleep-debt-do-you-have-weekly-recovery",
+      "preReleaseDigest": "3c8c855cfa494dfab4d5a20af3539541f20ffa67c9592518ef6a0f78645cf0c1",
+      "releaseDigest": null
+    },
+    {
+      "id": 69,
+      "slug": "what-does-your-lifestyle-age-test-mean",
+      "preReleaseDigest": "7713aec70f18ab766976f7e198466e9ee0946ba5cf43f5d5298822a5122f32a5",
+      "releaseDigest": null
+    }
   ]
 }
