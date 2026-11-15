@@ -45,3 +45,12 @@ test('media rows are derived from populated references only, deduplicated', () =
   const media = referencedMedia({ articles: [{ id: 1, heroImage: m }, { id: 2, layout: [{ image: m }, { image: { id: 10, filename: 'b.png', mimeType: 'image/png' } }] }] });
   assert.deepEqual(media.map((x) => x.id), [9, 10]);
 });
+
+test('no false positives on public editorial fields: author credentials, numeric ranges, URLs', () => {
+  assert.deepEqual(sanitize({ name: 'A', credential: 'RD, MPH' }).value, { name: 'A', credential: 'RD, MPH' });
+  assert.deepEqual(sanitize({ credentials: { key: 'x' } }).dropped, ['credentials']);
+  const ok = { a: 'Aim for 1,200–1,500 kcal or 150-300 minutes', b: 'https://pubmed.ncbi.nlm.nih.gov/123456789-2019-555', c: 'Doses: 400 600 800 mg', d: '2026-11-15' };
+  assert.deepEqual(scanEmbedded(ok), []);
+  assert.equal(scanEmbedded({ x: 'Call 555-010-2030' }).length, 1);
+  assert.equal(scanEmbedded({ x: 'Tel +44 20 7946 0958' }).length, 1);
+});

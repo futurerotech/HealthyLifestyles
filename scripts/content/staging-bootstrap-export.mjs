@@ -28,7 +28,9 @@ export const GLOBALS = ['settings', 'ad-management', 'lead-gen'];
 export const EXCLUDED_COLLECTIONS = ['users', 'subscribers', 'leads', 'push-subscriptions', 'push-history', 'profiles', 'tool-usage',
   'audit-log', 'indexing-status', 'pending-deploys', 'deploy-log', 'link-prospects', 'outreach-templates', 'backlinks', 'embed-logs',
   'site-audits', 'prompt-registry', 'personas', 'pseo-templates', 'pseo-datasets', 'leads-config'];
-const SECRET_KEY = /(secret|token|password|passwd|api[-_]?key|apikey|private[-_]?key|privatekey|webhook|vapid|credential|auth(?!or))/i;
+const SECRET_KEY = /(secret|token|password|passwd|api[-_]?key|apikey|private[-_]?key|privatekey|webhook|vapid|credentials|auth(?!or))/i;
+// Note: an author's "credential" (e.g. "RD, MPH") is public editorial text and is kept;
+// "credentials" (plural, a secret bundle) is dropped.
 const EMAIL_VALUE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 /** Sensitive values embedded in longer text: never copied silently, always reported for review. */
 const EMBEDDED = [
@@ -36,7 +38,8 @@ const EMBEDDED = [
   ['bearer or JWT token', /\b(?:Bearer\s+[A-Za-z0-9._-]{20,}|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,})/],
   ['API key pattern', /\b(?:sk|pk|rk)_(?:live|test)_[A-Za-z0-9]{10,}|\bAKIA[0-9A-Z]{16}\b|\bghp_[A-Za-z0-9]{30,}/],
   ['credentialed URL', /\b[a-z][a-z0-9+.-]*:\/\/[^\s/:@]+:[^\s/@]+@/i],
-  ['phone number', /(?:\+?\d[\d\s().-]{8,}\d)/],
+  // North American format, or + country code followed by 8-12 grouped digits.
+  ['phone number', /(?:\(\d{3}\)\s?|\b\d{3}[\s.-])\d{3}[\s.-]\d{4}\b|\+\d{1,3}(?:[\s.-]?\d{2,4}){3,5}\b/],
 ];
 /** Public site addresses already published on every page; reviewed and allowed. */
 export const REVIEWED_PUBLIC_EMAILS = ['hello@healthylifesstyles.com'];
@@ -49,7 +52,7 @@ export function scanEmbedded(value, path = '', findings = []) {
       if (!m) continue;
       if (kind === 'email address' && REVIEWED_PUBLIC_EMAILS.includes(m[0].toLowerCase())) continue;
       // ISO dates, times and numeric ranges are not phone numbers.
-      if (kind === 'phone number' && (/^\d{4}-\d{2}-\d{2}/.test(value) || !/[\s().+-]/.test(m[0]) || /\d{4}-\d{2}-\d{2}T/.test(m[0]))) continue;
+      if (kind === 'phone number' && (/^https?:\/\//i.test(value.trim()) || /^\d{4}-\d{2}-\d{2}/.test(value))) continue;
       findings.push({ path, kind });
     }
   } else if (Array.isArray(value)) value.forEach((v, i) => scanEmbedded(v, `${path}[${i}]`, findings));
