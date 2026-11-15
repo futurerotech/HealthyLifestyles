@@ -179,3 +179,27 @@ test('unsubscribe proxy: first-party origin, token shape check, generic answers,
   env.CMS_URL = '';
   assert.equal((await unsubscribe(request({ token }))).status, 503);
 });
+
+test('consent provenance: only the newsletter proxy requests consent capture, and the browser cannot steer it', async () => {
+  await subscribe(request({ email: 'a@b.com', source: 'csv-import', consentAt: '1999-01-01', consentMethod: 'x' }));
+  const sent = calls.at(-1)!;
+  const h = new Headers(sent.init.headers);
+  assert.equal(h.get('x-consent-capture'), 'newsletter-form-v1');
+  assert.equal(h.get('x-internal-key'), 'internal-test');
+  const body = JSON.parse(String(sent.init.body));
+  assert.equal(body.source, 'web-form', 'client source is ignored');
+  for (const k of ['consentAt', 'consentNoticeVersion', 'consentMethod']) assert.equal(k in body, false, `${k} must never be forwarded`);
+  await lead(request({ email: 'a@b.com' }));
+  const leadHeaders = new Headers(calls.find((c) => c.url.endsWith('/api/subscribers') && c !== sent)!.init.headers);
+  assert.equal(leadHeaders.get('x-consent-capture'), null, 'lead-offer signups do not attest newsletter consent');
+});
+
+test('subscribe rejects cross-site, null and missing Origins before any CMS call', async () => {
+  for (const origin of ['https://attacker.example', 'null', '']) {
+    const headers = new Headers({ 'Content-Type': 'application/json' });
+    if (origin) headers.set('Origin', origin);
+    const r = await subscribe({ request: new Request('https://www.healthylifesstyles.com/api/subscribe', { method: 'POST', headers, body: JSON.stringify({ email: 'victim@example.com' }) }) } as any);
+    assert.equal(r.status, 403, origin || 'missing');
+  }
+  assert.equal(calls.length, 0);
+});
