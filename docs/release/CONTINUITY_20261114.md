@@ -274,5 +274,28 @@ Frontend `c8fdd37`, Verify 43672232995: 27/27 passed. The preflight reported `sc
   - Cloudflare: R2 token scope;
   - a real staging import.
 
+## Session 2026-11-15 (f): importer review (CMS #67 comment 6889363674)
+
+**CMS #67** @ `e561944`: CI 43678580938 passed 31/31, with 20 importer unit tests and 9 synthetic integration tests in isolated-staging mode.
+
+1. **Guard at the entrypoint.** `importBundle` calls `assertImportTarget` before any query, flag change or transaction. It checks both the environment and the database the adapter is actually connected to.
+   - Ten denied paths (production URI or connection, mismatched host, unknown connection, missing flags, wrong staging host, IndexNow, Google or deploy credentials) make zero DB calls (unit spies).
+   - Against the real DB they write nothing (integration).
+2. **Checksums.**
+   - Checksums are canonical: sha256 over sorted-key JSON, identical in the frontend exporter (`71d44df`, Verify 43678587048 27/27) and in the CMS. Both suites share a fixed test vector.
+   - Every checksum is recomputed. The bundle is rejected for tampering, a missing or orphan checksum, unknown fields, a wrong source or scope, unreviewed findings, secret keys at any depth, or missing required records.
+3. **Transaction.**
+   - Sequence reconciliation now runs inside the import transaction. A failure there rolls back all content (integration).
+   - A failure after commit raises `ImportCommittedError` carrying the exact report, and `cleanupImport` removes exactly those records (integration).
+4. **`allowIDOnCreate` restore.** The flag is restored by an outer try/finally, including when `beginTransaction` fails or returns nothing (unit and integration).
+
+**Still blocked:**
+- guard PR #57 (Issue #52 audit baseline);
+- Vercel access;
+- Hostinger runtime identity;
+- R2 IAM;
+- a real staging import (owner authorization);
+- qualified human reviews.
+
 ## Next main-roadmap milestone
 Blocked on access or owner decisions: Phase 7 and 8 query-level work needs Search Console data (owner to grant read access or provide an export). No further roadmap work can proceed without new authorization or data. The pending owner decisions are listed in the external gates above and in the Phase 5, 6 and 7 research docs.
