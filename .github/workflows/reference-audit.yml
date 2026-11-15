@@ -12,6 +12,7 @@ on:
       - 'scripts/content/verify-correction-packages.mjs'
       - 'scripts/content/correction-packages/**'
       - 'scripts/content/release-content-lock.*'
+      - 'src/lib/content-integrity.mjs'
       - '.github/workflows/reference-audit.yml'
   workflow_dispatch:
 
