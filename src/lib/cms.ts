@@ -440,6 +440,7 @@ interface CmsArticle {
   category?: unknown;
   author?: unknown;
   reviewer?: unknown;
+  reviewedByHuman?: boolean;
   tags?: string[];
   publishDate?: string;
   updatedDate?: string;
@@ -482,6 +483,7 @@ function mapArticle(a: CmsArticle): Article {
     authorBio: str(authorObj?.bio) || undefined,
     reviewer: str(reviewerObj?.name || pickSlug(a.reviewer)) || undefined,
     reviewerBio: str(reviewerObj?.bio) || undefined,
+    reviewedByHuman: a.reviewedByHuman === true,
     publishDate: str(a.publishDate).split('T')[0],
     updatedDate: str(a.updatedDate).split('T')[0] || str(a.publishDate).split('T')[0],
     featured: Boolean(a.featured),
