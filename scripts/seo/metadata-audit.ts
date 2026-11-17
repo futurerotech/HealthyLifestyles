@@ -83,7 +83,7 @@ for (const p of pages) {
   if (p.description.length === 0 || !p.description[0]) blocking.push(`${p.route}: indexable page missing meta description`);
   if (p.canonical.length === 0) blocking.push(`${p.route}: indexable page missing canonical`);
   // Self-canonical policy (Phase E: pagination self-canonicalizes too).
-  const expected = p.route === '/' ? [ORIGIN, `${ORIGIN}/`] : [`${ORIGIN}${p.route}`];
+  const expected = p.route === '/' ? [`${ORIGIN}/`] : [`${ORIGIN}${p.route}`];
   if (p.canonical[0] && !expected.includes(p.canonical[0])) {
     blocking.push(`${p.route}: canonical points elsewhere (${p.canonical[0]})`);
   }

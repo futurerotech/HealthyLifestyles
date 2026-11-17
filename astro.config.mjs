@@ -6,6 +6,7 @@ import vercel from '@astrojs/vercel';
 import { partytownSnippet } from '@builder.io/partytown/integration';
 import { copyLibFiles } from '@builder.io/partytown/utils';
 import * as path from 'path';
+import { serializeSitemapEntry } from './src/lib/seo-url-policy.mjs';
 
 // ✅ correct domain
 export const SITE_URL = 'https://www.healthylifesstyles.com';
@@ -29,23 +30,7 @@ export default defineConfig({
         defaultLocale: 'en',
         locales: { en: 'en', es: 'es', ar: 'ar' },
       },
-      serialize: (item) => {
-        const cleanUrl = item.url.replace(/(.+?)\/$/, '$1');
-        const isHome = cleanUrl === SITE_URL;
-        // Root homepage MUST retain trailing slash per HTTP/GSC canonical standards
-        const url = isHome ? `${SITE_URL}/` : cleanUrl;
-
-        let priority = 0.7;
-        if (isHome) {
-          priority = 1.0;
-        } else if (/\/wellness-hub\/[^/]+$/.test(cleanUrl) && !/\/wellness-hub$/.test(cleanUrl)) { priority = 0.8; } else if (/\/tools\/[^/]+$/.test(cleanUrl)) {
-          priority = 0.8;
-        } else if (/\/(author|wellness-hub|tools)$/.test(cleanUrl)) { priority = 0.9; } else if (/\/(about\vert{}privacy\vert{}contact\vert{}terms\vert{}accessibility\vert{}editorial-policy\vert{}methodology\vert{}medical-disclaimer\vert{}cookie-policy\vert{}health-score\vert{}ai-assistant)$/.test(cleanUrl)) {
-          priority = 0.5;
-        }
-
-        return { ...item, url, priority };
-      },
+      serialize: (item) => serializeSitemapEntry(item, SITE_URL),
     }),
   ],
   build: {
