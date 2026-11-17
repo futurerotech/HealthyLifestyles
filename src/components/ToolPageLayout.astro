@@ -36,7 +36,7 @@ import RelatedTools from './RelatedTools.astro';
 import '../styles/calculator.css';
 import { getSiteConsts, getRelatedTools } from '../lib/cms';
 import { getCategory } from '../lib/cms';
-import { getArticlesForTool, resolveAuthor, REVIEWER_SLUG } from '../lib/cms';
+import { getArticlesForTool, resolveAuthor } from '../lib/cms';
 import type { Tool } from '../data/tools';
 import { getAffiliates } from '../data/affiliates';
 import type { ToolContent } from '../data/content-types';
@@ -50,13 +50,12 @@ const { tool, content } = Astro.props;
 const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
 const orgId = `${origin.href}#org`;
 
-const [siteConsts, category, related, guides, authorEntity, reviewerEntity] = await Promise.all([
+const [siteConsts, category, related, guides, authorEntity] = await Promise.all([
   getSiteConsts(),
   getCategory(tool.category).then((c) => c!),
   getRelatedTools(tool.slug, 4),
   getArticlesForTool(tool.slug, 3),
   resolveAuthor('editorial-team'),
-  resolveAuthor(REVIEWER_SLUG),
 ]);
 const SITE = siteConsts.SITE;
 const EDITORIAL = siteConsts.EDITORIAL;
@@ -150,7 +149,7 @@ const faqLd = {
   ],
 };
 
-// Health content → MedicalWebPage with review info for E-E-A-T.
+// MedicalWebPage metadata reflects the visible tool; no unverified human-review claim.
 const medicalLd = {
   '@context': 'https://schema.org',
   '@type': 'MedicalWebPage',
@@ -159,9 +158,7 @@ const medicalLd = {
   url: pageUrl,
   description: content.metaDescription,
   inLanguage: 'en',
-  lastReviewed: EDITORIAL.lastReviewed,
   author: authorLd(authorEntity),
-  reviewedBy: authorLd(reviewerEntity),
   audience: { '@type': 'MedicalAudience', audienceType: 'https://schema.org/Patient' },
   isPartOf: { '@type': 'WebSite', '@id': origin.href },
   // CMS semantic entities → DefinedTerm `about` (same pattern as articles):
