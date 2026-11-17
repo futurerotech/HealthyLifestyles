@@ -42,8 +42,8 @@ export default defineConfig({
       {
         name: 'partytown-snippet',
         transformIndexHtml: {
-          enforce: 'post',
-          transform(html) {
+          enforce: /** @type {'post'} */ ('post'),
+          transform(/** @type {string} */ html) {
             const snippet = partytownSnippet({ forward: ['dataLayer.push', 'adsbygoogle.push'] });
             return html.replace('</head>', `${snippet}</head>`);
           },
