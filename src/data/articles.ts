@@ -59,6 +59,8 @@ export interface Article {
   reviewer?: string;
   /** One-line reviewer credential shown under the byline (E-E-A-T). */
   reviewerBio?: string;
+  /** True only after the CMS records actual human review; never inferred from publication. */
+  reviewedByHuman?: boolean;
   publishDate: string; // ISO yyyy-mm-dd
   updatedDate: string; // ISO yyyy-mm-dd
   featured?: boolean;
