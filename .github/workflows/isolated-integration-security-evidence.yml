@@ -1,0 +1,107 @@
+name: Isolated integration security evidence (no release)
+
+on:
+  pull_request:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+jobs:
+  review-evidence:
+    name: Review-only npm audit and Phase 1/2/3 tests
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'integration/seo-cms-review-safety-20261117' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout integration source
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install exact existing lockfile
+        run: npm ci
+
+      - name: Inspect current audit and non-force semver lockfile candidate
+        shell: bash
+        run: |
+          node <<'NODE'
+          const { spawnSync } = require('node:child_process');
+          const fs = require('node:fs');
+          const originalPackage = fs.readFileSync('package.json', 'utf8');
+          function audit(label) {
+            const r = spawnSync('npm', ['audit', '--json'], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+            if (r.error || !r.stdout) throw new Error(label + ': npm audit was unavailable: ' + String(r.error || r.stderr).slice(0, 300));
+            const report = JSON.parse(r.stdout);
+            if (!report.metadata?.vulnerabilities || !report.vulnerabilities) throw new Error(label + ': audit result has no vulnerability inventory');
+            const totals = report.metadata.vulnerabilities;
+            const advisories = [];
+            for (const [pkg, v] of Object.entries(report.vulnerabilities)) {
+              for (const item of v.via || []) {
+                if (item && typeof item === 'object' && item.source) {
+                  advisories.push({ source: item.source, severity: item.severity, package: pkg, title: item.title, range: v.range, fixAvailable: v.fixAvailable });
+                }
+              }
+            }
+            const unique = [...new Map(advisories.map(x => [x.source, x])).values()];
+            console.log('SECURITY_' + label + '_TOTALS=' + JSON.stringify(totals));
+            console.log('SECURITY_' + label + '_ADVISORIES=' + JSON.stringify(unique.slice(0, 120)));
+            return { totals, unique };
+          }
+          const before = audit('BEFORE');
+          const fix = spawnSync('npm', ['audit', 'fix', '--package-lock-only', '--ignore-scripts', '--no-fund'], {
+            encoding: 'utf8', maxBuffer: 8 * 1024 * 1024,
+          });
+          console.log('SECURITY_SEMVER_FIX_STATUS=' + fix.status);
+          if (fix.error) throw fix.error;
+          console.log('SECURITY_SEMVER_FIX_STDERR=' + String(fix.stderr).slice(-1200));
+          if (fs.readFileSync('package.json', 'utf8') !== originalPackage) {
+            throw new Error('npm audit fix unexpectedly changed package.json; STOP without saving anything');
+          }
+          const after = audit('AFTER');
+          const status = spawnSync('git', ['diff', '--stat', '--', 'package.json', 'package-lock.json'], { encoding: 'utf8' });
+          console.log('SECURITY_LOCKFILE_DIFF=' + status.stdout.trim());
+          fs.writeFileSync('audit-review-evidence.json', JSON.stringify({
+            before: before.totals, after: after.totals,
+            beforeAdvisories: before.unique, afterAdvisories: after.unique,
+            nonForceExitCode: fix.status,
+          }, null, 2) + '\n');
+          NODE
+
+      - name: Reinstall candidate lockfile to prove reproducibility
+        run: npm ci
+
+      - name: Integrated SEO, CMS authority and review-evidence tests
+        run: npm run test:seo
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Real offline Astro build and metadata audit
+        run: |
+          npm run build
+          npm run seo:meta
+
+      - name: Emit candidate lockfile for authenticated review (no commit or publish)
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const crypto = require('node:crypto');
+          const p = fs.readFileSync('package-lock.json');
+          const b = p.toString('base64');
+          const size = 3500;
+          console.log('LOCKFILE_REVIEW_SHA256=' + crypto.createHash('sha256').update(p).digest('hex'));
+          console.log('LOCKFILE_REVIEW_BYTES=' + p.length);
+          console.log('LOCKFILE_REVIEW_CHUNKS=' + Math.ceil(b.length / size));
+          for (let i = 0; i < b.length; i += size) {
+            console.log('LOCKFILE_REVIEW_CHUNK_' + String(i / size).padStart(4, '0') + '=' + b.slice(i, i + size));
+          }
+          NODE
+
+      - name: Original expired-baseline security gate is still required
+        if: always()
+        run: node scripts/ci/audit-delta.ts
