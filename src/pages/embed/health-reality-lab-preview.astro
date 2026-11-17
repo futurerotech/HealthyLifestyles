@@ -1,0 +1,277 @@
+---
+import { buildWeekPlan, DEFAULTS } from '../../lib/health-reality-lab.mjs';
+
+// Intentionally standalone: no CMS reads, analytics, ad scripts, accounts or form posts.
+const firstPlan = buildWeekPlan(DEFAULTS);
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Health Reality Lab | Unlisted Review Prototype</title>
+    <meta name="description" content="Unlisted prototype of an offline, constraint-aware weekly wellness planner." />
+  </head>
+  <body>
+    <main class="wrap">
+      <p class="eyebrow">HealthyLifeStyles / Unlisted internal review</p>
+      <header>
+        <h1>Health Reality Lab</h1>
+        <p class="lead">A smaller plan that fits the time and energy you actually have. No accounts, no payment, no health data sent to a server by this tool.</p>
+      </header>
+      <section class="grid" aria-label="Prototype planner">
+        <form id="lab-form" class="panel" novalidate>
+          <h2>Your real-world limits</h2>
+          <p class="muted">Choose options; this example creates suggestions only and makes no medical recommendations.</p>
+          <div class="fields">
+            <label for="goal">What would you like to make easier?</label>
+            <select id="goal" name="goal">
+              <option value="movement">Comfortable daily movement</option>
+              <option value="food">Simple food planning</option>
+              <option value="sleep">A wind-down routine</option>
+              <option value="calm">More breathing room</option>
+            </select>
+            <label for="minutes">Minutes you can spare per session</label>
+            <select id="minutes" name="minutes">
+              <option value="5">5 minutes</option>
+              <option value="10" selected>10 minutes</option>
+              <option value="15">15 minutes</option>
+              <option value="20">20 minutes</option>
+              <option value="30">30 minutes</option>
+              <option value="45">45 minutes</option>
+              <option value="60">60 minutes</option>
+            </select>
+            <label for="sessions">Days available this week</label>
+            <select id="sessions" name="sessions">
+              <option value="1">1 day</option><option value="2">2 days</option>
+              <option value="3" selected>3 days</option><option value="4">4 days</option>
+              <option value="5">5 days</option><option value="6">6 days</option>
+              <option value="7">7 days</option>
+            </select>
+            <fieldset class="weekday-selector">
+              <legend>Which days could work? Uncheck busy days.</legend>
+              <div class="weekday-grid">
+                <label><input type="checkbox" name="availableDays" value="Monday" checked /> Mon</label>
+                <label><input type="checkbox" name="availableDays" value="Tuesday" checked /> Tue</label>
+                <label><input type="checkbox" name="availableDays" value="Wednesday" checked /> Wed</label>
+                <label><input type="checkbox" name="availableDays" value="Thursday" checked /> Thu</label>
+                <label><input type="checkbox" name="availableDays" value="Friday" checked /> Fri</label>
+                <label><input type="checkbox" name="availableDays" value="Saturday" checked /> Sat</label>
+                <label><input type="checkbox" name="availableDays" value="Sunday" checked /> Sun</label>
+              </div>
+            </fieldset>
+            <label for="energy">Energy level to plan around</label>
+            <select id="energy" name="energy">
+              <option value="low" selected>Low</option>
+              <option value="moderate">Moderate</option>
+              <option value="high">High</option>
+            </select>
+            <label for="mobility">Movement preference</label>
+            <select id="mobility" name="mobility">
+              <option value="any" selected>Flexible</option>
+              <option value="seated">Seated activities only</option>
+            </select>
+            <label for="shift">Work / sleep schedule</label>
+            <select id="shift" name="shift">
+              <option value="day">Mostly daytime</option>
+              <option value="night">Mostly night shift</option>
+              <option value="rotating" selected>Rotating or irregular</option>
+            </select>
+            <label for="budget">Spending preference</label>
+            <select id="budget" name="budget">
+              <option value="no-spend" selected>No additional purchases</option>
+              <option value="flexible">Can consider optional purchases</option>
+            </select>
+          </div>
+          <button type="submit">Build my small plan</button>
+          <p id="form-error" role="alert" hidden></p>
+          <p class="footnote">Local-only calculation. Nothing in this form is stored, uploaded, or submitted to an API. This unlisted prototype is not a clinical tool.</p>
+        </form>
+        <section class="panel result" aria-labelledby="plan-title">
+          <h2 id="plan-title">Your feasible starting point</h2>
+          <div id="plan-result" aria-live="polite" aria-atomic="true">
+            <p id="plan-summary" class="summary">{firstPlan.summary}</p>
+            <ol id="plan-days">
+              {firstPlan.week.map((entry) => (
+                <li class:list={{ 'rest-day': Boolean(entry.rest) }}>
+                  <strong>{entry.day}</strong>
+                  <span>{entry.title}</span>
+                  <small>{entry.rest ? 'Open day · No activity scheduled' : `${entry.minutes} min · ${entry.when}`}</small>
+                </li>
+              ))}
+            </ol>
+            <div id="alternatives" class="alternatives" hidden>
+              <h3>Other options that fit</h3><ul id="alternative-list"></ul>
+            </div>
+          </div>
+          <div class="actions" aria-label="Plan actions">
+            <button type="button" class="secondary" id="copy-plan">Copy plan</button>
+            <button type="button" class="secondary" id="download-plan">Save as text</button>
+            <button type="button" class="secondary" id="print-plan">Print</button>
+          </div>
+          <p class="action-status" id="action-status" role="status" aria-live="polite"></p>
+          <div class="caution">
+            <h3>Keep it flexible</h3>
+            {firstPlan.notes.map((note) => <p>{note}</p>)}
+          </div>
+        </section>
+      </section>
+    </main>
+    <script>
+      import { buildWeekPlan, DEFAULTS, formatWeekPlan } from '../../lib/health-reality-lab.mjs';
+      const form = document.querySelector('#lab-form');
+      const daysList = document.querySelector('#plan-days');
+      const summary = document.querySelector('#plan-summary');
+      const altBox = document.querySelector('#alternatives');
+      const altList = document.querySelector('#alternative-list');
+      const formError = document.querySelector('#form-error');
+      const actionStatus = document.querySelector('#action-status');
+      const copyButton = document.querySelector('#copy-plan');
+      const downloadButton = document.querySelector('#download-plan');
+      const printButton = document.querySelector('#print-plan');
+      let currentPlan = buildWeekPlan(DEFAULTS);
+      if (form instanceof HTMLFormElement && daysList && summary && altBox && altList && formError &&
+          actionStatus && copyButton instanceof HTMLButtonElement &&
+          downloadButton instanceof HTMLButtonElement && printButton instanceof HTMLButtonElement) {
+        form.addEventListener('submit', (event) => {
+          event.preventDefault();
+          try {
+            const data = new FormData(form);
+            const input = {
+              goal: String(data.get('goal')),
+              minutes: Number(data.get('minutes')),
+              sessions: Number(data.get('sessions')),
+              availableDays: Array.from(
+                form.querySelectorAll('input[name="availableDays"]:checked'),
+                (entry) => entry instanceof HTMLInputElement ? entry.value : ''
+              ),
+              energy: String(data.get('energy')),
+              mobility: String(data.get('mobility')),
+              shift: String(data.get('shift')),
+              budget: String(data.get('budget')),
+            };
+            if (input.availableDays.length < input.sessions) {
+              formError.textContent = 'Select at least as many available days as planned sessions.';
+              formError.hidden = false;
+              return;
+            }
+            const plan = buildWeekPlan(input);
+            currentPlan = plan;
+            summary.textContent = plan.summary;
+            actionStatus.textContent = '';
+            daysList.replaceChildren();
+            for (const slot of plan.week) {
+              const li = document.createElement('li');
+              if (slot.rest) li.classList.add('rest-day');
+              const day = document.createElement('strong');
+              day.textContent = slot.day;
+              const title = document.createElement('span');
+              title.textContent = slot.title;
+              const detail = document.createElement('small');
+              detail.textContent = slot.rest
+                ? 'Open day · No activity scheduled'
+                : slot.minutes + ' min · ' + slot.when;
+              li.append(day, title, detail);
+              daysList.append(li);
+            }
+            altList.replaceChildren();
+            for (const alternative of plan.alternatives) {
+              const li = document.createElement('li');
+              li.textContent = alternative;
+              altList.append(li);
+            }
+            altBox.hidden = plan.alternatives.length === 0;
+            formError.hidden = true;
+            formError.textContent = '';
+          } catch {
+            formError.textContent = 'Please review your selections and try again.';
+            formError.hidden = false;
+          }
+        });
+        copyButton.addEventListener('click', async () => {
+          try {
+            if (!navigator.clipboard?.writeText) throw new Error('clipboard unavailable');
+            await navigator.clipboard.writeText(formatWeekPlan(currentPlan));
+            actionStatus.textContent = 'Plan copied to your clipboard.';
+          } catch {
+            actionStatus.textContent = 'Copy is unavailable here. You can save the plan as a text file instead.';
+          }
+        });
+        downloadButton.addEventListener('click', () => {
+          const blob = new Blob([formatWeekPlan(currentPlan)], { type: 'text/plain;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'health-reality-lab-week.txt';
+          link.hidden = true;
+          document.body.append(link);
+          link.click();
+          link.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          actionStatus.textContent = 'Text file prepared locally. Check your browser downloads.';
+        });
+        printButton.addEventListener('click', () => {
+          actionStatus.textContent = '';
+          window.print();
+        });
+      }
+    </script>
+    <style>
+      :root { color-scheme: light; font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:#f7fbf8; color:#0a1628; }
+      *,*::before,*::after { box-sizing:border-box; }
+      body { margin:0; }
+      .wrap { max-width:1100px; margin:auto; padding:clamp(18px,4vw,48px); }
+      .eyebrow { font-size:.76rem; letter-spacing:.12em; text-transform:uppercase; color:#197d45; font-weight:750; }
+      header { margin:16px 0 30px; }
+      h1 { font-size:clamp(2.2rem,6vw,4rem); margin:.2em 0; letter-spacing:-.05em; }
+      .lead { color:#344254; font-size:1.12rem; line-height:1.65; max-width:62ch; }
+      .grid { display:grid; grid-template-columns:minmax(0, .9fr) minmax(0,1.1fr); gap:22px; align-items:start; }
+      .panel { background:#fff; border:1px solid #deebe2; border-radius:22px; padding:clamp(20px,3vw,30px); box-shadow:0 10px 35px #11371b0b; }
+      h2 { font-size:1.45rem; margin:0 0 10px; }
+      h3 { font-size:1rem; margin:.5em 0; }
+      .muted,.footnote { color:#526272; line-height:1.5; }
+      .footnote { font-size:.78rem; }
+      .fields { display:grid; gap:8px; margin:18px 0; }
+      label { font-size:.89rem; font-weight:700; margin-top:10px; }
+      select { width:100%; border:1px solid #adcbbb; border-radius:10px; padding:12px; background:white; color:#0a1628; font:inherit; }
+      select:focus-visible,button:focus-visible,input:focus-visible { outline:3px solid #16a34a; outline-offset:3px; }
+      .weekday-selector { border:1px solid #deebe2; border-radius:12px; padding:12px; margin-top:12px; }
+      .weekday-selector legend { font-size:.89rem; font-weight:700; padding:0 5px; }
+      .weekday-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(75px,1fr)); gap:8px; }
+      .weekday-grid label { display:flex; align-items:center; gap:6px; margin:0; font-weight:600; cursor:pointer; }
+      .weekday-grid input { accent-color:#168849; width:1.1rem; height:1.1rem; }
+      button { width:100%; cursor:pointer; background:#167f45; color:white; font-weight:750; font-size:1rem; padding:15px; border:0; border-radius:12px; }
+      button:hover { background:#126838; }
+      .result { background:linear-gradient(165deg,#ffffff 25%,#f4fcf6); }
+      .summary { color:#214d32; font-weight:700; line-height:1.5; }
+      #plan-days { margin:18px 0; padding:0; list-style:none; display:grid; gap:12px; }
+      #plan-days li { display:grid; gap:4px; border:1px solid #d6e9db; border-radius:13px; padding:16px; background:white; }
+      #plan-days strong { color:#14834a; }
+      #plan-days span { font-weight:650; }
+      #plan-days small { color:#59677a; line-height:1.5; }
+      .caution { border-top:1px solid #d9e9df; padding-top:14px; margin-top:20px; color:#465669; font-size:.85rem; line-height:1.6; }
+      .alternatives { border-top:1px solid #d9e9df; padding-top:10px; }
+      .alternatives li { margin:8px 0; }
+      [hidden] { display:none !important; }
+      #form-error { color:#a42430; font-weight:650; }
+      #plan-days .rest-day { border-style:dashed; background:transparent; opacity:.8; }
+      #plan-days .rest-day strong { color:#59677a; }
+      .actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; }
+      .actions button.secondary { flex:1 1 120px; width:auto; background:#e3f3e8; color:#0e5631; border:1px solid #99cfac; font-size:.9rem; }
+      .actions button.secondary:hover { background:#cbe7d4; }
+      .action-status { min-height:1.3em; color:#356546; font-size:.85rem; }
+      @media (max-width:760px) { .grid { grid-template-columns:1fr; } }
+      @media print {
+        :root { background:#fff; }
+        .wrap { max-width:none; padding:0; }
+        .grid { display:block; }
+        #lab-form,.eyebrow,.actions,.action-status { display:none !important; }
+        .panel { border:none; padding:0; box-shadow:none; background:#fff; }
+        #plan-days li { break-inside:avoid; }
+      }
+      @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; } }
+    </style>
+  </body>
+</html>
