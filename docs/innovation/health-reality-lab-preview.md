@@ -12,3 +12,11 @@ This is a **working, limited planning feature**, not a medical calculator and no
 
 ## Release gate
 Keep PR in Draft; the URL is **unlisted, not access-controlled**, so no real private health information should be entered. Do not deploy it to production, merge it into a published branch or claim that user interviews, clinical review or live accessibility audit have happened. Real user research, privacy/accessibility validation, a clinically qualified review of all suggested actions and owner approval are still required before a public release. This feature is additive; 68 existing frontend tool routes and their CMS relationships remain unchanged.
+
+## Portable plan and print view
+- The seven-day overview explicitly marks unscheduled days as open/rest days.
+- Copy uses the browser Clipboard API. If permissions deny access, the interface explains the alternative rather than claiming success.
+- Save as text creates a Blob URL in browser memory; it does not upload a file.
+- Print uses the browser print dialog; print CSS removes inputs and action controls.
+- Rebuilding the plan updates all three actions to use the latest selection.
+- The downloaded text is a user-controlled local artifact. Do not enter private clinical details in this unlisted preview.

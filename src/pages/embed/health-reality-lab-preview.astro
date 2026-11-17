@@ -82,14 +82,24 @@ const firstPlan = buildWeekPlan(DEFAULTS);
           <div id="plan-result" aria-live="polite" aria-atomic="true">
             <p id="plan-summary" class="summary">{firstPlan.summary}</p>
             <ol id="plan-days">
-              {firstPlan.schedule.map((entry) => (
-                <li><strong>{entry.day}</strong><span>{entry.title}</span><small>{entry.minutes} min · {entry.when}</small></li>
+              {firstPlan.week.map((entry) => (
+                <li class:list={{ 'rest-day': Boolean(entry.rest) }}>
+                  <strong>{entry.day}</strong>
+                  <span>{entry.title}</span>
+                  <small>{entry.rest ? 'Open day · No activity scheduled' : `${entry.minutes} min · ${entry.when}`}</small>
+                </li>
               ))}
             </ol>
             <div id="alternatives" class="alternatives" hidden>
               <h3>Other options that fit</h3><ul id="alternative-list"></ul>
             </div>
           </div>
+          <div class="actions" aria-label="Plan actions">
+            <button type="button" class="secondary" id="copy-plan">Copy plan</button>
+            <button type="button" class="secondary" id="download-plan">Save as text</button>
+            <button type="button" class="secondary" id="print-plan">Print</button>
+          </div>
+          <p class="action-status" id="action-status" role="status" aria-live="polite"></p>
           <div class="caution">
             <h3>Keep it flexible</h3>
             {firstPlan.notes.map((note) => <p>{note}</p>)}
@@ -98,14 +108,21 @@ const firstPlan = buildWeekPlan(DEFAULTS);
       </section>
     </main>
     <script>
-      import { buildWeekPlan } from '../../lib/health-reality-lab.mjs';
+      import { buildWeekPlan, DEFAULTS, formatWeekPlan } from '../../lib/health-reality-lab.mjs';
       const form = document.querySelector('#lab-form');
       const daysList = document.querySelector('#plan-days');
       const summary = document.querySelector('#plan-summary');
       const altBox = document.querySelector('#alternatives');
       const altList = document.querySelector('#alternative-list');
       const formError = document.querySelector('#form-error');
-      if (form instanceof HTMLFormElement && daysList && summary && altBox && altList && formError) {
+      const actionStatus = document.querySelector('#action-status');
+      const copyButton = document.querySelector('#copy-plan');
+      const downloadButton = document.querySelector('#download-plan');
+      const printButton = document.querySelector('#print-plan');
+      let currentPlan = buildWeekPlan(DEFAULTS);
+      if (form instanceof HTMLFormElement && daysList && summary && altBox && altList && formError &&
+          actionStatus && copyButton instanceof HTMLButtonElement &&
+          downloadButton instanceof HTMLButtonElement && printButton instanceof HTMLButtonElement) {
         form.addEventListener('submit', (event) => {
           event.preventDefault();
           try {
@@ -120,16 +137,21 @@ const firstPlan = buildWeekPlan(DEFAULTS);
               budget: String(data.get('budget')),
             };
             const plan = buildWeekPlan(input);
+            currentPlan = plan;
             summary.textContent = plan.summary;
+            actionStatus.textContent = '';
             daysList.replaceChildren();
-            for (const slot of plan.schedule) {
+            for (const slot of plan.week) {
               const li = document.createElement('li');
+              if (slot.rest) li.classList.add('rest-day');
               const day = document.createElement('strong');
               day.textContent = slot.day;
               const title = document.createElement('span');
               title.textContent = slot.title;
               const detail = document.createElement('small');
-              detail.textContent = slot.minutes + ' min · ' + slot.when;
+              detail.textContent = slot.rest
+                ? 'Open day · No activity scheduled'
+                : slot.minutes + ' min · ' + slot.when;
               li.append(day, title, detail);
               daysList.append(li);
             }
@@ -146,6 +168,32 @@ const firstPlan = buildWeekPlan(DEFAULTS);
             formError.textContent = 'Please review your selections and try again.';
             formError.hidden = false;
           }
+        });
+        copyButton.addEventListener('click', async () => {
+          try {
+            if (!navigator.clipboard?.writeText) throw new Error('clipboard unavailable');
+            await navigator.clipboard.writeText(formatWeekPlan(currentPlan));
+            actionStatus.textContent = 'Plan copied to your clipboard.';
+          } catch {
+            actionStatus.textContent = 'Copy is unavailable here. You can save the plan as a text file instead.';
+          }
+        });
+        downloadButton.addEventListener('click', () => {
+          const blob = new Blob([formatWeekPlan(currentPlan)], { type: 'text/plain;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'health-reality-lab-week.txt';
+          link.hidden = true;
+          document.body.append(link);
+          link.click();
+          link.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          actionStatus.textContent = 'Text file prepared locally. Check your browser downloads.';
+        });
+        printButton.addEventListener('click', () => {
+          actionStatus.textContent = '';
+          window.print();
         });
       }
     </script>
@@ -182,7 +230,21 @@ const firstPlan = buildWeekPlan(DEFAULTS);
       .alternatives li { margin:8px 0; }
       [hidden] { display:none !important; }
       #form-error { color:#a42430; font-weight:650; }
+      #plan-days .rest-day { border-style:dashed; background:transparent; opacity:.8; }
+      #plan-days .rest-day strong { color:#59677a; }
+      .actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; }
+      .actions button.secondary { flex:1 1 120px; width:auto; background:#e3f3e8; color:#0e5631; border:1px solid #99cfac; font-size:.9rem; }
+      .actions button.secondary:hover { background:#cbe7d4; }
+      .action-status { min-height:1.3em; color:#356546; font-size:.85rem; }
       @media (max-width:760px) { .grid { grid-template-columns:1fr; } }
+      @media print {
+        :root { background:#fff; }
+        .wrap { max-width:none; padding:0; }
+        .grid { display:block; }
+        #lab-form,.eyebrow,.actions,.action-status { display:none !important; }
+        .panel { border:none; padding:0; box-shadow:none; background:#fff; }
+        #plan-days li { break-inside:avoid; }
+      }
       @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; } }
     </style>
   </body>

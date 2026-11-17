@@ -95,10 +95,24 @@ export function buildWeekPlan(rawInput) {
     });
   });
   const totalMinutes = schedule.reduce((total, slot) => total + slot.minutes, 0);
+  // Keep the complete week visible: days without a chosen activity are free,
+  // not a failure to meet a goal.
+  const week = DAYS.map((day) => {
+    const activity = schedule.find((slot) => slot.day === day);
+    return activity || Object.freeze({
+      day,
+      rest: true,
+      title: 'Open day — rest or choose freely',
+      minutes: 0,
+      when: 'No activity scheduled',
+      id: 'rest',
+    });
+  });
   const alternatives = choices.filter((a) => !schedule.some((slot) => slot.id === a.id))
     .slice(0, 2).map((a) => a.label);
   return Object.freeze({
     schedule: Object.freeze(schedule),
+    week: Object.freeze(week),
     totalMinutes,
     summary: input.sessions + ' optional sessions across seven days, using ' +
       totalMinutes + ' minutes in total. No purchase is required.',
@@ -109,4 +123,27 @@ export function buildWeekPlan(rawInput) {
       'No precise food prices or health outcomes have been estimated.',
     ]),
   });
+}
+
+/**
+ * Portable text export; includes no email, location, name or user-entered notes.
+ * Formatting stays local in the browser; the caller chooses whether to save it.
+ */
+export function formatWeekPlan(plan) {
+  if (!plan || !Array.isArray(plan.week) || plan.week.length !== 7 ||
+      typeof plan.summary !== 'string' || !Array.isArray(plan.notes)) {
+    throw new TypeError('A completed weekly plan is required.');
+  }
+  return [
+    'Health Reality Lab — your flexible week',
+    '',
+    plan.summary,
+    '',
+    ...plan.week.map((entry) => entry.rest
+      ? entry.day + ': Open day — rest or choose freely'
+      : entry.day + ': ' + entry.title + ' (' + entry.minutes + ' min; ' + entry.when + ')'),
+    '',
+    'Keep it flexible:',
+    ...plan.notes.map((note) => '- ' + note),
+  ].join('\n') + '\n';
 }

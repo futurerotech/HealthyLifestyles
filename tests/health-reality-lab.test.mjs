@@ -56,3 +56,30 @@ test('result structures are immutable to callers', () => {
   assert.ok(Object.isFrozen(result.schedule));
   assert.ok(Object.isFrozen(result.schedule[0]));
 });
+
+test('full week shows open days without increasing time commitment', () => {
+  const plan = buildWeekPlan({ ...DEFAULTS, sessions: 2, minutes: 5 });
+  assert.equal(plan.week.length, 7);
+  assert.equal(plan.week.filter((day) => day.rest).length, 5);
+  assert.equal(plan.week.filter((day) => !day.rest).length, 2);
+  assert.equal(plan.totalMinutes, 10);
+  assert.equal(new Set(plan.week.map((day) => day.day)).size, 7);
+  assert.ok(Object.isFrozen(plan.week));
+});
+
+test('pure text export includes schedule and safety note without raw inputs', async () => {
+  const { formatWeekPlan } = await import('../src/lib/health-reality-lab.mjs');
+  const plan = buildWeekPlan({ ...DEFAULTS, sessions: 1 });
+  const txt = formatWeekPlan(plan);
+  assert.match(txt, /Monday:/);
+  assert.match(txt, /Sunday:/);
+  assert.match(txt, /rest or choose freely/i);
+  assert.match(txt, /not medical care/i);
+  assert.equal(txt.split('Monday:').length, 2);
+  assert.throws(() => formatWeekPlan({ schedule: [] }), TypeError);
+});
+
+test('text export is deterministic for a fixed plan', async () => {
+  const { formatWeekPlan } = await import('../src/lib/health-reality-lab.mjs');
+  assert.equal(formatWeekPlan(buildWeekPlan(DEFAULTS)), formatWeekPlan(buildWeekPlan(DEFAULTS)));
+});
