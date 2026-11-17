@@ -6,9 +6,9 @@
  * pages can move from `import { TOOLS }` to `await getTools()` with no
  * downstream changes.
  *
- * If the CMS is unreachable, misconfigured, or returns nothing, every getter
- * falls back to the local `src/data/*` files. This keeps the site building even
- * with no CMS running — the CMS is an enhancement, not a hard dependency.
+ * A reachable CMS is authoritative, including empty published collections.
+ * Local `src/data/*` fallback is for unavailable CMS reads in development/CI;
+ * production builds fail closed unless an explicit fallback override is set.
  *
  * Configure with CMS_URL (defaults to http://localhost:3000). Set CMS_DISABLE=1
  * to force local data (useful for CI / offline builds).
