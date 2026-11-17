@@ -50,6 +50,18 @@ const firstPlan = buildWeekPlan(DEFAULTS);
               <option value="5">5 days</option><option value="6">6 days</option>
               <option value="7">7 days</option>
             </select>
+            <fieldset class="weekday-selector">
+              <legend>Which days could work? Uncheck busy days.</legend>
+              <div class="weekday-grid">
+                <label><input type="checkbox" name="availableDays" value="Monday" checked /> Mon</label>
+                <label><input type="checkbox" name="availableDays" value="Tuesday" checked /> Tue</label>
+                <label><input type="checkbox" name="availableDays" value="Wednesday" checked /> Wed</label>
+                <label><input type="checkbox" name="availableDays" value="Thursday" checked /> Thu</label>
+                <label><input type="checkbox" name="availableDays" value="Friday" checked /> Fri</label>
+                <label><input type="checkbox" name="availableDays" value="Saturday" checked /> Sat</label>
+                <label><input type="checkbox" name="availableDays" value="Sunday" checked /> Sun</label>
+              </div>
+            </fieldset>
             <label for="energy">Energy level to plan around</label>
             <select id="energy" name="energy">
               <option value="low" selected>Low</option>
@@ -131,11 +143,20 @@ const firstPlan = buildWeekPlan(DEFAULTS);
               goal: String(data.get('goal')),
               minutes: Number(data.get('minutes')),
               sessions: Number(data.get('sessions')),
+              availableDays: Array.from(
+                form.querySelectorAll('input[name="availableDays"]:checked'),
+                (entry) => entry instanceof HTMLInputElement ? entry.value : ''
+              ),
               energy: String(data.get('energy')),
               mobility: String(data.get('mobility')),
               shift: String(data.get('shift')),
               budget: String(data.get('budget')),
             };
+            if (input.availableDays.length < input.sessions) {
+              formError.textContent = 'Select at least as many available days as planned sessions.';
+              formError.hidden = false;
+              return;
+            }
             const plan = buildWeekPlan(input);
             currentPlan = plan;
             summary.textContent = plan.summary;
@@ -215,7 +236,12 @@ const firstPlan = buildWeekPlan(DEFAULTS);
       .fields { display:grid; gap:8px; margin:18px 0; }
       label { font-size:.89rem; font-weight:700; margin-top:10px; }
       select { width:100%; border:1px solid #adcbbb; border-radius:10px; padding:12px; background:white; color:#0a1628; font:inherit; }
-      select:focus-visible,button:focus-visible { outline:3px solid #16a34a; outline-offset:3px; }
+      select:focus-visible,button:focus-visible,input:focus-visible { outline:3px solid #16a34a; outline-offset:3px; }
+      .weekday-selector { border:1px solid #deebe2; border-radius:12px; padding:12px; margin-top:12px; }
+      .weekday-selector legend { font-size:.89rem; font-weight:700; padding:0 5px; }
+      .weekday-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(75px,1fr)); gap:8px; }
+      .weekday-grid label { display:flex; align-items:center; gap:6px; margin:0; font-weight:600; cursor:pointer; }
+      .weekday-grid input { accent-color:#168849; width:1.1rem; height:1.1rem; }
       button { width:100%; cursor:pointer; background:#167f45; color:white; font-weight:750; font-size:1rem; padding:15px; border:0; border-radius:12px; }
       button:hover { background:#126838; }
       .result { background:linear-gradient(165deg,#ffffff 25%,#f4fcf6); }

@@ -59,6 +59,13 @@ function validate(input) {
     }
     result[key] = input[key];
   }
+  const allowed = input.availableDays === undefined ? DAYS : input.availableDays;
+  if (!Array.isArray(allowed) || allowed.length < result.sessions ||
+      allowed.length > 7 || new Set(allowed).size !== allowed.length ||
+      allowed.some((day) => !DAYS.includes(day))) {
+    throw new RangeError('Choose distinct valid weekdays for every planned session.');
+  }
+  result.availableDays = DAYS.filter((day) => allowed.includes(day));
   return result;
 }
 
@@ -84,10 +91,10 @@ export function buildWeekPlan(rawInput) {
   }
   const choices = [...suitable].sort((a, b) => a.minutes - b.minutes || a.id.localeCompare(b.id));
   const schedule = Array.from({ length: input.sessions }, (_, i) => {
-    const dayIndex = Math.floor((i * 7) / input.sessions);
+    const dayIndex = Math.floor((i * input.availableDays.length) / input.sessions);
     const activity = choices[(i + choices.length - 1) % choices.length];
     return Object.freeze({
-      day: DAYS[dayIndex],
+      day: input.availableDays[dayIndex],
       when: timing(input.goal, input.shift),
       title: activity.label,
       minutes: activity.minutes,

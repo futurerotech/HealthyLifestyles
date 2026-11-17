@@ -83,3 +83,18 @@ test('text export is deterministic for a fixed plan', async () => {
   const { formatWeekPlan } = await import('../src/lib/health-reality-lab.mjs');
   assert.equal(formatWeekPlan(buildWeekPlan(DEFAULTS)), formatWeekPlan(buildWeekPlan(DEFAULTS)));
 });
+
+test('only explicitly available weekdays are scheduled', () => {
+  const plan = buildWeekPlan({
+    ...DEFAULTS, sessions: 2, availableDays: ['Saturday', 'Tuesday', 'Thursday']
+  });
+  assert.deepEqual(plan.schedule.map((x) => x.day), ['Tuesday', 'Thursday']);
+  assert.equal(plan.week.filter((x) => !x.rest).length, 2);
+  assert.equal(plan.week.find((x) => x.day === 'Saturday').rest, true);
+});
+
+test('weekday constraints fail closed on insufficient, duplicate, or unknown days', () => {
+  for (const availableDays of [[], ['Monday'], ['Monday', 'Monday', 'Tuesday'], ['Monday', 'Funday']]) {
+    assert.throws(() => buildWeekPlan({ ...DEFAULTS, sessions: 2, availableDays }), RangeError);
+  }
+});

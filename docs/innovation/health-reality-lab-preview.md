@@ -20,3 +20,6 @@ Keep PR in Draft; the URL is **unlisted, not access-controlled**, so no real pri
 - Print uses the browser print dialog; print CSS removes inputs and action controls.
 - Rebuilding the plan updates all three actions to use the latest selection.
 - The downloaded text is a user-controlled local artifact. Do not enter private clinical details in this unlisted preview.
+
+## Weekday availability
+The user can uncheck days they cannot commit to. The planner schedules only among the remaining valid days; it refuses a request for more sessions than available days. The default preserves seven available days and distributes sessions across the week. This is an optional preference in the deterministic engine and is never transmitted.
