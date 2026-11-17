@@ -16,7 +16,7 @@ const ORG_ID = 'https://www.healthylifesstyles.com/#org'
 
 interface Finding {
   page: string
-  type: 'invalid-json' | 'missing-context' | 'missing-type' | 'ymyl-missing-author' | 'ymyl-missing-reviewer' | 'ymyl-missing-last-reviewed' | 'orphan-publisher-ref' | 'orphan-worksfor-ref' | 'faqpage-empty' | 'faqpage-bad-qa' | 'speakable-empty'
+  type: 'invalid-json' | 'missing-context' | 'missing-type' | 'ymyl-missing-author' | 'ymyl-invalid-reviewer' | 'ymyl-self-review' | 'ymyl-invalid-last-reviewed' | 'orphan-publisher-ref' | 'orphan-worksfor-ref' | 'faqpage-empty' | 'faqpage-bad-qa' | 'speakable-empty'
   message: string
 }
 
@@ -86,11 +86,34 @@ function main() {
         } else if (!obj.author['@id'] && !obj.author.name) {
           findings.push({ page, type: 'ymyl-missing-author', message: `YMYL author has no name or @id` })
         }
-        if (types.includes('MedicalWebPage') && !obj.reviewedBy) {
-          findings.push({ page, type: 'ymyl-missing-reviewer', message: 'MedicalWebPage missing reviewedBy' })
-        }
-        if (types.includes('MedicalWebPage') && !obj.lastReviewed) {
-          findings.push({ page, type: 'ymyl-missing-last-reviewed', message: 'MedicalWebPage missing lastReviewed' })
+        // Schema.org does not require reviewedBy or lastReviewed on every
+        // MedicalWebPage. A missing field must NEVER force fabricated clinical
+        // endorsement or a made-up review date. Validate claims only if present.
+        if (types.includes('MedicalWebPage')) {
+          if (Object.prototype.hasOwnProperty.call(obj, 'reviewedBy')) {
+            const reviewers = Array.isArray(obj.reviewedBy) ? obj.reviewedBy : [obj.reviewedBy]
+            const validReviewer = (r: unknown): boolean =>
+              !!r && typeof r === 'object' && (
+                (typeof (r as any)['@id'] === 'string' && !!(r as any)['@id'].trim()) ||
+                (typeof (r as any).name === 'string' && !!(r as any).name.trim())
+              )
+            if (!reviewers.length || reviewers.some((r: unknown) => !validReviewer(r))) {
+              findings.push({ page, type: 'ymyl-invalid-reviewer', message: 'MedicalWebPage reviewedBy has no identifiable person/organization' })
+            } else if (obj.author && reviewers.some((r: any) =>
+              (r['@id'] && r['@id'] === obj.author['@id']) ||
+              (r.name && r.name === obj.author.name)
+            )) {
+              findings.push({ page, type: 'ymyl-self-review', message: 'MedicalWebPage reviewer is identical to the author' })
+            }
+          }
+          if (Object.prototype.hasOwnProperty.call(obj, 'lastReviewed')) {
+            const d = obj.lastReviewed
+            if (typeof d !== 'string' ||
+                !/^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2}))?$/.test(d) ||
+                Number.isNaN(Date.parse(d))) {
+              findings.push({ page, type: 'ymyl-invalid-last-reviewed', message: 'MedicalWebPage lastReviewed must be an ISO date or datetime' })
+            }
+          }
         }
       }
 
