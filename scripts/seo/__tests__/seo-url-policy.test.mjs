@@ -49,3 +49,25 @@ test('every approved information route receives priority 0.5', () => {
     assert.equal(result.priority, 0.5, slug);
   }
 });
+
+test('human sitemap groups by actual article sections and preserves unclassified articles', async () => {
+  const { groupSitemapArticles } = await import('../../../src/lib/seo-url-policy.mjs');
+  const articles = [
+    { slug: 'nutrition-guide', category: 'nutrition' },
+    { slug: 'sleep-guide', category: 'sleep' },
+    { slug: 'former-section', category: 'deleted' },
+  ];
+  const sections = [{ id: 'nutrition', slug: 'nutrition' }, { id: 'sleep', slug: 'sleep' }];
+  const grouped = groupSitemapArticles(articles, sections);
+  assert.deepEqual(grouped.groups.map((g) => [g.category.slug, ...g.articles.map((a) => a.slug)]), [
+    ['nutrition', 'nutrition-guide'], ['sleep', 'sleep-guide'],
+  ]);
+  assert.deepEqual(grouped.uncategorized.map((a) => a.slug), ['former-section']);
+  assert.equal(grouped.groups.reduce((n, g) => n + g.articles.length, 0) + grouped.uncategorized.length, articles.length);
+});
+
+test('human sitemap article links use the same single-segment route as article pages', async () => {
+  const { sitemapArticlePath } = await import('../../../src/lib/seo-url-policy.mjs');
+  assert.equal(sitemapArticlePath('nutrition-guide'), '/wellness-hub/nutrition-guide');
+  assert.equal(sitemapArticlePath('former-section'), '/wellness-hub/former-section');
+});
