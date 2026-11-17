@@ -87,6 +87,10 @@ jobs:
         env:
           CMS_DISABLE: '1'
         run: |
+          # Astro build-time import.meta.env reads Vite's .env file; keep the
+          # fixture local to this temporary runner, never commit or deploy it.
+          trap 'rm -f .env' EXIT
+          printf 'CMS_DISABLE=1\n' > .env
           npm run build
           npm run seo:meta
 
