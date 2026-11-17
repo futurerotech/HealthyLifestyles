@@ -34,7 +34,11 @@ const {
 } = Astro.props;
 
 const siteOrigin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
-const canonical = new URL(Astro.url.pathname, siteOrigin).href.replace(/\/$/, '') || siteOrigin.href;
+const canonicalUrl = new URL(Astro.url.pathname, siteOrigin);
+// The homepage canonical is the origin WITH a slash; subpages follow trailingSlash: 'never'.
+const canonical = canonicalUrl.pathname === '/'
+  ? new URL('/', siteOrigin).href
+  : canonicalUrl.href.replace(/\/$/, '');
 const ogImage = new URL(image, siteOrigin).href;
 
 // Title is used verbatim — callers keep it ≤60 chars and brand-suffixed as needed.
