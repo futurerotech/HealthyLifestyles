@@ -26,54 +26,35 @@ jobs:
       - name: Install exact existing lockfile
         run: npm ci
 
-      - name: Inspect current audit and non-force semver lockfile candidate
+      - name: Inspect exact committed lockfile (no mutation, no risk acceptance)
         shell: bash
         run: |
           node <<'NODE'
           const { spawnSync } = require('node:child_process');
-          const fs = require('node:fs');
-          const originalPackage = fs.readFileSync('package.json', 'utf8');
-          function audit(label) {
-            const r = spawnSync('npm', ['audit', '--json'], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
-            if (r.error || !r.stdout) throw new Error(label + ': npm audit was unavailable: ' + String(r.error || r.stderr).slice(0, 300));
-            const report = JSON.parse(r.stdout);
-            if (!report.metadata?.vulnerabilities || !report.vulnerabilities) throw new Error(label + ': audit result has no vulnerability inventory');
-            const totals = report.metadata.vulnerabilities;
-            const advisories = [];
-            for (const [pkg, v] of Object.entries(report.vulnerabilities)) {
-              for (const item of v.via || []) {
-                if (item && typeof item === 'object' && item.source) {
-                  advisories.push({ source: item.source, severity: item.severity, package: pkg, title: item.title, range: v.range, fixAvailable: v.fixAvailable });
-                }
+          const audit = spawnSync('npm', ['audit', '--json'], {
+            encoding: 'utf8', maxBuffer: 64 * 1024 * 1024,
+          });
+          if (audit.error || !audit.stdout) throw new Error('npm audit unavailable: ' + String(audit.error || audit.stderr).slice(0, 200));
+          const report = JSON.parse(audit.stdout);
+          if (!report.metadata?.vulnerabilities || !report.vulnerabilities) throw new Error('Invalid npm audit result');
+          const unique = new Map();
+          for (const [pkg, vulnerability] of Object.entries(report.vulnerabilities)) {
+            for (const advisory of vulnerability.via || []) {
+              if (advisory && typeof advisory === 'object' && advisory.source) {
+                unique.set(advisory.source, {
+                  id: advisory.source, package: pkg, severity: advisory.severity,
+                  title: advisory.title, fixAvailable: vulnerability.fixAvailable,
+                });
               }
             }
-            const unique = [...new Map(advisories.map(x => [x.source, x])).values()];
-            console.log('SECURITY_' + label + '_TOTALS=' + JSON.stringify(totals));
-            console.log('SECURITY_' + label + '_ADVISORIES=' + JSON.stringify(unique.slice(0, 120)));
-            return { totals, unique };
           }
-          const before = audit('BEFORE');
-          const fix = spawnSync('npm', ['audit', 'fix', '--package-lock-only', '--ignore-scripts', '--no-fund'], {
-            encoding: 'utf8', maxBuffer: 8 * 1024 * 1024,
-          });
-          console.log('SECURITY_SEMVER_FIX_STATUS=' + fix.status);
-          if (fix.error) throw fix.error;
-          console.log('SECURITY_SEMVER_FIX_STDERR=' + String(fix.stderr).slice(-1200));
-          if (fs.readFileSync('package.json', 'utf8') !== originalPackage) {
-            throw new Error('npm audit fix unexpectedly changed package.json; STOP without saving anything');
-          }
-          const after = audit('AFTER');
-          const status = spawnSync('git', ['diff', '--stat', '--', 'package.json', 'package-lock.json'], { encoding: 'utf8' });
-          console.log('SECURITY_LOCKFILE_DIFF=' + status.stdout.trim());
-          fs.writeFileSync('audit-review-evidence.json', JSON.stringify({
-            before: before.totals, after: after.totals,
-            beforeAdvisories: before.unique, afterAdvisories: after.unique,
-            nonForceExitCode: fix.status,
-          }, null, 2) + '\n');
+          console.log('EXACT_LOCK_AUDIT_TOTALS=' + JSON.stringify(report.metadata.vulnerabilities));
+          console.log('EXACT_LOCK_UNIQUE_ADVISORIES=' + JSON.stringify([...unique.values()]));
+          console.log('This step inventories risk only; the original audit-delta gate below still fails closed.');
           NODE
 
-      - name: Reinstall candidate lockfile to prove reproducibility
-        run: npm ci
+      - name: Prove package specs and lockfile were not mutated
+        run: git diff --exit-code -- package.json package-lock.json
 
       - name: Integrated SEO, CMS authority and review-evidence tests
         run: npm run test:seo
@@ -87,24 +68,17 @@ jobs:
         env:
           CMS_DISABLE: '1'
         run: |
+          # Astro build-time import.meta.env reads Vite's .env file; keep the
+          # fixture local to this temporary runner, never commit or deploy it.
+          trap 'rm -f .env' EXIT
+          printf 'CMS_DISABLE=1\n' > .env
           npm run build
           npm run seo:meta
-
-      - name: Emit candidate lockfile for authenticated review (no commit or publish)
-        run: |
-          node <<'NODE'
-          const fs = require('node:fs');
-          const crypto = require('node:crypto');
-          const p = fs.readFileSync('package-lock.json');
-          const b = p.toString('base64');
-          const size = 3500;
-          console.log('LOCKFILE_REVIEW_SHA256=' + crypto.createHash('sha256').update(p).digest('hex'));
-          console.log('LOCKFILE_REVIEW_BYTES=' + p.length);
-          console.log('LOCKFILE_REVIEW_CHUNKS=' + Math.ceil(b.length / size));
-          for (let i = 0; i < b.length; i += size) {
-            console.log('LOCKFILE_REVIEW_CHUNK_' + String(i / size).padStart(4, '0') + '=' + b.slice(i, i + size));
-          }
-          NODE
+          npm run seo:dates
+          npm run seo:shells
+          npm run seo:budgets
+          node scripts/seo/orphan-check.ts
+          node scripts/seo/validate-jsonld.ts
 
       - name: Original expired-baseline security gate is still required
         if: always()
