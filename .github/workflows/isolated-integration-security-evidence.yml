@@ -82,6 +82,10 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Real offline Astro build and metadata audit
+        # Isolated non-production fixture build only. Never alter the
+        # production AdManagement fail-closed contract or VERCEL_ENV.
+        env:
+          CMS_DISABLE: '1'
         run: |
           npm run build
           npm run seo:meta
