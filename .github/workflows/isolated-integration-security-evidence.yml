@@ -79,6 +79,7 @@ jobs:
           npm run seo:budgets
           node scripts/seo/orphan-check.ts
           node scripts/seo/validate-jsonld.ts
+          node scripts/seo/sitemap-canonical-audit.mjs
 
       - name: Original expired-baseline security gate is still required
         if: always()
