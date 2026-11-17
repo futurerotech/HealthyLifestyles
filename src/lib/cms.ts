@@ -6,18 +6,19 @@
  * pages can move from `import { TOOLS }` to `await getTools()` with no
  * downstream changes.
  *
- * If the CMS is unreachable, misconfigured, or returns nothing, every getter
- * falls back to the local `src/data/*` files. This keeps the site building even
- * with no CMS running — the CMS is an enhancement, not a hard dependency.
+ * A reachable CMS is authoritative, including empty published collections.
+ * Local `src/data/*` fallback is for unavailable CMS reads in development/CI;
+ * production builds fail closed unless an explicit fallback override is set.
  *
  * Configure with CMS_URL (defaults to http://localhost:3000). Set CMS_DISABLE=1
  * to force local data (useful for CI / offline builds).
  */
 
-import { TOOLS as LOCAL_TOOLS, getPopularTools as localPopularTools, getToolsByCategory as localToolsByCat, getRelatedTools as localRelatedTools, getLiveTools as localLiveTools, type Tool } from '../data/tools';
+import { TOOLS as LOCAL_TOOLS, getPopularTools as localPopularTools, getLiveTools as localLiveTools, type Tool } from '../data/tools';
 import { CATEGORIES as LOCAL_CATEGORIES, type Category } from '../data/categories';
 import { ARTICLES as LOCAL_ARTICLES, ARTICLE_CATEGORIES as LOCAL_ARTICLE_CATEGORIES, ARTICLES_PER_PAGE, type Article, type ArticleCategory, type ArticleBlock } from '../data/articles';
 import { AUTHORS as LOCAL_AUTHORS, resolveAuthor as localResolveAuthor, type Author } from '../data/authors';
+import { authoritativeCmsDocs, resolveCmsList } from './cms-authority';
 import { P7_FIXTURE_ARTICLE } from '../data/p7-fixture';
 
 // P15-P7 — off by default; set P7_FIXTURE=1 ONLY for the render-proof build.
@@ -275,11 +276,14 @@ export function getTools(): Promise<Tool[]> {
       const data = await cmsFetch<PayloadList<CmsTool>>(
         '/api/tools?where[enabled][equals]=true&limit=300&depth=1&sort=sortOrder',
       );
-      if (data && Array.isArray(data.docs) && data.docs.length > 0) {
-        return data.docs.map(mapTool).filter((t) => t.slug && t.title);
-      }
-      assertLocalFallbackAllowed('getTools');
-      return LOCAL_TOOLS;
+      return resolveCmsList(
+        data,
+        (docs) => docs.map(mapTool).filter((t) => t.slug && t.title),
+        () => {
+          assertLocalFallbackAllowed('getTools');
+          return LOCAL_TOOLS;
+        },
+      );
     })();
   }
   return _toolsPromise;
@@ -289,23 +293,25 @@ export async function getPopularTools(limit = 6): Promise<Tool[]> {
   const data = await cmsFetch<PayloadList<CmsTool>>(
     `/api/tools?where[enabled][equals]=true&where[featured][equals]=true&limit=${limit}&depth=1&sort=sortOrder`,
   );
-  if (data && Array.isArray(data.docs) && data.docs.length > 0) {
-    return data.docs.map(mapTool).filter((t) => t.slug && t.title);
-  }
-  return localPopularTools(limit);
+  return resolveCmsList(
+    data,
+    (docs) => docs.map(mapTool).filter((t) => t.slug && t.title),
+    () => {
+      assertLocalFallbackAllowed('getPopularTools');
+      return localPopularTools(limit);
+    },
+  );
 }
 
 export async function getToolsByCategory(catSlug: string): Promise<Tool[]> {
   const all = await getTools();
-  const filtered = all.filter((t) => t.category === catSlug);
-  if (filtered.length > 0) return filtered;
-  return localToolsByCat(catSlug);
+  return all.filter((t) => t.category === catSlug);
 }
 
 export async function getRelatedTools(slug: string, limit = 4): Promise<Tool[]> {
   const all = await getTools();
   const tool = all.find((t) => t.slug === slug);
-  if (!tool) return localRelatedTools(slug, limit);
+  if (!tool) return [];
   const out: Tool[] = [];
   const push = (t?: Tool) => { if (t && t.live && t.slug !== slug && !out.includes(t)) out.push(t); };
   (tool.related ?? []).forEach((s) => push(all.find((t) => t.slug === s)));
@@ -354,10 +360,14 @@ export async function getCategories(): Promise<Category[]> {
   const data = await cmsFetch<PayloadList<CmsCategory>>(
     '/api/categories?where[kind][equals]=tool&limit=50&depth=0&sort=order',
   );
-  if (data && Array.isArray(data.docs) && data.docs.length > 0) {
-    return data.docs.map(mapCategory).filter((c) => c.id && c.name);
-  }
-  return LOCAL_CATEGORIES;
+  return resolveCmsList(
+    data,
+    (docs) => docs.map(mapCategory).filter((c) => c.id && c.name),
+    () => {
+      assertLocalFallbackAllowed('getCategories');
+      return LOCAL_CATEGORIES;
+    },
+  );
 }
 
 export async function getCategory(slug: string): Promise<Category | undefined> {
@@ -389,18 +399,18 @@ function mapArticleCategory(c: CmsArticleCategory): ArticleCategory {
   };
 }
 
-async function getRawArticleCategories(): Promise<CmsArticleCategory[]> {
+async function getRawArticleCategories(): Promise<CmsArticleCategory[] | null> {
   const data = await cmsFetch<PayloadList<CmsArticleCategory>>(
     '/api/categories?where[kind][equals]=section&limit=50&depth=0&sort=order',
   );
-  if (data && Array.isArray(data.docs) && data.docs.length > 0) return data.docs;
-  return [];
+  return authoritativeCmsDocs(data);
 }
 
 /** Article categories (content sections) — CMS-first, local fallback. */
 export async function getArticleCategories(): Promise<ArticleCategory[]> {
   const cats = await getRawArticleCategories();
-  if (cats.length > 0) return cats.map(mapArticleCategory).filter((c) => c.id && c.name);
+  if (cats !== null) return cats.map(mapArticleCategory).filter((c) => c.id && c.name);
+  assertLocalFallbackAllowed('getArticleCategories');
   return LOCAL_ARTICLE_CATEGORIES;
 }
 
@@ -569,11 +579,14 @@ export async function getArticle(slug: string): Promise<Article | null> {
     `/api/articles?where[slug][equals]=${slug}&depth=2&draft=false`,
   );
   if (P7_FIXTURE_ON && slug === P7_FIXTURE_ARTICLE.slug) return P7_FIXTURE_ARTICLE;
-  if (data && Array.isArray(data.docs) && data.docs.length > 0) {
-    return mapArticle(data.docs[0]);
-  }
-  const local = LOCAL_ARTICLES.find((a) => a.slug === slug);
-  return local || null;
+  return resolveCmsList(
+    data,
+    (docs) => docs.length > 0 ? mapArticle(docs[0]) : null,
+    () => {
+      assertLocalFallbackAllowed('getArticle');
+      return LOCAL_ARTICLES.find((a) => a.slug === slug) ?? null;
+    },
+  );
 }
 
 // One shared fetch for the whole build. Previously EVERY prerendered page
