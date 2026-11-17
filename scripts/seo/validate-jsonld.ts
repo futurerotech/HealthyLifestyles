@@ -109,7 +109,7 @@ function main() {
           if (Object.prototype.hasOwnProperty.call(obj, 'lastReviewed')) {
             const d = obj.lastReviewed
             if (typeof d !== 'string' ||
-                !/^\\d{4}-\\d{2}-\\d{2}(?:T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2}))?$/.test(d) ||
+                !/^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2}))?$/.test(d) ||
                 Number.isNaN(Date.parse(d))) {
               findings.push({ page, type: 'ymyl-invalid-last-reviewed', message: 'MedicalWebPage lastReviewed must be an ISO date or datetime' })
             }
