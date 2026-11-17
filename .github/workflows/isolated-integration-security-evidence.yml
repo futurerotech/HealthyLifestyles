@@ -2,7 +2,7 @@ name: Isolated integration security evidence (no release)
 
 on:
   pull_request:
-    branches: [dev]
+    branches: [dev, integration/seo-cms-review-safety-20261117]
 
 permissions:
   contents: read
@@ -10,7 +10,7 @@ permissions:
 jobs:
   review-evidence:
     name: Review-only npm audit and Phase 1/2/3 tests
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'integration/seo-cms-review-safety-20261117' }}
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && (github.head_ref == 'integration/seo-cms-review-safety-20261117' || github.head_ref == 'security/dev-astro7-compat-20261117') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
