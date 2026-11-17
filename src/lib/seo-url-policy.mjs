@@ -38,3 +38,30 @@ export function serializeSitemapEntry(item, siteUrl) {
 
   return { ...item, url, priority };
 }
+
+/** The public article route is flat; category archives have separate routes. */
+/** @param {string} slug @returns {string} */
+export function sitemapArticlePath(slug) {
+  return `/wellness-hub/${slug}`;
+}
+
+/**
+ * Group public articles against ARTICLE sections, never tool categories.
+ * Preserve articles whose section relation was removed or is not a section.
+ * @template {{ category: string, slug: string }} A
+ * @template {{ id: string, slug: string }} C
+ * @param {A[]} articles
+ * @param {C[]} articleCategories
+ * @returns {{ groups: { category: C, articles: A[] }[], uncategorized: A[] }}
+ */
+export function groupSitemapArticles(articles, articleCategories) {
+  const groups = articleCategories.map((category) => ({
+    category,
+    articles: articles.filter((article) => article.category === category.id),
+  })).filter((group) => group.articles.length > 0);
+  const sectionIds = new Set(articleCategories.map((category) => category.id));
+  return {
+    groups,
+    uncategorized: articles.filter((article) => !sectionIds.has(article.category)),
+  };
+}
