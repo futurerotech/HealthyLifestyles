@@ -40,7 +40,7 @@ export default defineConfig({
           priority = 1.0;
         } else if (/\/wellness-hub\/[^/]+$/.test(cleanUrl) && !/\/wellness-hub$/.test(cleanUrl)) { priority = 0.8; } else if (/\/tools\/[^/]+$/.test(cleanUrl)) {
           priority = 0.8;
-        } else if (/\/(author|wellness-hub|tools)$/.test(cleanUrl)) { priority = 0.9; } else if (/\/(about\vert{}privacy\vert{}contact\vert{}terms\vert{}accessibility\vert{}editorial-policy\vert{}methodology\vert{}medical-disclaimer\vert{}cookie-policy\vert{}health-score\vert{}ai-assistant)$/.test(cleanUrl)) {
+        } else if (/\/(author|wellness-hub|tools)$/.test(cleanUrl)) { priority = 0.9; } else if (/\/(about|privacy|contact|terms|accessibility|editorial-policy|methodology|medical-disclaimer|cookie-policy|health-score|ai-assistant)$/.test(cleanUrl)) {
           priority = 0.5;
         }
 
