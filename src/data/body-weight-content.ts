@@ -245,7 +245,7 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'How the historical U.S. Navy method works',
         paragraphs: [
-          'The original Hodgdon–Beckett equations estimate body density from height and body circumferences. Men use the abdomen at the navel and neck. Women use the narrowest natural waist, widest hip circumference and neck. All four measurements use centimeters in the formulas below. Imperial entries are converted to centimeters before calculation.',
+          'The original Hodgdon–Beckett equations estimate body density from height and body circumferences. Men use the abdomen at the navel and neck. Women use the narrowest natural waist, widest hip circumference and neck. All circumference and height measurements use centimeters in the formulas below. Imperial entries are converted to centimeters before calculation.',
           'For men: %fat = 495 ÷ (1.0324 − 0.19077 × log₁₀(abdomen − neck) + 0.15456 × log₁₀(height)) − 450. For women: %fat = 495 ÷ (1.29579 − 0.35004 × log₁₀(waist + hip − neck) + 0.22100 × log₁₀(height)) − 450. The logarithms are base 10, not natural logs. Measure on bare skin where practical, keep the tape level without pressing into the skin, and read after a normal exhalation.',
         ],
       },
@@ -297,7 +297,6 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
     ],
   },
 
-  // ============================================================
   // ============================================================
   'lean-body-mass-calculator': {
     seoTitle: 'Lean Body Mass Calculator (Boer Formula)',
