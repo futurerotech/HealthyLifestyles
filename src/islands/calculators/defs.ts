@@ -6,7 +6,7 @@
  *
  * Formula sources are cited on each tool page (see body-weight-content.ts).
  */
-import { fmt, fmtMass, kgToLb, massUnitLabel, round, type Sex, type UnitSystem } from '../../lib/units';
+import { fmt, fmtMass, kgToLb, massUnitLabel, round, type Sex, type UnitSystem } from '../../lib/units.ts';
 
 // Brand-aligned status colours.
 const C = {
