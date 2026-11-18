@@ -862,81 +862,99 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
 
   // ============================================================
   'gut-health-score': {
-    seoTitle: 'Gut Health Score — Lifestyle & Diet Self-Check',
+    directAnswer: {
+      question: 'Can a lifestyle checklist measure or diagnose gut health?',
+      answer:
+        'No. This nine-item self-report checklist illustrates dietary and lifestyle patterns using a site-defined 30-point scale, displayed as 0–100. It cannot measure microbial diversity, identify dysbiosis or diagnose digestive disease. Reported blood in stool, unexplained weight loss, or persistent abdominal pain or bowel changes withhold the points and prompt medical assessment.',
+    },
+    seoTitle: 'Gut Health Score — Self-Reported Habit Checklist',
     metaDescription:
-      'Score your gut-friendly habits from fiber, plant diversity, fermented foods, sleep, stress, and more. Educational lifestyle tool — not a microbiome test or diagnosis.',
+      'Explore nine self-reported nutrition and lifestyle habits with transparent illustrative points, red-flag symptom guidance and clear microbiome-testing limits.',
     intro:
-      'Answer nine quick questions about your diet and lifestyle to get a 0–100 gut-habits score with per-factor bars and targeted improvements. This is a lifestyle self-check, not a microbiome test.',
+      'Review nine food and lifestyle habits and optionally explore their illustrative point totals. The score is an unvalidated site-defined self-check, not a measurement of the gut microbiome or a personal medical grade. Report a warning symptom to receive safety guidance without a habit score.',
     notice:
-      'Educational lifestyle score only — NOT a diagnosis or a microbiome test. Red flags (blood in stool, unexplained weight loss, persistent pain or change in bowel habits) need a doctor, not a score.',
+      'Do not use a score to dismiss blood in stool, unexplained weight loss, persistent abdominal pain, or a lasting change in bowel habits. These require clinical evaluation regardless of diet. Severe bleeding, black tarry stools, fainting or severe pain may need emergency assessment.',
     sections: [
       {
-        h2: 'What this score measures',
+        h2: 'What the checklist actually measures',
         paragraphs: [
-          'Your gut is home to trillions of bacteria that influence digestion, immunity, and even mood. While a real microbiome test requires a lab, your daily habits give a strong indication of whether you are feeding and supporting a healthy gut ecosystem.',
-          'This tool scores nine lifestyle factors backed by general gut-health evidence: fiber intake, plant diversity, fermented foods, hydration, processed-food intake, sleep, stress, activity, and bowel regularity. The result is a 0–100 gut-habits score — a lifestyle indicator, not a clinical measurement.',
+          'The nine selections record reported fiber-rich foods, number of plant-food types, fermented-food frequency, water intake, processed-food frequency, sleep quality, stress, physical activity and perceived bowel regularity. They are rough categories, not measured nutrient quantities or laboratory indicators. A separate tenth safety question asks about potentially serious digestive symptoms.',
+          'A higher set of habits does not prove a healthier gut, more beneficial bacteria, lower disease risk or better clinical outcomes. An international 2025 consensus on microbiome testing highlights how limited clinical utility remains even for many actual stool microbiome tests. A brief lifestyle survey cannot provide microbiome species counts, lab diagnosis or a substitute for clinical evaluation.',
         ],
       },
       {
-        h2: 'The three most important factors',
-        list: {
-          intro: 'These carry the most weight in your score:',
-          items: [
-            'Fiber: the single most important fuel for beneficial gut bacteria. Aim for 25–35g/day from whole grains, vegetables, fruit, legumes, nuts, and seeds.',
-            'Plant diversity: research shows that people who eat 30+ different plants per week have a more diverse microbiome, which is associated with better health outcomes.',
-            'Fermented foods: yogurt, kefir, sauerkraut, kimchi, and kombucha add live cultures that may support gut microbial balance.',
-          ],
-        },
-      },
-      {
-        h2: 'How your score is calculated',
+        h2: 'How the site-defined score is calculated',
         paragraphs: [
-          'Each of the nine factors earns 0–3 points (0–4 for fiber, plant diversity, and fermented foods, which carry more weight). The maximum is 30 points, scaled to a 0–100 score. The bars show each factor individually so you can see exactly where to focus.',
-          'The bands range from "Needs improvement" (0–33) through "Fair" and "Good" to "Very good" (71–85) and "Excellent" (86–100). Most people land in the middle — the goal is steady improvement, not perfection.',
+          'The original educational framework assigns 0–4 points each to fiber, plant diversity and fermented-food frequency, and 0–3 each to six other factors. The largest possible total is 3 × 4 + 6 × 3 = 30. The displayed 0–100 number is the rounded fraction: (points ÷ 30) × 100. For example, nine answers receiving one point each yield 9/30 = 30/100; all lowest selections yield 0/100 and the highest-scoring responses yield 30/30 = 100/100.',
+          'These weights and cutoff bands are SITE-DEFINED for a reflection exercise; they are not validated clinical thresholds, microbiome richness measures or probabilities of health. The descriptive labels say how many listed behaviors were reported, not whether someone has “excellent” digestion. The displayed category does not establish microbiome composition or exclude disease.',
+          'The 2–3 L/day and 3+ L/day water response categories receive the same maximum illustrative hydration points instead of rewarding ever-higher drinking volumes. Neither is an individualized fluid prescription; water needs depend on medical conditions, physical activity, food and climate.',
         ],
       },
       {
-        h2: 'Improving your gut health',
+        h2: 'What research supports—and does not support—these habits',
         paragraphs: [
-          'Start with the weakest areas shown in your per-factor bars. Small, consistent changes compound — adding a daily serving of vegetables, swapping a processed snack for fruit and nuts, or eating yogurt a few times a week can move the needle within a few weeks.',
-          'The gut microbiome responds to dietary changes surprisingly fast — some studies show shifts within 24–48 hours of changing what you eat. The key is consistency over weeks and months, not a single perfect day.',
+          'The National Institute of Diabetes and Digestive and Kidney Diseases describes adult fiber reference needs around 22–34 g/day depending on age and sex, and notes that fiber is best increased gradually if tolerated. Dietary fiber, diverse plants and overall healthy eating can support digestion, but they do not give a validated microbiome health percentage.',
+          'The observational American Gut Project reported associations between eating more than 30 different types of plants weekly and differences in stool microbiome patterns. That threshold came from comparisons of self-selected participants; it does not prove that exactly 30 foods is necessary, sufficient, or beneficial for every person, and should not be prescribed as a diagnostic cutoff.',
+          'Some fermented foods contain live microbial cultures, but NIH Office of Dietary Supplements guidance notes that not all fermented foods are proven probiotics and benefits depend on the specific organisms and context. Frequency of yogurt or kimchi alone does not show whether a person has beneficial microbes or needs a probiotic supplement.',
+        ],
+      },
+      {
+        h2: 'Why warning symptoms override all nine habits',
+        paragraphs: [
+          'Blood in stool, unintentional weight loss, and persistent abdominal pain or a new lasting change in bowel habits are recognized alarm features requiring medical assessment. When any is selected, the tool deliberately WITHHOLDS numerical points, colored tiers, bar charts and lifestyle recommendations. Even otherwise favorable answers cannot cancel a warning sign.',
+          'Seek timely medical assessment rather than using diet changes to delay care. Severe or ongoing bleeding, black tarry stools, fainting or severe abdominal pain can require emergency care. A questionnaire is not a way to decide that these symptoms are harmless or that a condition has been excluded.',
+        ],
+      },
+      {
+        h2: 'How to use the result without overinterpreting it',
+        paragraphs: [
+          'With no selected alarm symptom, you can use the bar chart to reflect on your reported food and routine habits. The three suggestions correspond to the lowest point fractions within the original nine-factor rubric; they are conversation starters, not an individualized treatment plan. For example, you might gradually include more fiber-rich foods or explore activity suitable for your abilities.',
+          'Avoid assuming more water always means better gut health, that regular stools must occur at a fixed frequency, or that stress alone explains persistent digestive problems. Medical conditions, medications, food tolerances and individual needs can change suitable advice. Discuss ongoing symptoms with a qualified healthcare professional or registered dietitian.',
         ],
       },
     ],
     faq: [
       {
-        q: 'Is this a microbiome test?',
-        a: 'No. This is a lifestyle and diet self-check based on habits known to support gut health. A real microbiome test analyses a stool sample in a lab. If you want to know your actual gut bacteria composition, talk to your doctor or a registered dietitian.',
+        q: 'Is a 100/100 result proof of a healthy gut microbiome?',
+        a: 'No. It is the maximum of an arbitrary, educational self-report checklist. It does not measure microbial organisms, diversity, disease or digestive health.',
       },
       {
-        q: 'What are the red flags I should not ignore?',
-        a: 'Blood in your stool, unexplained weight loss, persistent abdominal pain, or a lasting change in your bowel habits all need prompt medical evaluation. Do not try to "score" these away with lifestyle changes — see a doctor.',
+        q: 'Why is my score hidden when I report blood in stool or weight loss?',
+        a: 'Those symptoms can indicate conditions that require clinical assessment regardless of lifestyle habits. The calculator withholds all habit points and tiers so a reassuring score cannot mask an alarm symptom.',
       },
       {
-        q: 'How much fiber should I eat for gut health?',
-        a: 'Most adults should aim for 25–35 grams of fiber per day. The average person eats far less than that. Increase gradually over a week or two and drink plenty of water — a sudden fiber jump can cause bloating.',
+        q: 'Do I need to drink 3 liters of water a day to get a better score?',
+        a: 'No. The two highest original water response categories now receive equal illustrative points, and neither volume is a personalized recommendation. Clinical needs, activity and food intake determine appropriate hydration.',
       },
       {
-        q: 'Why does plant diversity matter?',
-        a: 'Different plants feed different beneficial bacteria. Research shows that people who eat 30+ different plant types per week have a more diverse microbiome, which is generally associated with better digestive and overall health.',
+        q: 'Must I eat 30 different plants or fermented foods every week?',
+        a: 'No. The 30-plants figure is an observational research comparison, not a clinical requirement. Fermented foods vary in live microbes and demonstrated benefits; a varied diet should fit your circumstances.',
       },
       {
-        q: 'Do I need probiotic supplements?',
-        a: 'Not necessarily. Fermented foods like yogurt, kefir, sauerkraut, and kimchi provide live cultures naturally. If you are considering a probiotic supplement for a specific issue, talk to your doctor or dietitian — quality and strain specificity matter.',
+        q: 'Should I order a commercial stool microbiome test to verify this score?',
+        a: 'Not based on this checklist alone. Expert consensus finds that most direct-to-consumer microbiome tests still have limited established clinical utility; discuss specific symptoms and appropriate evaluation with your healthcare professional.',
       },
     ],
     sources: [
       {
-        citation: 'U.S. Departments of Agriculture and Health and Human Services. "Dietary Guidelines for Americans, 2020–2025." 9th ed.',
-        url: 'https://www.dietaryguidelines.gov/',
+        citation: 'Porcari S et al. International consensus statement on microbiome testing in clinical practice. Lancet Gastroenterol Hepatol. 2025;10:154–167.',
+        url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC12343204/',
       },
       {
-        citation: 'National Institutes of Health, Office of Dietary Supplements. "Dietary Fiber." Consumer & Health Professional Fact Sheet.',
-        url: 'https://ods.od.nih.gov/factsheets/Fiber-Consumer/',
+        citation: 'NIDDK. Eating, Diet, and Nutrition for Constipation: fiber 22–34 g/day and individualized liquid needs.',
+        url: 'https://www.niddk.nih.gov/health-information/digestive-diseases/constipation/eating-diet-nutrition',
       },
       {
-        citation: 'McDonald D, Hyde E, Debelius JW, et al. "American Gut: an open platform for citizen science microbiome research." mSystems. 2018;3(3):e00031-18.',
-        url: pubmed('American Gut open platform citizen science microbiome research McDonald'),
+        citation: 'McDonald D et al. American Gut: An Open Platform for Citizen Science Microbiome Research. mSystems. 2018;3:e00031-18.',
+        url: 'https://journals.asm.org/doi/10.1128/msystems.00031-18',
+      },
+      {
+        citation: 'NIH Office of Dietary Supplements. Probiotics—Health Professional Fact Sheet: differences between fermented foods and probiotics.',
+        url: 'https://ods.od.nih.gov/factsheets/Probiotics-HealthProfessional/',
+      },
+      {
+        citation: 'World Gastroenterology Organisation. Common GI Symptoms: alarm signs including bleeding and unintentional weight loss.',
+        url: 'https://wgofoundation.org/guidelines/common-gi-symptoms/common-gi-symptoms-english',
       },
     ],
   },

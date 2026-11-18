@@ -2262,13 +2262,13 @@ export const DEFS: Record<string, CalcDef> = {
   // ---- Gut Health Score (lifestyle/diet, NOT a diagnosis) ----
   'gut-health-score': {
     slug: 'gut-health-score',
-    heading: 'Score your gut habits',
+    heading: 'Explore a self-reported gut-habits checklist',
     hasSex: false,
     fields: [
       {
         key: 'redFlags', label: 'Any digestive red flags?', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'none',
-        help: 'If you have any of these, see a doctor — do not rely on this score.',
+        help: 'Blood in stool, unexplained weight loss, or persistent pain/change in bowel habits require medical evaluation; selecting one withholds the habit score.',
         options: [
           { value: 'none', label: 'None — just curious about my gut habits' },
           { value: 'blood', label: 'Blood in stool' },
@@ -2279,7 +2279,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'fiber', label: 'Daily fiber intake', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'some',
-        help: 'Fiber feeds gut bacteria. Aim for 25–35g/day from whole grains, veg, fruit, legumes.',
+        help: 'Fiber supports digestive function. Adult reference intakes often range from 22–34 g/day; needs and tolerance vary.',
         options: [
           { value: 'low', label: 'Low — little fiber' },
           { value: 'some', label: 'Some — occasional whole grains, veg' },
@@ -2290,7 +2290,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'fermented', label: 'Fermented foods per week', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'Yogurt, kefir, sauerkraut, kimchi, kombucha — these add live cultures to your gut.',
+        help: 'Some fermented foods contain live cultures, but not all are clinically proven probiotics; choose according to your needs and tolerance.',
         options: [
           { value: 'rarely', label: 'Rarely' },
           { value: '1-2', label: '1–2 times/week' },
@@ -2301,7 +2301,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'plantDiversity', label: 'Plant diversity (different plants/week)', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '10-20',
-        help: 'Different plants feed different gut bacteria. Aim for 30+ types/week (grains, veg, fruit, nuts, seeds, herbs).',
+        help: 'The 30+ plant-types category comes from observational research; it is not a proven personal microbiome threshold.',
         options: [
           { value: '0-10', label: '0–10 different plants' },
           { value: '10-20', label: '10–20 different plants' },
@@ -2312,7 +2312,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'water', label: 'Daily water intake', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'Hydration keeps things moving through your digestive tract.',
+        help: 'Record approximate daily beverage water. Higher volumes are not universally better; fluid needs depend on health, diet and activity.',
         options: [
           { value: 'under-1', label: 'Under 1 L' },
           { value: '1-2', label: '1–2 L' },
@@ -2323,7 +2323,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'processed', label: 'Processed/ultra-processed food', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'several',
-        help: 'Highly processed foods low in fiber and high in additives can disrupt gut bacteria.',
+        help: 'This broad food-frequency category does not measure the gut microbiome; nutrient content and overall diet matter.',
         options: [
           { value: 'daily', label: 'Daily' },
           { value: 'several', label: 'Several times/week' },
@@ -2334,7 +2334,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'sleep', label: 'Sleep quality', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'fair',
-        help: 'Poor sleep disrupts the gut-brain axis and gut rhythm.',
+        help: 'Sleep matters for general health, but self-rated sleep quality cannot measure gut microbial composition.',
         options: [
           { value: 'poor', label: 'Poor' },
           { value: 'fair', label: 'Fair' },
@@ -2345,7 +2345,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'stress', label: 'Stress level', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'moderate',
-        help: 'Chronic stress affects gut motility and the gut-brain connection.',
+        help: 'Stress may affect digestive symptoms; a stress response does not diagnose a gut disorder.',
         options: [
           { value: 'high', label: 'High' },
           { value: 'moderate', label: 'Moderate' },
@@ -2356,7 +2356,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'activity', label: 'Physical activity', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'light',
-        help: 'Movement stimulates gut motility and is linked to a more diverse microbiome.',
+        help: 'Regular activity can support general health and bowel function, but this response is not a microbiome measurement.',
         options: [
           { value: 'sedentary', label: 'Sedentary' },
           { value: 'light', label: 'Light — occasional walks' },
@@ -2367,7 +2367,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'regularity', label: 'Bowel-habit regularity', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'variable',
-        help: 'General regularity only — not a clinical assessment. Regular = consistent timing and form.',
+        help: 'Bowel pattern varies between people. Persistent changes, bleeding or pain need clinical evaluation regardless of score.',
         options: [
           { value: 'irregular', label: 'Irregular — often constipated or loose' },
           { value: 'variable', label: 'Variable' },
@@ -2376,47 +2376,96 @@ export const DEFS: Record<string, CalcDef> = {
         ],
       },
     ],
-    compute: ({ selects }) => {
-      const redFlag = selects.redFlags || 'none';
+    compute: ({ selects, units }) => {
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Self-reported gut-habit checklist',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (units !== 'metric' && units !== 'imperial') {
+        return fail('Choose a supported unit system.');
+      }
 
-      // Points per factor. Key gut-health factors (fiber, plant diversity,
-      // fermented) max 4; lifestyle factors max 3. Grand max = 30.
-      const FIBER_PTS: Record<string, number> = { low: 0, some: 1, good: 2, high: 4 };
-      const FERMENTED_PTS: Record<string, number> = { rarely: 0, '1-2': 1, '3-5': 2, daily: 4 };
-      const PLANT_PTS: Record<string, number> = { '0-10': 0, '10-20': 1, '20-30': 2, '30+': 4 };
-      const WATER_PTS: Record<string, number> = { 'under-1': 0, '1-2': 1, '2-3': 2, '3+': 3 };
-      const PROCESSED_PTS: Record<string, number> = { daily: 0, several: 1, occasionally: 2, rarely: 3 };
-      const SLEEP_PTS: Record<string, number> = { poor: 0, fair: 1, good: 2, excellent: 3 };
-      const STRESS_PTS: Record<string, number> = { high: 0, moderate: 1, low: 2, minimal: 3 };
-      const ACTIVITY_PTS: Record<string, number> = { sedentary: 0, light: 1, moderate: 2, active: 3 };
-      const REGULARITY_PTS: Record<string, number> = { irregular: 0, variable: 1, fairly: 2, regular: 3 };
+      const FLAG_LABELS: Record<string, string> = {
+        none: 'No listed alarm symptom',
+        blood: 'Blood in stool',
+        weight: 'Unexplained weight loss',
+        pain: 'Persistent abdominal pain or change in bowel habits',
+      };
+      // The red-flag answer is mandatory and must be validated BEFORE any
+      // score is calculated. It must not silently default to "none".
+      const redFlag = selects.redFlags;
+      if (!Object.hasOwn(FLAG_LABELS, redFlag)) {
+        return fail('Choose one of the listed digestive red-flag responses.');
+      }
+      if (redFlag !== 'none') {
+        // Withhold scores, colored tiers, bars and lifestyle tips even when
+        // all nine habits appear favorable: symptoms outrank habit patterns.
+        const urgency = redFlag === 'blood'
+          ? ' Heavy or ongoing bleeding, black tarry stool, fainting or severe pain warrants urgent/emergency assessment.'
+          : ' Seek prompt assessment; worsening or severe symptoms require urgent care.';
+        return {
+          ok: true,
+          primaryLabel: 'Digestive symptom safety',
+          primaryValue: 'Medical evaluation recommended',
+          visual: { kind: 'none' },
+          rows: [{ label: 'Reported warning sign', value: FLAG_LABELS[redFlag], strong: true }],
+          callout: {
+            tone: 'danger',
+            text: FLAG_LABELS[redFlag] + ' is a warning sign that needs clinical assessment. Do not rely on a habit score or delay care while making diet changes.' + urgency,
+          },
+          note: 'The self-reported habit score and all percentile-like tiers are withheld when an alarm symptom is selected. This checklist is not a microbiome test and cannot diagnose, exclude or grade gastrointestinal disease. A healthcare professional can evaluate symptoms and determine appropriate next steps.',
+        };
+      }
+
+      // Original nine-factor, 30-point educational framework is preserved.
+      // These point weights and categorical cutoffs are SITE-DEFINED, not a
+      // validated health, microbiome diversity, or disease prediction index.
+      const POINTS: Record<string, Record<string, number>> = {
+        fiber: { low: 0, some: 1, good: 2, high: 4 },
+        plantDiversity: { '0-10': 0, '10-20': 1, '20-30': 2, '30+': 4 },
+        fermented: { rarely: 0, '1-2': 1, '3-5': 2, daily: 4 },
+        water: { 'under-1': 0, '1-2': 1, '2-3': 3, '3+': 3 },
+        processed: { daily: 0, several: 1, occasionally: 2, rarely: 3 },
+        sleep: { poor: 0, fair: 1, good: 2, excellent: 3 },
+        stress: { high: 0, moderate: 1, low: 2, minimal: 3 },
+        activity: { sedentary: 0, light: 1, moderate: 2, active: 3 },
+        regularity: { irregular: 0, variable: 1, fairly: 2, regular: 3 },
+      };
+      // The previous 3+ L option was ranked above 2–3 L, encouraging ever
+      // higher consumption without clinical justification. Both now tie;
+      // neither is a prescribed hydration target for any person.
+      for (const [key, values] of Object.entries(POINTS)) {
+        if (!Object.hasOwn(values, selects[key])) {
+          return fail('Choose one of the listed answers for ' + key + '.');
+        }
+      }
 
       const factors = [
-        { name: 'Fiber intake', key: 'fiber', pts: FIBER_PTS[selects.fiber] ?? 1, max: 4, suggestion: 'Add whole grains, legumes, vegetables, and fruit. Aim for 25–35g fiber/day.' },
-        { name: 'Plant diversity', key: 'plantDiversity', pts: PLANT_PTS[selects.plantDiversity] ?? 1, max: 4, suggestion: 'Eat 30+ different plants/week — nuts, seeds, herbs, and spices all count.' },
-        { name: 'Fermented foods', key: 'fermented', pts: FERMENTED_PTS[selects.fermented] ?? 1, max: 4, suggestion: 'Add yogurt, kefir, sauerkraut, or kimchi 3–5×/week.' },
-        { name: 'Hydration', key: 'water', pts: WATER_PTS[selects.water] ?? 1, max: 3, suggestion: 'Drink 2–3L water/day to keep digestion moving.' },
-        { name: 'Processed foods (less is better)', key: 'processed', pts: PROCESSED_PTS[selects.processed] ?? 1, max: 3, suggestion: 'Swap ultra-processed snacks for whole foods.' },
-        { name: 'Sleep', key: 'sleep', pts: SLEEP_PTS[selects.sleep] ?? 1, max: 3, suggestion: 'Aim for 7–9 hours — gut and brain are linked.' },
-        { name: 'Stress (lower is better)', key: 'stress', pts: STRESS_PTS[selects.stress] ?? 1, max: 3, suggestion: 'Breathing, walks, or mindfulness calm the gut-brain axis.' },
-        { name: 'Activity', key: 'activity', pts: ACTIVITY_PTS[selects.activity] ?? 1, max: 3, suggestion: 'Even a daily 20-minute walk improves gut motility.' },
-        { name: 'Regularity', key: 'regularity', pts: REGULARITY_PTS[selects.regularity] ?? 1, max: 3, suggestion: 'Consistent meals, hydration, and movement support regularity.' },
+        { name: 'Fiber intake', key: 'fiber', pts: POINTS.fiber[selects.fiber], max: 4, suggestion: 'Consider a gradual increase in fiber-rich whole grains, legumes, vegetables and fruit when appropriate; adult needs and tolerance vary.' },
+        { name: 'Plant diversity', key: 'plantDiversity', pts: POINTS.plantDiversity[selects.plantDiversity], max: 4, suggestion: 'Try a broader variety of plant foods if accessible; 30 types/week is a research category, not a clinical target.' },
+        { name: 'Fermented foods', key: 'fermented', pts: POINTS.fermented[selects.fermented], max: 4, suggestion: 'If tolerated, explore fermented foods such as yogurt; not all fermented foods contain proven probiotics.' },
+        { name: 'Hydration (self-reported)', key: 'water', pts: POINTS.water[selects.water], max: 3, suggestion: 'Discuss personal fluid needs if you have dehydration concerns or medical fluid restrictions; do not force a fixed liter target.' },
+        { name: 'Processed-food frequency', key: 'processed', pts: POINTS.processed[selects.processed], max: 3, suggestion: 'Where practical, choose a balanced variety of nutrient-rich foods, including foods with fiber.' },
+        { name: 'Sleep quality', key: 'sleep', pts: POINTS.sleep[selects.sleep], max: 3, suggestion: 'Review sleep routines when needed; sleep quality does not measure gut microbes.' },
+        { name: 'Stress (self-reported)', key: 'stress', pts: POINTS.stress[selects.stress], max: 3, suggestion: 'Consider stress-management strategies that fit your circumstances, without treating symptoms as stress alone.' },
+        { name: 'Activity', key: 'activity', pts: POINTS.activity[selects.activity], max: 3, suggestion: 'Regular movement may help bowel function; start at a level appropriate for your health.' },
+        { name: 'Bowel-habit regularity', key: 'regularity', pts: POINTS.regularity[selects.regularity], max: 3, suggestion: 'Track persistent changes and seek advice for concerning symptoms rather than aiming for a fixed bowel frequency.' },
       ];
 
       const total = factors.reduce((sum, f) => sum + f.pts, 0);
-      const maxPts = 30;
+      const maxPts = factors.reduce((sum, f) => sum + f.max, 0);
+      if (maxPts !== 30 || !Number.isFinite(total) || total < 0 || total > maxPts) {
+        return fail('The reported habits cannot produce a valid checklist result.');
+      }
       const score = Math.round((total / maxPts) * 100);
-
       const segments: Segment[] = [
-        { upTo: 33, label: 'Needs improvement', color: C.red },
-        { upTo: 50, label: 'Fair', color: C.amber },
-        { upTo: 70, label: 'Good', color: C.teal },
-        { upTo: 85, label: 'Very good', color: C.green },
-        { upTo: 100, label: 'Excellent', color: C.blue },
+        { upTo: 33, label: 'Fewer listed habits', color: C.red },
+        { upTo: 50, label: 'Some listed habits', color: C.amber },
+        { upTo: 70, label: 'Several listed habits', color: C.teal },
+        { upTo: 85, label: 'Many listed habits', color: C.green },
+        { upTo: 100, label: 'Most listed habits', color: C.blue },
       ];
       const band = bandFor(score, segments);
-
-      // Per-factor zones with bars.
       const areaColor = (pts: number, max: number): string => {
         const pct = pts / max;
         if (pct >= 0.85) return C.blue;
@@ -2425,49 +2474,28 @@ export const DEFS: Record<string, CalcDef> = {
         if (pct > 0) return C.amber;
         return C.red;
       };
-
-      const zones = factors.map((f) => ({
-        label: f.name,
-        detail: `${f.pts}/${f.max} pts`,
+      const zones = factors.map(f => ({
+        label: f.name, detail: String(f.pts) + '/' + String(f.max) + ' points',
         color: areaColor(f.pts, f.max),
       }));
-
-      // Top improvements: 2-3 lowest-scoring factors.
-      const weakest = [...factors].sort((a, b) => a.pts / a.max - b.pts / b.max).slice(0, 3);
-      const improvements = weakest.map((f) => `${f.name}: ${f.suggestion}`).join('  ');
-
-      // Red flag label for the danger callout.
-      const RED_FLAG_LABELS: Record<string, string> = {
-        blood: 'Blood in stool',
-        weight: 'Unexplained weight loss',
-        pain: 'Persistent pain or change in bowel habits',
-      };
-
-      const hasRedFlag = redFlag !== 'none';
-      const callout = hasRedFlag
-        ? {
-            tone: 'danger' as const,
-            text: `⚠️ ${RED_FLAG_LABELS[redFlag] ?? 'Your symptom'} is a digestive red flag that needs prompt medical evaluation — do not rely on this score. See your doctor. Blood in stool, unexplained weight loss, or persistent changes in bowel habits can signal serious conditions that need clinical assessment, not lifestyle scoring.`,
-          }
-        : {
-            tone: 'info' as const,
-            text: 'Red flags that need prompt medical care: blood in stool, unexplained weight loss, persistent abdominal pain, or a lasting change in bowel habits. If you develop any of these, see a doctor — do not score them away with lifestyle changes alone.',
-          };
+      const weakest = [...factors].sort((a,b)=>a.pts/a.max-b.pts/b.max).slice(0,3);
+      const improvements = weakest.map(f => f.name + ': ' + f.suggestion).join('  ');
 
       return {
         ok: true,
-        primaryLabel: 'Gut-habits score',
-        primaryValue: `${score}/100`,
-        category: { label: band.label, color: band.color },
+        primaryLabel: 'Self-reported gut-habit checklist (unvalidated)',
+        primaryValue: String(score) + '/100',
+        category: { label: band.label + ' (site-defined)', color: band.color },
         visual: { kind: 'zones', items: zones },
         rows: [
-          { label: 'Total points', value: `${total}/${maxPts}` },
-          { label: 'Top factor', value: factors.sort((a, b) => b.pts / b.max - a.pts / a.max)[0].name, strong: true },
+          { label: 'Illustrative point total', value: String(total) + '/' + String(maxPts) },
+          { label: 'Highest-rated listed factor', value: [...factors].sort((a,b)=>b.pts/b.max-a.pts/a.max)[0].name, strong: true },
         ],
-        callout,
-        note: hasRedFlag
-          ? 'Your score reflects general gut-friendly habits only. Red-flag symptoms override any score — see a doctor promptly. This tool is not a microbiome test and does not diagnose any condition.'
-          : `${improvements} Method: 9 factors scored on points (fiber, plant diversity, and fermented foods weighted higher at max 4; others max 3; grand max 30 → 0–100). This is a lifestyle self-check, not a microbiome test or diagnosis. Sources: Dietary Guidelines for Americans, NIH fiber recommendations.`,
+        callout: {
+          tone: 'info',
+          text: 'This is an unvalidated checklist of self-reported habits, NOT a gut-health grade, microbiome diversity score or medical test. Any blood in stool, unexplained weight loss, or persistent pain/change in bowel habits needs medical evaluation regardless of points.',
+        },
+        note: improvements + ' These nine self-report items have SITE-DEFINED points: three factors up to 4, six up to 3 (30 maximum), rescaled to 0–100. Weights and bands have not been clinically validated; a higher number does NOT establish a healthier microbiome, confirm digestive health or exclude disease. More water is not automatically better, and 30 plant types/week is an observational research category, not a medical requirement. Responses are not laboratory measurements or diagnosis.',
       };
     },
   },

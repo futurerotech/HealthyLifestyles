@@ -142,7 +142,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'gut-health-score',
     title: 'Gut Health Score',
-    blurb: 'Score your gut-friendly habits — fiber, plant diversity, fermented foods, sleep, stress, and more. Lifestyle self-check, not a microbiome test.',
+    blurb: 'Explore nine self-reported habits with illustrative points, red-flag safety and no microbiome diagnosis.',
     category: 'nutrition',
     icon: 'percent',
     gradient: 'green',
