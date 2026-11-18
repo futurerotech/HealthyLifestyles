@@ -724,38 +724,107 @@ export const DEFS: Record<string, CalcDef> = {
   // Nutrition
   // ============================================================
 
-  // ---- Calorie Calculator (TDEE) ----
+  // ---- Calorie Calculator: predicted REE and illustrative TDEE ----
   'calorie-calculator': {
     slug: 'calorie-calculator',
-    heading: 'Calculate your daily calories',
+    heading: 'Estimate your daily energy expenditure',
     hasSex: true,
-    fields: [F.weight(72), F.height(175), F.age(30), activityField()],
+    fields: [
+      F.weight(72),
+      F.height(175),
+      {
+        ...F.age(30),
+        min: 19,
+        help: 'For adults age 19 or older. The original Mifflin–St Jeor study included ages 19–78; older-age predictions are extrapolations.',
+      },
+      {
+        ...activityField(),
+        help: 'Choose an illustrative activity multiplier. Days of exercise alone cannot measure your actual daily expenditure.',
+      },
+    ],
     compute: ({ vals, selects, sex }) => {
-      const factor = parseFloat(selects.activity) || 1.375;
-      const bmr = mifflin(vals.weight, vals.height, vals.age, sex);
-      const tdee = bmr * factor;
-      const floor = calorieFloor(sex);
-      const loseRaw = tdee - 500;
-      const lose = Math.max(loseRaw, floor);
-      const clamped = loseRaw < floor;
-      return {
-        ok: true,
-        primaryLabel: 'Maintenance calories (TDEE)',
-        primaryValue: `${fmt(tdee, 0)} kcal/day`,
-        visual: { kind: 'none' },
-        cards: [
-          { label: 'Lose weight', value: `${fmt(lose, 0)} kcal`, sub: '≈ 0.5 kg (1 lb)/week', tone: clamped ? 'warn' : 'good' },
-          { label: 'Maintain', value: `${fmt(tdee, 0)} kcal`, sub: 'Stay at current weight', tone: 'neutral' },
-          { label: 'Gain weight', value: `${fmt(tdee + 500, 0)} kcal`, sub: '≈ 0.5 kg (1 lb)/week', tone: 'good' },
-        ],
-        callout: clamped
+      const { weight, height, age } = vals;
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Estimated daily expenditure (TDEE)',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (![weight, height, age].every((v) => Number.isFinite(v) && v > 0) ||
+          (sex !== 'male' && sex !== 'female')) {
+        return fail('Enter valid positive weight, height, whole-year age and an equation sex.');
+      }
+      if (weight < 25 || weight > 300 || height < 120 || height > 230 ||
+          !Number.isInteger(age) || age < 19 || age > 100) {
+        return fail('Check weight (25–300 kg), height (120–230 cm) and whole-year age (19–100).');
+      }
+      // Accept only the existing selectable multiplier, never arbitrary input
+      // or parseFloat's permissive partial strings or silent fallbacks.
+      const activity = ACTIVITY_OPTIONS.find((option) => option.value === selects.activity);
+      if (!activity) return fail('Choose one of the listed activity levels.');
+
+      const ree = mifflin(weight, height, age, sex);
+      const factor = Number(activity.value);
+      const tdee = ree * factor;
+      if (![ree, factor, tdee].every((v) => Number.isFinite(v) && v > 0)) {
+        return fail('These measurements cannot produce a valid daily-energy estimate.');
+      }
+
+      const lessExample = tdee - 500;
+      const moreExample = tdee + 500;
+      // NIDDK's Body Weight Planner flags intakes under 1,000 kcal/day for
+      // nutrient-adequacy concerns. This is only a display-withholding guard,
+      // NOT a universal safe intake floor or a personalized prescription.
+      const displayExamples = tdee >= 1000;
+      const displayLess = displayExamples && lessExample >= 1000;
+      const displayMore = displayExamples && moreExample >= 1000;
+      const sampleValue = (value: number, show: boolean) =>
+        show ? fmt(value, 0) + ' kcal/day' : 'Not shown';
+      const commonSub = 'Arithmetic illustration, not an intake target';
+      const callout: NonNullable<CalcResult['callout']> = !displayExamples
+        ? {
+            tone: 'warn',
+            text: 'This model predicts unusually low daily expenditure. Check your measurements; do not use this number to plan food intake. Seek individualized advice from a qualified clinician or registered dietitian.',
+          }
+        : !displayLess
           ? {
               tone: 'warn',
-              text: `A 500 kcal deficit would drop you below the safe minimum of ${floor} kcal/day for ${sex === 'female' ? 'women' : 'men'}. We’ve set your weight-loss target to ${fmt(floor, 0)} kcal — for faster loss, work with a healthcare professional.`,
+              text: 'A 500-kcal subtraction would be below 1,000 kcal/day, so that example is withheld. NIDDK flags nutrient-adequacy concerns below this level; 1,000 is NOT a universal safe minimum, and amounts above it are not automatically appropriate.',
             }
-          : undefined,
-        rows: [{ label: 'BMR (calories at rest)', value: `${fmt(bmr, 0)} kcal/day` }],
-        note: 'TDEE = your BMR (Mifflin-St Jeor) multiplied by an activity factor from 1.2 (sedentary) to 1.9 (extra active).',
+          : {
+              tone: 'info',
+              text: 'The 500-kcal differences are mathematical illustrations only. They do not establish safe food-intake goals or predict a fixed weekly rate of weight loss or gain.',
+            };
+
+      return {
+        ok: true,
+        primaryLabel: 'Estimated daily expenditure (TDEE)',
+        primaryValue: fmt(tdee, 0) + ' kcal/day',
+        visual: { kind: 'none' },
+        cards: [
+          {
+            label: '500 kcal less (example)',
+            value: sampleValue(lessExample, displayLess),
+            sub: commonSub,
+            tone: 'warn',
+          },
+          {
+            label: 'Estimated maintenance expenditure',
+            value: fmt(tdee, 0) + ' kcal/day',
+            sub: 'Model estimate, not a measured intake requirement',
+            tone: 'neutral',
+          },
+          {
+            label: '500 kcal more (example)',
+            value: sampleValue(moreExample, displayMore),
+            sub: commonSub,
+            tone: 'neutral',
+          },
+        ],
+        callout,
+        rows: [
+          { label: 'Predicted resting energy (REE)', value: fmt(ree, 0) + ' kcal/day' },
+          { label: 'Assumed activity multiplier', value: '×' + activity.value + ' (' + activity.label + ')' },
+        ],
+        note: 'Mifflin–St Jeor predicts resting energy expenditure (REE), not a measured BMR. TDEE is an estimate made by multiplying REE by a selected activity factor. Actual expenditure varies and changes over time; a fixed 500-kcal difference does not guarantee a weekly weight change. This calculator is for adult education, not a calorie prescription during pregnancy, breastfeeding, illness or individual nutritional care.',
       };
     },
   },

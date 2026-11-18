@@ -221,70 +221,100 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
   // ============================================================
   'calorie-calculator': {
     directAnswer: {
-      question: 'How many calories should I eat a day?',
+      question: 'How does a calorie calculator estimate daily energy needs?',
       answer:
-        'General guidance puts daily needs around 1,600–2,400 calories for adult women and 2,000–3,000 for adult men, depending on age, size, and activity (Dietary Guidelines for Americans). To lose about 1 lb a week, aim roughly 500 calories below maintenance — this calculator estimates your personal numbers with the Mifflin–St Jeor equation.',
+        'This calculator predicts resting energy expenditure (REE) using the Mifflin–St Jeor equation, then multiplies it by a selected activity factor to estimate total daily energy expenditure (TDEE). It cannot measure your metabolism or prescribe how many calories you should eat. The optional 500-kcal examples are arithmetic illustrations, not predicted weekly weight changes.',
     },
-    seoTitle: 'Calorie Calculator – Daily TDEE & Goals',
+    seoTitle: 'Calorie Calculator — Estimated Daily Energy (TDEE)',
     metaDescription:
-      'Calculate your daily calories (TDEE) with the Mifflin-St Jeor formula, plus targets to lose, maintain, or gain weight. Free, metric or imperial.',
+      'Estimate adult resting energy and daily expenditure with Mifflin–St Jeor, metric or imperial inputs, activity scenarios and clear non-prescriptive limitations.',
     intro:
-      'Find out how many calories you burn and should eat each day. Enter your details to get your maintenance calories (TDEE) plus clear targets for losing, maintaining, or gaining weight.',
+      'Estimate daily energy expenditure from height, weight, age, sex and a selected activity scenario. The main result is a model estimate of total daily energy expenditure (TDEE), not a measured calorie requirement. Illustrative values 500 kcal below or above that number are not diet or weight-change prescriptions.',
     sections: [
       {
-        h2: 'How your daily calories are calculated',
+        h2: 'Step 1: predict resting energy with Mifflin–St Jeor',
         paragraphs: [
-          'This calculator first works out your Basal Metabolic Rate (BMR) — the calories you burn at rest — using the Mifflin-St Jeor equation, which research has shown to be the most accurate of the common formulas. It then multiplies your BMR by an activity factor to estimate your Total Daily Energy Expenditure (TDEE): the calories you actually burn in a typical day.',
+          'The simplified Mifflin–St Jeor equation predicts resting energy expenditure (REE) in kilocalories per day from weight in kilograms, height in centimeters, age in years, and a sex-specific regression constant. For men: REE = 10 × weight + 6.25 × height − 5 × age + 5. For women: REE = 10 × weight + 6.25 × height − 5 × age − 161. The original study included adults ages 19–78; this calculator allows ages 19–100 but estimates above that sample range are less certain.',
+          'For a man age 30, weight 70 kg and height 175 cm, REE is 1,648.75 kcal/day, rounded to 1,649. For a woman with the same measurements, the simplified equation gives 1,482.75 kcal/day. These are predicted resting values, not measured basal metabolic rates. The form converts pounds to kilograms and feet/inches to centimeters before calculating.',
+        ],
+      },
+      {
+        h2: 'Step 2: estimate TDEE using an activity scenario',
+        paragraphs: [
+          'TDEE is daily energy expenditure from resting processes, food digestion and physical activity. The calculator uses TDEE = predicted REE × a selected activity multiplier. Its five existing illustrative factors are 1.2, 1.375, 1.55, 1.725 and 1.9; they are rough choices rather than measurements of individual physical activity levels. Exercise days per week do not capture every difference in work, movement, exercise intensity and physiology.',
+          'For the 70-kg, 175-cm, age-30 male example, the 1.375 scenario yields approximately 2,267 kcal/day, while the 1.2 scenario yields approximately 1,979 kcal/day. Changing the activity selection changes the estimate, not your measured energy needs. No activity option guarantees the estimate will match a specific person.',
         ],
         list: {
-          intro: 'The activity multipliers used are the widely accepted standard values:',
+          intro: 'The existing selector supplies these conventional model assumptions:',
           items: [
-            'Sedentary (little or no exercise): ×1.2',
-            'Lightly active (1–3 days/week): ×1.375',
-            'Moderately active (3–5 days/week): ×1.55',
-            'Very active (6–7 days/week): ×1.725',
-            'Extra active (hard training or a physical job): ×1.9',
+            'Sedentary: predicted REE × 1.2.',
+            'Lightly active: predicted REE × 1.375.',
+            'Moderately active: predicted REE × 1.55.',
+            'Very active: predicted REE × 1.725.',
+            'Extra active: predicted REE × 1.9.',
           ],
         },
       },
       {
-        h2: 'Calories to lose, maintain, or gain',
+        h2: 'Why the 500-kcal examples are not weight-loss or gain promises',
         paragraphs: [
-          'Your maintenance figure is the number of calories that keeps your weight stable. To change weight, you adjust intake around it. Because roughly 3,500 calories equals about half a kilogram (one pound) of fat, a daily change of about 500 calories shifts your weight by roughly that much per week.',
-          'The three goal cards above apply this: a 500-calorie deficit for steady fat loss, your maintenance figure to hold steady, and a 500-calorie surplus for gradual gain. For safety, this tool never recommends eating below about 1,200 calories a day for women or 1,500 for men — go lower only under professional supervision. If a target would fall below that floor, you will see a warning.',
+          'The result panel retains two arithmetic scenarios, 500 kcal/day lower or higher than the selected TDEE estimate, to show how a fixed difference changes a number. Neither is a recommended intake. A 500-kcal daily deficit cannot be converted reliably into exactly 1 lb (0.45 kg) of weight loss every week, and an equal surplus does not ensure the same rate of weight gain. Appetite, activity, energy expenditure and body composition change over time.',
+          'NIH researcher Kevin Hall and colleagues have shown that fixed 3,500-kcal-per-pound rules often overpredict long-term weight loss because the energy balance changes. The NIDDK Body Weight Planner accounts for dynamic responses and additional personal details. Use clinical judgment before acting on any number rather than treating a simple subtraction or addition as an instruction.',
         ],
       },
       {
-        h2: 'Making your calorie target work',
+        h2: 'Why there is no universal 1,200- or 1,500-calorie safety floor',
         paragraphs: [
-          'These numbers are well-validated estimates, but everyone is a little different, and your true burn can vary by 10% or more. Use your target as a starting point: track your intake and weight for two to three weeks, then adjust up or down based on what actually happens on the scale.',
-          'Calorie quality matters too. The same calorie count built from protein, vegetables, whole grains and healthy fats will leave you fuller and healthier than one built from ultra-processed food. Pair your target with adequate protein and strength training to keep muscle while you lose fat.',
+          'Older adult weight-management protocols sometimes used ranges around 1,200–1,500 kcal/day for women and 1,500–1,800 for men under specific treatment conditions. Those numbers do not establish a universal safe minimum for every person. Required energy and nutrient adequacy depend on age, body size, pregnancy status, health conditions, activity and a person’s overall diet.',
+          'This tool no longer silently raises a calculated 500-kcal subtraction to a sex-based floor and calls that a safe goal. As a conservative display guard, it withholds illustrative intake numbers below 1,000 kcal/day, a level the NIH NIDDK Body Weight Planner flags for nutrient adequacy. That withholding threshold is NOT a declaration that 1,000 kcal or any higher amount is safe for an individual. Very low modeled expenditure also triggers a warning rather than being presented as a meal plan.',
+        ],
+      },
+      {
+        h2: 'How to interpret the estimate responsibly',
+        paragraphs: [
+          'Use the output to understand assumptions, not to diagnose a condition or calculate a treatment diet. People who are pregnant or breastfeeding, still growing, managing medical conditions or recovering from illness need tailored advice. The equation was developed in healthy adults; the calculator cannot measure actual calorie burn, muscle mass or nutritional adequacy.',
+          'If changing weight is an appropriate goal, a registered dietitian or clinician can help consider blood pressure, medications, current nutrition, activity, weight history and follow-up. There is no direct conversion from these three modeled numbers to a guaranteed body-weight timeline.',
         ],
       },
     ],
     faq: [
       {
-        q: 'What is TDEE?',
-        a: 'TDEE (Total Daily Energy Expenditure) is the total number of calories you burn in a day, including your resting metabolism plus all activity and digestion. Eating at your TDEE keeps your weight stable.',
+        q: 'Is TDEE the same thing as resting energy or BMR?',
+        a: 'No. Mifflin–St Jeor predicts resting energy expenditure (REE); TDEE multiplies that predicted value by an assumed activity factor to approximate all-day expenditure. Neither is a direct measurement.',
       },
       {
-        q: 'How many calories should I eat to lose weight?',
-        a: 'A deficit of about 500 calories below your TDEE produces roughly 0.5 kg (1 lb) of loss per week. Avoid dropping below about 1,200 calories (women) or 1,500 (men) without medical guidance.',
+        q: 'Do 500 fewer calories guarantee one pound of weight loss each week?',
+        a: 'No. The fixed 3,500-kcal-per-pound rule neglects dynamic energy and body-weight changes. The result panel shows arithmetic examples only, with no guaranteed loss or gain rate.',
       },
       {
-        q: 'Why is there a minimum calorie limit?',
-        a: 'Eating too little makes it hard to get enough nutrients, can reduce muscle mass, and is difficult to sustain. Most guidance sets a floor of around 1,200 kcal for women and 1,500 for men outside of supervised programs.',
+        q: 'Why does the calculator not impose 1,200 or 1,500 calories as a minimum?',
+        a: 'Those numbers appear in some clinical weight-management programs, not as universal safety rules. Nutritional requirements vary; the tool does not set diets or personal safety thresholds.',
       },
       {
-        q: 'How accurate is this calorie calculator?',
-        a: 'It uses the Mifflin-St Jeor equation, the most accurate common formula, but results are estimates. Track your weight for a few weeks and adjust your intake based on real-world results.',
+        q: 'Why might a 500-kcal example be hidden?',
+        a: 'The tool withholds examples under 1,000 kcal/day because of concerns flagged by the NIDDK Body Weight Planner about meeting nutrient targets. This is a display guard, not proof that other calorie levels are safe.',
+      },
+      {
+        q: 'Which measurements and units should I enter?',
+        a: 'Enter weight in kg or lb and height in cm or feet/inches, plus age in whole years (19–100) and one of the listed activity scenarios. The formula runs internally with kilograms and centimeters.',
       },
     ],
     sources: [
-      MIFFLIN,
       {
-        citation: 'U.S. Dietary Guidelines for Americans — estimated daily calorie needs by age, sex, and activity level.',
-        url: 'https://odphp.health.gov/our-work/nutrition-physical-activity/dietary-guidelines',
+        citation: 'Mifflin MD, St Jeor ST, Hill LA, et al. A new predictive equation for resting energy expenditure in healthy individuals. Am J Clin Nutr. 1990;51(2):241–247.',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/2305711/',
+      },
+      {
+        citation: 'Hall KD. Why is the 3500 kcal per pound weight loss rule wrong? Int J Obes. 2013;37:1614–1615.',
+        url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC3859816/',
+      },
+      {
+        citation: 'National Institute of Diabetes and Digestive and Kidney Diseases (NIDDK). Body Weight Planner and nutrient-adequacy cautions.',
+        url: 'https://www.niddk.nih.gov/bwp',
+      },
+      {
+        citation: 'National Heart, Lung, and Blood Institute (NHLBI). Following DASH: estimated daily calorie needs by age, sex and activity.',
+        url: 'https://www.nhlbi.nih.gov/health/dash/following-dash',
       },
     ],
   },

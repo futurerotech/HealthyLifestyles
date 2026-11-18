@@ -68,7 +68,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'calorie-calculator',
     title: 'Calorie Calculator',
-    blurb: 'Find your daily calorie target (TDEE) for losing, maintaining, or gaining weight.',
+    blurb: 'Estimate daily expenditure (TDEE) and compare non-prescriptive arithmetic scenarios.',
     category: 'nutrition',
     icon: 'flame',
     gradient: 'orange',
