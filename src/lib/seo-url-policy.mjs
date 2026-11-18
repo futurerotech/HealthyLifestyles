@@ -39,6 +39,17 @@ export function serializeSitemapEntry(item, siteUrl) {
   return { ...item, url, priority };
 }
 
+/**
+ * Public tool-category URLs use the category slug, not Tool.category (an ID).
+ * The historical heart-vitals ID maps to the real /heart-health archive.
+ * An unavailable category must not generate an invented internal route.
+ * @param {{slug: string} | null | undefined} category
+ * @returns {string}
+ */
+export function toolCategoryHubPath(category) {
+  return category?.slug ? `/${category.slug}` : '';
+}
+
 /** The public article route is flat; category archives have separate routes. */
 /** @param {string} slug @returns {string} */
 export function sitemapArticlePath(slug) {

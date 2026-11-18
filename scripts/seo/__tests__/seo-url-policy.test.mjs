@@ -71,3 +71,19 @@ test('human sitemap article links use the same single-segment route as article p
   assert.equal(sitemapArticlePath('nutrition-guide'), '/wellness-hub/nutrition-guide');
   assert.equal(sitemapArticlePath('former-section'), '/wellness-hub/former-section');
 });
+
+test('tool category hubs use public slugs, including the heart-vitals ID mismatch', async () => {
+  const { toolCategoryHubPath } = await import('../../../src/lib/seo-url-policy.mjs');
+  const { CATEGORIES } = await import('../../../src/data/categories.ts');
+  for (const category of CATEGORIES) {
+    assert.equal(toolCategoryHubPath(category), `/${category.slug}`, category.id);
+  }
+  const heart = CATEGORIES.find((category) => category.id === 'heart-vitals');
+  assert.ok(heart, 'the existing heart-vitals ID should remain available');
+  assert.equal(heart.slug, 'heart-health');
+  assert.equal(toolCategoryHubPath(heart), '/heart-health');
+  assert.notEqual(toolCategoryHubPath(heart), '/heart-vitals');
+  assert.equal(toolCategoryHubPath(undefined), '');
+  assert.equal(toolCategoryHubPath(null), '');
+  assert.equal(toolCategoryHubPath({ slug: '' }), '');
+});
