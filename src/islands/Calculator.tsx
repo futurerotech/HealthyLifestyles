@@ -19,11 +19,13 @@ type Disp = Record<string, string>;
 const preciseHeight = (def: CalcDef): boolean =>
   def.slug === 'lean-body-mass-calculator' || def.slug === 'waist-to-height-ratio-calculator' ||
   def.slug === 'bmi-calculator' || def.slug === 'bmr-calculator' ||
-  def.slug === 'ideal-weight-calculator' || def.slug === 'calorie-calculator';
+  def.slug === 'ideal-weight-calculator' || def.slug === 'calorie-calculator' ||
+  def.slug === 'macro-calculator';
 
 const preciseWeight = (def: CalcDef): boolean =>
   def.slug === 'weight-loss-percentage-calculator' || def.slug === 'bmi-calculator' ||
-  def.slug === 'bmr-calculator' || def.slug === 'calorie-calculator';
+  def.slug === 'bmr-calculator' || def.slug === 'calorie-calculator' ||
+  def.slug === 'macro-calculator';
 
 const num = (s: string | undefined): number => {
   const n = parseFloat(s ?? '');

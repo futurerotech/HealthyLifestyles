@@ -829,62 +829,115 @@ export const DEFS: Record<string, CalcDef> = {
     },
   },
 
-  // ---- Macro Calculator ----
+  // ---- Macro Calculator: illustrative TDEE and internally consistent macro shares ----
   'macro-calculator': {
     slug: 'macro-calculator',
-    heading: 'Calculate your macros',
+    heading: 'Explore estimated daily macros',
     hasSex: true,
     fields: [
-      F.weight(72), F.height(175), F.age(30), activityField(),
+      F.weight(72),
+      F.height(175),
       {
-        key: 'goal', label: 'Goal', type: 'select', metricDefault: 0, min: 0, max: 0,
+        ...F.age(30),
+        min: 19,
+        help: 'For adults age 19 or older. The Mifflin–St Jeor study included ages 19–78; results above that age are extrapolations.',
+      },
+      {
+        ...activityField(),
+        help: 'Choose an illustrative activity multiplier. This selection does not measure your true daily energy expenditure.',
+      },
+      {
+        key: 'goal', label: 'Illustrative scenario', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'maintain',
         options: [
-          { value: 'cut', label: 'Cut — lose fat' },
-          { value: 'maintain', label: 'Maintain' },
-          { value: 'bulk', label: 'Bulk — build muscle' },
+          { value: 'cut', label: 'Cut — lower energy example' },
+          { value: 'maintain', label: 'Maintain — estimated TDEE' },
+          { value: 'bulk', label: 'Bulk — higher energy example' },
         ],
       },
     ],
     compute: ({ vals, selects, sex }) => {
-      const factor = parseFloat(selects.activity) || 1.375;
-      const goal = selects.goal || 'maintain';
-      const bmr = mifflin(vals.weight, vals.height, vals.age, sex);
-      const tdee = bmr * factor;
-      const floor = calorieFloor(sex);
-      let calories: number;
-      let pPerKg: number;
-      let fPerKg: number;
-      let goalLabel: string;
-      if (goal === 'cut') { calories = tdee - 500; pPerKg = 2.2; fPerKg = 0.8; goalLabel = 'Cut'; }
-      else if (goal === 'bulk') { calories = tdee + 300; pPerKg = 1.6; fPerKg = 1.0; goalLabel = 'Bulk'; }
-      else { calories = tdee; pPerKg = 1.8; fPerKg = 0.9; goalLabel = 'Maintain'; }
-      const clamped = calories < floor;
-      if (clamped) calories = floor;
-      const proteinG = pPerKg * vals.weight;
-      const fatG = fPerKg * vals.weight;
-      let carbsG = (calories - proteinG * 4 - fatG * 9) / 4;
-      let lowCarb = false;
-      if (carbsG < 0) { carbsG = 0; lowCarb = true; }
+      const { weight, height, age } = vals;
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Illustrative macro energy',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (![weight, height, age].every((v) => Number.isFinite(v) && v > 0) ||
+          (sex !== 'male' && sex !== 'female')) {
+        return fail('Enter valid positive weight, height, whole-year age and an equation sex.');
+      }
+      if (weight < 25 || weight > 300 || height < 120 || height > 230 ||
+          !Number.isInteger(age) || age < 19 || age > 100) {
+        return fail('Check weight (25–300 kg), height (120–230 cm) and whole-year age (19–100).');
+      }
+      // Match the existing activity choices exactly; do not parse partial
+      // strings or silently assume the default when input is missing.
+      const activity = ACTIVITY_OPTIONS.find((option) => option.value === selects.activity);
+      if (!activity) return fail('Choose one of the listed activity levels.');
+      const goal = selects.goal;
+      if (goal !== 'cut' && goal !== 'maintain' && goal !== 'bulk') {
+        return fail('Choose one of the listed macro scenarios.');
+      }
+
+      // The original Mifflin helper already predicts REE in kcal/day.
+      const ree = mifflin(weight, height, age, sex);
+      const factor = Number(activity.value);
+      const tdee = ree * factor;
+      if (![ree, factor, tdee].every((v) => Number.isFinite(v) && v > 0)) {
+        return fail('These measurements cannot produce a valid energy estimate.');
+      }
+      // Preserve the existing illustrative energy shifts and per-kg macro
+      // coefficients; they are examples, NOT validated dietary prescriptions.
+      const offset = goal === 'cut' ? -500 : goal === 'bulk' ? 300 : 0;
+      const goalLabel = goal === 'cut' ? 'Cut' : goal === 'bulk' ? 'Bulk' : 'Maintain';
+      const proteinPerKg = goal === 'cut' ? 2.2 : goal === 'bulk' ? 1.6 : 1.8;
+      const fatPerKg = goal === 'cut' ? 0.8 : goal === 'bulk' ? 1.0 : 0.9;
+      const energy = tdee + offset;
+
+      // Withhold invalid low-energy demonstrations rather than declaring the
+      // former sex-dependent 1200/1500-kcal clamp universally safe. NIDDK's
+      // 1000-kcal guard is a display limit, NOT an approved personal minimum.
+      if (tdee < 1000 || energy < 1000) {
+        return fail('This example would use an unusually low modeled energy budget (under 1,000 kcal/day). No macro split or meal-plan handoff is shown. The NIDDK nutrient-adequacy warning is not a universal safe-calorie threshold; discuss appropriate intake with a qualified clinician or registered dietitian.');
+      }
+
+      const proteinG = proteinPerKg * weight;
+      const fatG = fatPerKg * weight;
+      const proteinKcal = proteinG * 4;
+      const fatKcal = fatG * 9;
+      const remainingKcal = energy - proteinKcal - fatKcal;
+
+      // Never substitute zero carbohydrate after the other two macros have
+      // already exceeded the energy budget: it would show an impossible total.
+      if (!Number.isFinite(remainingKcal) || remainingKcal < 0) {
+        return fail('The selected protein and fat illustrations already exceed the estimated energy budget; a consistent carbohydrate remainder cannot be calculated. Try a different scenario or activity level, or seek individualized nutrition guidance. No inaccurate split is shown.');
+      }
+
+      const carbsG = remainingKcal / 4;
       return {
         ok: true,
-        primaryLabel: `Daily calories (${goalLabel})`,
-        primaryValue: `${fmt(calories, 0)} kcal/day`,
+        primaryLabel: 'Illustrative macro energy (' + goalLabel + ')',
+        primaryValue: fmt(energy, 0) + ' kcal/day',
         visual: macroDonut(proteinG, carbsG, fatG),
         rows: [
-          { label: 'Protein', value: `${fmt(proteinG, 0)} g · ${fmt(proteinG * 4, 0)} kcal`, strong: true },
-          { label: 'Carbs', value: `${fmt(carbsG, 0)} g · ${fmt(carbsG * 4, 0)} kcal` },
-          { label: 'Fat', value: `${fmt(fatG, 0)} g · ${fmt(fatG * 9, 0)} kcal` },
+          { label: 'Protein (illustrative)', value: fmt(proteinG, 0) + ' g · ' + fmt(proteinKcal, 0) + ' kcal', strong: true },
+          { label: 'Carbohydrate (remainder)', value: fmt(carbsG, 0) + ' g · ' + fmt(remainingKcal, 0) + ' kcal' },
+          { label: 'Fat (illustrative)', value: fmt(fatG, 0) + ' g · ' + fmt(fatKcal, 0) + ' kcal' },
+          { label: 'Predicted resting energy (REE)', value: fmt(ree, 0) + ' kcal/day' },
+          { label: 'Illustrative TDEE', value: fmt(tdee, 0) + ' kcal/day (×' + activity.value + ')' },
+          { label: 'Energy scenario offset', value: (offset > 0 ? '+' : '') + offset + ' kcal/day' },
         ],
-        callout: clamped
-          ? { tone: 'warn', text: `Your cut target was raised to the safe minimum of ${fmt(floor, 0)} kcal/day.` }
-          : lowCarb
-          ? { tone: 'info', text: 'Your protein and fat targets already use all your calories, so carbs are set to zero. Consider a smaller deficit.' }
-          : undefined,
-        note: `Protein set at ${pPerKg} g/kg and fat at ${fPerKg} g/kg of body weight; the rest of your calories go to carbs (protein & carbs = 4 kcal/g, fat = 9 kcal/g).`,
+        callout: {
+          tone: 'info',
+          text: 'This split is a mathematical illustration, not a safe calorie target or individualized protein, fat or carbohydrate prescription. Macro grams are rounded for display and may not sum to the displayed calories exactly. There is no guaranteed weight-change rate.',
+        },
+        note: 'REE comes from the Mifflin–St Jeor adult prediction, not a measured BMR; TDEE assumes the selected activity multiplier. This example uses ' + proteinPerKg + ' g/kg protein and ' + fatPerKg + ' g/kg fat, then assigns the remaining energy to carbohydrate (4, 4 and 9 kcal/g). These coefficients may not fit individual health or dietary needs. No fixed calorie floor or macro ratio is universally safe; pregnancy, illness and clinical diets require personal guidance.',
         cta: {
-          label: 'Build a free 7-day meal plan from these numbers →',
-          href: `/tools/meal-plan-generator?calories=${Math.round(calories)}&protein=${Math.round(proteinG)}&carbs=${Math.round(carbsG)}&fat=${Math.round(fatG)}`,
+          label: 'Preview these estimates in the existing meal planner →',
+          href: '/tools/meal-plan-generator?calories=' + Math.round(energy) +
+            '&protein=' + Math.round(proteinG) +
+            '&carbs=' + Math.round(carbsG) +
+            '&fat=' + Math.round(fatG),
         },
       };
     },

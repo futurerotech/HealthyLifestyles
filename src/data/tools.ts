@@ -79,7 +79,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'macro-calculator',
     title: 'Macro Calculator',
-    blurb: 'Split your calories into protein, carbs, and fat that fit your goal.',
+    blurb: 'Explore reconciled protein, carb and fat estimates from an assumed adult energy budget.',
     category: 'nutrition',
     icon: 'pie-chart',
     gradient: 'orange',

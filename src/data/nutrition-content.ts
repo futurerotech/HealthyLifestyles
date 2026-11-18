@@ -322,57 +322,96 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
   // ============================================================
   'macro-calculator': {
     directAnswer: {
-      question: 'What is a good macro split?',
+      question: 'How does this macro calculator calculate grams of protein, carbs and fat?',
       answer:
-        'The Dietary Guidelines’ acceptable ranges are 10–35% of calories from protein, 45–65% from carbohydrate, and 20–35% from fat. A common starting point for body-composition goals is 30% protein / 40% carbs / 30% fat — this calculator turns whichever split you choose into daily grams from your calorie target.',
+        'It predicts adult resting energy expenditure with Mifflin–St Jeor, applies a selected activity factor and illustrates a maintenance, lower-energy or higher-energy scenario. The original per-kilogram protein and fat assumptions are applied first; carbohydrate gets the remaining calories at 4 kcal/g. If the numbers cannot reconcile, the calculator withholds the result instead of displaying a false split.',
     },
-    seoTitle: 'Macro Calculator – Protein, Carbs & Fat',
+    seoTitle: 'Macro Calculator — Protein, Carbs & Fat Estimates',
     metaDescription:
-      'Split your daily calories into protein, carbs, and fat for cutting, maintaining, or bulking. Free macro calculator with grams and a visual breakdown.',
+      'Explore a mathematically consistent adult macro split with Mifflin REE, activity-based TDEE, kg or lb inputs and clear nutrition limitations.',
     intro:
-      'Macros are the protein, carbohydrate, and fat that make up your calories. Pick your goal and enter your details to split your daily calories into gram targets for each macronutrient.',
+      'Explore example daily protein, carbohydrate and fat amounts using a predicted adult energy budget. Choose an activity scenario and an example of maintaining, reducing or increasing the energy number. This tool does not measure metabolic needs or prescribe a diet; it withholds any result whose components do not fit its calculated budget.',
     sections: [
       {
-        h2: 'How your macros are set',
+        h2: 'How the daily energy illustration is calculated',
         paragraphs: [
-          'The calculator starts from your TDEE (BMR × activity), adjusts it for your goal, then divides the calories among the three macronutrients. Protein and carbohydrate each provide 4 calories per gram, while fat provides 9.',
-          'Protein is set first, based on body weight, because it protects muscle and keeps you full — between 1.6 and 2.2 g per kg depending on your goal. Fat is set next at 0.8–1.0 g per kg to support hormones and absorb vitamins. Whatever calories remain are assigned to carbohydrate, your main fuel for training.',
+          'The existing Mifflin–St Jeor equation predicts resting energy expenditure (REE) from weight in kilograms, height in centimeters, age in whole years and a sex-specific model coefficient. For men, REE = 10 × kg + 6.25 × cm − 5 × years + 5; for women the last term is −161. This is a prediction of REE, not a direct measurement of basal metabolic rate (BMR). The original study included people ages 19–78, so estimates at older ages are less certain.',
+          'The calculator then multiplies REE by one of five existing illustrative activity factors (1.2, 1.375, 1.55, 1.725 or 1.9) to estimate total daily energy expenditure (TDEE). These multipliers describe assumed activity, not measured expenditure. The maintain example uses that TDEE number; the cut and bulk examples subtract 500 kcal/day or add 300 kcal/day for arithmetic comparison, not because either change is automatically appropriate or produces a guaranteed weight change.',
         ],
       },
       {
-        h2: 'Choosing your goal',
-        list: {
-          intro: 'Your goal shifts both your calories and your protein target:',
-          items: [
-            'Cut (fat loss): about 500 calories below maintenance, with higher protein (2.2 g/kg) to preserve muscle.',
-            'Maintain: calories at maintenance, with moderate protein (1.8 g/kg).',
-            'Bulk (muscle gain): a modest surplus, with protein around 1.6 g/kg and more carbs for training.',
-          ],
-        },
+        h2: 'Why protein and fat are allocated before carbohydrate',
+        paragraphs: [
+          'The tool preserves its existing illustrative coefficients by goal: cut uses 2.2 g protein/kg plus 0.8 g fat/kg; maintain uses 1.8 g protein/kg plus 0.9 g fat/kg; bulk uses 1.6 g protein/kg plus 1.0 g fat/kg. Those inputs are not a user-selected percentage split and are not the same as individualized dietary requirements. Evidence on protein for healthy exercising adults supports a range of intakes, but appropriate protein and fat depend on energy availability, training and health.',
+          'The energy arithmetic uses 4 kcal per gram of protein and carbohydrate and 9 kcal per gram of fat. The carbohydrate remainder is (illustrative calories − 4 × protein grams − 9 × fat grams) ÷ 4. For a 70-kg, 175-cm, 30-year-old man with the lightly active factor (1.375), estimated TDEE is about 2,267 kcal/day. At maintain, 126 g protein (504 kcal) and 63 g fat (567 kcal) leave about 299 g carbohydrate (1,196 kcal). The sum of unrounded macro energies equals the estimated budget.',
+        ],
       },
       {
-        h2: 'Hitting your numbers',
+        h2: 'What happens if the macro energy budget does not work',
         paragraphs: [
-          'You do not need to hit your macros perfectly every day — getting within 5–10 grams of each target, most days, is more than enough for results. Protein is the macro worth prioritising; carbs and fat can flex around your preferences and how you train.',
-          'Spread protein across three or four meals for best muscle support, and build meals around whole foods. A food-tracking app makes hitting these targets far easier, especially in the first few weeks while you learn the macro content of your usual meals.',
+          'Some combinations of weight, model age, physical activity and selected scenario leave fewer modeled calories than the protein and fat assumptions already require. Simply changing negative carbohydrate grams to zero would not solve the inconsistency: it would still present more macro calories than the displayed total. The calculator now withholds the split and meal-plan link in that case, with an explanation, instead of reporting impossible targets.',
+          'The tool also withholds scenarios where the modeled TDEE or illustrated energy amount is under 1,000 kcal/day. The NIDDK Body Weight Planner warns about meeting food-group and nutrient goals below 1,000 kcal/day in its model. This is a conservative display guard, not a minimum intake proven safe for everyone: a number at or above it can still be inappropriate, and no food plan follows from a formula alone.',
+        ],
+      },
+      {
+        h2: 'Nutrition ranges and the limits of a fixed macro equation',
+        paragraphs: [
+          'North American Dietary Reference Intakes describe general adult acceptable macronutrient distribution ranges of 10–35% energy from protein, 45–65% from carbohydrate and 20–35% from fat. These are broad reference ranges for generally healthy populations, not a requirement that an individual calculator must always return those exact percentages. Body-weight-based protein allocations may fall outside them, especially at low energy budgets, and the tool does not assess nutrient adequacy.',
+          'The International Society of Sports Nutrition position stand discusses roughly 1.4–2.0 g/kg/day of protein for most exercising adults, with some higher intakes studied in energy-restricted resistance training. Those findings do not mean that 2.2 g/kg or any particular split is necessary, safe or superior for every user. Conditions such as kidney disease, pregnancy, eating disorders or therapeutic diets require individualized advice.',
+        ],
+      },
+      {
+        h2: 'How to use units and results responsibly',
+        paragraphs: [
+          'You can enter mass in kilograms or pounds and height in centimeters or feet/inches. Conversion uses exact unit definitions before calculation. The display may round grams and calorie totals to whole numbers, so adding calories back from the displayed rounded grams can differ slightly from the model budget even though its unrounded internal accounting is consistent.',
+          'The three options are scenarios, not physician-approved eating plans. A fixed 500-kcal reduction does not guarantee one pound of loss each week because energy balance and body composition change over time. If a result is mathematically feasible, you may preview the approximate numbers in the existing meal planner, but that link is an educational convenience and does not validate medical suitability.',
         ],
       },
     ],
     faq: [
       {
-        q: 'What are macros?',
-        a: 'Macros (macronutrients) are protein, carbohydrate, and fat — the three nutrients that supply calories. Protein and carbs give 4 calories per gram; fat gives 9. Balancing them supports your energy, muscle, and health.',
+        q: 'Does this macro calculator let me choose a protein/carbs/fat percentage?',
+        a: 'No. It uses fixed body-weight-based protein and fat coefficients for three scenarios, then assigns the remaining modeled energy to carbohydrate. It does not offer custom percentage input.',
       },
       {
-        q: 'How much protein should I eat?',
-        a: 'For active people and those changing body composition, 1.6–2.2 g of protein per kg of body weight per day is well supported by research. Higher amounts help most when cutting calories.',
+        q: 'Why might my macro split be unavailable?',
+        a: 'The model may yield a very low energy illustration or protein and fat may already require more calories than the total. In either case the tool withholds the split instead of showing inconsistent or unsafe-sounding targets.',
       },
       {
-        q: 'Do macros matter more than calories?',
-        a: 'Calories determine whether you gain or lose weight; macros shape body composition, performance, and how full you feel. Both matter, but total calories come first for weight change.',
+        q: 'Are 1,200 calories for women and 1,500 for men universally safe minimums?',
+        a: 'No. These numbers are used in some specific clinical programs, not as universal guarantees. This calculator does not silently change modeled energy to a sex-dependent floor.',
+      },
+      {
+        q: 'Do I need 2.2 grams of protein per kilogram when cutting?',
+        a: 'Not necessarily. That is one preset arithmetic assumption, not a personal prescription. The appropriate amount depends on your health, energy intake, exercise and clinical needs.',
+      },
+      {
+        q: 'Will the macro plan guarantee a specific weight change?',
+        a: 'No. Both TDEE and the scenario offset are estimates. Actual energy expenditure and body weight respond dynamically to changes in eating and activity.',
       },
     ],
-    sources: [MIFFLIN, ISSN_PROTEIN],
+    sources: [
+      {
+        citation: 'Mifflin MD, St Jeor ST, Hill LA, et al. A new predictive equation for resting energy expenditure in healthy individuals. Am J Clin Nutr. 1990;51:241–247.',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/2305711/',
+      },
+      {
+        citation: 'Jäger R, Kerksick CM, Campbell BI, et al. International Society of Sports Nutrition Position Stand: protein and exercise. J Int Soc Sports Nutr. 2017;14:20.',
+        url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC5477153/',
+      },
+      {
+        citation: 'Health Canada. Dietary Reference Intakes: reference values for macronutrients (AMDR for adults age 19+).',
+        url: 'https://www.canada.ca/en/health-canada/services/food-nutrition/healthy-eating/dietary-reference-intakes/tables/reference-values-macronutrients.html',
+      },
+      {
+        citation: 'NIH NIDDK. Body Weight Planner, including its under-1,000-kcal/day nutrient adequacy warning.',
+        url: 'https://www.niddk.nih.gov/bwp',
+      },
+      {
+        citation: 'Hall KD, Chow CC. Why is the 3500 kcal per pound weight loss rule wrong? Int J Obes (Lond). 2013;37:1614.',
+        url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC3859816/',
+      },
+    ],
   },
 
   // ============================================================
