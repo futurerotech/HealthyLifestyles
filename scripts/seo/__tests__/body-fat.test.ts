@@ -49,23 +49,23 @@ test('imperial measurements converted with exactly 2.54 cm/in match metric input
 });
 
 test('invalid, missing, nonfinite and impossible proportions fail closed', () => {
-  for (const vals of [
+  for (const vals of ([
     { height: 175, neck: 38, waist: 38 },
     { height: 175, neck: 38, waist: 20 },
     { height: 0, neck: 38, waist: 88 },
     { height: NaN, neck: 38, waist: 88 },
     { height: Infinity, neck: 38, waist: 88 },
     { height: 175, neck: -20, waist: 88 },
-  ]) {
+  ] as Record<string, number>[])) {
     const result = estimate('male', vals);
     assert.equal(result.ok, false, JSON.stringify(vals));
     assert.equal(result.visual.kind, 'none');
   }
-  for (const vals of [
+  for (const vals of ([
     { height: 165, neck: 32, waist: 76 },
     { height: 165, neck: 32, waist: 76, hip: 0 },
     { height: 165, neck: 32, waist: 20, hip: 10 },
-  ]) {
+  ] as Record<string, number>[])) {
     assert.equal(estimate('female', vals).ok, false, JSON.stringify(vals));
   }
 });
