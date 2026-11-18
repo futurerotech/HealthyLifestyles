@@ -90,7 +90,7 @@ test('kilogram to pound display uses the project exact conversion constant', () 
 
 test('weight precision and kg normalization are scoped to protein, other tools unaffected', () => {
   const island = readFileSync(new URL('../../../src/islands/Calculator.tsx', import.meta.url), 'utf8');
-  assert.match(island, /const preciseWeight =[\s\S]*?def.slug === 'protein-intake-calculator';/);
+  assert.match(island, /const preciseWeight =[\s\S]*?def.slug === 'protein-intake-calculator'\s*\|\|/);
   assert.match(island, /def.slug === 'protein-intake-calculator'[\s\S]*?round\(lbToKg\(num\(disp\[f.key\]\)\), 2\)/);
   assert.match(island, /preciseWeight\(def\) \? 3 : 1/);
   assert.ok(DEFS['macro-calculator'].compute);

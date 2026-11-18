@@ -1072,7 +1072,7 @@ export const DEFS: Record<string, CalcDef> = {
         visual: { kind: 'none' },
         callout: held ? {
           tone: 'info',
-          text: 'For body weight above 100 kg (220 lb), this example holds the 35-mL/kg baseline at its 100-kg value rather than continuing to scale it. This is a formula display limit, NOT a maximum intake or a validated clinical cutoff. Actual needs may be higher or lower.',
+          text: 'For body weight above 100 kg (220 lb), this example holds the 35-mL/kg baseline at its 100-kg value rather than continuing to scale it. This is a formula display limit, NOT a maximum intake. It is not a validated clinical cutoff. Actual needs may be higher or lower.',
         } : undefined,
         rows: [
           { label: 'Total-water equivalent (US fluid ounces)', value: fmt(totalOz, 0) + ' US fl oz', strong: true },
