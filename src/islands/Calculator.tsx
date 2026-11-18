@@ -37,7 +37,7 @@ function initialDisplay(def: CalcDef, units: UnitSystem): Disp {
     } else if (f.type === 'mass') {
       d[f.key] = String(units === 'metric' ? round(f.metricDefault, 1) : round(kgToLb(f.metricDefault), 1));
     } else if (f.type === 'length') {
-      d[f.key] = String(units === 'metric' ? round(f.metricDefault, 1) : round(cmToIn(f.metricDefault), def.slug === 'waist-to-hip-ratio-calculator' ? 2 : def.slug === 'waist-to-height-ratio-calculator' ? 2 : 1));
+      d[f.key] = String(units === 'metric' ? round(f.metricDefault, 1) : round(cmToIn(f.metricDefault), def.slug === 'waist-to-hip-ratio-calculator' ? 3 : def.slug === 'waist-to-height-ratio-calculator' ? 2 : 1));
     } else if (f.type === 'select') {
       // selects are tracked in their own state, not as display strings
     } else {
@@ -91,7 +91,7 @@ function convertDisplay(def: CalcDef, disp: Disp, to: UnitSystem): Disp {
       d[f.key] = String(to === 'imperial' ? round(kgToLb(num(disp[f.key])), 1) : round(lbToKg(num(disp[f.key])), 1));
     } else if (f.type === 'length') {
       d[f.key] = String(to === 'imperial'
-        ? round(cmToIn(num(disp[f.key])), def.slug === 'waist-to-hip-ratio-calculator' ? 2 : def.slug === 'waist-to-height-ratio-calculator' ? 2 : 1)
+        ? round(cmToIn(num(disp[f.key])), def.slug === 'waist-to-hip-ratio-calculator' ? 3 : def.slug === 'waist-to-height-ratio-calculator' ? 2 : 1)
         : round(inToCm(num(disp[f.key])), def.slug === 'waist-to-hip-ratio-calculator' ? 2 : def.slug === 'waist-to-height-ratio-calculator' ? 2 : 1));
     }
   }
@@ -672,9 +672,11 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
       f.type === 'mass' ? (units === 'metric' ? 'kg' : 'lb')
       : f.type === 'length' || f.type === 'height' ? (units === 'metric' ? 'cm' : 'in')
       : 'yrs';
-    const step = (f.type === 'height' && preciseHeight(def)) ||
-      (f.type === 'length' && (slug === 'waist-to-height-ratio-calculator' ||
-       slug === 'waist-to-hip-ratio-calculator')) ? '0.01'
+    const step = f.type === 'length' && slug === 'waist-to-hip-ratio-calculator' && units === 'imperial'
+      ? '0.001'
+      : (f.type === 'height' && preciseHeight(def)) ||
+        (f.type === 'length' && (slug === 'waist-to-height-ratio-calculator' ||
+        slug === 'waist-to-hip-ratio-calculator')) ? '0.01'
       : f.type === 'age' || f.type === 'height' ? '1' : '0.1';
     return (
       <div class="calc__field" key={f.key}>

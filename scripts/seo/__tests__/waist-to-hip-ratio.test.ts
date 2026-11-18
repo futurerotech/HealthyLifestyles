@@ -96,7 +96,7 @@ test('missing, zero, negative and nonfinite dimensions fail without category', (
   assert.equal(whr.compute({ vals: { waist: 90 }, units: 'metric', sex: 'female', selects: {} }).ok, false);
 });
 
-test('two-decimal circumference unit toggles preserve threshold and ratio', () => {
+test('three-decimal imperial units preserve WHO threshold after cm conversion', () => {
   for (const [sex, waistCm, hipCm] of [
     ['male', 89.6, 100],
     ['male', 90, 100],
@@ -105,8 +105,8 @@ test('two-decimal circumference unit toggles preserve threshold and ratio', () =
     ['female', 97.5, 107.2],
   ] as const) {
     const metric = estimate(sex, waistCm, hipCm);
-    const waistBack = round(inToCm(round(cmToIn(waistCm), 2)), 2);
-    const hipBack = round(inToCm(round(cmToIn(hipCm), 2)), 2);
+    const waistBack = round(inToCm(round(cmToIn(waistCm), 3)), 2);
+    const hipBack = round(inToCm(round(cmToIn(hipCm), 3)), 2);
     const imperial = estimate(sex, waistBack, hipBack, 'imperial');
     assert.equal(imperial.ok, true);
     assert.equal(metric.category?.label, imperial.category?.label, sex + '/' + waistCm);
@@ -126,7 +126,9 @@ test('WHR measurement instructions follow midpoint rib/hip and widest buttocks',
 
 test('WHR-only two-decimal inputs preserve earlier WHtR and Boer precision', () => {
   const ui = readFileSync(new URL('../../../src/islands/Calculator.tsx', import.meta.url), 'utf8');
+  assert.match(ui, /def.slug === 'waist-to-hip-ratio-calculator' \? 3 : def.slug === 'waist-to-height-ratio-calculator' \? 2 : 1/);
   assert.match(ui, /def.slug === 'waist-to-hip-ratio-calculator' \? 2 : def.slug === 'waist-to-height-ratio-calculator' \? 2 : 1/);
+  assert.match(ui, /units === 'imperial'\s*\? '0.001'/);
   assert.match(ui, /slug === 'waist-to-hip-ratio-calculator'/);
   assert.match(ui, /const preciseHeight/);
 });
