@@ -100,7 +100,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'water-intake-calculator',
     title: 'Water Intake Calculator',
-    blurb: 'Find how much water to drink each day, in liters and fluid ounces.',
+    blurb: 'Explore total-water estimates by weight and activity, with US units and clear clinical limitations.',
     category: 'nutrition',
     icon: 'droplet',
     gradient: 'cyan',

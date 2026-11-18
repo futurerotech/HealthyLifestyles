@@ -169,6 +169,15 @@ const PROTEIN_OPTIONS: SelectOption[] = [
   { value: '2.2', label: 'Higher training example — not a maximum (2.2 g/kg)' },
 ];
 
+// The existing activity numbers are illustrative increments, NOT measured
+// sweat loss or validated fluid requirements for a given exercise duration.
+const WATER_ACTIVITY_OPTIONS: SelectOption[] = [
+  { value: '0', label: 'Little / no exercise — +0 L example' },
+  { value: '500', label: 'Moderate (30–60 min/day) — +0.5 L example' },
+  { value: '1000', label: 'Active (1–2 h/day) — +1.0 L example' },
+  { value: '1500', label: 'Very active (>2 h/day) — +1.5 L example' },
+];
+
 const ACTIVITY_OPTIONS: SelectOption[] = [
   { value: '1.2', label: 'Sedentary — little or no exercise' },
   { value: '1.375', label: 'Lightly active — 1–3 days/week' },
@@ -1007,41 +1016,73 @@ export const DEFS: Record<string, CalcDef> = {
     },
   },
 
-  // ---- Water Intake ----
+  // ---- Water Intake: PR #54's high-weight rule + strict input safety ----
   'water-intake-calculator': {
     slug: 'water-intake-calculator',
-    heading: 'Calculate your water intake',
+    heading: 'Explore a daily total-water example',
     hasSex: false,
     fields: [
       F.weight(72),
       {
-        key: 'activity', label: 'Daily activity', type: 'select', metricDefault: 0, min: 0, max: 0,
+        key: 'activity', label: 'Illustrative activity adjustment',
+        type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '500',
-        options: [
-          { value: '0', label: 'Light — little exercise' },
-          { value: '500', label: 'Moderate — 30–60 min/day' },
-          { value: '1000', label: 'Active — 1–2 hours/day' },
-          { value: '1500', label: 'Very active — over 2 hours/day' },
-        ],
+        options: WATER_ACTIVITY_OPTIONS,
+        help: 'The optional fixed increments are simple examples, not estimates of your sweat loss or a drinking prescription.',
       },
     ],
-    compute: ({ vals, selects }) => {
-      const baselineMl = 35 * vals.weight;
-      const extraMl = parseFloat(selects.activity) || 0;
+    compute: ({ vals, selects, units }) => {
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Illustrative daily total water',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      const weight = vals.weight;
+      if (!Number.isFinite(weight) || weight < 25 || weight > 300) {
+        return fail('Enter a finite weight between 25 and 300 kg (about 55–661 lb).');
+      }
+      if (units !== 'metric' && units !== 'imperial') {
+        return fail('Choose metric or imperial units.');
+      }
+      // The original UI's allowed increments must match EXACTLY. Do not
+      // silently map missing, partial or malformed values to the zero example.
+      const activity = WATER_ACTIVITY_OPTIONS.find(option => option.value === selects.activity);
+      if (!activity) return fail('Choose one of the listed activity examples.');
+
+      // Reuse the existing PR #54 review correction: 35 mL/kg is held above
+      // 100 kg rather than being extrapolated into a 6–12 L/day "recommendation".
+      // This 100-kg boundary is an ENGINEERING display guard, not a clinical
+      // upper intake limit, validated cutoff, or individualized dose.
+      const SCALING_LIMIT_KG = 100;
+      const held = weight > SCALING_LIMIT_KG;
+      const baselineMl = 35 * Math.min(weight, SCALING_LIMIT_KG);
+      const extraMl = Number(activity.value);
       const totalMl = baselineMl + extraMl;
-      const liters = totalMl / 1000;
-      const oz = totalMl / 29.5735;
+      const ML_PER_US_FL_OZ = 29.5735295625;
+      const totalOz = totalMl / ML_PER_US_FL_OZ;
+      // Rough illustrative split based on historical US population surveys.
+      const drinksMl = totalMl * 0.8;
+      if (![baselineMl, extraMl, totalMl, totalOz, drinksMl]
+          .every(value => Number.isFinite(value) && value >= 0)) {
+        return fail('The inputs cannot produce a valid total-water example.');
+      }
       return {
         ok: true,
-        primaryLabel: 'Recommended water intake',
-        primaryValue: `${fmt(liters, 1)} L/day`,
+        primaryLabel: 'Illustrative total water (drinks + food)',
+        primaryValue: fmt(totalMl / 1000, 1) + ' L/day',
         visual: { kind: 'none' },
+        callout: held ? {
+          tone: 'info',
+          text: 'For body weight above 100 kg (220 lb), this example holds the 35-mL/kg baseline at its 100-kg value rather than continuing to scale it. This is a formula display limit, NOT a maximum intake or a validated clinical cutoff. Actual needs may be higher or lower.',
+        } : undefined,
         rows: [
-          { label: 'In fluid ounces', value: `${fmt(oz, 0)} oz`, strong: true },
-          { label: 'Roughly in cups (8 oz)', value: `${fmt(oz / 8, 0)} cups` },
-          { label: 'Baseline (35 ml/kg)', value: `${fmt(baselineMl / 1000, 1)} L` },
+          { label: 'Total-water equivalent (US fluid ounces)', value: fmt(totalOz, 0) + ' US fl oz', strong: true },
+          { label: 'Total-water equivalent (8-US-fl-oz cups)', value: fmt(totalOz / 8, 0) + ' cups' },
+          { label: 'Illustrative activity addition', value: '+' + fmt(extraMl / 1000, 1) + ' L (not measured sweat loss)' },
+          { label: 'If about 80% comes from drinks', value: fmt(drinksMl / 1000, 2) + ' L · ' + fmt(drinksMl / ML_PER_US_FL_OZ, 0) + ' US fl oz' },
+          { label: held ? 'Formula baseline (35 mL/kg, held at 100 kg)' : 'Formula baseline (35 mL/kg)', value: fmt(baselineMl / 1000, 2) + ' L' },
+          { label: 'U.S. adult adequate-intake references (total water)', value: '3.7 L men · 2.7 L women (food + drinks)' },
         ],
-        note: 'Based on ~35 ml per kg of body weight plus an activity adjustment. Drink more in heat, illness or pregnancy; food provides roughly 20% of your fluids.',
+        note: 'This is arithmetic for generally healthy adults, not a personal water or beverage prescription. The 35 mL/kg rule and 0–1.5 L exercise additions do not measure individual needs or sweat losses. The National Academies adequate-intake references describe total water from drinks AND food in healthy adults in temperate climates; they are neither targets for everyone nor upper limits. Roughly 80% from drinks is a survey average, not an individual rule. If pregnant or breastfeeding, ill, very active, in hot weather, or living with heart, kidney or liver disease or prescribed fluid restrictions, use individualized professional guidance. Excessive rapid drinking can cause dangerous hyponatremia; do not force fluids to meet this example.',
       };
     },
   },

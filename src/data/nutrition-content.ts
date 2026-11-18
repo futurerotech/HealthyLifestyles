@@ -497,57 +497,82 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
   },
 
   'water-intake-calculator': {
-    seoTitle: 'Water Intake Calculator (Liters & oz)',
+    directAnswer: {
+      question: 'How much water do I need daily?',
+      answer:
+        'There is no single body-weight equation that determines an adult’s exact daily water need. This calculator illustrates 35 mL per kg of body weight plus a selectable exercise adjustment. It holds the weight portion above 100 kg as a formula display guard, not a medical maximum. For context, U.S. adult adequate intakes are about 3.7 L for men and 2.7 L for women of TOTAL water from beverages and food, not prescribed beverage amounts.',
+    },
+    seoTitle: 'Water Intake Calculator — Total Water Examples (L & oz)',
     metaDescription:
-      'Calculate how much water to drink each day from your body weight and activity. Get your target in liters and fluid ounces. Free, no signup.',
+      'Explore an illustrative daily total-water estimate by weight and activity. See metric/US unit equivalents, food and beverage context and safety limits.',
     intro:
-      'How much water you need depends on your size and how active you are. Enter your weight and activity level to get a daily target in both liters and fluid ounces.',
+      'Enter body weight and choose a simple activity example to see estimated TOTAL water from food and beverages. This is a transparent rule-of-thumb calculation, not a validated hydration prescription; your needs can differ substantially.',
+    notice:
+      'For general education in healthy adults, not a target for children, pregnancy, breastfeeding, illness or clinical fluid management. Heart, kidney and liver disorders, certain medications, or a prescribed fluid restriction can change what is appropriate. Drinking too much too quickly can be dangerous.',
     sections: [
       {
-        h2: 'How your water target is calculated',
+        h2: 'What this calculator actually measures',
         paragraphs: [
-          'This tool uses a widely used clinical guide of about 35 ml of fluid per kilogram of body weight as a baseline, then adds an allowance for activity — exercise increases losses through sweat and breathing, so more active people need more.',
-          'For example, a 70 kg person has a baseline of roughly 2.45 litres, rising with training. The result is shown in litres and fluid ounces so it works wherever you live. Remember this is total fluid: drinks of all kinds count, and food (especially fruit and vegetables) provides around 20% of it.',
+          'The arithmetic is 35 mL × body weight in kilograms, plus the selected 0, 500, 1,000 or 1,500 mL/day example. For 70 kg with the 500-mL option, 2,450 + 500 = 2,950 mL (2.95 L), displayed as 3.0 L/day when rounded to one decimal. This is an illustrative TOTAL-water number, not the amount you must drink from a bottle. The activity additions are not based on your measured sweat losses.',
+          'The source limitation identified in the existing engineering review PR #54 is preserved: above 100 kg (about 220 lb), the 35-mL/kg portion stops increasing. For instance, both 100 kg and 150 kg show a 3.5-L baseline before a selected activity addition. This 100-kg cutoff is an engineering safeguard against extreme linear extrapolation; it is NOT a medically validated body-weight threshold and does not say larger adults need no more water.',
         ],
       },
       {
-        h2: 'Signs you are well hydrated',
+        h2: 'Liters, US fluid ounces, cups and food water',
         paragraphs: [
-          'The simplest check is the colour of your urine: pale straw means you are well hydrated, while dark yellow signals you need more fluid. Thirst, headaches, tiredness and poor concentration can all be early signs of mild dehydration.',
-          'There is no need to force large amounts at once. Sipping steadily through the day is more effective, and drinking to thirst plus the guidance above keeps most healthy adults in good balance.',
+          'The calculator uses 1 kilogram = 2.2046226218 pounds and 1 US fluid ounce = 29.5735295625 mL. Conversions labeled “total-water equivalent” include water from foods as well as beverages. A total of 2.95 L is approximately 100 US fluid ounces, but it is incorrect to interpret all 100 ounces as required plain drinking water.',
+          'The National Academies reported that roughly 80% of total water was obtained from drinks and 20% from food in an older U.S. population survey. The optional beverage-equivalent row demonstrates that split; it is not fixed for each person. Tea, coffee, milk, water and moisture-rich foods can contribute to total water intake.',
         ],
       },
       {
-        h2: 'When you need more — or less',
+        h2: 'Adult adequate intakes are references, not maximums',
         paragraphs: [
-          'Increase your intake in hot or humid weather, at altitude, during illness with fever, and during pregnancy or breastfeeding. Endurance athletes lose significant fluid and electrolytes in sweat and should plan their drinking around training.',
-          'A small number of people — for example those with certain heart or kidney conditions — need to limit fluids, and should follow their doctor’s advice rather than a general formula. Drinking extreme amounts very quickly can dilute blood sodium dangerously, so aim for steady, sensible hydration.',
+          'The U.S. National Academies report roughly 3.7 L/day for men and 2.7 L/day for women as adequate intakes for total water in generally healthy adults in temperate climates. Those figures include drinks AND food and are based substantially on observed intake; they are not rigid personalized requirements or upper limits. The report did not establish a tolerable upper intake level for water. That does not make unlimited drinking safe: excessive rapid intake can cause severe hyponatremia.',
+          'Exercise, heat, climate, sweat rate, food choices and illness can affect fluid needs. Neither the 35-mL/kg rule nor the four fixed activity increments measures these individual losses. The National Athletic Trainers’ Association recommends hydration informed by thirst and individual conditions and warns against both dehydration and overdrinking.',
+        ],
+      },
+      {
+        h2: 'Who should not use the example as a personal plan',
+        paragraphs: [
+          'People with heart, kidney or liver disease, certain medications, fluid restrictions, or symptoms of dehydration or fluid overload need advice specific to their condition. Pregnancy, breastfeeding, childhood and medical illness likewise need different context. Do not use this output to override an existing fluid or electrolyte plan.',
+          'During exercise, avoid forcing fluid intake to match a preset number. Thirst, conditions, and when appropriate professionally assessed sweat loss can guide a more individualized approach. Rapid consumption of large water volumes can lower blood sodium; seek prompt medical help for concerning symptoms, particularly during or after endurance events.',
         ],
       },
     ],
     faq: [
       {
-        q: 'How many liters of water should I drink a day?',
-        a: 'A common guide is about 35 ml per kg of body weight, plus extra for activity — often 2 to 3 litres a day for adults. This calculator personalises that to your weight and activity level.',
+        q: 'Does the calculated number mean how much plain water I must drink?',
+        a: 'No. It is a rough total-water illustration from beverages and food. The ounces and cup equivalents are conversions of the same total, not a daily plain-water prescription.',
       },
       {
-        q: 'Do other drinks and food count?',
-        a: 'Yes. Water, tea, coffee, milk and other drinks all contribute, and food provides roughly 20% of your daily fluid. The target shown is your total fluid, not just plain water.',
+        q: 'Why does the result stop growing above 100 kg?',
+        a: 'The earlier engineering review limited the 35-mL/kg formula at 100 kg to avoid extreme extrapolation. This is a transparent calculator guard, not a clinically validated boundary or a safe upper intake limit.',
       },
       {
-        q: 'Is the "8 glasses a day" rule correct?',
-        a: 'It is a rough guide that suits many people, but actual needs vary with body size, activity, climate and health. Calculating from your weight and activity gives a more personal estimate.',
+        q: 'Are 3.7 L for men and 2.7 L for women recommended maximums?',
+        a: 'No. They are U.S. National Academies adequate-intake reference values for TOTAL water from drinks and food for generally healthy adults, not universal targets or safe ceilings.',
+      },
+      {
+        q: 'Can I use the activity additions as an exercise drinking plan?',
+        a: 'No. The 0 to 1.5 L additions are illustrative choices, not measured sweat losses. Prolonged exercise or heat calls for individualized guidance and avoiding both dehydration and overdrinking.',
+      },
+      {
+        q: 'What if I have a kidney, heart or liver condition?',
+        a: 'Do not use this estimate as a personal fluid prescription. Clinical conditions and medicines can require different fluid and electrolyte management; follow your healthcare team’s advice.',
       },
     ],
     sources: [
       {
-        citation:
-          'Institute of Medicine (National Academies). "Dietary Reference Intakes for Water, Potassium, Sodium, Chloride, and Sulfate." Washington, DC: National Academies Press; 2005.',
-        url: pubmed('Dietary Reference Intakes for Water Potassium Sodium Chloride Sulfate'),
+        citation: 'Institute of Medicine / National Academies. Dietary Reference Intakes for Water, Potassium, Sodium, Chloride, and Sulfate. 2005. Summary: total water AI, population beverage/food contributions, no defined water UL.',
+        url: 'https://www.nationalacademies.org/read/10925/chapter/2',
       },
       {
-        citation:
-          'EFSA Panel on Dietetic Products, Nutrition, and Allergies. "Scientific Opinion on Dietary Reference Values for water." EFSA Journal. 2010;8(3):1459.',
+        citation: 'National Athletic Trainers’ Association. Fluid Replacement for the Physically Active. Journal of Athletic Training. 2017.',
+        url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC5634236/',
+      },
+      {
+        citation: 'National Library of Medicine, MedlinePlus. Fluid and Electrolyte Balance: health conditions, medicines and excessive water.',
+        url: 'https://medlineplus.gov/fluidandelectrolytebalance.html',
       },
     ],
   },
