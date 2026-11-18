@@ -491,33 +491,64 @@ export const DEFS: Record<string, CalcDef> = {
     },
   },
 
-  // ---- 7. Waist-to-Hip Ratio ----
+  // ---- 7. Waist-to-Hip Ratio (WHO-referenced sex-specific cutoffs) ----
   'waist-to-hip-ratio-calculator': {
     slug: 'waist-to-hip-ratio-calculator',
     heading: 'Calculate your waist-to-hip ratio',
     hasSex: true,
-    fields: [F.waist(85), F.hip()],
+    fields: [
+      {
+        ...F.waist(85),
+        help: 'Measure halfway between the bottom of the last palpable rib and the top of the hip bone. Breathe out normally; keep the tape horizontal and snug, not tight.',
+      },
+      {
+        ...F.hip(),
+        help: 'Measure around the widest part of the buttocks, keeping the tape horizontal and snug, not tight.',
+      },
+    ],
     compute: ({ vals, sex }) => {
-      const ratio = vals.waist / vals.hip;
-      const segments: Segment[] = sex === 'male'
-        ? [
-            { upTo: 0.9, label: 'Low risk', color: C.green },
-            { upTo: 1.0, label: 'Increased risk', color: C.amber },
-            { upTo: 1.3, label: 'High risk', color: C.red },
-          ]
-        : [
-            { upTo: 0.85, label: 'Low risk', color: C.green },
-            { upTo: 0.9, label: 'Increased risk', color: C.amber },
-            { upTo: 1.3, label: 'High risk', color: C.red },
-          ];
-      const band = bandFor(ratio, segments);
+      const { waist, hip } = vals;
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Waist-to-hip ratio',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (![waist, hip].every((v) => Number.isFinite(v) && v > 0)) {
+        return fail('Enter valid positive waist and hip measurements.');
+      }
+
+      // Both measurements arrive in centimeters. The ratio is dimensionless.
+      const ratio = waist / hip;
+      if (!Number.isFinite(ratio) || !(ratio > 0)) {
+        return fail('These measurements cannot produce a valid waist-to-hip ratio.');
+      }
+
+      // Annex A, Table A1 of WHO 2008 consultation (published 2011) prints
+      // >= 0.90 for men and >= 0.85 for women. The consultation did not
+      // establish new universal diagnostic cutoffs or a three-tier WHO scale.
+      // Compare the unrounded value so 0.8996 is not misclassified as >=0.90.
+      const cutoff = sex === 'male' ? 0.90 : 0.85;
+      const atOrAbove = ratio >= cutoff;
+      const gaugeMax = Math.max(1.2, Math.ceil(ratio * 10) / 10);
+      const segments: Segment[] = [
+        { upTo: cutoff, label: 'Below reference cutoff', color: C.green },
+        { upTo: gaugeMax, label: 'At/above reference cutoff', color: C.amber },
+      ];
+      // Near the threshold, show extra digits so a rounded 0.90 does not
+      // ordinarily conceal an underlying value just below the cutoff.
+      const shownPrecision = Math.abs(ratio - cutoff) < 0.005 ? 4 : 2;
       return {
         ok: true,
         primaryLabel: 'Waist-to-hip ratio',
-        primaryValue: fmt(ratio, 2),
-        category: { label: band.label, color: band.color },
-        visual: { kind: 'gauge', value: ratio, min: 0.6, max: 1.1, segments },
-        note: `WHO links higher abdominal fat with greater health risk above ${sex === 'male' ? '0.90 for men' : '0.85 for women'}.`,
+        primaryValue: fmt(ratio, shownPrecision),
+        category: atOrAbove
+          ? { label: 'At/above reference cutoff', color: C.amber }
+          : { label: 'Below reference cutoff', color: C.green },
+        visual: { kind: 'gauge', value: ratio, min: 0, max: gaugeMax, segments },
+        rows: [
+          { label: sex === 'male' ? 'Male reference cutoff' : 'Female reference cutoff',
+            value: (sex === 'male' ? '≥0.90' : '≥0.85') },
+        ],
+        note: 'WHO’s 2008 consultation reproduced these commonly cited reference cutoffs but did not set definitive universal diagnostic limits. Categories use the unrounded ratio; tape placement and rounding can matter near a cutoff. This is not a direct measurement of visceral fat or an individual disease-risk diagnosis.',
       };
     },
   },

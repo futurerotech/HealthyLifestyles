@@ -13,7 +13,8 @@ const WHO_OBESITY: Source = {
 };
 const WHO_WHR: Source = {
   citation:
-    'World Health Organization. "Waist Circumference and Waist–Hip Ratio: Report of a WHO Expert Consultation." Geneva, 8–11 December 2008.',
+    'World Health Organization. Waist circumference and waist–hip ratio: report of a WHO expert consultation, Geneva 8–11 December 2008 (published 2011), Annex A Table A1 and section 2.5.',
+  url: 'https://www.who.int/publications-detail-redirect/9789241501491',
 };
 
 export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
@@ -447,54 +448,71 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
 
   // ============================================================
   'waist-to-hip-ratio-calculator': {
-    seoTitle: 'Waist-to-Hip Ratio Calculator (WHO)',
+    seoTitle: 'Waist-to-Hip Ratio Calculator (WHO-Referenced Cutoffs)',
     metaDescription:
-      'Calculate your waist-to-hip ratio and see your WHO health-risk band. Free WHR calculator with metric and imperial units — no signup.',
+      'Calculate waist-to-hip ratio in centimeters or inches; see 0.90 male and 0.85 female reference cutoffs, measurement technique and limitations.',
     intro:
-      'The waist-to-hip ratio (WHR) compares the size of your waist to your hips to assess how your body stores fat. Enter your measurements to see your ratio and World Health Organization risk band.',
+      'Compare waist and hip circumferences with a unit-free ratio. The tool shows sex-specific reference cutoffs cited in a WHO expert report, but does not measure visceral fat or diagnose a health condition.',
     sections: [
       {
-        h2: 'How waist-to-hip ratio works',
+        h2: 'How to calculate and measure waist-to-hip ratio',
         paragraphs: [
-          'WHR is your waist circumference divided by your hip circumference, using the same unit for both. A higher ratio means more fat is carried around the middle (an "apple" shape) rather than the hips and thighs (a "pear" shape). Central fat is the pattern most strongly linked to health risk.',
-          'Measure your waist at its narrowest point and your hips at their widest, keeping the tape horizontal and snug. Stand relaxed and breathe out normally before reading each measurement.',
+          'Waist-to-hip ratio (WHR) = waist circumference ÷ hip circumference, measured in the same unit. For example, a 90 cm waist and 100 cm hips give 0.90. Measurements in inches give the same ratio; the calculator converts both imperial lengths to centimeters before dividing. It does not use height, weight or BMI in its formula.',
+          'WHO’s standardized method measures the waist halfway between the lower edge of the last palpable rib and the top of the iliac crest (hip bone). Measure the hips around the widest part of the buttocks. Keep a flexible, non-stretch tape level and snug without pressing into the skin; stand relaxed and read after a normal breath out. Measure twice; if readings are within 1 cm, take their average, otherwise repeat them.',
         ],
       },
       {
-        h2: 'WHO risk thresholds',
+        h2: 'How to read the sex-specific reference cutoff',
         list: {
           intro:
-            'The World Health Organization considers abdominal obesity — and substantially increased health risk — to begin above these ratios:',
+            'Annex A, Table A1 of the WHO expert consultation report reproduces commonly cited reference cutoffs, rather than defining a new three-tier WHO risk score:',
           items: [
-            'Men: a ratio above 0.90 indicates increased risk.',
-            'Women: a ratio above 0.85 indicates increased risk.',
-            'Lower ratios (at or below those thresholds) are associated with lower risk.',
+            'Men: WHR below 0.90 is below the reference cutoff; WHR of 0.90 or higher is at or above it.',
+            'Women: WHR below 0.85 is below the reference cutoff; WHR of 0.85 or higher is at or above it.',
+            'These cutoffs are population-level indicators of abdominal fat distribution and associated metabolic complications, not a diagnosis or individual disease probability.',
           ],
         },
       },
       {
-        h2: 'What your ratio tells you',
+        h2: 'What the ratio can—and cannot—tell you',
         paragraphs: [
-          'A high WHR is associated with greater risk of type 2 diabetes, high blood pressure, heart disease and stroke, independent of overall weight. Some large studies have found WHR predicts heart-attack risk more strongly than BMI, because it captures dangerous abdominal fat directly.',
-          'WHR does have limits: it can be skewed by a naturally wide or narrow pelvis, and it is less reliable at very high BMIs. For a rounded view of central-fat risk, consider it alongside waist-to-height ratio and your BMI, and speak to a clinician if your ratio is above the WHO threshold.',
+          'A higher ratio often accompanies more abdominal fat distribution and is associated with cardiometabolic outcomes in population studies. It is not a direct test of visceral fat, diabetes, heart disease or the severity of a condition. The 2008 WHO expert consultation explicitly did not adopt new, definitive universal cutoffs; variation by ancestry, age, sex, body shape and measurement method matters.',
+          'The chart therefore displays only two reference states, below or at/above the reported cutoff. It does not claim that 1.00 or 1.30 represents an additional WHO-defined risk category, nor that a value below the cutoff guarantees safety. The calculation compares the unrounded measurements with the cutoff and may show extra decimals near the boundary to prevent a misleading rounded match.',
+        ],
+      },
+      {
+        h2: 'Using the result alongside other measures',
+        paragraphs: [
+          'For clinical context, consider BMI, waist circumference, blood pressure, glucose, cholesterol, family history and individual circumstances. A clinician can interpret these together rather than making treatment decisions from the ratio alone.',
+          'Because a small change in tape placement may change a result near 0.85 or 0.90, repeat waist and hip measurements consistently. Pregnancy, recent surgery, changes in body shape and other circumstances may call for individualized assessment rather than applying a general adult reference cutoff.',
         ],
       },
     ],
     faq: [
       {
-        q: 'What is a healthy waist-to-hip ratio?',
-        a: 'The World Health Organization links increased health risk to a ratio above 0.90 for men and above 0.85 for women. Ratios at or below these levels are considered lower risk.',
+        q: 'How do I calculate waist-to-hip ratio?',
+        a: 'Divide waist circumference by hip circumference using the same units. For example, 90 cm ÷ 100 cm = 0.90; the units cancel.',
       },
       {
-        q: 'Is waist-to-hip ratio better than BMI?',
-        a: 'WHR measures fat distribution, which BMI ignores. Some studies find it predicts cardiovascular risk better than BMI, but the two measures work best when used together.',
+        q: 'Which waist-to-hip ratios are at the commonly cited WHO cutoff?',
+        a: 'Annex A of the 2008 WHO expert consultation prints 0.90 or higher for men and 0.85 or higher for women. The consultation did not establish a new universal clinical diagnosis rule.',
       },
       {
-        q: 'How should I measure my waist and hips?',
-        a: 'Measure your waist at its narrowest point and your hips at their widest, with the tape horizontal and snug against the skin. Breathe out normally and avoid pulling the tape tight.',
+        q: 'Where do I measure my waist and hips?',
+        a: 'Measure the waist halfway between the bottom of the last palpable rib and the top of the hip bone. Measure the hips at the widest part of the buttocks. Keep the tape horizontal, and breathe out normally.',
+      },
+      {
+        q: 'Does a ratio below the cutoff prove my cardiovascular risk is low?',
+        a: 'No. Waist-to-hip ratio describes body proportions and correlates with some population risk outcomes. Individual health assessment also considers other measures and clinical history.',
       },
     ],
-    sources: [WHO_WHR, WHO_OBESITY],
+    sources: [
+      WHO_WHR,
+      {
+        citation: 'Ross R, Neeland IJ, Yamashita S, et al. Waist circumference as a vital sign in clinical practice: a Consensus Statement from the IAS and ICCR Working Group on Visceral Obesity. Nat Rev Endocrinol. 2020;16:177–189.',
+        url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC7027970/',
+      },
+    ],
   },
 
   // ============================================================

@@ -262,7 +262,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'waist-to-hip-ratio-calculator',
     title: 'Waist-to-Hip Ratio Calculator',
-    blurb: 'Measure body-shape health risk with your waist and hip measurements.',
+    blurb: 'Compare waist and hip measurements with sex-specific reference cutoffs, not a medical diagnosis.',
     category: 'body-weight',
     icon: 'person-standing',
     gradient: 'blue',
