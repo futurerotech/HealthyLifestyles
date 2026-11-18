@@ -152,52 +152,75 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
 
   // ============================================================
   'bmr-calculator': {
-    seoTitle: 'BMR Calculator – Mifflin-St Jeor Equation',
+    seoTitle: 'BMR Calculator — Mifflin–St Jeor Resting Energy Estimate',
     metaDescription:
-      'Find your Basal Metabolic Rate with the accurate Mifflin-St Jeor formula, plus daily calorie needs for your activity level. Free, metric or imperial.',
+      'Estimate resting calorie expenditure with Mifflin–St Jeor in kg/cm or lb/ft/in and compare approximate activity-based TDEE scenarios, with clear limitations.',
     intro:
-      'Your Basal Metabolic Rate (BMR) is the number of calories your body burns at complete rest. Enter your details to calculate it with the Mifflin-St Jeor equation and see your estimated daily calorie needs.',
+      'This BMR calculator uses the Mifflin–St Jeor equation to estimate resting energy expenditure (REE) from weight, height, age and sex. It also compares possible total daily energy expenditure (TDEE) levels using assumed activity factors. Neither result is a direct metabolic measurement or a personalized calorie prescription.',
     sections: [
       {
-        h2: 'How your BMR is calculated',
+        h2: 'The Mifflin–St Jeor equation: weight, height, age and sex',
         paragraphs: [
-          'This tool uses the Mifflin-St Jeor equation, which research has found to be the most accurate of the common BMR formulas for the general population. It uses weight, height, age and sex:',
-          'For men: BMR = (10 × weight kg) + (6.25 × height cm) − (5 × age) + 5. For women: BMR = (10 × weight kg) + (6.25 × height cm) − (5 × age) − 161. The result is the energy, in calories per day, needed just to keep your body running — breathing, circulating blood, and maintaining temperature — if you did nothing else all day.',
+          'The simplified equation predicts REE in kilocalories per day. For men: REE = (10 × weight in kg) + (6.25 × height in cm) − (5 × age in years) + 5. For women: REE = (10 × weight in kg) + (6.25 × height in cm) − (5 × age in years) − 161. The different sex constants are a feature of the original regression, not an adjustment to your personal hormone levels or body composition.',
+          'For a 30-year-old man weighing 70 kg and measuring 175 cm, the equation gives 1,648.75 kcal/day, displayed as about 1,649 kcal/day. With the female equation and the same weight, height and age, it predicts about 1,483 kcal/day. The calculator converts pounds to kilograms and feet/inches to centimeters before calculation; its output always uses kcal/day.',
         ],
       },
       {
-        h2: 'From BMR to daily calories (TDEE)',
+        h2: 'Why the BMR calculator actually estimates REE',
         paragraphs: [
-          'BMR is only the baseline. Your Total Daily Energy Expenditure (TDEE) adds the calories you burn through movement and digestion. The table above multiplies your BMR by a standard activity factor — from 1.2 for a sedentary lifestyle up to 1.9 for hard daily training — to estimate how much you actually burn.',
-          'To lose weight, most guidance suggests eating a few hundred calories below your TDEE; to gain, a modest surplus. A deficit of roughly 500 calories a day is a common, sustainable target for gradual fat loss, but very low intakes are best supervised by a professional.',
+          'Mifflin and colleagues developed their 1990 prediction using resting energy expenditure (REE) measured by indirect calorimetry in 498 healthy people ages 19–78. Basal metabolic rate (BMR) describes a more strictly controlled resting measurement, usually after waking and fasting; the terms are sometimes used interchangeably, but the equation itself predicts REE rather than directly measuring either one.',
+          'A formula based on population data may overestimate or underestimate an individual result. It cannot identify your actual metabolic rate, infer body-fat percentage, or diagnose a thyroid disorder. Clinical conditions, pregnancy, medications, hydration, changes in body composition and age outside the original studied range may change its applicability.',
         ],
       },
       {
-        h2: 'What affects your metabolism',
+        h2: 'Resting energy versus total daily expenditure (TDEE)',
         paragraphs: [
-          'Muscle is more metabolically active than fat, so people with more lean mass tend to have higher BMRs — one reason strength training helps with long-term weight management. BMR also naturally declines with age and is influenced by genetics, hormones and body size. These estimates are population averages and individuals can vary by 10% or more, so use the number as a planning guide rather than an exact prescription.',
+          'TDEE includes energy used at rest along with movement and the thermic effect of food. The five rows above multiply predicted REE by illustrative factors of 1.2, 1.375, 1.55, 1.725 and 1.9. They are scenarios only: the calculator does not ask about actual activity and cannot know which factor, if any, represents your life.',
+          'For the 30-year-old man in the example, multiplying 1,648.75 by 1.2 gives approximately 1,979 kcal/day, while multiplying by 1.55 gives about 2,556 kcal/day. These are estimates of daily expenditure, not measured values and not recommendations to eat exactly that number. Physical activity and energy needs can vary from day to day.',
+        ],
+      },
+      {
+        h2: 'Adult age ranges and responsible use',
+        paragraphs: [
+          'This tool accepts ages 19–100 as whole years, but the derivation study included people aged 19–78. Results above age 78 extend beyond that study sample and should be interpreted more cautiously. It is not designed as a pediatric energy-needs calculator; growing children and adolescents need developmentally appropriate methods.',
+          'Do not interpret a lower resting calorie estimate as a safe minimum food intake. The result should not be used alone to plan a calorie deficit, a diet for pregnancy or breastfeeding, or nutritional treatment during illness. If you need individualized nutrition or energy targets, a qualified clinician or registered dietitian can interpret your health history and may arrange indirect calorimetry when appropriate.',
         ],
       },
     ],
     faq: [
       {
-        q: 'What is the difference between BMR and TDEE?',
-        a: 'BMR is the calories you burn at complete rest. TDEE is your total daily burn including activity and digestion. TDEE is always higher and is found by multiplying BMR by an activity factor.',
+        q: 'What is the Mifflin–St Jeor equation for men and women?',
+        a: 'Both use 10 × weight (kg) + 6.25 × height (cm) − 5 × age (years). Add 5 for men or subtract 161 for women. The prediction is REE in kcal/day.',
       },
       {
-        q: 'Why does this use the Mifflin-St Jeor equation?',
-        a: 'Studies comparing BMR formulas have found Mifflin-St Jeor to be more accurate for most people than older equations such as Harris-Benedict, which is why it is widely recommended by dietitians.',
+        q: 'Is the BMR result a measured metabolism?',
+        a: 'No. The original equation predicts resting energy expenditure (REE). A measured basal rate or indirect-calorimetry result is a different assessment requiring specific conditions.',
       },
       {
-        q: 'How many calories should I eat to lose weight?',
-        a: 'A common approach is to eat about 500 calories below your TDEE for gradual loss of roughly half a kilo (one pound) per week. Avoid very low intakes without professional guidance.',
+        q: 'Is the TDEE table a personalized activity calculation?',
+        a: 'No. It compares five hypothetical activity multipliers; the tool has no activity input or observation. Actual expenditure and energy needs may differ substantially.',
+      },
+      {
+        q: 'Why does the calculator start at age 19?',
+        a: 'The original research recruited adults ages 19–78. Its simplified equation is adult-oriented, and predictions beyond the sampled age range, including ages over 78, require more caution.',
+      },
+      {
+        q: 'Can I use this number as my daily calorie intake target?',
+        a: 'Not by itself. REE estimates resting expenditure, not recommended food intake. A clinician or registered dietitian can help set an appropriate target when needed.',
       },
     ],
     sources: [
       {
-        citation:
-          'Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO. "A new predictive equation for resting energy expenditure in healthy individuals." Am J Clin Nutr. 1990;51(2):241–247.',
-        url: pubmed('A new predictive equation for resting energy expenditure in healthy individuals'),
+        citation: 'Mifflin MD, St Jeor ST, Hill LA, et al. A new predictive equation for resting energy expenditure in healthy individuals. Am J Clin Nutr. 1990;51(2):241–247. PMID 2305711.',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/2305711/',
+      },
+      {
+        citation: 'National Research Council. Recommended Dietary Allowances, 10th ed. Energy chapter: REE, basal conditions, physical activity and estimated total daily energy expenditure.',
+        url: 'https://www.ncbi.nlm.nih.gov/books/NBK234938/',
+      },
+      {
+        citation: 'National Institute of Diabetes and Digestive and Kidney Diseases (NIDDK). About the Body Weight Planner: personalized energy plans, age and pregnancy exclusions.',
+        url: 'https://www.niddk.nih.gov/health-information/weight-management/body-weight-planner',
       },
     ],
   },

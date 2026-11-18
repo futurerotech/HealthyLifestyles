@@ -186,7 +186,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'bmr-calculator',
     title: 'BMR Calculator',
-    blurb: 'Calculate the calories your body burns completely at rest.',
+    blurb: 'Estimate resting energy (REE) from Mifflin–St Jeor and compare illustrative daily expenditure scenarios.',
     category: 'body-weight',
     icon: 'flame',
     gradient: 'blue',

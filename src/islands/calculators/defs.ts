@@ -180,7 +180,7 @@ const activityField = (): CalcField => ({
   selectDefault: '1.375',
 });
 
-/** Mifflin-St Jeor BMR (kcal/day). */
+/** Simplified Mifflin-St Jeor predicted resting energy expenditure (REE, kcal/day). */
 const mifflin = (weightKg: number, heightCm: number, age: number, sex: Sex): number => {
   const base = 10 * weightKg + 6.25 * heightCm - 5 * age;
   return sex === 'male' ? base + 5 : base - 161;
@@ -289,32 +289,59 @@ export const DEFS: Record<string, CalcDef> = {
     },
   },
 
-  // ---- 2. BMR (Mifflin-St Jeor) ----
+  // ---- 2. BMR calculator: Mifflin-St Jeor predicts resting energy (REE) ----
   'bmr-calculator': {
     slug: 'bmr-calculator',
-    heading: 'Calculate your BMR',
+    heading: 'Estimate your resting energy (BMR calculator)',
     hasSex: true,
-    fields: [F.weight(72), F.height(175), F.age(30)],
+    fields: [
+      F.weight(72),
+      F.height(175),
+      {
+        ...F.age(30),
+        min: 19,
+        help: 'For adults age 19 or older. The original equation was derived in adults ages 19–78; estimates at older ages are less certain.',
+      },
+    ],
     compute: ({ vals, sex }) => {
-      const base = 10 * vals.weight + 6.25 * vals.height - 5 * vals.age;
-      const bmr = sex === 'male' ? base + 5 : base - 161;
+      const { weight, height, age } = vals;
+      const fail = (error: string): CalcResult => ({
+        ok: false, error,
+        primaryLabel: 'Estimated resting energy (REE)',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (![weight, height, age].every((v) => Number.isFinite(v) && v > 0) ||
+          (sex !== 'male' && sex !== 'female')) {
+        return fail('Enter valid weight, height, age and sex.');
+      }
+      if (weight < 25 || weight > 300 || height < 120 || height > 230 ||
+          !Number.isInteger(age) || age < 19 || age > 100) {
+        return fail('Check weight (25–300 kg), height (120–230 cm) and whole-year age (19–100).');
+      }
+
+      // Original simplified Mifflin-St Jeor sex coefficients (1990):
+      // weight in kg, height in cm, age in years, predicted REE in kcal/day.
+      const ree = mifflin(weight, height, age, sex);
+      if (!Number.isFinite(ree) || ree <= 0) {
+        return fail('These measurements cannot produce a valid resting-energy estimate.');
+      }
       const levels: [string, number][] = [
-        ['Sedentary (little exercise)', 1.2],
-        ['Light (1–3 days/week)', 1.375],
-        ['Moderate (3–5 days/week)', 1.55],
-        ['Active (6–7 days/week)', 1.725],
-        ['Very active (hard daily training)', 1.9],
+        ['Sedentary (×1.2)', 1.2],
+        ['Lightly active (×1.375)', 1.375],
+        ['Moderately active (×1.55)', 1.55],
+        ['Active (×1.725)', 1.725],
+        ['Very active (×1.9)', 1.9],
       ];
       return {
         ok: true,
-        primaryLabel: 'Your BMR',
-        primaryValue: `${fmt(bmr, 0)} kcal/day`,
+        primaryLabel: 'Estimated resting energy (REE)',
+        primaryValue: fmt(ree, 0) + ' kcal/day',
         visual: { kind: 'none' },
-        rows: levels.map(([label, mult]) => ({
-          label,
-          value: `${fmt(bmr * mult, 0)} kcal/day`,
+        rows: levels.map(([label, factor]) => ({
+          label: 'Illustrative TDEE — ' + label,
+          value: fmt(ree * factor, 0) + ' kcal/day',
         })),
-        note: 'BMR is the energy you burn at complete rest. The table estimates total daily calories (TDEE) once activity is added.',
+        note: 'Mifflin–St Jeor predicts resting energy expenditure (REE), which is related to but not identical to measured basal metabolic rate (BMR). TDEE rows are illustrative REE × activity-factor scenarios, not measured expenditure or calorie prescriptions. The original study included adults ages 19–78; accuracy may be lower for other ages or health conditions.',
       };
     },
   },
