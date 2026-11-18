@@ -36,7 +36,7 @@ function initialDisplay(def: CalcDef, units: UnitSystem): Disp {
     if (f.type === 'height') {
       if (units === 'metric') d.height = String(round(f.metricDefault, 0));
       else {
-        const { ft, inch } = cmToFtIn(f.metricDefault, preciseHeight(def) ? 0.01 : 0.5);
+        const { ft, inch } = cmToFtIn(f.metricDefault, def.slug === 'ideal-weight-calculator' ? 0.001 : preciseHeight(def) ? 0.01 : 0.5);
         d.height_ft = String(ft);
         d.height_in = String(inch);
       }
@@ -86,7 +86,7 @@ function convertDisplay(def: CalcDef, disp: Disp, to: UnitSystem): Disp {
   for (const f of def.fields) {
     if (f.type === 'height') {
       if (to === 'imperial') {
-        const { ft, inch } = cmToFtIn(num(disp.height), preciseHeight(def) ? 0.01 : 0.5);
+        const { ft, inch } = cmToFtIn(num(disp.height), def.slug === 'ideal-weight-calculator' ? 0.001 : preciseHeight(def) ? 0.01 : 0.5);
         d.height_ft = String(ft);
         d.height_in = String(inch);
         delete d.height;
@@ -667,8 +667,8 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
             <div class="calc__input">
               <input
                 type="number" inputMode="decimal" min="0"
-                max={preciseHeight(def) ? '11.99' : '11.5'}
-                step={preciseHeight(def) ? '0.01' : '0.5'}
+                max={slug === 'ideal-weight-calculator' ? '11.999' : preciseHeight(def) ? '11.99' : '11.5'}
+                step={slug === 'ideal-weight-calculator' ? '0.001' : preciseHeight(def) ? '0.01' : '0.5'}
                 id={id('height_in')} aria-label="Inches"
                 value={disp.height_in ?? ''} onInput={(e) => setField('height_in', (e.target as HTMLInputElement).value)}
               />

@@ -83,7 +83,7 @@ test('configured 120–230cm height domain and no new inputs were introduced', (
 
 test('metric/imperial height conversion preserves reference and Devine when displayed', () => {
   for (const height of [120, 150, 152.4, 160, 167.64, 175, 177.8, 200, 230]) {
-    const { ft, inch } = cmToFtIn(height, 0.01);
+    const { ft, inch } = cmToFtIn(height, 0.001);
     const cmBack = round(ftInToCm(ft, inch), 2);
     assert.ok(Math.abs(cmBack - height) <= 0.02, String(height));
     for (const sex of ['male', 'female'] as const) {
@@ -109,9 +109,14 @@ test('metric/imperial height conversion preserves reference and Devine when disp
 test('precision change only touches ideal-weight height, preserving other tools', () => {
   const ui = readFileSync(new URL('../../../src/islands/Calculator.tsx', import.meta.url), 'utf8');
   assert.match(ui, /def.slug === 'ideal-weight-calculator'/);
-  assert.match(ui, /preciseHeight\(def\) \? 0.01 : 0.5/);
+  assert.match(ui, /def.slug === 'ideal-weight-calculator' \? 0.001 : preciseHeight\(def\) \? 0.01 : 0.5/);
+  assert.match(ui, /slug === 'ideal-weight-calculator' \? '0.001' : preciseHeight\(def\) \? '0.01' : '0.5'/);
   assert.deepEqual(cmToFtIn(176), { ft: 5, inch: 9.5 });
   assert.deepEqual(cmToFtIn(176, 0.01), { ft: 5, inch: 9.29 });
+  assert.deepEqual(cmToFtIn(176, 0.001), { ft: 5, inch: 9.291 });
+  assert.deepEqual(cmToFtIn(152.39, 0.001), { ft: 4, inch: 11.996 });
+  assert.deepEqual(cmToFtIn(152.4, 0.001), { ft: 5, inch: 0 });
+  assert.equal(round(ftInToCm(4, 11.996), 2), 152.39);
 });
 
 test('the range renderer labels this result as reference with upper excluded', () => {
