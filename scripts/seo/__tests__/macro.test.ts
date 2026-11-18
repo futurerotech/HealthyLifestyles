@@ -170,7 +170,8 @@ test('valid split preserves existing meal planner link without promising suitabi
   assert.match(r.cta?.href ?? '', /^\/tools\/meal-plan-generator\?calories=/);
   assert.match(r.cta?.label ?? '', /Preview these estimates/);
   assert.match(r.note ?? '', /No fixed calorie floor or macro ratio is universally safe/);
-  assert.doesNotMatch(r.callout?.text ?? '', /guarantee|safe minimum of/);
+  assert.match(r.callout?.text ?? '', /There is no guaranteed weight-change rate/);
+  assert.doesNotMatch(r.callout?.text ?? '', /safe minimum of/);
 });
 
 test('precision change stays limited to macro calculator and other tools remain unchanged', () => {
