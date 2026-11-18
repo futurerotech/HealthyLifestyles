@@ -961,73 +961,98 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
 
   // ============================================================
   'anti-inflammatory-score': {
-    seoTitle: 'Anti-Inflammatory Diet Score — Food Frequency',
+    directAnswer: {
+      question: 'Can a food-frequency score tell me how inflamed my body is?',
+      answer:
+        'No. This tool assigns a site-defined 0–33 point checklist to 11 reported food groups and rescales the total to 0–100. It reflects selected food-frequency choices, not measured inflammation, blood CRP or IL-6, or a diagnosis. Higher points mean closer alignment with this particular list, not proof of a biologically anti-inflammatory diet.',
+    },
+    seoTitle: 'Anti-Inflammatory Diet Score — Food-Pattern Checklist',
     metaDescription:
-      'Score your diet for anti-inflammatory foods (vegetables, fruit, fatty fish, olive oil, nuts) vs pro-inflammatory foods (processed meat, sugar, fried food). Free, educational.',
+      'Explore 11 food-frequency choices and a transparent 33-point dietary checklist. Understand reverse scoring and why results cannot measure inflammation.',
     intro:
-      'Answer 11 quick questions about how often you eat key anti-inflammatory and pro-inflammatory foods. Get a 0–100 score with per-food bars and specific foods to add or reduce.',
+      'Answer 11 questions about food-group frequency to explore alignment with a simplified, plant-forward pattern. The numbers and category labels are an unvalidated site-defined reflection exercise, not a laboratory inflammation score, the published Dietary Inflammatory Index (DII), or a dietary treatment plan.',
     notice:
-      'Educational dietary self-assessment only — not a medical diagnosis or treatment plan. If you have an inflammatory condition, talk to your doctor or a registered dietitian before making major dietary changes.',
+      'This checklist cannot measure inflammation, CRP, IL-6, autoimmune disease activity or an inflammatory disorder. Persistent or severe symptoms need medical assessment regardless of points. Food allergies, chronic disease, pregnancy and therapeutic diets can change the appropriate food choices.',
     sections: [
       {
-        h2: 'What is an anti-inflammatory diet?',
+        h2: 'What eleven food questions do and do not capture',
         paragraphs: [
-          'Chronic low-grade inflammation is linked to heart disease, type 2 diabetes, and other conditions. While no single food causes or cures inflammation, overall dietary patterns can nudge your body toward or away from an inflammatory state.',
-          'Anti-inflammatory patterns — like the Mediterranean diet — are rich in vegetables, fruit, whole grains, fatty fish, olive oil, nuts, and legumes, and low in red/processed meat, refined carbohydrates, sugary drinks, and fried foods. This tool scores how closely your eating pattern matches those principles.',
+          'The seven groups awarded more points when reported more frequently are vegetables, fruit, whole grains, fatty fish, olive oil, nuts and legumes. Four groups are reverse-coded: red or processed meat, refined-grain foods, sugar-sweetened beverages and deep-fried foods. The selections range from rarely to daily. These labels simplify many distinct foods and do not record portions, preparation, calories, food substitutions or nutritional adequacy.',
+          'The 2026 American Heart Association dietary guidance emphasizes healthy dietary patterns rather than judging individual foods in isolation. Frequent consumption of a listed food is not proof of an individual anti-inflammatory effect. Conversely, a low score does not establish that a person has excessive inflammation or a disease.',
         ],
       },
       {
-        h2: 'How the score works',
+        h2: 'The arithmetic: 33 points converted to 100',
         paragraphs: [
-          'Each of the 11 foods is scored 0–3 based on how often you eat it. Anti-inflammatory foods score higher when you eat them more often; pro-inflammatory foods score higher when you eat them less often (inverted scoring). The maximum is 33 points, scaled to a 0–100 score.',
-          'The bands range from "Pro-inflammatory" (0–33) through "Moderate" to "Strongly anti-inflammatory" (86–100). The per-food bars show exactly which foods are helping and which need work.',
+          'Each of seven more-frequent groups earns 0, 1, 2 or 3 points for rarely, 1–2/week, 3–5/week or daily. Each of four reverse-coded groups earns 3, 2, 1 or 0 points for those same four frequency choices. Seven × 3 = 21 and four × 3 = 12, giving a maximum of 33 points. Displayed score = round(total points ÷ 33 × 100). All 11 groups carry the same maximum of three points, not clinically derived biomarker weights.',
+          'For the site’s default selections, the seven more-frequent groups contribute 11 points and the four reverse-coded groups contribute 8. This totals 19/33, displayed as 58/100. All 11 least-aligned responses produce 0/33 (0/100); all most-aligned responses produce 33/33 (100/100). The descriptive bands are site-defined and have no established diagnostic thresholds.',
+          'Someone selecting rarely for all 11 groups would get 12/33 (36/100) because the four reverse-coded groups each earn three points. Someone selecting daily for every group would get 21/33 (64/100) because all four reverse-coded groups earn zero. This is a property of a checklist, not evidence that either person has the corresponding blood inflammation level.',
         ],
       },
       {
-        h2: 'Foods to add vs reduce',
+        h2: 'Not the published Dietary Inflammatory Index',
         paragraphs: [
-          'Your result highlights specific foods to add (anti-inflammatory foods you eat rarely) and to reduce (pro-inflammatory foods you eat often). Focus on one or two swaps at a time — small, consistent changes are more sustainable than a complete diet overhaul.',
-          'The highest-impact changes are usually: adding fatty fish (omega-3s), replacing refined carbs with whole grains, swapping sugary drinks for water or tea, and using extra virgin olive oil as your primary cooking fat.',
+          'The research Dietary Inflammatory Index (DII) was developed using evidence on multiple inflammatory markers and 45 dietary parameters, with population-based standardization of reported intake. This website’s 11 equal-weight ordinal questions do not contain the DII data, its reference population or its algorithm. Its 0–100 display must not be compared to published DII values or used as a validated inflammatory-potential measurement.',
+          'Clinical biomarkers such as CRP require a blood test. Even CRP is nonspecific: its value may reflect inflammation without identifying the cause or location. A food-frequency survey cannot estimate CRP, IL-6, medication effectiveness, disease flare activity or clinical risk.',
         ],
       },
       {
-        h2: 'Overlap with Mediterranean and DASH',
+        h2: 'What the current evidence says about dietary patterns',
         paragraphs: [
-          'This anti-inflammatory pattern closely overlaps with the Mediterranean diet, which has the strongest evidence base of any dietary pattern for reducing inflammation and cardiovascular risk. The DASH diet (Dietary Approaches to Stop Hypertension) shares the same emphasis on vegetables, fruit, whole grains, and legumes, with an additional focus on low sodium for blood pressure.',
-          'You do not need to follow a named diet to eat anti-inflammatory foods — the principles are the same. Pick the pattern that fits your life and culture.',
+          'A 2025 umbrella review of systematic reviews and meta-analyses found associations between Mediterranean-style dietary patterns and several inflammation biomarkers, although certainty varied across outcomes and populations. A 2026 meta-analysis of randomized trials found improvements in some markers, including hs-CRP and IL-6, while other measured outcomes, such as total CRP, did not show significant differences. These research findings do not validate this website’s 33-point scoring rule.',
+          'The American Heart Association recommends vegetables and fruit, foods made mostly with whole grains, healthy protein sources, unsaturated fats in place of saturated fats, less added sugar and attention to the overall dietary pattern. The scoring categories are a conversation starter about those choices, not a replacement for individualized nutrition counseling.',
+        ],
+      },
+      {
+        h2: 'Interpreting suggestions with medical and dietary context',
+        paragraphs: [
+          'The colored bars show the original points per group. The tool suggests possible swaps for groups receiving zero or one point, but it cannot know if those swaps are appropriate for allergies, food intolerance, kidney disease, eating disorders or a prescribed therapeutic diet. People who avoid fish or nuts can build balanced eating patterns through other foods; no single food group guarantees reduced inflammation.',
+          'Do not stop prescribed anti-inflammatory medicines or use a high result to dismiss fever, persistent pain, unexplained weight loss or other concerning symptoms. A clinician can decide whether further evaluation or laboratory testing is appropriate. Dietary changes are best considered in the context of overall health, access, cultural preferences and sustainable habits.',
         ],
       },
     ],
     faq: [
       {
+        q: 'Does a score of 100 mean my CRP or inflammation is low?',
+        a: 'No. It means the responses earned 33 of 33 points in an unvalidated food-frequency checklist. Only suitable clinical assessment and tests can help evaluate inflammation; this number does not estimate CRP or IL-6.',
+      },
+      {
+        q: 'Are all fried foods or red meats automatically inflammatory?',
+        a: 'No. The original categories are simplified frequency markers, not judgments about individual food molecules or a diagnosis. Portions, cooking methods, replacements and the rest of the diet matter.',
+      },
+      {
         q: 'Is this the Dietary Inflammatory Index (DII)?',
-        a: 'No. The DII is a licensed, proprietary tool. This calculator uses a transparent adherence score inspired by the same research on anti-inflammatory and Mediterranean dietary patterns, but it is not the DII and should not be compared directly to DII scores.',
+        a: 'No. The published DII evaluates many dietary parameters using a separate evidence-based standardized algorithm. This site uses 11 equal-weight frequency questions and its own 0–100 display, so DII comparisons would be invalid.',
       },
       {
-        q: 'Which foods are most anti-inflammatory?',
-        a: 'The strongest evidence is for fatty fish (omega-3 EPA/DHA), extra virgin olive oil (oleic acid and polyphenols), vegetables and fruit (antioxidants and fiber), and nuts. These form the core of the Mediterranean diet, which has the best evidence for reducing inflammatory markers.',
+        q: 'Why does daily intake score opposite ways for different foods?',
+        a: 'Seven groups receive more points as reported frequency increases. Four groups receive more points as frequency decreases. The total is seven groups × 3 plus four groups × 3, or 33 maximum points.',
       },
       {
-        q: 'Can diet reduce inflammation?',
-        a: 'Yes — research consistently shows that Mediterranean-style dietary patterns are associated with lower levels of inflammatory markers like CRP and IL-6. The effect is gradual and comes from the overall pattern, not any single "superfood."',
-      },
-      {
-        q: 'Do I need to cut out all pro-inflammatory foods?',
-        a: 'No. The goal is a pattern that is mostly anti-inflammatory, not perfection. Occasional red meat, dessert, or fried food within an otherwise healthy pattern is fine. It is what you eat most of the time that matters.',
+        q: 'Can I use this score to treat an inflammatory condition?',
+        a: 'No. It is not a diagnosis, marker of treatment response or medical nutrition prescription. Discuss persistent symptoms and any prescribed dietary restrictions with your healthcare team.',
       },
     ],
     sources: [
       {
-        citation: 'Estruch R, Ros E, Salas-Salvadó J, et al. "Primary prevention of cardiovascular disease with a Mediterranean diet supplemented with extra-virgin olive oil or nuts." N Engl J Med. 2018;378(25):e34.',
-        url: pubmed('Primary prevention cardiovascular disease Mediterranean diet extra virgin olive oil nuts Estruch'),
+        citation: 'American Heart Association. 2026 Dietary Guidance to Improve Cardiovascular Health. Scientific statement: emphasis on dietary patterns, vegetables, whole grains, unsaturated fats and added sugars.',
+        url: 'https://professional.heart.org/en/science-news/2026-dietary-guidance-to-improve-cardiovascular-health/top-things-to-know',
       },
       {
-        citation: 'Sofi F, Macchi G, Abbate R, Gensini GF, Casini A. "Mediterranean diet and health status: an updated meta-analysis and a proposal for a literature-based adherence score." Nutr Rev. 2014;72(6):392–399.',
-        url: pubmed('Mediterranean diet health status updated meta-analysis literature-based adherence score Sofi'),
+        citation: 'Shivappa N, et al. Designing and developing a literature-derived, population-based dietary inflammatory index. Public Health Nutr. 2014;17:1689–1696.',
+        url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC3925198/',
       },
       {
-        citation: 'Galland L. "Diet and inflammation." Nutr Clin Pract. 2010;25(6):634–640.',
-        url: pubmed('Diet and inflammation Galland Nutr Clin Pract'),
+        citation: 'Dietary Patterns Associated With Anti-inflammatory Effects: An Umbrella Review of Systematic Reviews and Meta-analyses. Nutr Rev. 2025.',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/40657695/',
+      },
+      {
+        citation: 'Mediterranean Diet Reduces Inflammation in Adults: systematic review and meta-analysis of randomized controlled trials. Nutr Rev. 2026.',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/41211687/',
+      },
+      {
+        citation: 'National Library of Medicine, MedlinePlus. C-Reactive Protein (CRP) Test: blood measurement and limits of interpretation.',
+        url: 'https://medlineplus.gov/lab-tests/c-reactive-protein-crp-test/',
       },
     ],
   },

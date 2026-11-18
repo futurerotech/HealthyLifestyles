@@ -153,7 +153,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'anti-inflammatory-score',
     title: 'Anti-Inflammatory Diet Score',
-    blurb: 'Score your diet for anti-inflammatory vs pro-inflammatory foods — vegetables, fish, olive oil vs processed meat, sugar, fried food.',
+    blurb: 'Explore 11 food-frequency groups with illustrative reverse-coded points; not a test of inflammation or disease.',
     category: 'nutrition',
     icon: 'heart',
     gradient: 'teal',

@@ -2500,160 +2500,194 @@ export const DEFS: Record<string, CalcDef> = {
     },
   },
 
-  // ---- Anti-Inflammatory Diet Score (food-frequency) ----
+  // ---- Anti-Inflammatory Diet Score (educational food-frequency checklist) ----
   'anti-inflammatory-score': {
     slug: 'anti-inflammatory-score',
-    heading: 'Score your anti-inflammatory diet',
+    heading: 'Explore a food-pattern checklist',
     hasSex: false,
     fields: [
       {
         key: 'vegetables', label: 'Vegetables', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '3-5',
-        help: 'Leafy greens, cruciferous veg, tomatoes, peppers — rich in antioxidants and fiber.',
+        help: 'Record frequency, not servings or biomarkers. Vegetables provide fiber and micronutrients; amounts and variety also matter.',
         options: FREQ_OPTIONS,
       },
       {
         key: 'fruit', label: 'Fruit', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '3-5',
-        help: 'Berries, citrus, apples — high in polyphenols and fiber.',
+        help: 'A frequency category is not a measured amount. Choose a variety of fruits that fits your diet.',
         options: FREQ_OPTIONS,
       },
       {
         key: 'wholeGrains', label: 'Whole grains', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '3-5',
-        help: 'Oats, brown rice, quinoa, whole wheat — vs refined grains.',
+        help: 'Whole-grain frequency is one rough marker of dietary pattern; serving size and total intake are not captured.',
         options: FREQ_OPTIONS,
       },
       {
         key: 'fattyFish', label: 'Fatty fish', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'Salmon, sardines, mackerel — omega-3s (EPA/DHA) are powerfully anti-inflammatory.',
+        help: 'Salmon and sardines supply EPA/DHA; this survey does not measure omega-3 intake. Alternatives may fit vegetarian diets or allergies.',
         options: FREQ_OPTIONS,
       },
       {
         key: 'oliveOil', label: 'Olive oil', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '3-5',
-        help: 'Extra virgin olive oil — oleic acid and polyphenols.',
+        help: 'An unsaturated-fat source used in Mediterranean-style patterns; the survey does not measure amounts or substitutions.',
         options: FREQ_OPTIONS,
       },
       {
         key: 'nuts', label: 'Nuts', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'Walnuts, almonds — healthy fats and antioxidants.',
+        help: 'Nuts may fit a healthy dietary pattern; avoid them if allergic and use suitable alternatives.',
         options: FREQ_OPTIONS,
       },
       {
         key: 'legumes', label: 'Legumes', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'Beans, lentils, chickpeas — fiber and plant protein.',
+        help: 'Beans, lentils and peas provide fiber and plant protein. This is a simple frequency check.',
         options: FREQ_OPTIONS,
       },
       {
-        key: 'redMeat', label: 'Red / processed meat', type: 'select', metricDefault: 0, min: 0, max: 0,
+        key: 'redMeat', label: 'Red or processed meat', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'Beef, pork, bacon, sausage — high in saturated fat and inflammatory compounds. Less is better.',
+        help: 'Red and processed meats differ; they are combined solely for the original coarse checklist, not to classify every food as inflammatory.',
         options: FREQ_OPTIONS,
       },
       {
-        key: 'refinedCarbs', label: 'Refined carbs', type: 'select', metricDefault: 0, min: 0, max: 0,
+        key: 'refinedCarbs', label: 'Refined grain foods', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'White bread, white rice, pastries — spike blood sugar. Less is better.',
+        help: 'This coarse category cannot assess the nutrition quality or amount of an individual grain food.',
         options: FREQ_OPTIONS,
       },
       {
-        key: 'sugaryDrinks', label: 'Sugary drinks', type: 'select', metricDefault: 0, min: 0, max: 0,
+        key: 'sugaryDrinks', label: 'Sugar-sweetened beverages', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'Soda, energy drinks, sweet juice — liquid sugar drives inflammation. Less is better.',
+        help: 'Frequent added-sugar drinks are less aligned with common dietary guidance; this is not an inflammation blood test.',
         options: FREQ_OPTIONS,
       },
       {
-        key: 'friedFood', label: 'Fried food', type: 'select', metricDefault: 0, min: 0, max: 0,
+        key: 'friedFood', label: 'Deep-fried foods', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'Deep-fried foods — advanced glycation end products (AGEs). Less is better.',
+        help: 'Preparation methods and food composition vary; frequency alone does not measure inflammatory activity.',
         options: FREQ_OPTIONS,
       },
     ],
-    compute: ({ selects }) => {
-      // Anti-inflammatory foods: more is better (rarely=0 -> daily=3).
-      // Pro-inflammatory foods: less is better (rarely=3 -> daily=0, inverse).
-      const ANTI: Record<string, number> = { rarely: 0, '1-2': 1, '3-5': 2, daily: 3 };
-      const PRO: Record<string, number> = { rarely: 3, '1-2': 2, '3-5': 1, daily: 0 };
+    compute: ({ selects, units }) => {
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Food-pattern checklist (unvalidated)',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (units !== 'metric' && units !== 'imperial') {
+        return fail('Choose a supported unit system.');
+      }
 
-      const antiFoods = [
-        { name: 'Vegetables', freq: selects.vegetables, pts: ANTI[selects.vegetables] ?? 1, add: 'Add more vegetables — aim for 5+ servings/day, varied colours.' },
-        { name: 'Fruit', freq: selects.fruit, pts: ANTI[selects.fruit] ?? 1, add: 'Add 2–3 fruit servings/day, especially berries and citrus.' },
-        { name: 'Whole grains', freq: selects.wholeGrains, pts: ANTI[selects.wholeGrains] ?? 1, add: 'Swap refined grains for oats, brown rice, quinoa.' },
-        { name: 'Fatty fish', freq: selects.fattyFish, pts: ANTI[selects.fattyFish] ?? 1, add: 'Aim for 2+ servings of fatty fish/week (salmon, sardines).' },
-        { name: 'Olive oil', freq: selects.oliveOil, pts: ANTI[selects.oliveOil] ?? 1, add: 'Use extra virgin olive oil as your primary cooking fat.' },
-        { name: 'Nuts', freq: selects.nuts, pts: ANTI[selects.nuts] ?? 1, add: 'A handful of nuts/day (walnuts, almonds).' },
-        { name: 'Legumes', freq: selects.legumes, pts: ANTI[selects.legumes] ?? 1, add: 'Add beans or lentils 3+×/week.' },
+      // Preserve the original 7 favorable / 4 reverse-coded food groups,
+      // equal 0..3 point rubrics and 33-point maximum. This is NOT the
+      // research Dietary Inflammatory Index and does not predict CRP/IL-6.
+      const MORE: Record<string, number> = { rarely: 0, '1-2': 1, '3-5': 2, daily: 3 };
+      const LESS: Record<string, number> = { rarely: 3, '1-2': 2, '3-5': 1, daily: 0 };
+      const moreKeys = [
+        'vegetables', 'fruit', 'wholeGrains', 'fattyFish',
+        'oliveOil', 'nuts', 'legumes',
       ];
+      const lessKeys = ['redMeat', 'refinedCarbs', 'sugaryDrinks', 'friedFood'];
+      // Exact membership, not parseFloat, fallback points, or inherited
+      // object prototype keys. Invalid/missing answers never earn points.
+      for (const key of moreKeys) {
+        if (!Object.hasOwn(MORE, selects[key])) {
+          return fail('Choose one of the listed frequencies for ' + key + '.');
+        }
+      }
+      for (const key of lessKeys) {
+        if (!Object.hasOwn(LESS, selects[key])) {
+          return fail('Choose one of the listed frequencies for ' + key + '.');
+        }
+      }
 
-      const proFoods = [
-        { name: 'Red / processed meat', freq: selects.redMeat, pts: PRO[selects.redMeat] ?? 1, reduce: 'Limit red/processed meat to 1–2×/week; swap for fish or legumes.' },
-        { name: 'Refined carbs', freq: selects.refinedCarbs, pts: PRO[selects.refinedCarbs] ?? 1, reduce: 'Replace white bread/rice with whole-grain versions.' },
-        { name: 'Sugary drinks', freq: selects.sugaryDrinks, pts: PRO[selects.sugaryDrinks] ?? 1, reduce: 'Swap sugary drinks for water or unsweetened tea.' },
-        { name: 'Fried food', freq: selects.friedFood, pts: PRO[selects.friedFood] ?? 1, reduce: 'Bake, grill, or air-fry instead of deep-frying.' },
+      const addFoods = [
+        { name: 'Vegetables', key: 'vegetables', pts: MORE[selects.vegetables],
+          advice: 'Consider adding a variety of vegetables as tolerated.' },
+        { name: 'Fruit', key: 'fruit', pts: MORE[selects.fruit],
+          advice: 'Consider fruit options that fit your health needs and preferences.' },
+        { name: 'Whole grains', key: 'wholeGrains', pts: MORE[selects.wholeGrains],
+          advice: 'Try replacing some refined-grain choices with whole grains when suitable.' },
+        { name: 'Fatty fish', key: 'fattyFish', pts: MORE[selects.fattyFish],
+          advice: 'If appropriate, consider seafood rich in omega-3s; use alternatives for allergies or dietary restrictions.' },
+        { name: 'Olive oil', key: 'oliveOil', pts: MORE[selects.oliveOil],
+          advice: 'When appropriate, choose unsaturated-fat sources such as olive oil in place of saturated-fat sources.' },
+        { name: 'Nuts', key: 'nuts', pts: MORE[selects.nuts],
+          advice: 'If you have no nut allergy, consider nuts as part of a balanced food pattern.' },
+        { name: 'Legumes', key: 'legumes', pts: MORE[selects.legumes],
+          advice: 'Try beans, lentils or other legumes if tolerated.' },
       ];
-
-      const allFoods = [...antiFoods, ...proFoods];
-      const total = allFoods.reduce((sum, f) => sum + f.pts, 0);
-      const maxPts = 33;
+      const reduceFoods = [
+        { name: 'Red or processed meat', key: 'redMeat', pts: LESS[selects.redMeat],
+          advice: 'Consider replacing some red or processed meat with other protein sources.' },
+        { name: 'Refined grain foods', key: 'refinedCarbs', pts: LESS[selects.refinedCarbs],
+          advice: 'Consider replacing some refined grains with whole-grain options.' },
+        { name: 'Sugar-sweetened beverages', key: 'sugaryDrinks', pts: LESS[selects.sugaryDrinks],
+          advice: 'Choose water or other unsweetened drinks more often if appropriate.' },
+        { name: 'Deep-fried foods', key: 'friedFood', pts: LESS[selects.friedFood],
+          advice: 'Consider using a variety of cooking methods, including baking or grilling.' },
+      ];
+      const allFoods = [...addFoods, ...reduceFoods];
+      const maxPts = allFoods.length * 3;
+      const moreTotal = addFoods.reduce((sum, f) => sum + f.pts, 0);
+      const lessTotal = reduceFoods.reduce((sum, f) => sum + f.pts, 0);
+      const total = moreTotal + lessTotal;
+      if (maxPts !== 33 || !Number.isFinite(total) || total < 0 || total > maxPts) {
+        return fail('The supplied food frequencies cannot produce a valid checklist result.');
+      }
       const score = Math.round((total / maxPts) * 100);
-
       const segments: Segment[] = [
-        { upTo: 33, label: 'Pro-inflammatory', color: C.red },
-        { upTo: 50, label: 'Low anti-inflammatory', color: C.amber },
-        { upTo: 70, label: 'Moderate', color: C.teal },
-        { upTo: 85, label: 'Good', color: C.green },
-        { upTo: 100, label: 'Strongly anti-inflammatory', color: C.blue },
+        { upTo: 33, label: 'Fewer listed choices', color: C.red },
+        { upTo: 50, label: 'Some listed choices', color: C.amber },
+        { upTo: 70, label: 'Several listed choices', color: C.teal },
+        { upTo: 85, label: 'Many listed choices', color: C.green },
+        { upTo: 100, label: 'Most listed choices', color: C.blue },
       ];
       const band = bandFor(score, segments);
 
-      // Per-food zones with bars.
       const areaColor = (pts: number): string => {
         if (pts >= 3) return C.blue;
         if (pts >= 2) return C.green;
         if (pts >= 1) return C.amber;
         return C.red;
       };
-
-      const FREQ_LABEL: Record<string, string> = { rarely: 'Rarely', '1-2': '1-2/wk', '3-5': '3-5/wk', daily: 'Daily' };
-      const zones = allFoods.map((f) => {
-        const fl = FREQ_LABEL[f.freq] ?? f.freq ?? '';
-        return {
-          label: f.name,
-          detail: `${fl} - ${f.pts}/3`,
-          color: areaColor(f.pts),
-        };
-      });
-
-      // Foods to ADD (anti-inflammatory, scoring 0-1) and REDUCE (pro-inflammatory, scoring 0-1).
-      const toAdd = antiFoods.filter((f) => f.pts <= 1).map((f) => f.add);
-      const toReduce = proFoods.filter((f) => f.pts <= 1).map((f) => f.reduce);
+      const FREQ_LABEL: Record<string, string> = {
+        rarely: 'Rarely', '1-2': '1–2/week', '3-5': '3–5/week', daily: 'Daily',
+      };
+      const zones = allFoods.map(f => ({
+        label: f.name,
+        detail: FREQ_LABEL[selects[f.key]] + ' · ' + f.pts + '/3 points',
+        color: areaColor(f.pts),
+      }));
+      const toAdd = addFoods.filter(f => f.pts <= 1).map(f => f.advice);
+      const toReduce = reduceFoods.filter(f => f.pts <= 1).map(f => f.advice);
       const suggestions: string[] = [];
-      if (toAdd.length > 0) suggestions.push(`Add: ${toAdd.join('  ')}`);
-      if (toReduce.length > 0) suggestions.push(`Reduce: ${toReduce.join('  ')}`);
-      const suggestionText = suggestions.length > 0
+      if (toAdd.length) suggestions.push('Explore: ' + toAdd.join('  '));
+      if (toReduce.length) suggestions.push('Consider limiting: ' + toReduce.join('  '));
+      const summary = suggestions.length
         ? suggestions.join('  ')
-        : 'Your food choices are well-balanced — maintain your current pattern.';
+        : 'No low-rated foods within this particular checklist; that does not prove the diet is nutritionally complete or medically protective.';
 
       return {
         ok: true,
-        primaryLabel: 'Anti-inflammatory diet score',
-        primaryValue: `${score}/100`,
-        category: { label: band.label, color: band.color },
+        primaryLabel: 'Food-pattern checklist (unvalidated)',
+        primaryValue: String(score) + '/100',
+        category: { label: band.label + ' (site-defined)', color: band.color },
         visual: { kind: 'zones', items: zones },
         rows: [
-          { label: 'Total points', value: `${total}/${maxPts}` },
-          { label: 'Anti-inflammatory foods', value: `${antiFoods.reduce((s, f) => s + f.pts, 0)}/21`, strong: true },
-          { label: 'Pro-inflammatory foods (inverted)', value: `${proFoods.reduce((s, f) => s + f.pts, 0)}/12` },
+          { label: 'Illustrative point total', value: total + '/' + maxPts },
+          { label: 'More-frequent listed foods (7 groups)', value: moreTotal + '/21', strong: true },
+          { label: 'Reverse-coded listed foods (4 groups)', value: lessTotal + '/12' },
         ],
         callout: {
           tone: 'info',
-          text: 'This pattern closely overlaps with the Mediterranean diet (vegetables, fruit, whole grains, fatty fish, olive oil, legumes, nuts) and the DASH diet (which additionally emphasizes low sodium for blood pressure). Following any of these patterns gives similar anti-inflammatory benefits.',
+          text: 'An 11-question, SITE-DEFINED food-frequency checklist—not a validated dietary inflammatory index, a CRP/IL-6 blood test, a disease-risk estimate or a diagnosis. A high result does NOT confirm low body inflammation or rule out illness. Seek clinical assessment for persistent, severe or unexplained symptoms rather than using a diet score to dismiss them.',
         },
-        note: `${suggestionText} Method: 11 foods scored 0-3 each (anti-inflammatory foods: rarely=0->daily=3; pro-inflammatory foods: rarely=3->daily=0, inverted). Max 33 points -> 0-100 score. Inspired by published research on Mediterranean and anti-inflammatory dietary patterns - this is a transparent adherence score, not a licensed dietary index. Educational only.`,
+        note: summary + ' Method: 7 food groups scored more often = 0→3 and 4 groups reverse-scored less often = 0→3, all weighted equally (33 possible points), then rounded to 0–100. The weights and category bands are site-defined and have NOT been clinically validated. Food frequencies alone omit serving sizes, energy intake, substitutions, many nutrients, medical conditions and medication use. Diet-pattern research concerns populations; this output does not measure inflammation, predict CRP, IL-6 or any biomarker, or establish treatment effectiveness. Medical diets and allergies require individualized advice.',
       };
     },
   },
