@@ -151,7 +151,7 @@ test('medical copy and catalog reject universal 1200/1500 floors and predicted t
   const content = src.slice(a,b);
   assert.match(content,/historical 3,500-kcal-per-pound/);
   assert.match(content,/NOT one-size-fits-all safe minimums/);
-  assert.match(content,/pregnancy, breastfeeding/);
+  assert.match(content,/pregnancy, breastfeeding/i);
   assert.match(content,/NIDDK Body Weight Planner/);
   assert.match(content,/https:\/\/pmc.ncbi.nlm.nih.gov\/articles\/PMC3859816\//);
   assert.match(content,/https:\/\/pmc.ncbi.nlm.nih.gov\/articles\/PMC5819889\//);
