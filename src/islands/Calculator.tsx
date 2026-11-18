@@ -16,6 +16,9 @@ import ShareResult from '../components/ShareResult';
 
 type Disp = Record<string, string>;
 
+const preciseHeight = (def: CalcDef): boolean =>
+  def.slug === 'lean-body-mass-calculator' || def.slug === 'waist-to-height-ratio-calculator';
+
 const num = (s: string | undefined): number => {
   const n = parseFloat(s ?? '');
   return Number.isFinite(n) ? n : 0;
@@ -27,14 +30,14 @@ function initialDisplay(def: CalcDef, units: UnitSystem): Disp {
     if (f.type === 'height') {
       if (units === 'metric') d.height = String(round(f.metricDefault, 0));
       else {
-        const { ft, inch } = cmToFtIn(f.metricDefault, def.slug === 'lean-body-mass-calculator' ? 0.01 : 0.5);
+        const { ft, inch } = cmToFtIn(f.metricDefault, preciseHeight(def) ? 0.01 : 0.5);
         d.height_ft = String(ft);
         d.height_in = String(inch);
       }
     } else if (f.type === 'mass') {
       d[f.key] = String(units === 'metric' ? round(f.metricDefault, 1) : round(kgToLb(f.metricDefault), 1));
     } else if (f.type === 'length') {
-      d[f.key] = String(units === 'metric' ? round(f.metricDefault, 1) : round(cmToIn(f.metricDefault), 1));
+      d[f.key] = String(units === 'metric' ? round(f.metricDefault, 1) : round(cmToIn(f.metricDefault), def.slug === 'waist-to-height-ratio-calculator' ? 2 : 1));
     } else if (f.type === 'select') {
       // selects are tracked in their own state, not as display strings
     } else {
@@ -75,19 +78,21 @@ function convertDisplay(def: CalcDef, disp: Disp, to: UnitSystem): Disp {
   for (const f of def.fields) {
     if (f.type === 'height') {
       if (to === 'imperial') {
-        const { ft, inch } = cmToFtIn(num(disp.height), def.slug === 'lean-body-mass-calculator' ? 0.01 : 0.5);
+        const { ft, inch } = cmToFtIn(num(disp.height), preciseHeight(def) ? 0.01 : 0.5);
         d.height_ft = String(ft);
         d.height_in = String(inch);
         delete d.height;
       } else {
-        d.height = String(round(ftInToCm(num(disp.height_ft), num(disp.height_in)), def.slug === 'lean-body-mass-calculator' ? 2 : 0));
+        d.height = String(round(ftInToCm(num(disp.height_ft), num(disp.height_in)), preciseHeight(def) ? 2 : 0));
         delete d.height_ft;
         delete d.height_in;
       }
     } else if (f.type === 'mass') {
       d[f.key] = String(to === 'imperial' ? round(kgToLb(num(disp[f.key])), 1) : round(lbToKg(num(disp[f.key])), 1));
     } else if (f.type === 'length') {
-      d[f.key] = String(to === 'imperial' ? round(cmToIn(num(disp[f.key])), 1) : round(inToCm(num(disp[f.key])), 1));
+      d[f.key] = String(to === 'imperial'
+        ? round(cmToIn(num(disp[f.key])), def.slug === 'waist-to-height-ratio-calculator' ? 2 : 1)
+        : round(inToCm(num(disp[f.key])), def.slug === 'waist-to-height-ratio-calculator' ? 2 : 1));
     }
   }
   return d;
@@ -652,8 +657,8 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
             <div class="calc__input">
               <input
                 type="number" inputMode="decimal" min="0"
-                max={slug === 'lean-body-mass-calculator' ? '11.99' : '11.5'}
-                step={slug === 'lean-body-mass-calculator' ? '0.01' : '0.5'}
+                max={preciseHeight(def) ? '11.99' : '11.5'}
+                step={preciseHeight(def) ? '0.01' : '0.5'}
                 id={id('height_in')} aria-label="Inches"
                 value={disp.height_in ?? ''} onInput={(e) => setField('height_in', (e.target as HTMLInputElement).value)}
               />
@@ -667,7 +672,8 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
       f.type === 'mass' ? (units === 'metric' ? 'kg' : 'lb')
       : f.type === 'length' || f.type === 'height' ? (units === 'metric' ? 'cm' : 'in')
       : 'yrs';
-    const step = f.type === 'height' && slug === 'lean-body-mass-calculator' ? '0.01'
+    const step = (f.type === 'height' && preciseHeight(def)) ||
+      (f.type === 'length' && slug === 'waist-to-height-ratio-calculator') ? '0.01'
       : f.type === 'age' || f.type === 'height' ? '1' : '0.1';
     return (
       <div class="calc__field" key={f.key}>

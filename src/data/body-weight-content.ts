@@ -372,58 +372,76 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
   'waist-to-height-ratio-calculator': {
     seoTitle: 'Waist-to-Height Ratio Calculator (WHtR)',
     metaDescription:
-      'Check your waist-to-height ratio — a fast indicator of central fat risk. Keep your waist under half your height. Free, metric or imperial.',
+      'Calculate waist-to-height ratio with metric or imperial inputs, NICE reference bands, accurate measuring guidance and screening limitations.',
     intro:
-      'Your waist-to-height ratio (WHtR) is one of the simplest and most effective ways to gauge health risk from abdominal fat. Enter your waist and height to see your ratio and risk band.',
+      'Compare your waist circumference with your height to estimate central adiposity. Use a consistent tape measurement and read the result as a screening reference, not a diagnosis of heart disease or diabetes.',
     sections: [
       {
-        h2: 'How waist-to-height ratio works',
+        h2: 'How to measure and calculate the ratio',
         paragraphs: [
-          'The calculation could not be simpler: waist circumference ÷ height, using the same unit for both. A ratio of 0.5 means your waist is exactly half your height. The widely promoted public-health message is: "keep your waist to less than half your height."',
-          'Because it scales waist size to your stature, WHtR works across different heights, ages and ethnic groups better than a raw waist measurement, and several studies have found it predicts cardiometabolic risk at least as well as BMI — sometimes better.',
+          'Waist-to-height ratio (WHtR) is waist circumference divided by standing height, using the same units. For example, a 96.5 cm waist and a 170 cm height give 96.5 ÷ 170 = 0.568, displayed as 0.57. The tool also accepts inches and feet; imperial measurements are converted back into centimeters before dividing, so the ratio itself has no units.',
+          'Follow the NICE measuring method: find the bottom of your ribs and the top of your hip bone, then measure the waist midway between them, normally just above the belly button. Keep the tape horizontal, snug but not pressing into the skin, and read after breathing out normally. This differs from measuring the narrowest point of the waist.',
         ],
       },
       {
-        h2: 'Reading your ratio',
+        h2: 'Understanding the NICE reference bands',
         list: {
-          intro: 'The gauge above places your ratio into broad bands:',
+          intro:
+            'The two-decimal value shown in the calculator is grouped into central-adiposity reference bands, not personal diagnoses:',
           items: [
-            'Below 0.4 — low, and occasionally a sign of being underweight.',
-            '0.4 to 0.5 — healthy; this is the target zone for most adults.',
-            '0.5 to 0.6 — increased risk, indicating excess central fat.',
-            'Above 0.6 — high risk, strongly linked to heart and metabolic disease.',
+            'Below 0.40: below the listed reference bands. This number alone does not diagnose underweight or confirm good health.',
+            '0.40–0.49: within the reference range for central adiposity; this does not rule out other health risks.',
+            '0.50–0.59: increased central adiposity, associated with increased cardiometabolic risk factors.',
+            '0.60 and above: high central adiposity, associated with further increased risk. The chart expands its scale instead of hiding values above 0.70.',
           ],
         },
       },
       {
-        h2: 'Why central fat matters',
+        h2: 'What the result does and does not mean',
         paragraphs: [
-          'Fat stored around the abdomen (visceral fat) is more metabolically harmful than fat on the hips and thighs. It is associated with higher risk of type 2 diabetes, high blood pressure and cardiovascular disease — even in people whose BMI looks normal, sometimes described as "normal weight obesity." That is why a waist-based measure adds information that BMI alone misses.',
-          'Measure your waist at the midpoint between the bottom of your ribs and the top of your hip bones, directly against the skin, after breathing out normally. If your ratio is above 0.5, reducing waist size through diet quality, regular activity and better sleep can lower your risk substantially.',
+          'NICE recommends using waist-to-height ratio together with BMI in adults, particularly those with BMI below 35 kg/m². The ratio is a practical estimate of abdominal fat distribution associated with risk factors such as type 2 diabetes, high blood pressure and cardiovascular disease. It is not a direct measurement of visceral fat or a numerical probability that you will develop a disease.',
+          'The calculator does not collect BMI, age, pregnancy status or medical history, so its bands cannot establish your individual risk. If you are pregnant, have a higher BMI, a condition changing height, or a history of disordered eating, seek tailored guidance rather than relying on this single value. A value below 0.50 should not be read as a guarantee against cardiometabolic problems.',
+        ],
+      },
+      {
+        h2: 'What to do with a higher measurement',
+        paragraphs: [
+          'The practical reminder is to aim for a waist measurement below half your height when that target is appropriate for you. If your result suggests increased central adiposity, consider discussing blood pressure, glucose, cholesterol and personal circumstances with a health professional rather than starting a drastic diet based on one reading.',
+          'Small changes near 0.40, 0.50 or 0.60 may reflect tape placement, measurement precision or rounding. For a useful comparison over time, use the same anatomical location and measurement conditions. The category follows the displayed two-decimal ratio to avoid a mismatch between the visible number and its band.',
         ],
       },
     ],
     faq: [
       {
-        q: 'What is a healthy waist-to-height ratio?',
-        a: 'A ratio below 0.5 is considered healthy for most adults — in other words, your waist should be less than half your height. Ratios above 0.5 indicate increasing central-fat risk.',
+        q: 'How do you calculate waist-to-height ratio?',
+        a: 'Divide waist circumference by height in the same units. For example, 85 cm ÷ 170 cm = 0.50. For imperial measurements, convert feet to inches before dividing; this calculator does the conversion for you.',
       },
       {
-        q: 'Is waist-to-height ratio better than BMI?',
-        a: 'It is a useful complement. Because it captures abdominal fat, WHtR can flag risk in people with a normal BMI. Many researchers recommend using both together.',
+        q: 'Is a waist-to-height ratio of exactly 0.50 within the lower reference band?',
+        a: 'No. NICE places 0.50 in the increased-central-adiposity band (0.50–0.59). A value of exactly 0.60 is in the high band.',
       },
       {
-        q: 'How do I measure my waist correctly?',
-        a: 'Measure midway between your lowest rib and the top of your hip bone, against bare skin, keeping the tape level and snug but not compressing. Breathe out normally and read the measurement.',
+        q: 'Where should I measure my waist?',
+        a: 'Measure halfway between the bottom of your ribs and the top of your hip bone, just above the belly button, after breathing out normally. Do not substitute the narrowest waist point.',
+      },
+      {
+        q: 'Does a ratio below 0.50 mean I have no cardiovascular risk?',
+        a: 'No. This is an estimate of central adiposity, not a clinical diagnosis. A clinician may assess BMI, blood pressure, blood tests, family history and other relevant factors.',
       },
     ],
     sources: [
       {
-        citation:
-          'Ashwell M, Hsieh SD. "Six reasons why the waist-to-height ratio is a rapid and effective global indicator for health risks of obesity." Int J Food Sci Nutr. 2005;56(5):303–307.',
-        url: pubmed('Six reasons why the waist-to-height ratio is a rapid and effective global indicator'),
+        citation: 'National Institute for Health and Care Excellence (NICE). Overweight and obesity management, guideline NG246: Identifying and assessing overweight, obesity and central adiposity (2025/2026).',
+        url: 'https://www.nice.org.uk/guidance/ng246/chapter/Identifying-and-assessing-overweight-obesity-and-central-adiposity',
       },
-      WHO_OBESITY,
+      {
+        citation: 'National Health Service. Calculate your waist to height ratio (reviewed February 2025).',
+        url: 'https://www.nhs.uk/health-assessment-tools/calculate-your-waist-to-height-ratio',
+      },
+      {
+        citation: 'NHS England Digital. Health Survey for England 2024: adults overweight and obesity, waist-to-height ratio categories.',
+        url: 'https://digital.nhs.uk/data-and-information/publications/statistical/health-survey-for-england/2024/adults-overweight-and-obesity',
+      },
     ],
   },
 

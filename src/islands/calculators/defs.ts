@@ -438,28 +438,55 @@ export const DEFS: Record<string, CalcDef> = {
     },
   },
 
-  // ---- 6. Waist-to-Height Ratio ----
+  // ---- 6. Waist-to-Height Ratio (NICE central-adiposity reference bands) ----
   'waist-to-height-ratio-calculator': {
     slug: 'waist-to-height-ratio-calculator',
     heading: 'Calculate your waist-to-height ratio',
     hasSex: false,
-    fields: [F.waist(85), F.height(175)],
+    fields: [
+      {
+        ...F.waist(85),
+        help: 'Measure halfway between your lowest rib and the top of your hip bone (just above your navel). Keep the tape level and breathe out normally.',
+      },
+      F.height(175),
+    ],
     compute: ({ vals }) => {
-      const ratio = vals.waist / vals.height;
+      const { waist, height } = vals;
+      if (![waist, height].every((v) => Number.isFinite(v) && v > 0)) {
+        return {
+          ok: false, error: 'Enter valid positive waist and height measurements.',
+          primaryLabel: 'Waist-to-height ratio', primaryValue: '—',
+          visual: { kind: 'none' },
+        };
+      }
+      // Both inputs are centimetres, even when the display is imperial.
+      const ratio = waist / height;
+      if (!Number.isFinite(ratio) || !(ratio > 0)) {
+        return {
+          ok: false, error: 'These measurements cannot produce a valid ratio.',
+          primaryLabel: 'Waist-to-height ratio', primaryValue: '—',
+          visual: { kind: 'none' },
+        };
+      }
+
+      // NICE reference bands are stated to 2 decimals. Classify the same
+      // 2-decimal number shown to the user, including at 0.40/0.50/0.60.
+      const shown = round(ratio, 2);
+      const gaugeMax = Math.max(0.8, Math.ceil(shown * 10) / 10);
       const segments: Segment[] = [
-        { upTo: 0.4, label: 'Slim', color: C.blue },
-        { upTo: 0.5, label: 'Healthy', color: C.green },
-        { upTo: 0.6, label: 'Increased risk', color: C.amber },
-        { upTo: 0.7, label: 'High risk', color: C.red },
+        { upTo: 0.39, label: 'Below reference range', color: C.blue },
+        { upTo: 0.49, label: 'Within reference range', color: C.green },
+        { upTo: 0.59, label: 'Increased central adiposity', color: C.amber },
+        { upTo: gaugeMax, label: 'High central adiposity', color: C.red },
       ];
-      const band = bandFor(ratio, segments);
+      const band = bandFor(shown, segments);
       return {
         ok: true,
         primaryLabel: 'Waist-to-height ratio',
-        primaryValue: fmt(ratio, 2),
+        primaryValue: fmt(shown, 2),
         category: { label: band.label, color: band.color },
-        visual: { kind: 'gauge', value: ratio, min: 0.3, max: 0.7, segments },
-        note: 'A simple rule: keep your waist to less than half your height (ratio under 0.5).',
+        visual: { kind: 'gauge', value: shown, min: 0, max: gaugeMax, segments },
+        note: 'Reference bands are based on the displayed, rounded ratio; near a boundary, small tape differences may change the band. NICE uses these adult bands alongside BMI (particularly BMI below 35). This is a screening estimate, not a diagnosis; a ratio under 0.5 does not rule out other health risks.',
       };
     },
   },

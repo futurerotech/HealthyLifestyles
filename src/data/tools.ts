@@ -252,7 +252,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'waist-to-height-ratio-calculator',
     title: 'Waist-to-Height Ratio Calculator',
-    blurb: 'A quick check of central fat risk — your waist should be under half your height.',
+    blurb: 'Estimate central adiposity from waist and height using NICE reference bands; not a medical diagnosis.',
     category: 'body-weight',
     icon: 'ruler',
     gradient: 'blue',
