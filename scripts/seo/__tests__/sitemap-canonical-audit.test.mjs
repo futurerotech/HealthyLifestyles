@@ -24,7 +24,8 @@ function withBuild(pages, run) {
       const robots = page.noindex ? 'noindex, nofollow' : 'max-image-preview:large';
       fs.writeFileSync(path.join(dir, 'index.html'),
         '<!doctype html><html><head><link rel="canonical" href="' + canonical +
-        '"><meta name="robots" content="' + robots + '"></head><body>Visible article</body></html>');
+        '"><meta name="robots" content="' + robots + '">' + (page.extraHead ?? '') +
+        '</head><body>Visible article</body></html>');
     }
     run(auditBuiltSitemap(root));
   } finally {
@@ -88,4 +89,92 @@ test('missing sitemap index fails closed', () => {
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
+});
+
+
+// Fail-closed regressions for XML grammar and HTML metadata interpretation.
+test('noindex in a second robots meta with reversed attribute order fails', () => {
+  withBuild([{url: origin + '/about', extraHead: '<meta content="noindex,follow" name="robots">'}], result => {
+    assert.match(result.issues.join('\n'), /includes noindex HTML/);
+  });
+});
+
+test('conflicting second canonical tag fails', () => {
+  withBuild([{url: origin + '/about', extraHead: '<link href="' + origin + '/wrong" rel="canonical">'}], result => {
+    assert.match(result.issues.join('\n'), /Sitemap\/canonical mismatch/);
+  });
+});
+
+test('missing sitemap XML root cannot pass using orphan loc tags', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hls-sitemap-malformed-'));
+  try {
+    fs.writeFileSync(path.join(root, 'sitemap-index.xml'),
+      '<something><sitemap><loc>' + origin + '/sitemap-0.xml</loc></sitemap></something>');
+    fs.writeFileSync(path.join(root, 'sitemap-0.xml'),
+      '<urlset><url><loc>' + origin + '/</loc></url></urlset>');
+    fs.writeFileSync(path.join(root, 'index.html'),
+      '<link rel="canonical" href="' + origin + '/"><meta name="robots" content="index,follow">');
+    assert.match(auditBuiltSitemap(root).issues.join('\n'), /sitemapindex root/);
+  } finally {
+    fs.rmSync(root, {recursive:true,force:true});
+  }
+});
+
+test('duplicate sitemap child references fail', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hls-sitemap-duplicate-'));
+  try {
+    fs.writeFileSync(path.join(root, 'sitemap-index.xml'),
+      '<sitemapindex><sitemap><loc>' + origin + '/sitemap-0.xml</loc></sitemap>' +
+      '<sitemap><loc>' + origin + '/sitemap-0.xml</loc></sitemap></sitemapindex>');
+    fs.writeFileSync(path.join(root, 'sitemap-0.xml'),
+      '<urlset><url><loc>' + origin + '/</loc></url></urlset>');
+    fs.writeFileSync(path.join(root, 'index.html'),
+      '<link rel="canonical" href="' + origin + '/"><meta name="robots" content="index,follow">');
+    assert.match(auditBuiltSitemap(root).issues.join('\n'), /Duplicate sitemap child/);
+  } finally {
+    fs.rmSync(root, {recursive:true,force:true});
+  }
+});
+
+test('normal generated XML declaration, sitemap namespaces and xhtml links remain valid', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hls-sitemap-namespace-'));
+  try {
+    fs.writeFileSync(path.join(root, 'sitemap-index.xml'),
+      '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
+      '<sitemap><loc>' + origin + '/sitemap-0.xml</loc></sitemap></sitemapindex>');
+    fs.writeFileSync(path.join(root, 'sitemap-0.xml'),
+      '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" ' +
+      'xmlns:xhtml="http://www.w3.org/1999/xhtml">' +
+      '<url><loc>' + origin + '/</loc><changefreq>weekly</changefreq>' +
+      '<xhtml:link rel="alternate" hreflang="en" href="' + origin + '/"/>' +
+      '</url></urlset>');
+    fs.writeFileSync(path.join(root, 'index.html'),
+      '<link href="' + origin + '/" rel="canonical"><meta content="index, follow" name="robots">');
+    assert.deepEqual(auditBuiltSitemap(root).issues, []);
+  } finally {
+    fs.rmSync(root, {recursive:true,force:true});
+  }
+});
+
+test('orphan loc outside url element fails even if valid page is present', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hls-sitemap-orphan-'));
+  try {
+    fs.writeFileSync(path.join(root, 'sitemap-index.xml'),
+      '<sitemapindex><sitemap><loc>' + origin + '/sitemap-0.xml</loc></sitemap></sitemapindex>');
+    fs.writeFileSync(path.join(root, 'sitemap-0.xml'),
+      '<urlset><url><loc>' + origin + '/</loc></url><loc>' + origin + '/bad</loc></urlset>');
+    fs.writeFileSync(path.join(root, 'index.html'),
+      '<link rel="canonical" href="' + origin + '/"><meta name="robots" content="index,follow">');
+    assert.match(auditBuiltSitemap(root).issues.join('\n'), /loc outside url entries/);
+  } finally {
+    fs.rmSync(root, {recursive:true,force:true});
+  }
+});
+
+test('googlebot-specific noindex is excluded from sitemap despite generic index meta', () => {
+  withBuild([{url: origin + '/about', extraHead: '<meta content="noindex" name="googlebot">'}], result => {
+    assert.match(result.issues.join('\n'), /includes noindex HTML/);
+  });
 });
