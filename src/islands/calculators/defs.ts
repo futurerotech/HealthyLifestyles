@@ -161,6 +161,14 @@ const FREQ_OPTIONS: SelectOption[] = [
   { value: 'daily', label: 'Daily' },
 ];
 
+const PROTEIN_OPTIONS: SelectOption[] = [
+  { value: '0.8', label: 'Adult RDA reference — not a universal target (0.8 g/kg)' },
+  { value: '1.2', label: 'Higher-intake adult example (1.2 g/kg)' },
+  { value: '1.6', label: 'Resistance training example (1.6 g/kg)' },
+  { value: '2.0', label: 'Healthy exercising adult example (2.0 g/kg)' },
+  { value: '2.2', label: 'Higher training example — not a maximum (2.2 g/kg)' },
+];
+
 const ACTIVITY_OPTIONS: SelectOption[] = [
   { value: '1.2', label: 'Sedentary — little or no exercise' },
   { value: '1.375', label: 'Lightly active — 1–3 days/week' },
@@ -943,39 +951,58 @@ export const DEFS: Record<string, CalcDef> = {
     },
   },
 
-  // ---- Protein Intake ----
+  // ---- Protein Intake: weight-based illustrations for generally healthy adults ----
   'protein-intake-calculator': {
     slug: 'protein-intake-calculator',
-    heading: 'Calculate your protein target',
+    heading: 'Explore daily protein amounts',
     hasSex: false,
     fields: [
       F.weight(72),
       {
-        key: 'goal', label: 'Activity / goal', type: 'select', metricDefault: 0, min: 0, max: 0,
+        key: 'goal', label: 'Protein reference / training example', type: 'select',
+        metricDefault: 0, min: 0, max: 0,
         selectDefault: '1.6',
-        options: [
-          { value: '0.8', label: 'Sedentary — minimum (0.8 g/kg)' },
-          { value: '1.2', label: 'Active / general fitness (1.2 g/kg)' },
-          { value: '1.6', label: 'Building muscle / strength (1.6 g/kg)' },
-          { value: '2.0', label: 'Athlete / fat loss (2.0 g/kg)' },
-          { value: '2.2', label: 'Maximum — heavy training (2.2 g/kg)' },
-        ],
+        options: PROTEIN_OPTIONS,
+        help: 'These are reference or illustrative g/kg values for generally healthy adults, not prescribed targets or safe upper limits.',
       },
     ],
-    compute: ({ vals, selects }) => {
-      const gPerKg = parseFloat(selects.goal) || 1.6;
-      const proteinG = gPerKg * vals.weight;
+    compute: ({ vals, selects, units }) => {
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Illustrative daily protein amount',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      const weight = vals.weight;
+      if (!Number.isFinite(weight) || weight < 25 || weight > 300) {
+        return fail('Enter a finite body weight between 25 and 300 kg (about 55–661 lb).');
+      }
+      if (units !== 'metric' && units !== 'imperial') {
+        return fail('Choose a supported unit system.');
+      }
+      // Exact select matching prevents partial numeric strings, missing choices
+      // or silent fallback to the default 1.6 g/kg example.
+      const choice = PROTEIN_OPTIONS.find((option) => option.value === selects.goal);
+      if (!choice) return fail('Choose one of the listed protein examples.');
+      const gPerKg = Number(choice.value);
+      const proteinG = gPerKg * weight;
+      const proteinKcal = proteinG * 4;
+      if (!Number.isFinite(proteinG) || !Number.isFinite(proteinKcal)) {
+        return fail('This input cannot produce a finite protein estimate.');
+      }
       return {
         ok: true,
-        primaryLabel: 'Daily protein target',
-        primaryValue: `${fmt(proteinG, 0)} g/day`,
+        primaryLabel: 'Illustrative daily protein amount',
+        primaryValue: fmt(proteinG, 0) + ' g/day',
         visual: { kind: 'none' },
         rows: [
-          { label: 'Based on', value: `${fmt(gPerKg, 1)} g per kg body weight`, strong: true },
-          { label: 'Per meal (4 meals)', value: `${fmt(proteinG / 4, 0)} g` },
-          { label: 'Calories from protein', value: `${fmt(proteinG * 4, 0)} kcal` },
+          { label: 'Selected illustration', value: fmt(gPerKg, 1) + ' g per kg body weight', strong: true },
+          { label: 'If divided evenly among 4 meals', value: fmt(proteinG / 4, 0) + ' g/meal (example)' },
+          { label: 'Approximate energy from protein', value: fmt(proteinKcal, 0) + ' kcal/day (4 kcal/g)' },
         ],
-        note: 'General health needs about 0.8 g/kg. Active people and those building muscle benefit from 1.6–2.2 g/kg, spread across the day.',
+        callout: {
+          tone: 'info',
+          text: 'Not a personal prescription. Kidney disease, pregnancy, breastfeeding, adolescence, frailty, clinical illness, and substantial weight or body-composition differences call for individualized nutrition advice.',
+        },
+        note: 'The longstanding US adult RDA is 0.8 g/kg/day, while the 2025–2030 Dietary Guidelines describe 1.2–1.6 g/kg/day food-pattern goals and exercise guidance commonly describes 1.4–2.0 g/kg/day for healthy exercising adults. The 2.2 option is an example, not a maximum or a guarantee of benefit. Even four-way meal division and 4-kcal/g energy are illustrative, not meal prescriptions or total calorie needs.',
       };
     },
   },

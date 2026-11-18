@@ -417,64 +417,85 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
   // ============================================================
   'protein-intake-calculator': {
     directAnswer: {
-      question: 'How much protein do I need a day?',
+      question: 'How much protein do adults need per day?',
       answer:
-        'The RDA is 0.8 g of protein per kg of body weight (about 0.36 g per lb) — a minimum for sedentary adults. Active people generally do better at 1.2–2.0 g/kg, with about 1.6 g/kg or more supporting muscle growth in training. For a 70 kg (154 lb) adult, that means roughly 56–140 g per day.',
+        'The longstanding U.S. adult RDA is 0.8 g/kg/day, but it is not an optimal training target or a ceiling. The 2025–2030 U.S. Dietary Guidelines describe a 1.2–1.6 g/kg/day goal, and sports-nutrition guidance commonly discusses 1.4–2.0 g/kg/day for healthy exercising adults. For 70 kg (154 lb), 1.6 g/kg is 112 g/day; the appropriate amount depends on individual circumstances.',
     },
-    seoTitle: 'Protein Intake Calculator (g per day)',
+    seoTitle: 'Protein Intake Calculator — Adult g/kg Examples',
     metaDescription:
-      'Find your daily protein target from body weight and activity — from 0.8 g/kg for general health up to 2.2 g/kg for athletes. Free, metric or imperial.',
+      'Explore weight-based protein examples in grams, optional meal splits and energy at 4 kcal/g. Compare RDA, 2025–2030 guidelines and training ranges.',
     intro:
-      'Protein needs vary with how active you are and what you are training for. Enter your weight and activity level to get your daily protein target in grams.',
+      'Choose your weight in kilograms or pounds and a protein reference point. This calculator multiplies body weight in kilograms by the selected g/kg factor; it does not diagnose deficiency, set a dietary maximum, or create a medical nutrition prescription.',
+    notice:
+      'For generally healthy adults only. Do not use a generic high-protein result as a clinical target if you have kidney disease, are pregnant or breastfeeding, are under 19, have frailty or a serious illness, or need a medically managed diet. Ask your clinician or registered dietitian about your individual needs.',
     sections: [
       {
-        h2: 'How much protein do you need?',
+        h2: 'How the arithmetic works',
         paragraphs: [
-          'The official minimum to prevent deficiency is 0.8 g of protein per kilogram of body weight per day. That is enough to avoid problems, but it is well below the amount that supports an active body, muscle growth, or fat loss.',
+          'Daily protein grams = body weight in kilograms × selected grams per kilogram. If you enter pounds, the calculator first uses the exact conversion 1 lb = 0.45359237 kg (with display precision of 0.001 lb and 0.01 kg). A 70-kg adult selecting 1.6 g/kg sees 112 g/day; at the standard energy conversion of 4 kcal per gram, that is 448 kcal from protein, not 448 kcal of total daily food.',
+          'The four-meal row only divides the unrounded daily result by four. Four eating occasions are not compulsory, and rounded displayed grams or calories may not multiply back exactly to the unrounded total.',
+        ],
+      },
+      {
+        h2: 'What the different g/kg values actually mean',
+        paragraphs: [
+          'The longstanding U.S. adult protein RDA is 0.8 g/kg/day. An RDA is a population nutrient reference designed to cover most healthy people, not a clinical diagnosis, universal minimum, personal optimum or maximum. The newer 2025–2030 U.S. Dietary Guidelines describe protein food-pattern goals of 1.2–1.6 g/kg/day, adjusted for individual energy needs.',
+          'For healthy exercising adults, the International Society of Sports Nutrition describes approximately 1.4–2.0 g/kg/day for building or maintaining muscle; a 2018 meta-analysis of resistance-training studies estimated a mean leveling-off near 1.6 g/kg/day, with uncertainty. These research populations do not define everyone’s optimum.',
         ],
         list: {
-          intro: 'This calculator scales your target to your goal:',
+          intro: 'The five preserved calculator coefficients are reference points or examples, not five universally validated requirements:',
           items: [
-            'Sedentary: 0.8 g/kg — the basic requirement for general health.',
-            'Active / general fitness: around 1.2 g/kg.',
-            'Building muscle or strength: about 1.6 g/kg.',
-            'Athletes or those in a calorie deficit: 2.0–2.2 g/kg to protect muscle.',
+            '0.8 g/kg — longstanding U.S. adult RDA reference, not automatically the right goal for every adult.',
+            '1.2 g/kg — higher-intake example aligned with the lower end of the current U.S. dietary guideline range.',
+            '1.6 g/kg — resistance-training example, also at the upper end of the current U.S. dietary guideline range.',
+            '2.0 g/kg — exercise-oriented example near the upper end of the usual 1.4–2.0 g/kg sports guidance.',
+            '2.2 g/kg — higher example sometimes discussed in resistance-training literature; it is NOT a universal upper limit, required intake, or guarantee of muscle growth or fat loss.',
           ],
         },
       },
       {
-        h2: 'Why protein matters',
+        h2: 'When weight-based calculations need special caution',
         paragraphs: [
-          'Protein supplies the amino acids your body uses to build and repair muscle, skin, enzymes and hormones. It is also the most satiating macronutrient, so a higher-protein diet helps control appetite, and it has the highest "thermic effect" — your body burns more energy digesting it than carbs or fat.',
-          'When you are losing weight, adequate protein is what tells your body to burn fat rather than muscle. This is why protein targets rise, not fall, during a calorie deficit.',
+          'Chronic kidney disease requires individual assessment. KDIGO 2024 suggests about 0.8 g/kg/day for adults with CKD stages G3–G5 and advises avoiding greater than 1.3 g/kg/day in those at risk of progression; requirements during dialysis or other special circumstances can be different. Do not raise or restrict protein on the basis of this calculator if you have CKD.',
+          'Pregnancy, breastfeeding, adolescence, older age with frailty, recovery from illness, and very high or low body weight may change protein needs or how the relevant weight is defined. Using scale weight alone does not account for body composition, total energy intake, medication or a clinician’s nutrition plan.',
         ],
       },
       {
-        h2: 'Timing and sources',
+        h2: 'Meals, protein sources and energy',
         paragraphs: [
-          'Total daily protein matters most, but spreading it across three to four meals of 20–40 g each maximises muscle protein synthesis. Good sources include lean meat, fish, eggs, dairy, beans, lentils, tofu and tempeh; combining plant proteins through the day covers all essential amino acids for vegetarians and vegans.',
-          'Very high intakes are safe for healthy people, but anyone with kidney disease should follow protein advice from their doctor.',
+          'Total daily intake matters, and people who train may choose to distribute protein across meals. Sports-nutrition literature often discusses approximately 20–40 g of high-quality protein per eating occasion for healthy exercising adults, but responses vary by age, body size, energy intake and training. The calculator’s equal four-way split is arithmetic only.',
+          'Foods such as beans, lentils, tofu, dairy, eggs, seafood and poultry can supply protein. Four kcal per gram is the conventional nutrition-label energy factor for protein; the food’s total calories depend on its other nutrients. Do not mistake grams of a food for grams of protein.',
         ],
       },
     ],
     faq: [
       {
-        q: 'How much protein should I eat per day?',
-        a: 'General health needs about 0.8 g/kg of body weight. Active people benefit from 1.2–1.6 g/kg, and those building muscle or dieting do best at 1.6–2.2 g/kg, spread across the day.',
+        q: 'Is 0.8 g/kg the recommended protein target for everyone?',
+        a: 'No. It is the longstanding U.S. adult RDA reference, not an individual optimum. The 2025–2030 dietary guidelines describe 1.2–1.6 g/kg/day protein goals, and training or clinical circumstances can change needs.',
       },
       {
-        q: 'Can I eat too much protein?',
-        a: 'For healthy people, high-protein diets are considered safe. People with existing kidney disease should follow individualised advice from a healthcare professional.',
+        q: 'Is 2.2 g/kg the maximum safe amount?',
+        a: 'No. This calculator’s 2.2 g/kg option is an illustrative higher training value, not a defined tolerable upper limit or advice for everyone. Higher is not guaranteed to improve training results.',
       },
       {
-        q: 'Is plant protein as good as animal protein?',
-        a: 'Yes, with variety. Animal proteins are complete on their own; eating a range of beans, grains, soy, nuts and seeds across the day provides all the essential amino acids from plants.',
+        q: 'How are protein calories and grams per meal calculated?',
+        a: 'The calculator multiplies body weight in kilograms by the selected g/kg factor. Protein energy is approximately four kcal per gram; the optional four-meal row divides the unrounded daily grams by four.',
+      },
+      {
+        q: 'Can I use this calculator if I have kidney disease?',
+        a: 'Not as a personal protein prescription. CKD stage, dialysis, nutritional status and treatment can change the right amount. Ask a kidney specialist or renal registered dietitian before changing protein intake.',
       },
     ],
-    sources: [ISSN_PROTEIN, MORTON_PROTEIN],
+    sources: [
+      { citation: 'National Academies dietary protein RDA summary in NCBI Bookshelf, 2024.', url: 'https://www.ncbi.nlm.nih.gov/books/NBK614631/' },
+      { citation: 'USDA/HHS. Dietary Guidelines for Americans, 2025–2030: protein goals (1.2–1.6 g/kg/day).', url: 'https://realfood.gov/protein' },
+      { citation: 'Jäger R, et al. ISSN Position Stand: protein and exercise. J Int Soc Sports Nutr. 2017;14:20.', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC5477153/' },
+      { citation: 'Morton RW, et al. Resistance-training protein meta-analysis. Br J Sports Med. 2018;52:376–384.', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC5867436/' },
+      { citation: 'KDIGO 2024 CKD Guideline Executive Summary, protein intake section. Kidney Int. 2024;105:684–701.', url: 'https://doi.org/10.1016/j.kint.2023.10.016' },
+      { citation: 'MedlinePlus. Protein in diet: 4 calories per gram and dietary context.', url: 'https://medlineplus.gov/ency/article/002467.htm' },
+    ],
   },
 
-  // ============================================================
   'water-intake-calculator': {
     seoTitle: 'Water Intake Calculator (Liters & oz)',
     metaDescription:

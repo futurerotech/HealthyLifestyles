@@ -25,7 +25,7 @@ const preciseHeight = (def: CalcDef): boolean =>
 const preciseWeight = (def: CalcDef): boolean =>
   def.slug === 'weight-loss-percentage-calculator' || def.slug === 'bmi-calculator' ||
   def.slug === 'bmr-calculator' || def.slug === 'calorie-calculator' ||
-  def.slug === 'macro-calculator';
+  def.slug === 'macro-calculator' || def.slug === 'protein-intake-calculator';
 
 const num = (s: string | undefined): number => {
   const n = parseFloat(s ?? '');
@@ -71,7 +71,12 @@ function toMetric(def: CalcDef, disp: Disp, units: UnitSystem): Record<string, n
     if (f.type === 'height') {
       v[f.key] = units === 'metric' ? num(disp.height) : ftInToCm(num(disp.height_ft), num(disp.height_in));
     } else if (f.type === 'mass') {
-      v[f.key] = units === 'metric' ? num(disp[f.key]) : lbToKg(num(disp[f.key]));
+      v[f.key] = units === 'metric' ? num(disp[f.key])
+        : def.slug === 'protein-intake-calculator'
+          // Match this calculator's 0.01-kg display precision so toggling
+          // exact 25/300-kg boundaries does not invalidate the same weight.
+          ? round(lbToKg(num(disp[f.key])), 2)
+          : lbToKg(num(disp[f.key]));
     } else if (f.type === 'length') {
       v[f.key] = units === 'metric' ? num(disp[f.key]) : inToCm(num(disp[f.key]));
     } else if (f.type === 'select') {

@@ -90,7 +90,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'protein-intake-calculator',
     title: 'Protein Intake Calculator',
-    blurb: 'Get your daily protein target based on body weight and activity.',
+    blurb: 'Explore adult protein g/kg examples, approximate protein calories, and important clinical limits.',
     category: 'nutrition',
     icon: 'egg',
     gradient: 'orange',
