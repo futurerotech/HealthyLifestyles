@@ -111,7 +111,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'calorie-deficit-calculator',
     title: 'Calorie Deficit Calculator',
-    blurb: 'See the daily deficit needed to lose a target weight by your chosen date.',
+    blurb: 'Explore the static 3,500-kcal/lb energy-equivalent example and its non-predictive limits.',
     category: 'nutrition',
     icon: 'trending-down',
     gradient: 'orange',

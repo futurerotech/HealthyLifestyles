@@ -26,7 +26,7 @@ const preciseWeight = (def: CalcDef): boolean =>
   def.slug === 'weight-loss-percentage-calculator' || def.slug === 'bmi-calculator' ||
   def.slug === 'bmr-calculator' || def.slug === 'calorie-calculator' ||
   def.slug === 'macro-calculator' || def.slug === 'protein-intake-calculator' ||
-  def.slug === 'water-intake-calculator';
+  def.slug === 'water-intake-calculator' || def.slug === 'calorie-deficit-calculator';
 
 const num = (s: string | undefined): number => {
   const n = parseFloat(s ?? '');
@@ -73,9 +73,10 @@ function toMetric(def: CalcDef, disp: Disp, units: UnitSystem): Record<string, n
       v[f.key] = units === 'metric' ? num(disp.height) : ftInToCm(num(disp.height_ft), num(disp.height_in));
     } else if (f.type === 'mass') {
       v[f.key] = units === 'metric' ? num(disp[f.key])
-        : (def.slug === 'protein-intake-calculator' || def.slug === 'water-intake-calculator')
-          // These two calculators preserve 0.01-kg display precision across
-          // 0.001-lb round trips, including exact 25/300-kg boundaries.
+        : (def.slug === 'protein-intake-calculator' || def.slug === 'water-intake-calculator' ||
+          def.slug === 'calorie-deficit-calculator')
+          // These calculators preserve 0.01-kg display precision across
+          // 0.001-lb round trips; calorie-deficit includes its 0.5-kg boundary.
           ? round(lbToKg(num(disp[f.key])), 2)
           : lbToKg(num(disp[f.key]));
     } else if (f.type === 'length') {

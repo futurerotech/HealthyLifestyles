@@ -579,58 +579,93 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
 
   // ============================================================
   'calorie-deficit-calculator': {
-    seoTitle: 'Calorie Deficit Calculator (Lose Weight)',
+    directAnswer: {
+      question: 'Does a 3,500-calorie deficit equal one pound of weight loss?',
+      answer:
+        'A historical 3,500-kcal-per-pound rule expresses an approximate energy equivalent, not a reliable prediction of when someone will lose weight. This calculator preserves that static arithmetic for education only. Real energy expenditure and body composition adapt, so a planned energy gap is not a guaranteed weight-change rate or a safe calorie prescription.',
+    },
+    seoTitle: 'Calorie Deficit Calculator — Static Energy Example',
     metaDescription:
-      'Work out the daily calorie deficit to lose a set amount of weight by your target date, using the 3,500-kcal rule — with a built-in safety check.',
+      'Explore the historical 3,500-kcal-per-pound energy-equivalent rule and why it cannot predict weight loss or set safe personal calorie targets.',
     intro:
-      'A calorie deficit means eating fewer calories than you burn. Enter how much weight you want to lose and your timeframe to see the daily deficit you would need — and whether it is safe.',
+      'Enter an assumed maintenance-energy figure, a hypothetical weight change and a number of weeks to explore the classic 3,500-kcal-per-pound arithmetic. This is not a dynamic weight-loss prediction or a daily intake recommendation. The display withholds examples that produce very low modeled energy.',
+    notice:
+      'For adult education only. This tool does not diagnose obesity or prescribe weight-loss calories. Pregnancy, breastfeeding, adolescents, eating disorders, serious illness, medication-related risks and medically supervised diets require individualized care; do not use a modeled calorie remainder as a meal plan.',
     sections: [
       {
-        h2: 'How the deficit is calculated',
+        h2: 'The exact calculation this tool keeps',
         paragraphs: [
-          'The calculation uses the classic rule that about 3,500 calories equals one pound (roughly 7,700 calories per kilogram) of body fat. Your total deficit is the weight you want to lose converted to calories; dividing that by the number of days in your timeframe gives the deficit you need each day.',
-          'For example, to lose 10 lb (about 4.5 kg) in 10 weeks: 10 × 3,500 = 35,000 calories ÷ 70 days = a 500-calorie daily deficit. Subtracting that from your maintenance calories gives the daily intake to aim for, which this tool shows alongside the deficit.',
+          'The calculator converts the hypothetical change from kilograms to pounds using 1 lb = 0.45359237 kg, multiplies by the historical factor of 3,500 kcal per pound, then divides by 7 × the number of weeks. The result is a fixed energy-equivalent example, not the actual deficit the body will need. The same arithmetic is used when the entry is displayed in pounds.',
+          'For an exact 10-lb (approximately 4.536-kg) illustration over 10 weeks: 10 × 3,500 = 35,000 kcal, and 35,000 ÷ 70 days = 500 kcal/day as STATIC arithmetic. Subtracting that number from an assumed 2,200-kcal/day maintenance figure gives 1,700 kcal/day arithmetically. It does not predict that the person will lose 10 lb within 10 weeks or imply that 1,700 kcal/day is suitable for them.',
         ],
       },
       {
-        h2: 'Keeping it safe and sustainable',
+        h2: 'Why the rule is not a weight-loss forecast',
         paragraphs: [
-          'A healthy rate of loss is generally 0.5–1 kg (1–2 lb) per week, which usually means a deficit of 500–1,000 calories a day. Larger deficits are harder to stick to, tend to cost you muscle as well as fat, and often backfire with rebound eating.',
-          'This calculator warns you if your plan needs a very large daily deficit, or would push your intake below the safe minimum of about 1,200 calories for women or 1,500 for men. If you see that warning, the simplest fix is to extend your timeframe.',
+          'The original factor approximates energy stored in a pound of adipose tissue. A person’s weight changes also involve water, fat-free mass and evolving expenditure, including changes in resting energy and movement. Hall and Chow explain why applying a CONSTANT daily energy difference as a weight-change forecast can overestimate weight loss: the gap between intake and expenditure is not fixed over time.',
+          'The rule is therefore shown as a historical what-if calculation, never as the daily gap “needed” to reach a weight by a certain week. For clinical or personal planning, an individualized assessment and a dynamic tool such as the NIH NIDDK Body Weight Planner are more appropriate than this static example.',
         ],
       },
       {
-        h2: 'Why the scale is not the whole story',
+        h2: 'What the calorie numbers do and do not mean',
         paragraphs: [
-          'The 3,500-calorie rule is a useful planning tool, but the body is not a simple machine. As you lose weight your metabolism adapts and your maintenance calories fall, so weight loss naturally slows over time — meaning real results often lag the straight-line prediction.',
-          'Treat the number as a starting point. Combine your deficit with high protein and resistance training to protect muscle, weigh yourself under consistent conditions, and adjust your intake based on the trend over several weeks rather than day-to-day changes.',
+          'An entered maintenance number is an assumption, not a measured energy expenditure. The separate Calorie Calculator uses an equation-based estimated resting expenditure multiplied by an assumed activity factor, which is also uncertain. Neither calculator can establish the calories an individual must eat.',
+          'The “arithmetic remainder” row is maintenance minus the static daily difference, only while the example remains above the tool’s withholding threshold. It is not a safe meal-plan target. If the calculated remainder is below 1,000 kcal/day or negative, the tool shows no numerical deficit or dietary intake rather than quietly presenting 0 kcal/day. The NIDDK Body Weight Planner uses 1,000 kcal/day as its own nutrient-adequacy display restriction, NOT a universal safe intake above that value.',
+        ],
+      },
+      {
+        h2: 'Why there is no universal 1,200/1,500 calorie floor',
+        paragraphs: [
+          'Older clinical obesity guidelines sometimes describe 1,200–1,500 kcal/day for some women and 1,500–1,800 kcal/day for some men as common starting intake ranges in individualized adult programs. Those are NOT one-size-fits-all safe minimums or a license to prescribe intake from a two-field model. Energy, nutrition and medical needs depend on health status, medications, body size, age, activity and nutritional adequacy.',
+          'The original calculator used a sex switch only to select a 1,200/1,500-kcal “safe minimum.” The reviewed model removes that switch, because the fixed arithmetic does not use sex, and it does not substitute a different “safe minimum.” Very-low-energy diets and complicated medical conditions require professional oversight.',
+        ],
+      },
+      {
+        h2: 'When a hypothetical example is especially misleading',
+        paragraphs: [
+          'An extreme requested change or short timeframe may produce an arithmetic gap greater than 1,000 kcal/day or a hypothetical change greater than 1 kg per week. The tool now warns that these are large or rapid ILLUSTRATIVE numbers, not proof that the change is achievable or safe. It does not use a static threshold to certify other combinations as safe.',
+          'Body weight by itself cannot reveal fat loss, nutritional adequacy or treatment suitability. For actual weight-management decisions, discuss an appropriate goal and monitoring with a qualified clinician or registered dietitian, especially with diabetes medication, pregnancy or a history of disordered eating.',
         ],
       },
     ],
     faq: [
       {
-        q: 'What is a safe calorie deficit?',
-        a: 'A deficit of 500–1,000 calories a day supports losing about 0.5–1 kg (1–2 lb) per week, which is widely considered safe and sustainable for most adults.',
+        q: 'Will a 500-calorie daily deficit make me lose one pound per week?',
+        a: 'Not reliably. A fixed 500 × 7 = 3,500-kcal weekly gap is historical arithmetic, not a forecast. Real energy expenditure and weight composition change during weight loss.',
       },
       {
-        q: 'Is the 3,500 calories per pound rule accurate?',
-        a: 'It is a reasonable planning estimate but not exact. Metabolism adapts as you lose weight, so actual loss usually slows over time and lags the simple prediction.',
+        q: 'What if the calculator cannot display a result?',
+        a: 'The tool withholds a modeled intake below 1,000 kcal/day or a negative remainder instead of presenting 0 as a valid food intake. That is an educational display safeguard from the NIDDK planner context, not a medically safe threshold.',
       },
       {
-        q: 'What if my deficit comes out too high?',
-        a: 'A very large required deficit means your timeframe is too short. Extend it so the daily deficit stays in the safe 500–1,000 calorie range and keeps your intake above the recommended minimum.',
+        q: 'Are 1,200 calories for women and 1,500 for men universal safe minimums?',
+        a: 'No. Older adult obesity-treatment protocols used ranges around those values within individualized programs. A personal minimum or weight-loss diet cannot be determined from sex alone.',
+      },
+      {
+        q: 'Is the assumed maintenance calorie value measured?',
+        a: 'No. It is entered by the visitor. If obtained from a calorie calculator, it is still an equation-based estimate that varies with activity, age and other factors.',
+      },
+      {
+        q: 'Is a static energy-gap result a diet plan or target date?',
+        a: 'No. The output is a historical energy-equivalent what-if calculation. It cannot determine how much a person should eat or when a specific weight will be achieved.',
       },
     ],
     sources: [
       {
-        citation:
-          'Wishnofsky M. "Caloric equivalents of gained or lost weight." Am J Clin Nutr. 1958;6(5):542–546.',
-        url: pubmed('Caloric equivalents of gained or lost weight Wishnofsky'),
+        citation: 'Wishnofsky M. Caloric equivalents of gained or lost weight. Am J Clin Nutr. 1958;6:542–546. Historical rule.',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/13594881/',
       },
       {
-        citation:
-          'Hall KD, Sacks G, Chandramohan D, et al. "Quantification of the effect of energy imbalance on bodyweight." Lancet. 2011;378(9793):826–837.',
-        url: pubmed('Quantification of the effect of energy imbalance on bodyweight Hall'),
+        citation: 'Hall KD, Chow CC. Why is the 3500 kcal per pound weight loss rule wrong? Int J Obes. 2013;37:1614. Dynamic energy balance.',
+        url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC3859816/',
+      },
+      {
+        citation: 'NIH NIDDK. Body Weight Planner: dynamically modeled weight change and under-1,000-kcal nutrient adequacy display restriction.',
+        url: 'https://www.niddk.nih.gov/bwp',
+      },
+      {
+        citation: 'AHA/ACC/TOS Guideline for the Management of Overweight and Obesity in Adults. J Am Coll Cardiol. 2014;63:2985–3023. Program intake ranges are individualized.',
+        url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC5819889/',
       },
     ],
   },

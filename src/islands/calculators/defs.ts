@@ -1087,47 +1087,91 @@ export const DEFS: Record<string, CalcDef> = {
     },
   },
 
-  // ---- Calorie Deficit ----
+  // ---- Calorie Deficit: historical energy-equivalent illustration ONLY ----
   'calorie-deficit-calculator': {
     slug: 'calorie-deficit-calculator',
-    heading: 'Calculate your calorie deficit',
-    hasSex: true,
+    heading: 'Explore a static energy-gap example',
+    // This formula depends on entered kcal, body-mass change and elapsed time,
+    // NOT on binary sex. Previously sex only selected a false "safe minimum".
+    hasSex: false,
     fields: [
-      { key: 'maintenance', label: 'Your maintenance calories', type: 'number', metricDefault: 2200, min: 1000, max: 6000, suffix: 'kcal', help: 'Not sure? Use the Calorie Calculator first.' },
-      { key: 'amount', label: 'Weight to lose', type: 'mass', metricDefault: 5, min: 0.5, max: 100 },
-      { key: 'weeks', label: 'Timeframe', type: 'number', metricDefault: 10, min: 1, max: 104, suffix: 'weeks' },
+      {
+        key: 'maintenance', label: 'Assumed maintenance energy',
+        type: 'number', metricDefault: 2200, min: 1000, max: 6000,
+        suffix: 'kcal/day',
+        help: 'Enter a whole-number daily energy estimate. You can explore predicted resting energy and assumed activity with the separate Calorie Calculator. This is not measured maintenance.',
+      },
+      {
+        key: 'amount', label: 'Hypothetical weight change', type: 'mass',
+        metricDefault: 5, min: 0.5, max: 100,
+        help: 'A positive change amount for a mathematical example, not a medically appropriate or guaranteed loss goal.',
+      },
+      {
+        key: 'weeks', label: 'Hypothetical timeframe',
+        type: 'number', metricDefault: 10, min: 1, max: 104,
+        suffix: 'weeks',
+        help: 'Choose 1–104 whole weeks. The static model does not predict when a person will reach a weight.',
+      },
     ],
-    compute: ({ vals, sex }) => {
-      const weeks = vals.weeks;
-      if (weeks <= 0) {
-        return { ok: false, error: 'Enter a timeframe of at least one week.', primaryLabel: 'Daily deficit', primaryValue: '—', visual: { kind: 'none' } };
+    compute: ({ vals, units }) => {
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Static daily energy-gap illustration',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      const { maintenance, amount, weeks } = vals;
+      if (units !== 'metric' && units !== 'imperial') {
+        return fail('Choose a supported metric or imperial unit system.');
       }
-      const lossLb = kgToLb(vals.amount);
-      const totalKcal = lossLb * 3500;
+      if (!Number.isFinite(maintenance) || !Number.isInteger(maintenance) ||
+          maintenance < 1000 || maintenance > 6000) {
+        return fail('Enter an assumed maintenance energy of 1,000–6,000 whole kcal/day.');
+      }
+      if (!Number.isFinite(amount) || amount < 0.5 || amount > 100) {
+        return fail('Enter a finite hypothetical change between 0.5 and 100 kg (about 1.1–220 lb).');
+      }
+      if (!Number.isFinite(weeks) || !Number.isInteger(weeks) || weeks < 1 || weeks > 104) {
+        return fail('Enter a whole-number example timeframe of 1–104 weeks.');
+      }
+
+      // Retain the site's ORIGINAL Wishnofsky-style 3,500-kcal/lb constant as
+      // energy-equivalent arithmetic. This does NOT forecast the deficit,
+      // actual weight loss, or a future weight. Real Δenergy is dynamic (Hall).
+      const staticTotalKcal = kgToLb(amount) * 3500;
       const days = weeks * 7;
-      const dailyDeficit = totalKcal / days;
-      const resulting = vals.maintenance - dailyDeficit;
-      const floor = calorieFloor(sex);
-      const weeklyKg = vals.amount / weeks;
-      // Flag below-floor intake, very large deficits, or rapid loss (>1 kg/week).
-      const unsafe = dailyDeficit > 1000 || resulting < floor || weeklyKg > 1;
+      const staticDailyGap = staticTotalKcal / days;
+      const arithmeticRemainder = maintenance - staticDailyGap;
+      const exampleKgPerWeek = amount / weeks;
+      if (![staticTotalKcal, days, staticDailyGap, arithmeticRemainder, exampleKgPerWeek]
+          .every(Number.isFinite) || staticDailyGap <= 0) {
+        return fail('These inputs cannot produce a finite static energy example.');
+      }
+      // Never clamp a negative intake to 0 kcal/day and still display the
+      // incompatible energy gap. In the NIH NIDDK Body Weight Planner, modeled
+      // intakes under 1,000 kcal/day fail the food-group/nutrient adequacy
+      // display criterion. THIS IS A WITHHOLDING GUARD, NOT A SAFE CALORIE FLOOR.
+      if (arithmeticRemainder < 1000) {
+        return fail('This static example would leave under 1,000 kcal/day of modeled energy (or less than zero). No intake or deficit number is shown. The NIH NIDDK planner cannot meet its nutrient and food-group targets below that display threshold; 1,000 kcal/day is NOT a universally safe intake. Change the scenario or consult a qualified clinician or registered dietitian.');
+      }
+      const highExample = staticDailyGap > 1000 || exampleKgPerWeek > 1;
       return {
         ok: true,
-        primaryLabel: 'Daily calorie deficit needed',
-        primaryValue: `${fmt(dailyDeficit, 0)} kcal/day`,
+        primaryLabel: 'Static daily energy-gap illustration',
+        primaryValue: fmt(staticDailyGap, 0) + ' kcal/day (not a target)',
         visual: { kind: 'none' },
         rows: [
-          { label: 'Total energy to burn', value: `${fmt(totalKcal, 0)} kcal` },
-          { label: 'Resulting daily intake', value: `${fmt(Math.max(resulting, 0), 0)} kcal/day`, strong: true },
-          { label: 'Timeframe', value: `${fmt(weeks, 0)} weeks (${fmt(days, 0)} days)` },
+          { label: 'Historical 3,500-kcal/lb energy-equivalent example',
+            value: fmt(staticTotalKcal, 0) + ' kcal total', strong: true },
+          { label: 'Assumed maintenance energy', value: fmt(maintenance, 0) + ' kcal/day' },
+          { label: 'Arithmetic remainder (NOT a dietary goal)', value: fmt(arithmeticRemainder, 0) + ' kcal/day' },
+          { label: 'Hypothetical time interval', value: fmt(weeks, 0) + ' weeks (' + fmt(days, 0) + ' days)' },
         ],
-        callout: unsafe
-          ? {
-              tone: 'warn',
-              text: `${resulting < floor ? `This drops your intake below the safe minimum of ${floor} kcal/day.` : 'This means rapid weight loss.'} A safe pace is about 0.5–1 kg (1–2 lb) a week — extend your timeframe, avoid crash dieting, and talk to your doctor before attempting faster loss.`,
-            }
-          : undefined,
-        note: 'Uses the classic 3,500 kcal-per-pound rule. Real metabolism adapts as you lose weight, so treat this as a starting estimate, never crash diet, and adjust to results.',
+        callout: {
+          tone: highExample ? 'warn' : 'info',
+          text: highExample
+            ? 'This scenario implies a large static energy difference or a rapid hypothetical change, but it cannot predict weight loss or establish a safe daily intake. Do not attempt this result as a diet plan; seek individualized guidance.'
+            : 'This is a historical, STATIC energy-equivalent example—not a predicted rate of weight loss, an intake prescription or a validated safe deficit. Real metabolism and body composition change over time.',
+        },
+        note: 'The original 3,500 kcal per pound (about 7,716 kcal/kg) is retained only to demonstrate the limits of fixed arithmetic. It does not determine the daily deficit needed to lose a specified weight in the chosen weeks. Actual results depend on changing energy expenditure, intake, fat/lean mass and individual circumstances. The old sex-based 1,200/1,500-kcal “safe minimums” are not universal; this calculator does not set a safe intake. The 1,000-kcal suppression is an NIH NIDDK model display safeguard, NOT an assurance that values above it are appropriate. Do not apply the example to pregnancy, breastfeeding, children, eating disorders or therapeutic diets without clinical guidance.',
       };
     },
   },
