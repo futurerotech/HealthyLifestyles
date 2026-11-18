@@ -36,6 +36,20 @@
 
 .diary__safety em { font-style: italic; }
 
+.diary__privacy { margin-top: 0.75rem; font-weight: 400; }
+.diary__storage-warning,
+.diary__form-error {
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  color: #9a3412;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+.diary__storage-warning .diary__btn { margin-top: 0.6rem; }
+.diary__print-confidential { display: none; }
+
 /* ── Toolbar ──────────────────────────────────────────────────────── */
 .diary__toolbar {
   display: flex;
@@ -425,9 +439,24 @@
   .diary__form,
   .diary__actions,
   .diary__entry-del,
-  .diary__empty button,
-  .diary__emergency {
+  .diary__empty button {
     display: none !important;
+  }
+
+  /* Never conceal a recorded anaphylaxis warning in the printed health record. */
+  .diary__emergency {
+    display: block !important;
+    animation: none !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+
+  .diary__print-confidential {
+    display: block;
+    font-size: 0.8rem;
+    margin: 0.5rem 0;
+    color: #111 !important;
+    font-weight: 600;
   }
 
   .diary__safety {
@@ -445,8 +474,10 @@
     print-color-adjust: exact;
   }
 
+  /* Long diaries may continue onto further print pages. */
   .diary__timeline {
-    page-break-inside: avoid;
+    page-break-inside: auto;
+    break-inside: auto;
   }
 
   .diary__entry {

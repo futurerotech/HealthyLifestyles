@@ -164,7 +164,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'food-symptom-diary',
     title: 'Food & Symptom Diary',
-    blurb: 'Log meals, timing, and symptoms over days. Print a clean timeline for your doctor or dietitian. A tracker — not a diagnostic test.',
+    blurb: 'Keep a browser-local meal and symptom timeline, review noncausal timing observations, and print it for clinical discussion.',
     category: 'nutrition',
     icon: 'utensils',
     gradient: 'amber',

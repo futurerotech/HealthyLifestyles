@@ -1059,76 +1059,97 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
 
   // ============================================================
   'food-symptom-diary': {
-    seoTitle: 'Food & Symptom Diary Tracker — Print for Your Doctor',
+    directAnswer: {
+      question: 'Can a food and symptom diary diagnose an allergy or intolerance?',
+      answer:
+        'No. It records user-reported local times, meals, and symptoms so you can discuss a timeline with a clinician. A food documented before a symptom does not prove that it caused the symptom. Severe allergy signs require emergency action, not repeated diary entries or unsupervised food challenges.',
+    },
+    seoTitle: 'Food & Symptom Diary — Private Browser Timeline',
     metaDescription:
-      'Free food and symptom diary tracker. Log meals, timing, and symptoms over days, then print a clean timeline to show your doctor or dietitian. Not a diagnostic test.',
+      'Record food, symptom timing and severity in a browser-local diary. Review limited timing observations, print a clinician timeline and know allergy emergency signs.',
     intro:
-      'Log what you eat, when you eat it, and any symptoms you notice. Over several days, a clear timeline emerges that you can print and bring to your doctor or dietitian. This is a diary, not a test — it does not diagnose allergies or intolerances.',
+      'Record meals, symptoms and their local times in this browser. Review the event timeline and print or save a copy for a clinician. A six-hour window in the display is an illustrative timing rule, not a diagnostic allergy test. The diary does not identify foods that cause symptoms.',
     notice:
-      'True food allergy can be life-threatening. If you experience trouble breathing, throat swelling, or feel faint after eating, call your local emergency number immediately. This diary is not a substitute for professional medical evaluation.',
+      'Possible anaphylaxis is a medical emergency. Breathing difficulty, throat tightness, tongue swelling, fainting or symptoms across body systems after a possible allergen require immediate action: use prescribed epinephrine according to an emergency plan and call local emergency services. Do not wait to log symptoms or attempt a food challenge yourself.',
     sections: [
       {
-        h2: 'How to use this diary',
+        h2: 'What to record, and how to interpret the timestamps',
         paragraphs: [
-          'Log each meal or symptom as it happens — or at the end of each day while memory is fresh. Include what you ate, the time, any symptoms, and how strong they were. The more consistent you are over 1–2 weeks, the more useful the timeline will be.',
-          'You can also log symptoms on their own (without a food) — for example, waking up with a headache or bloating before breakfast. This helps your clinician see patterns across the full day, not just after meals.',
+          'Create a food-only entry at the time of a meal, or a symptom-only entry when a symptom appears. You can also record both in one entry, but that does not establish which came first. Include food details, portions if known, symptom severity and optional context such as stress, exercise, medications or sleep. The form records local wall-clock date and time and rejects impossible or future times.',
+          'The previous diary default used UTC to fill a local datetime field. New entries now use local time correctly. Older timestamps remain as originally entered; because no timezone offset was saved with them, the software cannot reliably repair or reinterpret a historic offset, especially after travel or daylight-saving changes. Check older entries before giving the printed log to a clinician.',
         ],
       },
       {
-        h2: 'The pattern observations feature',
+        h2: 'What the six-hour observations actually count',
         paragraphs: [
-          'After several entries, the diary highlights foods that appeared before symptoms more than once. These are observations, not conclusions. They do not mean you are allergic or intolerant to those foods.',
-          'Many factors cause symptoms after eating — stress, sleep, portion size, exercise, medications, and normal digestion. Only a qualified healthcare professional can interpret patterns in the context of your full health history.',
+          'This site uses an illustrative six-hour lookback for display. A suggestion appears only when the same nonemergency symptom is recorded at two different later timestamps, each following a separately timestamped food entry. A meal and symptom in the same entry or at exactly the same time do not prove order. Duplicate foods or multiple meals cannot inflate one symptom event into several events.',
+          'The six-hour window is NOT a validated threshold for allergy, food sensitivity, intolerance, food poisoning or another diagnosis. Some conditions develop sooner and others later. Confounding factors include medication, sleep, stress, food quantity, exercise and symptoms that occur without eating. Do not treat a repeated temporal observation as an allergy confirmation, an indication for drastic dietary restriction, or permission to reintroduce a suspected dangerous allergen.',
         ],
       },
       {
-        h2: 'What to share with your doctor',
+        h2: 'Recognize emergencies rather than relying on a pattern',
         paragraphs: [
-          'Click "Print timeline" to generate a clean, one-page summary of your diary. Bring it to your appointment along with any questions you have. Your doctor or dietitian can use it alongside their own assessment.',
-          'If you suspect a food allergy (especially if symptoms appeared quickly after eating), ask about referral to an allergist for proper testing. Self-elimination diets can mask real problems and cause unnecessary restriction.',
+          'Food-induced anaphylaxis can begin within minutes and worsen quickly. Difficulty breathing or swallowing, throat tightness, significant tongue swelling, fainting or symptoms involving several body systems can be dangerous. The diary flags reported warning symptoms and does not include them in routine food-pattern suggestions. If symptoms are occurring now, follow your emergency action plan, use prescribed epinephrine promptly when indicated, and call emergency services.',
+          'A warning sign in an older saved entry is not automatically an emergency in the present, but deserves appropriate medical follow-up. Do not depend on antihistamines alone to manage anaphylaxis, and do not delay treatment while saving, printing or interpreting diary entries.',
         ],
       },
       {
-        h2: 'Your data stays private',
+        h2: 'Local browser storage and what “private” does not mean',
         paragraphs: [
-          'All entries are stored locally in your browser. Nothing is sent to a server, and clearing your browser data will erase your diary. You can also use "Clear all" to start fresh at any time.',
+          'The diary itself saves entries in localStorage under this site origin; it does not intentionally POST diary entries to a backend or create an account. Entries persist between visits in the same browser profile. They are NOT encrypted by this diary, synced between devices or backed up. Other scripts running under the same website origin and people using the same browser profile may access them. A browser extension, device backup or other browser behavior may introduce additional access; avoid storing sensitive notes on shared devices.',
+          'If browser storage is disabled or full, a warning identifies entries that may exist only in the current tab. If previously stored data are malformed, the diary does not silently replace them with an empty list; it warns and requests an explicit decision before clearing. Another tab changing the same diary also suspends writes to avoid overwriting its edits. Clearing browser site data may delete entries, and clearing the diary is irreversible.',
+        ],
+      },
+      {
+        h2: 'Printing and discussing the diary with a clinician',
+        paragraphs: [
+          'Use Print timeline or your browser’s PDF print option to review the recorded entries in chronological order. A long log may require multiple pages, not a guaranteed single-page report. Printed pages and saved PDF files are separate sensitive copies that the browser and operating system handle; consider where they are stored and who receives them. Warning signs remain visible in the print view.',
+          'Medical history and appropriate testing—not a diary alone—are required to evaluate suspected allergy. A clinician may use the history to decide if specialist assessment is appropriate. Do not initiate unsupervised elimination and reintroduction of potentially dangerous foods; an oral food challenge, if needed, should be supervised by an appropriately equipped healthcare team.',
         ],
       },
     ],
     faq: [
       {
-        q: 'Can this diary diagnose a food allergy or intolerance?',
-        a: 'No. This is a tracking tool, not a diagnostic test. It records what you eat and any symptoms you notice so you can share that information with a healthcare professional. Only a qualified doctor or allergist can diagnose food allergies or intolerances using validated tests.',
+        q: 'If a food appears before a symptom twice, is it the cause?',
+        a: 'No. The tool counts distinct symptom timestamps within an illustrative six-hour period after a separate food entry. This is only a temporal co-occurrence and cannot confirm causation or allergy.',
       },
       {
-        q: 'What should I do if I have a severe reaction?',
-        a: 'If you experience trouble breathing, throat swelling, lip or tongue swelling, widespread hives, or feel faint after eating, call your local emergency number immediately. Severe allergic reactions (anaphylaxis) can be life-threatening and require immediate emergency care.',
+        q: 'What if a severe allergic reaction is happening now?',
+        a: 'Do not use this diary to assess an ongoing emergency. Use prescribed epinephrine per your emergency action plan when indicated and call local emergency services immediately for breathing problems, throat swelling, fainting or other anaphylaxis signs.',
       },
       {
-        q: 'How long should I keep the diary?',
-        a: 'One to two weeks is usually enough for your doctor to see meaningful patterns. If you are working with a dietitian on an elimination and reintroduction protocol, follow their guidance on timing.',
+        q: 'Why might an older entry show a different hour than expected?',
+        a: 'Earlier versions used a UTC clock string in a local-time form. Old values were not silently rewritten because the original timezone offset was never stored. Verify legacy times manually before interpreting the timeline.',
       },
       {
-        q: 'Are the pattern observations a diagnosis?',
-        a: 'No. The observations simply note that a food appeared before a symptom in your log more than once. This could be coincidence, or it could be worth discussing with your doctor. It is not a statement that you are sensitive or allergic to that food.',
+        q: 'Are my health notes encrypted, uploaded or backed up?',
+        a: 'The diary stores plain application text in localStorage for this site origin. It does not deliberately upload diary records or back them up. Other same-origin scripts and people sharing a browser profile may access stored data; printing or saving PDFs creates separate copies.',
       },
       {
-        q: 'Is my diary data sent anywhere?',
-        a: 'No. All entries are stored only in your browser local storage. Nothing is uploaded to a server. If you clear your browser data or use "Clear all," your diary is permanently erased.',
+        q: 'Will Print timeline produce exactly one page?',
+        a: 'No. It opens your browser’s print workflow, which may require multiple pages depending on the number of entries and printer settings. Review the preview and protect any saved or printed health information.',
       },
     ],
     sources: [
       {
-        citation: 'American Academy of Allergy, Asthma & Immunology. "Food Allergies." Patient resources on food allergy symptoms, diagnosis, and management.',
-        url: 'https://www.aaaai.org/conditions-treatments/allergies/food-allergy',
+        citation: 'U.S. Food and Drug Administration. Food Allergies: symptoms, anaphylaxis and evaluation.',
+        url: 'https://www.fda.gov/food/nutrition-food-labeling-and-critical-foods/food-allergies',
       },
       {
-        citation: 'Tuck CJ, Biesiekierski JR, Scholten G, et al. "Food intolerances." Nutrients. 2019;11(7):1684.',
-        url: pubmed('Food intolerances Tuck Biesiekierski Nutrients'),
+        citation: 'American Academy of Allergy, Asthma & Immunology. Anaphylaxis: urgent recognition, epinephrine and emergency care.',
+        url: 'https://www.aaaai.org/tools-for-the-public/conditions-library/allergies/anaphylaxis',
       },
       {
-        citation: 'Staudacher HM, Whelan K. "The low FODMAP diet: recent advances in understanding its mechanisms and efficacy in IBS." Gut. 2017;66(8):1517–1527.',
-        url: pubmed('low FODMAP diet recent advances mechanisms efficacy IBS Staudacher'),
+        citation: 'NIAID-Sponsored Expert Panel. Guidelines for Diagnosis and Management of Food Allergy: history alone cannot establish diagnosis.',
+        url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC4241964/',
+      },
+      {
+        citation: 'NHS. IBS diet and lifestyle: diary of foods and symptoms for discussion, not proof of disease cause.',
+        url: 'https://www.nhs.uk/conditions/irritable-bowel-syndrome-ibs/diet-lifestyle-and-medicines/',
+      },
+      {
+        citation: 'MDN Web Docs. Web Storage API: same-origin localStorage and persistence between sessions.',
+        url: 'https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API',
       },
     ],
   },
