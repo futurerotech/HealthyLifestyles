@@ -27,6 +27,7 @@ const EXCLUDED_PATHS = [/^\/og\//i, /^\/embed\//i, /^\/api\//i, /^\/404/i, /^\/$
 const ASSET_EXTENSIONS = /\.(woff2?|css|js|mjs|svg|png|jpg|jpeg|webp|ico|webmanifest|txt|xml|json|pdf)$/i
 const TRACKED_ARTICLE_OR_TOOL = /^\/(tools|wellness-hub)\/[^/]+$/
 const TRACKED_TAG_PAGE = /^\/wellness-hub\/tag\/[^/]+$/
+const STRICT_DEAD_LINKS = process.argv.includes('--strict-dead-links')
 
 function isTrackedPage(urlPath: string): boolean {
   // Track tools, articles, and tag pages. Tag pages were previously invisible
@@ -164,11 +165,13 @@ async function main() {
   }
 
   if (deadLinks.length > 0) {
-    console.log('\nWARN: dead internal links found (reported for fixing; not failing build).')
+    console.log(STRICT_DEAD_LINKS
+      ? '\nFAIL: dead internal links found in strict mode.'
+      : '\nWARN: dead internal links found (reported for fixing; not failing build).')
   }
 
-  if (orphans.length > 0 || spamLinks.length > 0) {
-    console.log('\nFAIL: orphan/spam-link checks failed.')
+  if (orphans.length > 0 || spamLinks.length > 0 || (STRICT_DEAD_LINKS && deadLinks.length > 0)) {
+    console.log('\nFAIL: orphan/spam/dead-link checks failed.')
     process.exit(1)
   }
 
