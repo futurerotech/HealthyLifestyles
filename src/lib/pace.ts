@@ -45,3 +45,45 @@ export function convertPaceInputs(
   }
   return next;
 }
+
+export type PaceMode = 'time' | 'pace' | 'distance';
+
+export interface RunningPaceFields extends PaceInputs {
+  timeHours: string;
+  timeMinutes: string;
+  timeSeconds: string;
+}
+
+/** Validate only the two fields visible for the active calculation mode. */
+export function runningPaceInputError(
+  mode: PaceMode, fields: RunningPaceFields,
+): string | null {
+  const value = (s: string): number => s.trim() === '' ? NaN : Number(s);
+  if (mode !== 'distance') {
+    const distance = value(fields.distance);
+    if (!Number.isFinite(distance) || distance <= 0) {
+      return 'Enter a positive distance.';
+    }
+  }
+  if (mode !== 'time') {
+    const h = value(fields.timeHours);
+    const m = value(fields.timeMinutes);
+    const s = value(fields.timeSeconds);
+    if (!Number.isSafeInteger(h) || h < 0 ||
+        !Number.isInteger(m) || m < 0 || m > 59 ||
+        !Number.isInteger(s) || s < 0 || s > 59) {
+      return 'Enter valid hours, minutes and seconds (0–59 for minutes and seconds).';
+    }
+    if (h * 3600 + m * 60 + s <= 0) return 'Enter a time greater than zero.';
+  }
+  if (mode !== 'pace') {
+    const m = value(fields.paceMinutes);
+    const s = value(fields.paceSeconds);
+    if (!Number.isSafeInteger(m) || m < 0 ||
+        !Number.isInteger(s) || s < 0 || s > 59) {
+      return 'Enter valid pace minutes and seconds (0–59 for seconds).';
+    }
+    if (m * 60 + s <= 0) return 'Enter a pace greater than zero.';
+  }
+  return null;
+}

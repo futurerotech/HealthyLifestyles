@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { convertPaceInputs, KM_PER_MILE } from '../../../src/lib/pace.ts';
+import { convertPaceInputs, KM_PER_MILE, runningPaceInputError } from '../../../src/lib/pace.ts';
 
 test('10 km at 5 min/km becomes the same run in miles', () => {
   const result = convertPaceInputs(
@@ -56,4 +56,44 @@ test('zero values are preserved without introducing negative or nonfinite input'
   assert.deepEqual(convertPaceInputs(
     { distance: '0', paceMinutes: '0', paceSeconds: '0' }, 'km', 'mi',
   ), { distance: '0', paceMinutes: '0', paceSeconds: '0' });
+});
+
+test('valid visible running pace inputs pass in all three modes', () => {
+  const f = { distance: '10', timeHours: '0', timeMinutes: '50',
+    timeSeconds: '0', paceMinutes: '5', paceSeconds: '0' };
+  for (const mode of ['time', 'pace', 'distance'] as const) {
+    assert.equal(runningPaceInputError(mode, f), null, mode);
+  }
+});
+
+test('minutes and seconds beyond 59 cannot silently change the result', () => {
+  const f = { distance: '10', timeHours: '0', timeMinutes: '50',
+    timeSeconds: '0', paceMinutes: '5', paceSeconds: '0' };
+  for (const value of ['60', '90', '-1', '1.5', '']) {
+    assert.match(runningPaceInputError('time', { ...f, paceSeconds: value }) || '', /valid pace/);
+    assert.match(runningPaceInputError('pace', { ...f, timeMinutes: value }) || '', /valid hours/);
+    assert.match(runningPaceInputError('distance', { ...f, timeSeconds: value }) || '', /valid hours/);
+  }
+});
+
+test('invalid, incomplete, negative and nonfinite active inputs are rejected', () => {
+  const f = { distance: '10', timeHours: '0', timeMinutes: '50',
+    timeSeconds: '0', paceMinutes: '5', paceSeconds: '0' };
+  for (const distance of ['', '0', '-5', 'Infinity', '10oops', 'NaN']) {
+    assert.match(runningPaceInputError('time', { ...f, distance }) || '', /positive distance/);
+  }
+  for (const paceMinutes of ['', '-1', '5oops', '3.14']) {
+    assert.match(runningPaceInputError('time', { ...f, paceMinutes }) || '', /valid pace/);
+  }
+  assert.match(runningPaceInputError('distance', {
+    ...f, timeHours: '0', timeMinutes: '0', timeSeconds: '0',
+  }) || '', /greater than zero/);
+});
+
+test('hidden inactive fields do not block the selected calculation mode', () => {
+  const f = { distance: '10', timeHours: '0', timeMinutes: '50',
+    timeSeconds: '0', paceMinutes: '5', paceSeconds: '0' };
+  assert.equal(runningPaceInputError('time', { ...f, timeSeconds: '90' }), null);
+  assert.equal(runningPaceInputError('pace', { ...f, paceSeconds: '90' }), null);
+  assert.equal(runningPaceInputError('distance', { ...f, distance: 'invalid' }), null);
 });
