@@ -180,6 +180,7 @@ test('client makes energy-based 4/4/9 macro percentages instead of gram fraction
   assert.match(ui,/const kcalP = protein \* 4/);
   assert.match(ui,/const kcalC = carbs \* 4/);
   assert.match(ui,/const kcalF = fat \* 9/);
+  assert.match(ui,/Approx\. macro energy \(4\/4\/9 kcal\/g\)/);
   assert.match(ui,/verifyRecipeResponse\(data, input.value.servings\)/);
   assert.match(ui,/hasVerifiableFdcIds|does not supply\s+USDA FDC IDs/);
   assert.match(ui,/result.coverage.partial/);

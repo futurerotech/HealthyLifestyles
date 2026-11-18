@@ -60,6 +60,7 @@ function MacroRing({ protein, carbs, fat }: { protein: number; carbs: number; fa
           stroke-dasharray={`${dashF} ${100 - dashF}`} stroke-dashoffset={-offsetF} transform="rotate(-90 18 18)" />
       </svg>
       <div class="ra__ring-legend">
+        <strong class="ra__ring-label">Approx. macro energy (4/4/9 kcal/g)</strong>
         <span class="ra__legend-item"><span class="ra__dot" style={{ background: MACRO_COLORS.protein }} />Protein {pPct.toFixed(0)}%</span>
         <span class="ra__legend-item"><span class="ra__dot" style={{ background: MACRO_COLORS.carbs }} />Carbs {cPct.toFixed(0)}%</span>
         <span class="ra__legend-item"><span class="ra__dot" style={{ background: MACRO_COLORS.fat }} />Fat {fPct.toFixed(0)}%</span>
