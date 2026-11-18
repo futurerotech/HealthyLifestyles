@@ -2254,7 +2254,7 @@ export const DEFS: Record<string, CalcDef> = {
           tone: 'warn',
           text: caution + uvCaution + 'UV radiation can cause skin cancer even without sunburn and with darker skin. Use shade, protective clothing, sunglasses and broad-spectrum SPF 30+ sunscreen. There is no established safe unprotected UV time to meet vitamin D needs.',
         },
-        note: 'This tool summarizes self-reported conditions ONLY. It does not estimate vitamin D synthesis, IU made, blood 25(OH)D, deficiency risk, personal UV dose, recommended sun exposure or dietary adequacy. A 0-minute entry is NOT a vitamin D score. Food frequency and supplement use without dose cannot establish actual intake. Healthy adults generally do not require routine 25(OH)D screening; a clinician may recommend testing when there is an established indication. Vitamin D can be obtained from foods, fortified products and, when appropriate, supplements without seeking unprotected UV exposure.',
+        note: 'This tool summarizes self-reported conditions ONLY. The reported UV Index is a forecast category, NOT an individualized exposure measurement. It does not estimate vitamin D synthesis, IU made, blood 25(OH)D, deficiency risk, personal UV dose, recommended sun exposure or dietary adequacy. A 0-minute entry is NOT a vitamin D score. Food frequency and supplement use without dose cannot establish actual intake. Healthy adults generally do not require routine 25(OH)D screening; a clinician may recommend testing when there is an established indication. Vitamin D can be obtained from foods, fortified products and, when appropriate, supplements without seeking unprotected UV exposure.',
       };
     },
   },

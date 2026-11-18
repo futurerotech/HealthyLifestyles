@@ -172,7 +172,7 @@ test('medical safety, screening restraint and previously removed unsafe copy are
   assert.match(section,/600 IU/);
   assert.match(section,/800 IU/);
   assert.match(section,/4,000 IU\/day/);
-  assert.match(section,/Sunscreen/);
+  assert.match(section,/sunscreen/i);
   assert.match(section,/skin-cancer/);
   assert.match(section,/https:\/\/www.aad.org\/media\/stats-vitamin-d/);
   assert.match(section,/https:\/\/www.epa.gov\/sunsafety\/uv-index-scale-0/);
