@@ -96,7 +96,9 @@ test('metric/imperial height conversion preserves reference and Devine when disp
       assert.equal(i.visual.kind, 'range');
       if (i.visual.kind === 'range') {
         const lowLb = 18.5 * (cmBack / 100) ** 2;
-        assert.ok(Math.abs(i.visual.low - round(kgToLb(lowLb), 1)) > -1);
+        assert.equal(i.visual.low, round(kgToLb(lowLb), 1));
+        assert.equal(i.visual.high, round(kgToLb(25 * (cmBack / 100) ** 2), 1));
+        assert.equal(i.visual.upperExclusive, true);
       }
       assert.match(i.primaryValue, /lb to under .* lb/);
       assert.ok(Math.abs(lbToKg(kgToLb(50)) - 50) < 1e-10);
