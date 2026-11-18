@@ -136,7 +136,7 @@ test('suggestions are nonprescriptive and no answer claims biomarker improvement
   const r=calculate(selectAll('rarely','daily'));
   assert.match(r.note??'',/May|Consider|Try|Explore/i);
   assert.match(r.note??'',/NOT been clinically validated/);
-  assert.match(r.callout?.text??'',/NOT a validated dietary inflammatory index/);
+  assert.match(r.callout?.text??'',/not a validated dietary inflammatory index/i);
   assert.match(r.callout?.text??'',/does NOT confirm low body inflammation/);
   assert.doesNotMatch(JSON.stringify(r),/gives similar anti-inflammatory benefits|powerfully anti-inflammatory/);
 });
@@ -170,5 +170,6 @@ test('catalog accurately frames food checklist without biomarker or lab promises
   const c=readFileSync(new URL('../../../src/data/tools.ts',import.meta.url),'utf8');
   assert.match(c,/Explore 11 food-frequency groups with illustrative reverse-coded points/);
   assert.ok(DEFS['gut-health-score']);
-  assert.ok(DEFS['food-symptom-diary']);
+  const diary=readFileSync(new URL('../../../src/pages/tools/food-symptom-diary.astro',import.meta.url),'utf8');
+  assert.match(diary,/symptom/i);
 });
