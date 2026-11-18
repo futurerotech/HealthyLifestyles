@@ -232,7 +232,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'ideal-weight-calculator',
     title: 'Ideal Weight Calculator',
-    blurb: 'See your healthy weight range from BMI and the Devine formula.',
+    blurb: 'Explore an adult BMI weight reference interval and a separate historical Devine dosing-weight estimate.',
     category: 'body-weight',
     icon: 'target',
     gradient: 'blue',

@@ -18,7 +18,8 @@ type Disp = Record<string, string>;
 
 const preciseHeight = (def: CalcDef): boolean =>
   def.slug === 'lean-body-mass-calculator' || def.slug === 'waist-to-height-ratio-calculator' ||
-  def.slug === 'bmi-calculator' || def.slug === 'bmr-calculator';
+  def.slug === 'bmi-calculator' || def.slug === 'bmr-calculator' ||
+  def.slug === 'ideal-weight-calculator';
 
 const preciseWeight = (def: CalcDef): boolean =>
   def.slug === 'weight-loss-percentage-calculator' || def.slug === 'bmi-calculator' ||
@@ -156,7 +157,7 @@ function Range({ v }: { v: Extract<Visual, { kind: 'range' }> }) {
       </div>
       <div class="rangebar__labels">
         <span>{v.min} {v.unit}</span>
-        <span class="rangebar__healthy">Healthy: {v.low}–{v.high} {v.unit}</span>
+        <span class="rangebar__healthy">{v.label ?? 'Healthy'}: {v.low} to {v.upperExclusive ? 'under ' : ''}{v.high} {v.unit}</span>
         <span>{v.max} {v.unit}</span>
       </div>
     </div>

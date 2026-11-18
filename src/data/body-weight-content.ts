@@ -227,53 +227,79 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
 
   // ============================================================
   'ideal-weight-calculator': {
-    seoTitle: 'Ideal Weight Calculator (BMI + Devine)',
+    seoTitle: 'Ideal Weight Calculator — Adult BMI Reference and Devine',
     metaDescription:
-      'See your healthy weight range from the BMI method and the Devine clinical formula. Free ideal weight calculator in metric or imperial — no signup.',
+      'Compare an approximate adult BMI 18.5–<25 reference interval with the historical Devine dosing-weight formula in kg or lb, including short-height limitations.',
     intro:
-      'There is no single perfect number on the scale, but you can find a sensible target range. This tool shows the healthy weight range for your height using BMI, plus a single figure from the clinical Devine formula.',
+      'There is no medically universal "ideal" weight. This calculator gives an approximate weight interval corresponding to the CDC adult BMI screening category from 18.5 to below 25, and a separate historical Devine equation value for heights of at least five feet. Neither number is an individualized goal or a drug-dosing instruction.',
     sections: [
       {
-        h2: 'Two ways to estimate ideal weight',
+        h2: 'The adult BMI weight interval: 18.5 to below 25',
         paragraphs: [
-          'The first method is BMI-based. A healthy BMI is 18.5–24.9, so the healthy weight range is simply 18.5 × height (m)² to 24.9 × height (m)². This gives a realistic band rather than one rigid figure, which better reflects how healthy bodies actually vary.',
-          'The second is the Devine formula, created in the 1970s to standardise medication dosing. For men it is 50 kg + 2.3 kg for every inch over 5 feet; for women, 45.5 kg + 2.3 kg per inch over 5 feet. It returns a single reference weight and is still used in clinical settings, though it tends to under-estimate for very tall or very short people.',
+          'For U.S. adults age 20 or older, CDC defines the healthy-weight BMI screening category as 18.5 or higher and below 25 kg/m². Convert height to meters and multiply its square by each boundary: lower reference = 18.5 × height(m)²; upper boundary (excluded) = 25 × height(m)². The result has units of kilograms, converted to pounds for the imperial display.',
+          'For example, a person 175 cm tall has an approximate screening reference interval of 56.7 kg to under 76.6 kg. Values are rounded for reading; the actual upper mathematical boundary is 76.5625 kg, and BMI 25 is already outside the CDC healthy-weight category. This calculation cannot decide what weight is healthy for a particular person.',
         ],
       },
       {
-        h2: 'Which number should you use?',
+        h2: 'How the historical Devine equation differs',
         paragraphs: [
-          'Treat the BMI range as your everyday target — anywhere inside it is reasonable for most adults. The Devine figure is useful as a quick reference point and is what many medical formulas rely on, but it was never designed as a personal fitness goal.',
-          'Neither method accounts for muscle mass, frame size or body-fat distribution. A muscular person may sit above their "ideal" weight while being very healthy. If your goal is body composition rather than a scale number, pair this with a body-fat or lean-mass estimate.',
+          'The Devine equation, introduced in 1974 for a medication-dosing context, gives men 50 kg + 2.3 kg × (height in inches − 60) and women 45.5 kg + 2.3 kg × (height in inches − 60). Five feet equals 60 inches or 152.4 cm; one inch equals exactly 2.54 cm. For a man at 5 ft 10 in, the formula gives 73 kg; for a woman at 5 ft 6 in, it gives 59.3 kg. Both figures are formula outputs, not measured lean mass or ideal goals.',
+          'The historical equation is expressed in inches above five feet. At exactly five feet it gives 50 kg for men and 45.5 kg for women. For shorter heights, this wellness tool deliberately does not present a Devine value: rounding or clamping short adults to the 5-ft result conceals uncertainty, while other clinical protocols may explicitly define different extrapolations. Use protocol-specific clinical rules rather than this educational tool for any dosing decision.',
         ],
       },
       {
-        h2: 'Setting a healthy goal',
+        h2: 'Why these are references, not weight-loss targets',
         paragraphs: [
-          'If your current weight is outside the healthy range, you do not need to reach the exact middle of it to benefit. Research shows that losing just 5–10% of body weight meaningfully improves blood pressure, blood sugar and cholesterol. Aim for steady, sustainable change of around 0.5–1 kg (1–2 lb) per week, and focus on habits — food quality, protein, sleep and movement — rather than a single target number.',
+          'The BMI interval is a screening convention rather than a personal health recommendation. BMI does not distinguish lean tissue from body fat or show abdominal fat distribution. Its association with health outcomes varies by a person’s age, physical condition, muscle mass, pregnancy status, ancestry, and medical context. The displayed range should not be used to diagnose underweight or overweight.',
+          'Devine is a historical dosing-weight rule of thumb. It was not validated as a lifestyle target, muscle-mass measurement or universally safe medication dose. Do not enter its output into a treatment calculation without a qualified clinician and an appropriate drug or ventilation protocol.',
+        ],
+      },
+      {
+        h2: 'Height limits, unit conversions and practical interpretation',
+        paragraphs: [
+          'The existing tool accepts heights from 120 to 230 cm. In feet/inches mode the height is converted to centimeters before any calculation; mass values are then converted from kilograms to pounds if requested. Additional display precision reduces shifts when switching units, especially at five feet where the Devine row becomes applicable.',
+          'The BMI reference is still displayed for heights below five feet, but the Devine row says it is not provided. Adults may have valid reasons to fall outside the displayed BMI range, and children or teens require age-specific assessment. If you need guidance about a personal weight change, discuss health history, function and relevant clinical findings with a qualified health professional.',
         ],
       },
     ],
     faq: [
       {
-        q: 'Is there really an "ideal" weight?',
-        a: 'No single number is ideal for everyone of the same height. A healthy weight is best thought of as a range, which is why this tool shows the full BMI-based band alongside the Devine reference figure.',
+        q: 'How is a BMI-based weight interval calculated?',
+        a: 'Multiply height in meters squared by 18.5 for the lower endpoint and by 25 for the upper boundary, which is excluded. The two displayed weights are rounded approximations for adult BMI screening.',
       },
       {
-        q: 'Why do the BMI range and Devine numbers differ?',
-        a: 'They use different methods. The BMI range comes from population health data, while the Devine formula is a clinical dosing estimate. Small differences between them are normal and expected.',
+        q: 'What are the Devine formulas for men and women?',
+        a: 'Men: 50 kg + 2.3 kg per inch above 60 inches; women: 45.5 kg + 2.3 kg per inch above 60 inches. These are historical dosing-weight equations, not healthy-weight targets.',
       },
       {
-        q: 'Does ideal weight depend on age or muscle?',
-        a: 'These formulas use only height and sex, so they do not adjust for age, frame size or muscle mass. Athletes and older adults in particular should interpret the result alongside body-composition measures.',
+        q: 'What happens if I am shorter than five feet?',
+        a: 'The BMI reference interval remains available. The standard over-five-foot Devine row is marked not provided rather than showing a fixed 5-ft result; clinical protocols may specify their own adjustments for shorter adults.',
+      },
+      {
+        q: 'Is a Devine weight suitable for prescribing medication?',
+        a: 'Not by itself. Medication dosing and ventilator settings require an appropriate patient-specific clinical protocol and professional oversight.',
+      },
+      {
+        q: 'Is my BMI reference weight a personalized target?',
+        a: 'No. The fixed adult BMI 18.5 to below 25 category is a screening convention, not a diagnosis or an individualized weight goal. Medical history and body composition also matter.',
       },
     ],
     sources: [
-      WHO_OBESITY,
       {
-        citation:
-          'Devine BJ. "Gentamicin therapy" (origin of the ideal body weight formula). Drug Intell Clin Pharm. 1974;8(11):650–655.',
-        url: pubmed('Devine ideal body weight gentamicin therapy'),
+        citation: 'Centers for Disease Control and Prevention (CDC). Adult BMI Categories. The healthy-weight screening category begins at 18.5 and excludes 25; applies to adults age 20 and older.',
+        url: 'https://www.cdc.gov/bmi/adult-calculator/bmi-categories.html',
+      },
+      {
+        citation: 'Peterson CM, Thomas DM, Blackburn GL, Heymsfield SB. Universal equation for estimating ideal body weight and body weight at any BMI. Am J Clin Nutr. 2016;103:1197–1203. Table 3 summarizes the Devine 1974 equation.',
+        url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC4841935/',
+      },
+      {
+        citation: 'Pai MP, Paloucek FP. The origin of the "ideal" body weight equations. Ann Pharmacother. 2000;34:1066–1069. PMID 10981254. Discusses the historical clinical rather than individualized health origins.',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/10981254/',
+      },
+      {
+        citation: 'U.S. Food and Drug Administration. TransMedics OCS Lung System Clinical User Guide, Appendix B: Devine Body Weight Formula for heights over five feet; specific device context, not general personal weight advice.',
+        url: 'https://www.fda.gov/media/105167/download',
       },
     ],
   },

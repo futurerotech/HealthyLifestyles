@@ -74,7 +74,7 @@ export interface ZoneItem {
 
 export type Visual =
   | { kind: 'gauge'; value: number; min: number; max: number; segments: Segment[]; valueLabel?: string }
-  | { kind: 'range'; min: number; max: number; low: number; high: number; unit: string }
+  | { kind: 'range'; min: number; max: number; low: number; high: number; unit: string; label?: string; upperExclusive?: boolean }
   | { kind: 'split'; aLabel: string; aValue: number; bLabel: string; bValue: number; aColor: string; bColor: string; unit: string }
   | { kind: 'donut'; centerValue: string; centerLabel: string; slices: DonutSlice[] }
   | { kind: 'zones'; items: ZoneItem[] }
@@ -346,36 +346,68 @@ export const DEFS: Record<string, CalcDef> = {
     },
   },
 
-  // ---- 3. Ideal Weight (BMI range + Devine) ----
+  // ---- 3. BMI reference interval + historical Devine dosing-weight equation ----
   'ideal-weight-calculator': {
     slug: 'ideal-weight-calculator',
-    heading: 'Calculate your ideal weight',
+    heading: 'Explore BMI reference weights',
     hasSex: true,
     fields: [F.height(175)],
     compute: ({ vals, sex, units }) => {
-      const m = vals.height / 100;
-      const lowKg = 18.5 * m * m;
-      const highKg = 24.9 * m * m;
-      const inches = vals.height / 2.54;
-      const over5ft = Math.max(0, inches - 60);
-      const devineKg = (sex === 'male' ? 50 : 45.5) + 2.3 * over5ft;
+      const height = vals.height;
+      const fail = (error: string): CalcResult => ({
+        ok: false, error,
+        primaryLabel: 'Adult BMI reference weight interval',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (!Number.isFinite(height) || height <= 0 ||
+          (sex !== 'male' && sex !== 'female')) {
+        return fail('Enter a valid positive height and a supported equation sex.');
+      }
+      if (height < 120 || height > 230) {
+        return fail('Check the height is within the supported 120–230 cm range.');
+      }
+
+      const meters = height / 100;
+      // CDC adult healthy-weight category: 18.5 <= BMI < 25 (upper exclusive).
+      const lowKg = 18.5 * meters * meters;
+      const upperExclusiveKg = 25 * meters * meters;
+      const inches = height / 2.54;
+
+      // Devine (1974): 50kg male / 45.5kg female plus 2.3kg per inch
+      // over five feet. The historic over-5-ft formula is not validated
+      // below 60 inches. Do not clamp all shorter heights to the 5-ft value.
+      const devineApplicable = height >= 152.4;
+      const devineKg = devineApplicable
+        ? (sex === 'male' ? 50 : 45.5) + 2.3 * (inches - 60)
+        : null;
+
+      const lowerDisplay = fmtMass(lowKg, units, 1);
+      const upperDisplay = fmtMass(upperExclusiveKg, units, 1);
       const unit = units === 'metric' ? 'kg' : 'lb';
       return {
         ok: true,
-        primaryLabel: 'Healthy weight range (BMI 18.5–24.9)',
-        primaryValue: `${fmtMass(lowKg, units, 1)} – ${fmtMass(highKg, units, 1)}`,
+        primaryLabel: 'Adult BMI reference weight interval',
+        primaryValue: lowerDisplay + ' to under ' + upperDisplay,
         visual: {
           kind: 'range',
           min: round(massScale(lowKg, units) - 12, 0),
-          max: round(massScale(highKg, units) + 12, 0),
+          max: round(massScale(upperExclusiveKg, units) + 12, 0),
           low: round(massScale(lowKg, units), 1),
-          high: round(massScale(highKg, units), 1),
+          high: round(massScale(upperExclusiveKg, units), 1),
           unit,
+          label: 'BMI reference (not a goal)',
+          upperExclusive: true,
         },
-        rows: [
-          { label: 'Devine formula ideal weight', value: fmtMass(devineKg, units, 1), strong: true },
-        ],
-        note: 'There is no single "ideal" weight. A healthy BMI range and the Devine clinical formula give complementary targets.',
+        rows: [{
+          label: 'Devine historical dosing-weight reference',
+          value: devineKg === null
+            ? 'Not provided below 5 ft (152.4 cm)'
+            : fmtMass(devineKg, units, 1),
+          strong: devineKg !== null,
+        }],
+        note: devineKg === null
+          ? 'The BMI interval is an approximate adult screening reference, not a personal weight goal. The historical Devine formula is stated in inches above 5 ft; no Devine value is provided for shorter heights rather than silently repeating the 5-ft value. This calculator cannot determine drug doses or diagnose health.'
+          : 'The BMI interval (18.5 to below 25) is an approximate adult screening reference, not a personal weight goal. Devine was developed as a dosing-weight reference, not an individual fitness target; do not use it to determine medication or ventilator settings. These estimates do not account for age, body composition or medical history.',
       };
     },
   },
