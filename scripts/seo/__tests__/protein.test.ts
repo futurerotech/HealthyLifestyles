@@ -26,7 +26,7 @@ test('all five original coefficients produce correct daily protein, four-way spl
     const r = calculate(70, goal);
     assert.equal(r.ok, true, goal);
     assert.equal(r.primaryValue, grams + ' g/day', goal);
-    assert.equal(r.rows?.[0].value, Number(goal).toFixed(1) + ' g per kg body weight', goal);
+    assert.equal(r.rows?.[0].value, Number(goal).toLocaleString('en-US', { maximumFractionDigits: 1 }) + ' g per kg body weight', goal);
     assert.equal(r.rows?.[1].value, meal + ' g/meal (example)', goal);
     assert.equal(r.rows?.[2].value, kcal + ' kcal/day (4 kcal/g)', goal);
   }
