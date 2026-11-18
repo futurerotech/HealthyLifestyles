@@ -488,7 +488,7 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
     ],
     sources: [
       { citation: 'National Academies dietary protein RDA summary in NCBI Bookshelf, 2024.', url: 'https://www.ncbi.nlm.nih.gov/books/NBK614631/' },
-      { citation: 'USDA/HHS. Dietary Guidelines for Americans, 2025–2030: protein goals (1.2–1.6 g/kg/day).', url: 'https://realfood.gov/protein' },
+      { citation: 'USDA/HHS. Dietary Guidelines for Americans, 2025–2030: protein goals (1.2–1.6 g/kg/day).', url: 'https://cdn.realfood.gov/DGA_508.pdf' },
       { citation: 'Jäger R, et al. ISSN Position Stand: protein and exercise. J Int Soc Sports Nutr. 2017;14:20.', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC5477153/' },
       { citation: 'Morton RW, et al. Resistance-training protein meta-analysis. Br J Sports Med. 2018;52:376–384.', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC5867436/' },
       { citation: 'KDIGO 2024 CKD Guideline Executive Summary, protein intake section. Kidney Int. 2024;105:684–701.', url: 'https://doi.org/10.1016/j.kint.2023.10.016' },
