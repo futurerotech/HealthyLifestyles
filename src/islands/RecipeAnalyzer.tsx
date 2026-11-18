@@ -1,37 +1,10 @@
 /** @jsxImportSource preact */
 import { useState } from 'preact/hooks';
 
-/* ── Types ─────────────────────────────────────────────────────────── */
-interface NutrientSet {
-  calories: number | null;
-  protein: number | null;
-  fat: number | null;
-  carbs: number | null;
-  fiber: number | null;
-  sugar: number | null;
-  sodium: number | null;
-}
-
-interface IngredientResult {
-  raw: string;
-  name: string;
-  quantity: number;
-  unit: string;
-  originalQuantity: number | string;
-  originalUnit: string;
-  unitConverted: boolean;
-  usedFood: string;
-  nutrients: NutrientSet;
-}
-
-interface AnalyzeResponse {
-  perRecipe: NutrientSet;
-  perServing: NutrientSet;
-  ingredients: IngredientResult[];
-  unmatched: { raw: string; name: string }[];
-  servings: number;
-  notes: string[];
-}
+import {
+  type NutrientSet, type VerifiedRecipeResponse, RECIPE_TEXT_MAX,
+  validateRecipeRequest, verifyRecipeResponse,
+} from '../lib/recipeAnalysis';
 
 /* ── Constants ─────────────────────────────────────────────────────── */
 const MACRO_COLORS = { protein: '#3b82f6', carbs: '#f97316', fat: '#16a34a' };
@@ -56,15 +29,18 @@ const fmt = (v: number | null, unit: string): string =>
 
 /* ── Macro Ring (SVG donut) ────────────────────────────────────────── */
 function MacroRing({ protein, carbs, fat }: { protein: number; carbs: number; fat: number }) {
-  const total = protein + carbs + fat;
-  if (total <= 0) return null;
+  // Approximate macro-derived *energy* shares, not grams or USDA energy.
+  const kcalP = protein * 4;
+  const kcalC = carbs * 4;
+  const kcalF = fat * 9;
+  const total = kcalP + kcalC + kcalF;
+  if (!Number.isFinite(total) || total <= 0) return null;
 
-  const pPct = (protein / total) * 100;
-  const cPct = (carbs / total) * 100;
-  const fPct = (fat / total) * 100;
+  const pPct = (kcalP / total) * 100;
+  const cPct = (kcalC / total) * 100;
+  const fPct = (kcalF / total) * 100;
 
   // SVG donut segments
-  const R = 15.915; // circumference = 100
   const dashP = pPct;
   const dashC = cPct;
   const dashF = fPct;
@@ -74,7 +50,7 @@ function MacroRing({ protein, carbs, fat }: { protein: number; carbs: number; fa
 
   return (
     <div class="ra__ring-wrap">
-      <svg viewBox="0 0 36 36" class="ra__ring" role="img" aria-label="Macro breakdown">
+      <svg viewBox="0 0 36 36" class="ra__ring" role="img" aria-label="Approximate energy shares from protein carbohydrate and fat using 4 4 9 kcal per gram">
         <circle cx="18" cy="18" r="15.915" fill="none" stroke="#f1f5f9" stroke-width="5" />
         <circle cx="18" cy="18" r="15.915" fill="none" stroke={MACRO_COLORS.protein} stroke-width="5"
           stroke-dasharray={`${dashP} ${100 - dashP}`} stroke-dashoffset={offsetP} transform="rotate(-90 18 18)" />
@@ -95,29 +71,39 @@ function MacroRing({ protein, carbs, fat }: { protein: number; carbs: number; fa
 /* ── Component ─────────────────────────────────────────────────────── */
 export default function RecipeAnalyzer() {
   const [text, setText] = useState('');
-  const [servings, setServings] = useState(4);
+  const [servings, setServings] = useState('4');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<AnalyzeResponse | null>(null);
+  const [result, setResult] = useState<VerifiedRecipeResponse | null>(null);
   const [error, setError] = useState('');
 
   const analyze = async (e: Event) => {
     e.preventDefault();
-    if (!text.trim() || loading) return;
+    if (loading) return;
+    const input = validateRecipeRequest({ text, servings: Number(servings) });
+    if (!input.ok) {
+      setError(input.error);
+      setResult(null);
+      return;
+    }
     setLoading(true);
     setError('');
     setResult(null);
 
     try {
-      const res = await fetch('/api/analyze-recipe', {
+      const response = await fetch('/api/analyze-recipe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: text.trim(), servings }),
+        body: JSON.stringify(input.value),
+        cache: 'no-store',
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || 'Analysis failed. Please try again.');
+      const data: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        const message = data && typeof data === 'object' && 'error' in data &&
+          typeof data.error === 'string' ? data.error : 'Recipe analysis failed. Please try again.';
+        setError(message);
       } else {
-        setResult(data);
+        try { setResult(verifyRecipeResponse(data, input.value.servings)); }
+        catch { setError('The nutrition totals could not be verified. No result was displayed.'); }
       }
     } catch {
       setError('Network error. Please check your connection and try again.');
@@ -139,10 +125,21 @@ export default function RecipeAnalyzer() {
             placeholder={EXAMPLE}
             value={text}
             onInput={(e) => setText((e.target as HTMLTextAreaElement).value)}
-            maxLength={5000}
+            maxLength={RECIPE_TEXT_MAX}
             required
           />
-          <p class="ra__hint">Include quantities and units for the best results. e.g. "200g chicken breast, 1 cup rice, 2 eggs"</p>
+          <p class="ra__hint">
+            Include specific amounts and raw/cooked state (e.g., "200 g raw chicken",
+            "0.5 cup cooked rice"). Cups, tablespoons and whole items are converted
+            to approximate grams; the service may not recognize every amount or food.
+          </p>
+          <p class="ra__privacy" role="note">
+            <strong>Before submitting:</strong> Recipe text is sent to the website server
+            and may be forwarded to the configured third-party AI parsing provider;
+            ingredient search names are sent to USDA FoodData Central. This tool
+            does not verify third-party retention or deletion practices. Do not
+            include names, medical details or other sensitive information.
+          </p>
         </div>
         <div class="ra__field-row">
           <div class="ra__field ra__field--servings">
@@ -153,8 +150,10 @@ export default function RecipeAnalyzer() {
               class="ra__input"
               min="1"
               max="100"
+              step="1"
+              inputMode="numeric"
               value={servings}
-              onInput={(e) => setServings(Number((e.target as HTMLInputElement).value) || 1)}
+              onInput={(e) => setServings((e.target as HTMLInputElement).value)}
               required
             />
           </div>
@@ -182,10 +181,28 @@ export default function RecipeAnalyzer() {
       {/* ── Results ──────────────────────────────────────────────── */}
       {result && !loading && (
         <div class="ra__results">
+          {result.coverage.partial && (
+            <div class="ra__error" role="status">
+              <strong>Partial nutrition estimate:</strong> {result.coverage.unmatchedCount > 0
+                ? result.coverage.unmatchedCount + ' ingredient(s) were not matched and are excluded. '
+                : ''}
+              {result.coverage.missingNutrients.length > 0
+                ? 'Some nutrient values were not reported for all matched foods and are shown as —. '
+                : ''}
+              The remaining values describe the matched-ingredient subtotal,
+              divided by your requested servings; they are NOT complete recipe totals.
+            </div>
+          )}
+          <p class="ra__provenance" role="note">
+            Food matches and nutrition data are returned by the configured CMS
+            using USDA FoodData Central searches. This response does not supply
+            USDA FDC IDs or data types for individual matches, so each selection
+            cannot be independently verified here. Check ingredients and quantities.
+          </p>
           {/* Per-serving headline + macro ring */}
           <div class="ra__headline card">
             <div class="ra__headline-left">
-              <span class="ra__headline-label">Per serving ({result.servings} servings)</span>
+              <span class="ra__headline-label">{result.coverage.partial ? 'Matched-food contribution' : 'Estimated per serving'} ({result.servings} planned servings)</span>
               <span class="ra__headline-calories">
                 {fmt(result.perServing.calories, 'kcal')}
               </span>
@@ -204,10 +221,10 @@ export default function RecipeAnalyzer() {
 
           {/* Full nutrient table */}
           <div class="ra__table-block card">
-            <h3 class="ra__section-title">Full nutrition per serving</h3>
+            <h3 class="ra__section-title">Estimated nutrition from matched ingredients</h3>
             <table class="ra__table">
               <thead>
-                <tr><th>Nutrient</th><th>Per serving</th><th>Per recipe</th></tr>
+                <tr><th>Nutrient</th><th>Per planned serving</th><th>Matched-food subtotal</th></tr>
               </thead>
               <tbody>
                 {NUTRIENT_LABELS.map(({ key, label, unit }) => (
@@ -220,8 +237,12 @@ export default function RecipeAnalyzer() {
               </tbody>
             </table>
             <p class="ra__table-note">
-              Values shown as &ldquo;&mdash;&rdquo; mean the USDA did not report that nutrient for one or more ingredients.
-              A missing value does <strong>not</strong> mean zero.
+              A dash (&mdash;) means at least one matched ingredient lacks a
+              usable value for that nutrient; it does <strong>not</strong> mean
+              zero. Numbers are rounded, approximate and may exclude unmatched foods.
+              Per-serving values divide the matched-food subtotal by the planned
+              serving count. Different USDA food types, preparation and ingredient
+              substitutions can change the outcome.
             </p>
           </div>
 
@@ -234,12 +255,12 @@ export default function RecipeAnalyzer() {
                   <div class="ra__ing-head">
                     <span class="ra__ing-raw">{ing.raw}</span>
                     {ing.unitConverted && (
-                      <span class="ra__badge ra__badge--converted" title="Volume or count was converted to grams">converted</span>
+                      <span class="ra__badge ra__badge--converted" title="Volume or count converted using an approximate food-specific or generic weight assumption">converted</span>
                     )}
                   </div>
                   <div class="ra__ing-detail">
-                    <span class="ra__ing-grams">{ing.quantity.toFixed(0)}g</span>
-                    <span class="ra__ing-match">USDA: {ing.usedFood}</span>
+                    <span class="ra__ing-grams">{fmt(ing.quantity, 'g')}</span>
+                    <span class="ra__ing-match">Reported database match: {ing.usedFood}</span>
                   </div>
                 </li>
               ))}
@@ -252,7 +273,7 @@ export default function RecipeAnalyzer() {
                     <li key={i}>{u.raw}</li>
                   ))}
                 </ul>
-                <p class="ra__unmatched-note">These items were excluded from the nutrition totals. Try rephrasing with more specific ingredient names.</p>
+                <p class="ra__unmatched-note">These foods were excluded from the matched-food subtotal; the result does not represent a complete recipe. Include clearer amounts, units and raw/cooked descriptions.</p>
               </div>
             )}
           </div>
@@ -267,10 +288,13 @@ export default function RecipeAnalyzer() {
 
           {/* Disclaimer */}
           <p class="ra__disclaimer">
-            Nutrition values are estimates for general education, not medical or dietary advice.
-            Values are based on USDA generic ingredient data; brands, preparation methods, and cooking
-            can change actual values significantly. For medical nutrition therapy, consult a registered
-            dietitian or your clinician.
+            Nutrition values are educational approximations, not medical advice
+            or laboratory measurements. CMS parsing and household-unit assumptions
+            may be wrong; USDA matches may represent SR Legacy, Foundation or Branded
+            data, and nutrients can be missing. Do not rely on this tool for insulin
+            dosing, food-allergen safety, a prescribed nutrient restriction or
+            medical nutrition therapy. Check product labels and consult a registered
+            dietitian or clinician when accurate values matter.
           </p>
         </div>
       )}

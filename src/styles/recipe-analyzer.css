@@ -69,6 +69,19 @@
   margin: 0;
 }
 
+.ra__privacy,
+.ra__provenance {
+  font-size: 0.82rem;
+  line-height: 1.55;
+  border: 1px solid #fed7aa;
+  background: #fff7ed;
+  color: #854d0e;
+  border-radius: 8px;
+  padding: 0.75rem 0.9rem;
+  margin: 0;
+}
+.ra__provenance { border-color: #bfdbfe; background: #eff6ff; color: #1e40af; }
+
 /* ── Buttons ─────────────────────────────────────────────────────────── */
 .ra__btn {
   display: inline-flex;
