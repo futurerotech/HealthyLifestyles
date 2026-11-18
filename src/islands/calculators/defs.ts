@@ -311,7 +311,7 @@ export const DEFS: Record<string, CalcDef> = {
     },
   },
 
-  // ---- 4. Body Fat % (US Navy) ----
+  // ---- 4. Body Fat % (historical US Navy circumference equations) ----
   'body-fat-calculator': {
     slug: 'body-fat-calculator',
     heading: 'Estimate your body fat',
@@ -319,49 +319,71 @@ export const DEFS: Record<string, CalcDef> = {
     fields: [
       F.height(175),
       F.neck(),
-      F.waist(88),
+      {
+        ...F.waist(88),
+        label: 'Abdomen / waist circumference',
+        help: 'Men: measure at the navel, not the narrowest waist. Women: measure at the narrowest natural waist. Breathe out normally; keep the tape level and snug.',
+      },
       { ...F.hip(), showIf: ({ sex }) => sex === 'female' },
     ],
     compute: ({ vals, sex }) => {
+      // Hodgdon-Beckett body-density equations require centimetres; the island
+      // converts imperial length inputs with the exact 2.54 cm/in factor.
       const { height, neck, waist } = vals;
-      const hip = vals.hip ?? 0;
-      const log10 = Math.log10;
-      let bf: number;
-      if (sex === 'male') {
-        if (waist - neck <= 0) {
-          return { ok: false, error: 'Waist must be larger than neck. Re-check your measurements.', primaryLabel: 'Body fat', primaryValue: '—', visual: { kind: 'none' } };
-        }
-        bf = 495 / (1.0324 - 0.19077 * log10(waist - neck) + 0.15456 * log10(height)) - 450;
-      } else {
-        if (waist + hip - neck <= 0) {
-          return { ok: false, error: 'Check your waist, hip and neck measurements.', primaryLabel: 'Body fat', primaryValue: '—', visual: { kind: 'none' } };
-        }
-        bf = 495 / (1.29579 - 0.35004 * log10(waist + hip - neck) + 0.22100 * log10(height)) - 450;
+      const hip = vals.hip;
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Body fat', primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (![height, neck, waist].every((v) => Number.isFinite(v) && v > 0) ||
+          (sex === 'female' && !(Number.isFinite(hip) && hip > 0))) {
+        return fail('Enter valid, positive height and circumference measurements.');
       }
-      bf = Math.max(2, Math.min(60, bf));
+
+      const circumference = sex === 'male' ? waist - neck : waist + hip - neck;
+      if (!(circumference > 0)) {
+        return fail(sex === 'male'
+          ? 'Abdomen must be larger than neck. Re-check your measurements.'
+          : 'Waist plus hip must exceed neck. Re-check your measurements.');
+      }
+      const density = sex === 'male'
+        ? 1.0324 - 0.19077 * Math.log10(circumference) + 0.15456 * Math.log10(height)
+        : 1.29579 - 0.35004 * Math.log10(circumference) + 0.22100 * Math.log10(height);
+      if (!Number.isFinite(density) || density <= 0) {
+        return fail('These measurements do not produce a usable body-fat estimate.');
+      }
+      // Do not silently turn an impossible estimate into 2% or 60%.
+      const bf = round(495 / density - 450, 1);
+      if (!Number.isFinite(bf) || bf <= 0 || bf >= 100) {
+        return fail('These measurements produce an implausible body-fat estimate. Recheck tape placement and units.');
+      }
+
+      // General *fitness* reference bands, not diagnoses or Navy BCA standards.
+      // Classify the same one-decimal percentage that is actually displayed.
       const segments: Segment[] = sex === 'male'
         ? [
-            { upTo: 6, label: 'Essential fat', color: C.blue },
-            { upTo: 14, label: 'Athletic', color: C.green },
-            { upTo: 18, label: 'Fitness', color: C.teal },
-            { upTo: 25, label: 'Average', color: C.amber },
-            { upTo: 45, label: 'Above average', color: C.red },
+            { upTo: 1.9, label: 'Below reference chart', color: C.blue },
+            { upTo: 5.9, label: 'Essential fat', color: C.blue },
+            { upTo: 13.9, label: 'Athletic', color: C.green },
+            { upTo: 17.9, label: 'Fitness', color: C.teal },
+            { upTo: 24.9, label: 'Average', color: C.amber },
+            { upTo: 100, label: 'Higher reference range', color: C.red },
           ]
         : [
-            { upTo: 14, label: 'Essential fat', color: C.blue },
-            { upTo: 21, label: 'Athletic', color: C.green },
-            { upTo: 25, label: 'Fitness', color: C.teal },
-            { upTo: 32, label: 'Average', color: C.amber },
-            { upTo: 45, label: 'Above average', color: C.red },
+            { upTo: 9.9, label: 'Below reference chart', color: C.blue },
+            { upTo: 13.9, label: 'Essential fat', color: C.blue },
+            { upTo: 20.9, label: 'Athletic', color: C.green },
+            { upTo: 24.9, label: 'Fitness', color: C.teal },
+            { upTo: 31.9, label: 'Average', color: C.amber },
+            { upTo: 100, label: 'Higher reference range', color: C.red },
           ];
       const band = bandFor(bf, segments);
       return {
         ok: true,
         primaryLabel: 'Estimated body fat',
-        primaryValue: `${fmt(bf, 1)}%`,
+        primaryValue: fmt(bf, 1) + '%',
         category: { label: band.label, color: band.color },
-        visual: { kind: 'gauge', value: bf, min: 0, max: 45, segments },
-        note: 'This is an estimate from the U.S. Navy circumference method. Lab methods such as DEXA are more accurate.',
+        visual: { kind: 'gauge', value: bf, min: 0, max: 100, segments },
+        note: 'This tape-based estimate is not a diagnosis or personal target. The fitness labels are illustrative, not age-adjusted. This historical formula is not the current official U.S. Navy BCA.',
       };
     },
   },

@@ -234,65 +234,70 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
     directAnswer: {
       question: 'How can I estimate body fat without calipers?',
       answer:
-        'The U.S. Navy circumference method estimates body fat percentage from your height, neck, and waist measurements (plus hips for women) using a validated logarithmic formula — all you need is a tape measure. Taken carefully, it generally lands within a few percentage points of laboratory methods, making it a practical home estimate.',
+        'The historical U.S. Navy circumference equations estimate body-fat percentage from height, neck and abdomen measurements (plus hips for women). A tape measure makes the method accessible, but results vary with tape placement and body shape and should not be treated as a diagnosis or an official military assessment.',
     },
     seoTitle: 'Body Fat Calculator – U.S. Navy Method',
     metaDescription:
-      'Estimate your body fat percentage with the U.S. Navy tape method using a few measurements. Free, metric or imperial, with category and gauge.',
+      'Estimate body fat with the historical U.S. Navy tape formula in metric or imperial units. Includes measuring guidance, limits and cautious interpretation.',
     intro:
-      'Estimate your body fat percentage with the U.S. Navy circumference method — just a tape measure needed. Enter your measurements to see your estimated percentage and fitness category.',
+      'Use a tape measure to estimate body-fat percentage with the historical U.S. Navy circumference equations. The result and general fitness reference band are educational estimates, not medical diagnoses or current Navy qualification scores.',
     sections: [
       {
-        h2: 'How the U.S. Navy method works',
+        h2: 'How the historical U.S. Navy method works',
         paragraphs: [
-          'The U.S. Navy formula estimates body fat from body circumferences rather than skinfold callipers or lab equipment. It uses your height and neck and waist measurements (plus hip measurement for women), all in centimetres, inside a logarithmic equation:',
-          'For men: %fat = 495 ÷ (1.0324 − 0.19077 × log₁₀(waist − neck) + 0.15456 × log₁₀(height)) − 450. For women: %fat = 495 ÷ (1.29579 − 0.35004 × log₁₀(waist + hip − neck) + 0.22100 × log₁₀(height)) − 450. For accuracy, measure relaxed and breathe out before reading the tape; take each measurement twice and average it.',
+          'The original Hodgdon–Beckett equations estimate body density from height and body circumferences. Men use the abdomen at the navel and neck. Women use the narrowest natural waist, widest hip circumference and neck. All four measurements use centimeters in the formulas below. Imperial entries are converted to centimeters before calculation.',
+          'For men: %fat = 495 ÷ (1.0324 − 0.19077 × log₁₀(abdomen − neck) + 0.15456 × log₁₀(height)) − 450. For women: %fat = 495 ÷ (1.29579 − 0.35004 × log₁₀(waist + hip − neck) + 0.22100 × log₁₀(height)) − 450. The logarithms are base 10, not natural logs. Measure on bare skin where practical, keep the tape level without pressing into the skin, and read after a normal exhalation.',
         ],
       },
       {
-        h2: 'Body fat categories',
-        list: {
-          intro:
-            'Healthy body-fat ranges differ between men and women because women carry more essential fat. The gauge above uses widely used fitness categories:',
-          items: [
-            'Essential fat: about 2–5% (men) or 10–13% (women) — the minimum needed for health.',
-            'Athletes: roughly 6–13% (men) or 14–20% (women).',
-            'Fitness: around 14–17% (men) or 21–24% (women).',
-            'Average: about 18–24% (men) or 25–31% (women); higher values indicate excess fat.',
-          ],
-        },
+        h2: 'What the fitness reference band means',
+        paragraphs: [
+          'The gauge preserves a broad, historical set of general fitness reference labels: essential fat, athletic, fitness, average and a higher range. These categories are descriptive, not population percentiles, medical risk diagnoses or individualized targets. They are not adjusted for age, body proportions, health conditions or measurement uncertainty. The value is an estimate, not a confirmed percentage.',
+          'The calculator does not manufacture a 2% or 60% answer when measurements produce an impossible result. It instead asks you to recheck the inputs. An unusually low or high estimate that is still mathematically possible also deserves cautious interpretation rather than a label-based health conclusion.',
+        ],
       },
       {
-        h2: 'How accurate is it?',
+        h2: 'Measurement uncertainty and current Navy procedures',
         paragraphs: [
-          'The Navy method is convenient and reasonably consistent, but it is an estimate. It works from average body shapes, so unusual proportions can skew the result, and a small tape-measure error can change the number by a percentage point or two. Laboratory techniques such as DEXA scanning, hydrostatic weighing or air-displacement (Bod Pod) are considerably more precise.',
-          'For tracking progress, the most valuable use is trend over time: measure under the same conditions every few weeks and watch the direction of change rather than fixating on a single reading.',
+          'The estimate can shift when the tape is moved, tightened or read differently, especially when the abdomen or neck is close in size. Repeat measurements under similar conditions and look for trends rather than treating a tenth of a percentage point as a real physiological change. DXA and other clinical body-composition methods provide a different assessment and have their own limitations.',
+          'The U.S. Navy now publishes a different official Body Composition Assessment (BCA) procedure, using waist-to-height screening followed when needed by a calculation using height, waist and weight. This historical neck-and-hip calculator is not suitable for Navy BCA certification, pass/fail decisions, diagnosis or treatment planning.',
         ],
       },
     ],
     faq: [
       {
-        q: 'How accurate is the U.S. Navy body fat method?',
-        a: 'It is a useful estimate, typically within a few percentage points of lab methods for average body types, but it is not a precise measurement. DEXA and hydrostatic weighing are more accurate.',
+        q: 'How accurate is the historical Navy body fat method?',
+        a: 'It is a population-based estimate, not a direct measurement. Error can be meaningful for an individual, especially with unusual body proportions or inconsistent tape placement. Avoid treating small changes as precise.',
       },
       {
-        q: 'Where exactly do I measure my waist and neck?',
-        a: 'Measure your neck just below the larynx, and your waist at the narrowest point (around the navel) after breathing out. Women also measure the hips at their widest point. Keep the tape level and snug.',
+        q: 'Where do I measure my waist and neck?',
+        a: 'For men, measure the abdomen horizontally at the navel, not at the narrowest point. For women, measure the narrowest natural waist and the widest hips. Measure the neck just below the larynx, with the tape level and not compressing the skin.',
       },
       {
-        q: 'What is a healthy body fat percentage?',
-        a: 'A common healthy "fitness" range is about 14–17% for men and 21–24% for women. Women naturally carry more essential fat, so their healthy ranges are higher than men’s.',
+        q: 'Do these fitness categories show whether I am healthy?',
+        a: 'No. They are broad, non-age-adjusted general fitness reference bands, not clinical diagnoses or individual targets. A health assessment requires more context than a tape-measure estimate.',
+      },
+      {
+        q: 'Can I use this calculator for the current U.S. Navy BCA?',
+        a: 'No. The current official Navy BCA uses waist-to-height screening and a separate height, waist and weight calculation when required. Only the approved Navy procedures determine official results.',
       },
     ],
     sources: [
       {
-        citation:
-          'Hodgdon JA, Beckett MB. "Prediction of percent body fat for U.S. Navy men and women from body circumference measurements." Naval Health Research Center, Reports 84-11 & 84-29, 1984.',
+        citation: 'Hodgdon JA, Beckett MB. Prediction of percent body fat for U.S. Navy men and women from body circumference measurements. Naval Health Research Center Reports 84-11 and 84-29, 1984.',
       },
-      WHO_OBESITY,
+      {
+        citation: 'U.S. Navy. Guide-4: Body Composition Assessment. Current official BCA screening and calculation procedures.',
+        url: 'https://www.mynavyhr.navy.mil/Portals/55/Support/Culture%20Resilience/Physical/Guide-4%20Body%20Composition%20Assessment.pdf',
+      },
+      {
+        citation: 'Navy Medicine. General Body-fat Percentage Categories, ShipShape / NOFFS Active Living educational material (2019). Illustrative, not diagnostic fitness labels.',
+        url: 'https://www.med.navy.mil/Portals/62/Documents/NMFA/NMCPHC/root/Documents/health-promotion-wellness/general-tools-and-programs/Webinars/1904-NMCPHC-Webinar-%20April-NOFFS-Active-Living.pdf',
+      },
     ],
   },
 
+  // ============================================================
   // ============================================================
   'lean-body-mass-calculator': {
     seoTitle: 'Lean Body Mass Calculator (Boer Formula)',
