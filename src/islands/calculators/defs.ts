@@ -391,35 +391,49 @@ export const DEFS: Record<string, CalcDef> = {
   // ---- 5. Lean Body Mass (Boer) ----
   'lean-body-mass-calculator': {
     slug: 'lean-body-mass-calculator',
-    heading: 'Calculate your lean body mass',
+    heading: 'Estimate your lean body mass',
     hasSex: true,
     fields: [F.weight(72), F.height(175)],
     compute: ({ vals, sex, units }) => {
+      // Boer (1984): weight in kg, height in cm. Never clamp an impossible
+      // lean/fat mass prediction to a credible-looking zero-fat result.
       const { weight, height } = vals;
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Estimated lean body mass',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (![weight, height].every((v) => Number.isFinite(v) && v > 0)) {
+        return fail('Enter valid positive weight and height measurements.');
+      }
+
       const lbm = sex === 'male'
         ? 0.407 * weight + 0.267 * height - 19.2
         : 0.252 * weight + 0.473 * height - 48.3;
-      const fatMass = Math.max(0, weight - lbm);
+      const fatMass = weight - lbm;
+      if (!Number.isFinite(lbm) || !(lbm > 0) || !(fatMass > 0)) {
+        return fail('These measurements imply an impossible lean/fat mass split. Recheck weight, height and units; this equation may not fit your body proportions.');
+      }
+
       const unit = massUnitLabel(units);
       return {
         ok: true,
-        primaryLabel: 'Lean body mass',
+        primaryLabel: 'Estimated lean body mass',
         primaryValue: fmtMass(lbm, units, 1),
         visual: {
           kind: 'split',
-          aLabel: 'Lean mass',
+          aLabel: 'Estimated lean mass',
           aValue: round(massScale(lbm, units), 1),
-          bLabel: 'Fat mass',
+          bLabel: 'Estimated fat mass',
           bValue: round(massScale(fatMass, units), 1),
           aColor: C.green,
           bColor: C.amber,
           unit,
         },
         rows: [
-          { label: 'Estimated fat mass', value: fmtMass(fatMass, units, 1) },
-          { label: 'Lean mass as % of weight', value: `${fmt((lbm / weight) * 100, 1)}%`, strong: true },
+          { label: 'Derived fat mass (not measured)', value: fmtMass(fatMass, units, 1) },
+          { label: 'Estimated lean share of body weight', value: fmt((lbm / weight) * 100, 1) + '%', strong: true },
         ],
-        note: 'Lean body mass is everything that is not fat — muscle, bone, organs and water. Estimated with the Boer formula.',
+        note: 'Boer predicts lean body mass from weight, height and sex; it does not measure muscle or fat. The fat portion is a mathematical remainder, not a scan result. Do not use this estimate to diagnose health, prescribe treatment or calculate medication doses.',
       };
     },
   },

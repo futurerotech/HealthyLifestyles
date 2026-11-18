@@ -27,7 +27,7 @@ function initialDisplay(def: CalcDef, units: UnitSystem): Disp {
     if (f.type === 'height') {
       if (units === 'metric') d.height = String(round(f.metricDefault, 0));
       else {
-        const { ft, inch } = cmToFtIn(f.metricDefault);
+        const { ft, inch } = cmToFtIn(f.metricDefault, def.slug === 'lean-body-mass-calculator' ? 0.01 : 0.5);
         d.height_ft = String(ft);
         d.height_in = String(inch);
       }
@@ -75,12 +75,12 @@ function convertDisplay(def: CalcDef, disp: Disp, to: UnitSystem): Disp {
   for (const f of def.fields) {
     if (f.type === 'height') {
       if (to === 'imperial') {
-        const { ft, inch } = cmToFtIn(num(disp.height));
+        const { ft, inch } = cmToFtIn(num(disp.height), def.slug === 'lean-body-mass-calculator' ? 0.01 : 0.5);
         d.height_ft = String(ft);
         d.height_in = String(inch);
         delete d.height;
       } else {
-        d.height = String(round(ftInToCm(num(disp.height_ft), num(disp.height_in)), 0));
+        d.height = String(round(ftInToCm(num(disp.height_ft), num(disp.height_in)), def.slug === 'lean-body-mass-calculator' ? 2 : 0));
         delete d.height_ft;
         delete d.height_in;
       }
@@ -651,7 +651,9 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
             </div>
             <div class="calc__input">
               <input
-                type="number" inputMode="decimal" min="0" max="11.5" step="0.5"
+                type="number" inputMode="decimal" min="0"
+                max={slug === 'lean-body-mass-calculator' ? '11.99' : '11.5'}
+                step={slug === 'lean-body-mass-calculator' ? '0.01' : '0.5'}
                 id={id('height_in')} aria-label="Inches"
                 value={disp.height_in ?? ''} onInput={(e) => setField('height_in', (e.target as HTMLInputElement).value)}
               />
@@ -665,7 +667,8 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
       f.type === 'mass' ? (units === 'metric' ? 'kg' : 'lb')
       : f.type === 'length' || f.type === 'height' ? (units === 'metric' ? 'cm' : 'in')
       : 'yrs';
-    const step = f.type === 'age' || f.type === 'height' ? '1' : '0.1';
+    const step = f.type === 'height' && slug === 'lean-body-mass-calculator' ? '0.01'
+      : f.type === 'age' || f.type === 'height' ? '1' : '0.1';
     return (
       <div class="calc__field" key={f.key}>
         <label class="calc__label" for={id(f.key)}>{f.label}</label>

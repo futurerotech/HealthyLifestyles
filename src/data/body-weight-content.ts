@@ -301,50 +301,69 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
   'lean-body-mass-calculator': {
     seoTitle: 'Lean Body Mass Calculator (Boer Formula)',
     metaDescription:
-      'Estimate your lean body mass and fat mass with the Boer formula. Free LBM calculator in metric or imperial — see your muscle-to-fat split.',
+      'Estimate lean body mass using the Boer formula and view the derived fat-mass remainder. Metric or imperial, with clear limitations.',
     intro:
-      'Lean body mass is everything in your body that is not fat — muscle, bone, organs and water. Enter your details to estimate it with the Boer formula and see how it splits from your fat mass.',
+      'Estimate lean body mass from your weight, height and sex using Boer’s 1984 equation. The tool also shows a mathematically derived fat-mass remainder, not a measured body-fat or muscle result.',
     sections: [
       {
-        h2: 'How lean body mass is estimated',
+        h2: 'How the Boer formula works',
         paragraphs: [
-          'This calculator uses the Boer formula, a well-regarded equation derived for estimating lean mass in adults. It is based on weight, height and sex:',
-          'For men: LBM = (0.407 × weight kg) + (0.267 × height cm) − 19.2. For women: LBM = (0.252 × weight kg) + (0.473 × height cm) − 48.3. Your estimated fat mass is then simply your total weight minus your lean body mass. The split bar above shows the two side by side.',
+          'The Boer equation predicts lean body mass from weight (kilograms), height (centimeters) and sex. Men: LBM (kg) = 0.407 × weight (kg) + 0.267 × height (cm) − 19.2. Women: LBM (kg) = 0.252 × weight (kg) + 0.473 × height (cm) − 48.3. The tool converts pounds and feet/inches to kilograms and centimeters before calculating, then converts mass results back into your selected units.',
+          'For example, a man weighing 75 kg at 175 cm has an estimated lean body mass of 58.05 kg (displayed as 58.1 kg). The remaining 16.95 kg is shown as a derived fat-mass estimate. That remainder comes entirely from the prediction equation, not from a direct measurement of fat tissue.',
         ],
       },
       {
-        h2: 'Why lean body mass matters',
+        h2: 'Why this split does not measure muscle change',
         paragraphs: [
-          'Lean mass — particularly muscle — drives your metabolism, strength and physical resilience. People with more lean mass burn more calories at rest, manage blood sugar better, and tend to recover and age more robustly. Preserving lean mass is especially important during weight loss: a sharp, crash diet can strip away muscle along with fat, which is one reason adequate protein and resistance training are so widely recommended.',
-          'Tracking LBM alongside body weight tells you whether changes on the scale are coming from fat or from muscle. Losing weight while keeping (or gaining) lean mass is the goal of a healthy body-recomposition plan.',
+          'Lean body mass includes more than skeletal muscle: it also involves water, organs, bone and other lean tissues. The exact definitions and compartments depend on the body-composition method. Neither figure in the calculator is an independently measured amount of muscle or fat.',
+          'For someone whose sex and height remain the same, the Boer prediction changes automatically with weight: for every 1 kg change in body weight the equation assigns 0.407 kg to estimated lean mass for men, or 0.252 kg for women. That arithmetic is built in and cannot reveal whether a change was actually muscle, fat or water. Avoid treating these predictions as proof of muscle gain or fat loss.',
         ],
       },
       {
-        h2: 'Reading your result',
+        h2: 'When an estimate does not fit',
         paragraphs: [
-          'The Boer formula gives a population estimate, not a direct measurement, and it does not "see" your actual muscle. Very lean, very muscular or very high-body-fat individuals will see less accurate figures. For precise lean-mass measurement, a DEXA scan or bioelectrical impedance analysis is needed. As with body fat, the most reliable use is to track the trend under consistent conditions rather than to treat a single number as exact.',
+          'The calculator rejects invalid inputs or combinations implying nonpositive lean mass or zero/negative fat mass. It asks you to recheck height, weight and selected units instead of displaying a misleading zero-fat result. This is a mathematical consistency check, not a health threshold; other results can still be inaccurate for an individual.',
+          'Boer’s original work studied a relatively small group of healthy adults in relation to body-fluid volume. Body proportions, age, hydration and illness can affect how well a population equation describes an individual. The result is educational and should not determine medical dosing, diagnosis, or treatment.',
+        ],
+      },
+      {
+        h2: 'How to interpret the estimate',
+        paragraphs: [
+          'For a more informative evaluation of body composition, a qualified clinician may consider an appropriate method such as DXA or bioelectrical impedance analysis. Those methods also have measurement uncertainty, preparation requirements, and method-specific definitions of lean tissue and fat mass.',
+          'For changes over time, consider overall health, physical function and strength alongside weight rather than interpreting a change in this predicted value as a verified tissue change. This simple adult-oriented equation is not a substitute for individualized assessment during pregnancy, childhood or substantial medical/fluid changes.',
         ],
       },
     ],
     faq: [
       {
-        q: 'What is lean body mass?',
-        a: 'Lean body mass is your total weight minus your fat mass — it includes muscle, bone, organs, connective tissue and body water. It is sometimes called fat-free mass.',
+        q: 'What units does the Boer formula use?',
+        a: 'It uses kilograms for weight and centimeters for height. The calculator converts pounds and feet/inches into metric units before applying the original coefficients.',
       },
       {
-        q: 'Why is the Boer formula used?',
-        a: 'The Boer formula is a validated equation for estimating lean mass from height, weight and sex, and is commonly used in clinical and fitness settings where a direct scan is not available.',
+        q: 'Is lean body mass the same as muscle mass?',
+        a: 'No. Lean body mass includes organs, water, bone and other nonfat tissues as well as muscle. The Boer equation cannot measure skeletal muscle.',
       },
       {
-        q: 'How can I increase my lean body mass?',
-        a: 'Regular resistance training combined with adequate protein intake and sufficient sleep is the most effective way to build and preserve lean mass, especially while losing fat.',
+        q: 'Can the formula tell whether I lost fat or gained muscle?',
+        a: 'No. It predicts lean mass using weight and height, then subtracts the prediction from weight. Changes in those results are partly imposed by the formula, not independently observed tissue changes.',
+      },
+      {
+        q: 'What if my measurements are incompatible?',
+        a: 'Check your weight, height and selected units. Some combinations make this linear equation predict more lean mass than the body weighs, so the tool refuses to display a false zero-fat result.',
       },
     ],
     sources: [
       {
-        citation:
-          'Boer P. "Estimated lean body mass as an index for normalization of body fluid volumes in humans." Am J Physiol. 1984;247(4 Pt 2):F632–F636.',
-        url: pubmed('Estimated lean body mass as an index for normalization of body fluid volumes'),
+        citation: 'Boer P. Estimated lean body mass as an index for normalization of body fluid volumes in humans. Am J Physiol. 1984;247(4 Pt 2):F632–F636.',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/6496691/',
+      },
+      {
+        citation: 'Obesity Medicine Association. Obesity history, physical exam, laboratory, body composition, and energy expenditure: Clinical Practice Statement (2022).',
+        url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10661987/',
+      },
+      {
+        citation: 'Methodological standards for body composition assessment: expert-endorsed guide for bioimpedance, DXA, CT and ultrasound. Am J Clin Nutr (2026).',
+        url: 'https://ajcn.nutrition.org/article/S0002-9165%2826%2900092-4/fulltext',
       },
     ],
   },

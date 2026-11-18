@@ -242,7 +242,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'lean-body-mass-calculator',
     title: 'Lean Body Mass Calculator',
-    blurb: 'Find how much of your weight is muscle, bone, and organs — not fat.',
+    blurb: 'Estimate lean body mass from height and weight with the Boer formula — not a direct muscle measurement.',
     category: 'body-weight',
     icon: 'dumbbell',
     gradient: 'blue',
