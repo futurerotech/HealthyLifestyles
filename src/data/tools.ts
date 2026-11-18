@@ -272,7 +272,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'weight-loss-percentage-calculator',
     title: 'Weight Loss Percentage Calculator',
-    blurb: 'See what percentage of your starting weight you’ve lost so far.',
+    blurb: 'Compare current and starting weight to find the percentage gained, lost or unchanged.',
     category: 'body-weight',
     icon: 'trending-down',
     gradient: 'blue',

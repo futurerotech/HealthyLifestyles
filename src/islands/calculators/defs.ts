@@ -553,10 +553,10 @@ export const DEFS: Record<string, CalcDef> = {
     },
   },
 
-  // ---- 8. Weight Loss Percentage ----
+  // ---- 8. Weight Change Percentage (baseline = starting weight) ----
   'weight-loss-percentage-calculator': {
     slug: 'weight-loss-percentage-calculator',
-    heading: 'Calculate your weight loss percentage',
+    heading: 'Calculate your weight change percentage',
     hasSex: false,
     fields: [
       { key: 'start', label: 'Starting weight', type: 'mass', metricDefault: 90, min: 25, max: 350 },
@@ -564,28 +564,57 @@ export const DEFS: Record<string, CalcDef> = {
     ],
     compute: ({ vals, units }) => {
       const { start, current } = vals;
-      if (start <= 0) {
-        return { ok: false, error: 'Starting weight must be greater than zero.', primaryLabel: 'Weight change', primaryValue: '—', visual: { kind: 'none' } };
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Weight change',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (![start, current].every((v) => Number.isFinite(v) && v > 0)) {
+        return fail('Enter valid positive starting and current weights.');
       }
-      const lostKg = start - current;
-      const pct = (lostKg / start) * 100;
-      const gained = lostKg < 0;
-      let cat: { label: string; color: string };
-      if (gained) cat = { label: 'Weight gained', color: C.red };
-      else if (pct >= 10) cat = { label: 'Significant loss (≥10%)', color: C.green };
-      else if (pct >= 5) cat = { label: 'Clinically meaningful (≥5%)', color: C.teal };
-      else if (pct > 0) cat = { label: 'In progress', color: C.amber };
-      else cat = { label: 'No change yet', color: C.slate };
+      if ([start, current].some((v) => v < 25 || v > 350)) {
+        return fail('Check both weights are within the supported 25–350 kg input range.');
+      }
+
+      // The starting weight is the denominator for both directions of change:
+      // loss = positive; gain = negative. Do not divide by the current weight.
+      const differenceKg = start - current;
+      const percentLost = (differenceKg / start) * 100;
+      if (!Number.isFinite(percentLost)) {
+        return fail('These weights cannot produce a valid percentage.');
+      }
+      const gained = differenceKg < 0;
+      const unchanged = differenceKg === 0;
+      const absPercent = Math.abs(percentLost);
+      // Keep numeric classification based on raw percentage, not a rounded
+      // value that can incorrectly promote 4.96% to the 5% milestone.
+      const nearMilestone = !gained && !unchanged &&
+        [5, 10].some((point) => Math.abs(percentLost - point) < 0.05);
+      const percentPrecision = nearMilestone ? 4 : 1;
+      let category: { label: string; color: string };
+      if (gained) category = { label: 'Weight increased', color: C.amber };
+      else if (unchanged) category = { label: 'No weight change', color: C.slate };
+      else if (percentLost >= 10) category = { label: '10%+ decrease (reference milestone)', color: C.green };
+      else if (percentLost >= 5) category = { label: '5%+ decrease (reference milestone)', color: C.teal };
+      else category = { label: 'Weight decreased', color: C.blue };
+      const note = gained
+        ? 'This is a comparison with your starting weight, not a diagnosis or evidence of a harmful change. Weight changes can reflect fluid, fat, muscle, pregnancy or other factors. Discuss unexplained changes with a clinician.'
+        : unchanged
+          ? 'Your recorded starting and current weights are equal. This comparison alone does not assess health, body composition or changes between measurements.'
+          : '5–10% weight loss may improve some health measures in adults with overweight or obesity when appropriate and sustained; benefits are not automatic and these are not personal targets. This tool does not measure fat loss, rate of change or health outcomes. Consult a clinician about unexpected or rapid changes.';
       return {
         ok: true,
-        primaryLabel: gained ? 'Weight gained' : 'Weight lost',
-        primaryValue: `${fmt(Math.abs(pct), 1)}%`,
-        category: cat,
+        primaryLabel: gained ? 'Weight gained' : unchanged ? 'Weight unchanged' : 'Weight lost',
+        primaryValue: fmt(absPercent, percentPrecision) + '%',
+        category,
         visual: { kind: 'none' },
         rows: [
-          { label: gained ? 'Total gained' : 'Total lost', value: fmtMass(Math.abs(lostKg), units, 1), strong: true },
+          {
+            label: gained ? 'Total gained' : unchanged ? 'Absolute change' : 'Total lost',
+            value: fmtMass(Math.abs(differenceKg), units, 1),
+            strong: true,
+          },
         ],
-        note: 'Losing 5–10% of your starting weight delivers meaningful health benefits, even before reaching a "goal" weight.',
+        note,
       };
     },
   },

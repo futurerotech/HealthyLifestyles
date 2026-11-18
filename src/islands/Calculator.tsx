@@ -19,6 +19,9 @@ type Disp = Record<string, string>;
 const preciseHeight = (def: CalcDef): boolean =>
   def.slug === 'lean-body-mass-calculator' || def.slug === 'waist-to-height-ratio-calculator';
 
+const preciseWeight = (def: CalcDef): boolean =>
+  def.slug === 'weight-loss-percentage-calculator';
+
 const num = (s: string | undefined): number => {
   const n = parseFloat(s ?? '');
   return Number.isFinite(n) ? n : 0;
@@ -35,7 +38,9 @@ function initialDisplay(def: CalcDef, units: UnitSystem): Disp {
         d.height_in = String(inch);
       }
     } else if (f.type === 'mass') {
-      d[f.key] = String(units === 'metric' ? round(f.metricDefault, 1) : round(kgToLb(f.metricDefault), 1));
+      d[f.key] = String(units === 'metric'
+        ? round(f.metricDefault, preciseWeight(def) ? 2 : 1)
+        : round(kgToLb(f.metricDefault), preciseWeight(def) ? 3 : 1));
     } else if (f.type === 'length') {
       d[f.key] = String(units === 'metric' ? round(f.metricDefault, 1) : round(cmToIn(f.metricDefault), def.slug === 'waist-to-hip-ratio-calculator' ? 3 : def.slug === 'waist-to-height-ratio-calculator' ? 2 : 1));
     } else if (f.type === 'select') {
@@ -88,7 +93,9 @@ function convertDisplay(def: CalcDef, disp: Disp, to: UnitSystem): Disp {
         delete d.height_in;
       }
     } else if (f.type === 'mass') {
-      d[f.key] = String(to === 'imperial' ? round(kgToLb(num(disp[f.key])), 1) : round(lbToKg(num(disp[f.key])), 1));
+      d[f.key] = String(to === 'imperial'
+        ? round(kgToLb(num(disp[f.key])), preciseWeight(def) ? 3 : 1)
+        : round(lbToKg(num(disp[f.key])), preciseWeight(def) ? 2 : 1));
     } else if (f.type === 'length') {
       d[f.key] = String(to === 'imperial'
         ? round(cmToIn(num(disp[f.key])), def.slug === 'waist-to-hip-ratio-calculator' ? 3 : def.slug === 'waist-to-height-ratio-calculator' ? 2 : 1)
@@ -672,7 +679,9 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
       f.type === 'mass' ? (units === 'metric' ? 'kg' : 'lb')
       : f.type === 'length' || f.type === 'height' ? (units === 'metric' ? 'cm' : 'in')
       : 'yrs';
-    const step = f.type === 'length' && slug === 'waist-to-hip-ratio-calculator' && units === 'imperial'
+    const step = f.type === 'mass' && preciseWeight(def)
+      ? units === 'imperial' ? '0.001' : '0.01'
+      : f.type === 'length' && slug === 'waist-to-hip-ratio-calculator' && units === 'imperial'
       ? '0.001'
       : (f.type === 'height' && preciseHeight(def)) ||
         (f.type === 'length' && (slug === 'waist-to-height-ratio-calculator' ||

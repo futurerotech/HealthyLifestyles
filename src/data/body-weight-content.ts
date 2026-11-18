@@ -517,55 +517,75 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
 
   // ============================================================
   'weight-loss-percentage-calculator': {
-    seoTitle: 'Weight Loss Percentage Calculator (Free)',
+    seoTitle: 'Weight Change Percentage Calculator (Loss or Gain)',
     metaDescription:
-      'Work out what percentage of your starting weight you have lost. Free weight loss percentage calculator in metric or imperial — track your progress.',
+      'Calculate weight lost or gained as a percentage of starting weight, in kg or lb, with clear 5% and 10% reference milestones and cautions.',
     intro:
-      'Tracking weight loss as a percentage of your starting weight is a fairer way to measure progress than pounds or kilograms alone. Enter your starting and current weight to see your percentage and the amount lost.',
+      'Compare starting and current weight to see the percent change in either direction. The tool reports weight lost, weight gained or no change and keeps the same starting weight as its denominator. A percentage cannot by itself tell you whether a change is healthy or how fast it happened.',
     sections: [
       {
-        h2: 'How the calculation works',
+        h2: 'How percentage change is calculated',
         paragraphs: [
-          'The formula is: weight loss % = ((starting weight − current weight) ÷ starting weight) × 100. So if you started at 90 kg and now weigh 82 kg, you have lost 8 kg, which is (8 ÷ 90) × 100 = 8.9% of your starting weight.',
-          'Expressing loss as a percentage lets you compare progress fairly between people of very different sizes, and it is the measure used in clinical weight-management research and TV-style weight-loss challenges alike.',
+          'Percent weight change from baseline = ((starting weight − current weight) ÷ starting weight) × 100. A positive value is weight lost and a negative value is weight gained. The calculator reports a positive magnitude with a separate direction label so gain is not mistaken for loss. The denominator is always starting weight, even if your current weight is higher.',
+          'For example, starting at 90 kg and reaching 82 kg means 8 kg lost, or (90 − 82) ÷ 90 × 100 = 8.9% lost. Starting at 90 kg and reaching 99 kg means 9 kg gained, or (99 − 90) ÷ 90 × 100 = 10% gained. Those figures would be equivalent if you entered corresponding values in pounds, subject only to display rounding.',
         ],
       },
       {
-        h2: 'Why percentage matters more than the scale',
+        h2: 'How to understand the 5% and 10% reference milestones',
         paragraphs: [
-          'Health guidelines focus on percentage because the benefits scale with it. Losing just 5% of your body weight can lower blood pressure, improve blood sugar control and reduce cholesterol; losing 10% brings even larger improvements and can put some cases of type 2 diabetes into remission. You do not have to reach an "ideal" weight to gain real, measurable health benefits.',
-          'The calculator above flags these milestones for you — 5% (clinically meaningful) and 10% (significant) — so you can see how close you are to the thresholds that matter most.',
+          'Clinical weight-management programs sometimes use 5% and 10% reductions from baseline as reference milestones in adults who have overweight or obesity. For people with type 2 diabetes and excess weight, the American Diabetes Association 2026 Standards of Care report that sustained 5–7% loss can improve blood sugar and other intermediate cardiovascular risk factors, while larger sustained reductions may offer additional benefits. The association also emphasizes individualized goals and context.',
+          'Reaching a threshold on a calculator does not prove you have improved blood pressure, blood glucose or other health outcomes, and it is not a reason to pursue weight loss when doing so would be inappropriate. The categories are descriptions of amount lost, not medical grades or universal targets. Near 5% or 10%, the display adds decimal precision so a rounded number does not obscure an underlying value below the milestone.',
         ],
       },
       {
-        h2: 'Setting a healthy pace',
+        h2: 'What gain, no change and rapid change mean',
         paragraphs: [
-          'A safe, sustainable rate of loss is generally 0.5–1 kg (1–2 lb) per week, or roughly 0.5–1% of body weight. Faster loss is more likely to come from water and muscle and tends to rebound. Weigh yourself under consistent conditions — same time of day, similar clothing — and expect normal day-to-day fluctuations of a kilo or more from water and food. Watching the weekly trend is far more useful than reacting to a single reading.',
+          'If current weight exceeds starting weight, the calculator says "Weight gained" and reports both the percentage and absolute amount gained. Equal measurements are shown as "Weight unchanged" with a zero change, not as weight loss. This makes the tool useful for recording either direction without assuming that loss is always the goal.',
+          'You cannot calculate a weekly pace from only two weights without dates. Weight can also fluctuate with fluid balance, meals, medication, pregnancy and illness; the percentage does not distinguish fat from muscle or body water. Unexpected or rapid changes deserve individualized medical attention.',
+        ],
+      },
+      {
+        h2: 'Making repeat measurements useful',
+        paragraphs: [
+          'Compare weights measured under reasonably similar circumstances and remember that a change in measured weight is not necessarily a change in fat. For people who are intentionally reducing weight as part of a suitable plan, the CDC describes gradual loss of about 1–2 pounds per week as more likely to be sustained than faster loss; that is not a prescription for every person.',
+          'This calculator accepts adult-oriented weights within its input range, from 25 to 350 kg, with support for pounds. It refuses zero, negative or nonfinite values instead of creating an impossible percentage. Ask a clinician about an unexplained change, especially if symptoms or a relevant medical condition are present.',
         ],
       },
     ],
     faq: [
       {
-        q: 'What is a good weight loss percentage?',
-        a: 'Losing 5% of your starting weight is considered clinically meaningful, and 10% brings major health benefits. These targets matter more than reaching a specific "goal" weight.',
+        q: 'How is weight loss percentage calculated?',
+        a: 'Take starting weight minus current weight, divide by starting weight, and multiply by 100. A positive result indicates weight loss; a negative result indicates gain.',
       },
       {
-        q: 'How fast should I lose weight?',
-        a: 'Most guidance recommends 0.5–1 kg (1–2 lb) per week, about 0.5–1% of body weight. Faster loss is harder to sustain and more likely to include muscle and water rather than fat.',
+        q: 'What if I gained weight?',
+        a: 'The tool labels it as weight gained, and reports the positive magnitude of the increase compared with your original starting weight. Gain does not automatically mean a health problem.',
       },
       {
-        q: 'Why track percentage instead of pounds?',
-        a: 'Percentage accounts for your starting size, so it compares progress fairly between people and matches the way health benefits of weight loss are measured in research.',
+        q: 'Does a 5% or 10% loss guarantee health benefits?',
+        a: 'No. Those are common reference milestones in adult weight-management care, particularly for people with overweight or obesity. Benefits vary by the person, medical context and whether change is sustained.',
+      },
+      {
+        q: 'Can this tool calculate my weekly weight-loss pace?',
+        a: 'No. It has no dates or time interval. It calculates only the total percentage and amount gained or lost between two readings.',
       },
     ],
     sources: [
-      WHO_OBESITY,
       {
-        citation:
-          'Magkos F, et al. "Effects of moderate and subsequent progressive weight loss on metabolic function and adipose tissue biology in humans with obesity." Cell Metab. 2016;23(4):591–601.',
-        url: pubmed('Effects of moderate and subsequent progressive weight loss metabolic function adipose tissue'),
+        citation: 'American Diabetes Association. Standards of Care in Diabetes—2026. Section 8, Obesity and Weight Management for the Prevention and Treatment of Diabetes. Recommendations 8.1, 8.5 and 8.6.',
+        url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC12690172/',
+      },
+      {
+        citation: 'Centers for Disease Control and Prevention. Steps for Losing Weight (January 17, 2025).',
+        url: 'https://www.cdc.gov/healthy-weight-growth/losing-weight/index.html',
+      },
+      {
+        citation: 'National Institute of Diabetes and Digestive and Kidney Diseases. Choosing a Safe and Successful Weight-loss Program.',
+        url: 'https://www.niddk.nih.gov/health-information/weight-management/choosing-a-safe-successful-weight-loss-program',
       },
     ],
   },
+
+
 };
 
