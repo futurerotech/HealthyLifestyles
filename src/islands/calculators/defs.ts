@@ -215,34 +215,76 @@ const macroDonut = (
 // ============================================================
 
 export const DEFS: Record<string, CalcDef> = {
-  // ---- 1. BMI ----
+  // ---- 1. BMI (CDC adult screening categories) ----
   'bmi-calculator': {
     slug: 'bmi-calculator',
     heading: 'Calculate your BMI',
     hasSex: false,
     fields: [F.weight(72), F.height(175)],
     compute: ({ vals, units }) => {
-      const m = vals.height / 100;
-      const bmi = vals.weight / (m * m);
+      // BMI = kg/m²; metric base units reach this function after display conversion.
+      const { weight, height } = vals;
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Your BMI',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (![weight, height].every((v) => Number.isFinite(v) && v > 0)) {
+        return fail('Enter valid positive weight and height measurements.');
+      }
+      // Mirror the existing form's supported input ranges in the pure formula.
+      if (weight < 25 || weight > 300 || height < 120 || height > 230) {
+        return fail('Check weight (25–300 kg) and height (120–230 cm) are within the supported input range.');
+      }
+      const meters = height / 100;
+      const bmi = weight / (meters * meters);
+      if (!Number.isFinite(bmi) || bmi <= 0) {
+        return fail('These measurements cannot produce a valid BMI.');
+      }
+
+      // CDC adult boundaries are lower-inclusive: 18.5, 25 and 30
+      // must enter the new band. Classify raw BMI, not a rounded display.
+      const category = bmi < 18.5
+        ? { label: 'Underweight', color: C.blue }
+        : bmi < 25
+          ? { label: 'Healthy weight', color: C.green }
+          : bmi < 30
+            ? { label: 'Overweight', color: C.amber }
+            : { label: 'Obesity', color: C.red };
+      // The gauge has continuous ranges; the categorical result above uses
+      // strict threshold comparisons, not bandFor's inclusive upper bound.
+      const gaugeMax = Math.max(40, Math.ceil(bmi / 5) * 5);
       const segments: Segment[] = [
         { upTo: 18.5, label: 'Underweight', color: C.blue },
-        { upTo: 25, label: 'Normal weight', color: C.green },
+        { upTo: 25, label: 'Healthy weight', color: C.green },
         { upTo: 30, label: 'Overweight', color: C.amber },
-        { upTo: 40, label: 'Obese', color: C.red },
+        { upTo: gaugeMax, label: 'Obesity', color: C.red },
       ];
-      const band = bandFor(bmi, segments);
-      const lowKg = 18.5 * m * m;
-      const highKg = 24.9 * m * m;
+      // Near a category edge, expand display precision so a rounded 25.0
+      // does not normally appear alongside the preceding category.
+      const cutoffs = [18.5, 25, 30];
+      let precision = cutoffs.some((c) => Math.abs(bmi - c) < 0.05) ? 2 : 1;
+      while (precision < 6 && cutoffs.some((c) => bmi < c && round(bmi, precision) >= c)) {
+        precision++;
+      }
+
+      // Healthy adult BMI interval is 18.5 <= BMI < 25, not <= 24.9.
+      // Rounded weight endpoints are illustrative, not personal targets.
+      const lowKg = 18.5 * meters * meters;
+      const exclusiveHighKg = 25 * meters * meters;
       return {
         ok: true,
         primaryLabel: 'Your BMI',
-        primaryValue: fmt(bmi, 1),
-        category: { label: band.label, color: band.color },
-        visual: { kind: 'gauge', value: bmi, min: 15, max: 40, segments },
+        primaryValue: fmt(bmi, precision),
+        category,
+        visual: { kind: 'gauge', value: bmi, min: 0, max: gaugeMax, segments },
         rows: [
-          { label: 'Healthy weight for your height', value: `${fmtMass(lowKg, units, 0)} – ${fmtMass(highKg, units, 0)}`, strong: true },
+          {
+            label: 'Approximate BMI reference weight (18.5 to below 25)',
+            value: fmtMass(lowKg, units, 1) + ' to under ' + fmtMass(exclusiveHighKg, units, 1),
+            strong: true,
+          },
         ],
-        note: 'BMI is a screening tool — it does not distinguish muscle from fat. Very muscular people may read high.',
+        note: 'These CDC screening categories are for adults age 20 and older, not children or teens. BMI is not a diagnosis and cannot separate fat from muscle or show fat location. The weight interval is an approximate BMI reference, not a personal goal; interpretation also depends on health history and other measures.',
       };
     },
   },

@@ -60,67 +60,92 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
   // ============================================================
   'bmi-calculator': {
     directAnswer: {
-      question: 'What is a healthy BMI?',
+      question: 'What BMI range is considered a healthy weight for adults?',
       answer:
-        'For most adults, a healthy BMI is 18.5–24.9. Below 18.5 is classed as underweight, 25–29.9 as overweight, and 30 or above as obesity (WHO/CDC categories). BMI is a screening measure, not a diagnosis — it can’t tell muscle from fat, so athletes and older adults should read it in context.',
+        'For U.S. adults age 20 and older, the CDC uses BMI 18.5 to below 25 as the healthy-weight screening category, 25 to below 30 as overweight, and 30 or above as obesity. Below 18.5 is underweight. BMI is based on weight and height and does not diagnose health or measure body fat directly.',
     },
-    seoTitle: 'Free BMI Calculator (Metric & Imperial)',
+    seoTitle: 'Adult BMI Calculator (Metric & Imperial)',
     metaDescription:
-      'Calculate your BMI instantly and see your WHO weight category and healthy weight range. Free, accurate, metric or imperial — no signup.',
+      'Calculate adult BMI from weight and height, view CDC cutoffs at 18.5, 25 and 30, and see an approximate reference-weight interval in kg or lb.',
     intro:
-      'Enter your height and weight to find your Body Mass Index (BMI), see which World Health Organization category it falls into, and learn the healthy weight range for your height.',
+      'Calculate your body mass index using weight and height, with either kilograms/centimeters or pounds/feet/inches. The results use U.S. CDC screening categories for adults age 20 and older and are not a medical diagnosis.',
     sections: [
       {
-        h2: 'How the BMI calculator works',
+        h2: 'The BMI formula and unit conversions',
         paragraphs: [
-          'Body Mass Index is a simple ratio of weight to height. The formula is BMI = weight (kg) ÷ height (m)². If you use imperial units, this tool converts your pounds and feet/inches to metric first, so the result is identical either way.',
-          'BMI was developed in the 19th century by Adolphe Quetelet and is used worldwide as a quick, low-cost screen for weight-related health risk across large populations. Because it needs only two measurements you almost certainly already know, it remains the most widely cited starting point for a weight assessment.',
+          'BMI = weight in kilograms ÷ (height in meters)². For a person who weighs 70 kg and measures 175 cm (1.75 m), BMI = 70 ÷ (1.75 × 1.75) = 22.86, usually shown as 22.9. The same calculation can use pounds and inches once the inputs are converted using 1 pound = 0.45359237 kilograms and 1 inch = 2.54 centimeters.',
+          'The calculator uses metric units internally, and it classifies the unrounded BMI. If a value is close to a category boundary, the result may show additional decimals so a number rounded to 25.0 is not paired with the wrong category. Metric-to-imperial input toggles use extra precision to reduce unintended changes around a threshold, but no display conversion is perfectly lossless.',
         ],
       },
       {
-        h2: 'Reading your BMI category',
+        h2: 'Adult BMI categories and their exact boundaries',
         list: {
           intro:
-            'The World Health Organization groups adult BMI into four broad bands. The coloured gauge above shows where your value sits:',
+            'The U.S. Centers for Disease Control and Prevention (CDC) publishes the following categories for adults age 20 and older:',
           items: [
-            'Under 18.5 — underweight, which can signal undernutrition or other health issues.',
-            '18.5 to 24.9 — a healthy weight for most adults.',
-            '25 to 29.9 — overweight, where risk of conditions such as type 2 diabetes begins to climb.',
-            '30 and above — obese, linked to substantially higher risk of cardiovascular and metabolic disease.',
+            'BMI below 18.5: underweight screening category.',
+            'BMI 18.5 to below 25: healthy-weight screening category.',
+            'BMI 25 to below 30: overweight screening category.',
+            'BMI 30 and above: obesity screening category, with additional classes at 35 and 40 in CDC guidance.',
           ],
         },
       },
       {
-        h2: 'The limits of BMI',
+        h2: 'What the reference weight interval really means',
         paragraphs: [
-          'BMI measures mass, not body composition, so it cannot tell muscle from fat. A muscular athlete may register as "overweight" while carrying very little fat, and an older adult with low muscle mass may sit in the healthy range yet carry excess fat. BMI also does not account for where fat is stored — and abdominal fat carries more risk than fat on the hips or thighs.',
-          'For a fuller picture, pair your BMI with a body-fat estimate and a waist-based measure such as waist-to-height ratio. Thresholds also differ for some populations: many health bodies use a lower overweight cut-off (around 23) for people of South Asian descent. Treat BMI as a useful first flag, not a diagnosis, and discuss any concerns with a healthcare professional.',
+          'At a given height, the BMI reference interval is calculated by multiplying the square of height (in meters) by 18.5 for the lower endpoint and by 25 for the upper endpoint. The upper endpoint is exclusive: a BMI of exactly 25 belongs to the overweight screening category. Displayed weights are rounded for readability, so the approximate endpoints are not precise health goals.',
+          'For example, at 175 cm, the BMI-based interval spans about 56.7 kg to just under 76.6 kg. An individual’s appropriate weight cannot be determined by this formula alone. Do not interpret the result as advice to gain or lose weight, particularly if pregnancy, medical conditions or an eating disorder may be involved.',
+        ],
+      },
+      {
+        h2: 'What BMI cannot establish',
+        paragraphs: [
+          'BMI is a screening measure, not a measurement of body-fat percentage, muscle, bone or where fat is distributed. A muscular person can have a relatively high BMI without the same body composition as someone with less muscle; an older adult can have an average BMI and still need assessment of muscle strength or health. A BMI number does not by itself diagnose a disease.',
+          'A clinician may consider waist circumference, other anthropometric measures, blood pressure, laboratory tests, medical history and symptoms. BMI-related risks vary among individuals and populations, and some groups can experience risk at lower BMI values; the universal categories are not personalized risk estimates.',
+        ],
+      },
+      {
+        h2: 'Age and other situations needing different interpretation',
+        paragraphs: [
+          'The CDC adult BMI calculator and its fixed categories are intended for ages 20 and older. U.S. children and teens ages 2 through 19 require BMI-for-age and sex-specific growth charts rather than adult cutoffs. The tool does not ask for age and cannot verify eligibility automatically.',
+          'During pregnancy, ordinary adult BMI classification is not an appropriate substitute for prenatal guidance. If you have concerns about body weight or a large change, discuss them with a qualified healthcare professional rather than relying on a single screen or attempting an unplanned weight change.',
         ],
       },
     ],
     faq: [
       {
-        q: 'What is a healthy BMI?',
-        a: 'For most adults, a BMI between 18.5 and 24.9 is considered healthy. Below 18.5 is underweight, 25–29.9 is overweight, and 30 or above is obese, according to the World Health Organization.',
+        q: 'What is the correct BMI formula?',
+        a: 'Divide weight in kilograms by the square of height in meters. For imperial inputs, convert pounds to kilograms and feet/inches to meters first.',
       },
       {
-        q: 'Is BMI accurate for athletes?',
-        a: 'Not always. BMI counts muscle and fat the same way, so very muscular people can be classed as overweight despite low body fat. Athletes should also look at body-fat percentage and waist measures.',
+        q: 'Does a BMI of exactly 18.5, 25 or 30 change categories?',
+        a: 'Yes. 18.5 starts the CDC adult healthy-weight category, 25 starts overweight, and 30 starts obesity. The calculator uses the raw number for comparisons, not a rounded one.',
       },
       {
-        q: 'Does BMI work the same for men and women?',
-        a: 'The BMI formula and adult categories are the same for men and women. Body composition differs between sexes, which is one reason BMI is best used alongside other measures.',
+        q: 'Is the BMI-based reference weight a target weight?',
+        a: 'No. It is a mathematical interval for BMI 18.5 up to but not including 25 at your height. Its displayed boundaries are rounded, and it is not a personalized weight recommendation.',
       },
       {
-        q: 'Is BMI used for children?',
-        a: 'Children and teens use age- and sex-specific BMI percentiles instead of the fixed adult categories. This adult calculator is intended for people aged 18 and over.',
+        q: 'Can I use adult BMI categories if I am 18 or 19?',
+        a: 'The U.S. CDC adult BMI calculator is for people age 20 or older. For ages 2–19, CDC uses BMI-for-age and sex-specific growth charts.',
+      },
+      {
+        q: 'Does BMI determine whether I have excess body fat or a disease?',
+        a: 'No. BMI is a screening tool that does not measure body fat directly or diagnose disease. It should be considered with medical history, examinations and other relevant findings.',
       },
     ],
     sources: [
-      WHO_OBESITY,
       {
-        citation: 'Centers for Disease Control and Prevention (CDC). "About BMI" — adult categories, uses, and limitations.',
-        url: 'https://www.cdc.gov/bmi/about/index.html',
+        citation: 'Centers for Disease Control and Prevention. Adult BMI Categories (March 19, 2024): categories, boundaries, age scope and screening limitations.',
+        url: 'https://www.cdc.gov/bmi/adult-calculator/bmi-categories.html',
+      },
+      {
+        citation: 'Centers for Disease Control and Prevention. Adult BMI Calculator (June 26, 2024): formula, imperial inputs, scope and interpretive cautions.',
+        url: 'https://www.cdc.gov/bmi/adult-calculator/index.html',
+      },
+      {
+        citation: 'World Health Organization. Obesity and overweight: adult BMI at or above 25 and 30 and pediatric-age interpretation.',
+        url: 'https://www.who.int/news-room/fact-sheets/detail/obesity-and-overweight',
       },
     ],
   },

@@ -17,10 +17,11 @@ import ShareResult from '../components/ShareResult';
 type Disp = Record<string, string>;
 
 const preciseHeight = (def: CalcDef): boolean =>
-  def.slug === 'lean-body-mass-calculator' || def.slug === 'waist-to-height-ratio-calculator';
+  def.slug === 'lean-body-mass-calculator' || def.slug === 'waist-to-height-ratio-calculator' ||
+  def.slug === 'bmi-calculator';
 
 const preciseWeight = (def: CalcDef): boolean =>
-  def.slug === 'weight-loss-percentage-calculator';
+  def.slug === 'weight-loss-percentage-calculator' || def.slug === 'bmi-calculator';
 
 const num = (s: string | undefined): number => {
   const n = parseFloat(s ?? '');

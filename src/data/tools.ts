@@ -210,7 +210,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'bmi-calculator',
     title: 'BMI Calculator',
-    blurb: 'Check your body mass index and what your healthy weight range looks like.',
+    blurb: 'Calculate adult BMI and view CDC screening categories and an approximate weight reference interval.',
     category: 'body-weight',
     icon: 'scale',
     gradient: 'blue',
