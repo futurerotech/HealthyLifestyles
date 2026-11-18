@@ -1,7 +1,8 @@
 /** @jsxImportSource preact */
 import { useState } from 'preact/hooks';
+import { convertPaceInputs, type PaceUnit } from '../lib/pace';
 
-type Unit = 'km' | 'mi';
+type Unit = PaceUnit;
 type Mode = 'time' | 'pace' | 'distance';
 
 const n = (s: string): number => {
@@ -43,6 +44,17 @@ export default function PaceCalculator(_: { slug: string }) {
   const [tS, setTS] = useState('0');
   const [pM, setPM] = useState('5');
   const [pS, setPS] = useState('0');
+
+  const handleUnitChange = (next: Unit) => {
+    if (next === unit) return;
+    const converted = convertPaceInputs(
+      { distance, paceMinutes: pM, paceSeconds: pS }, unit, next,
+    );
+    setDistance(converted.distance);
+    setPM(converted.paceMinutes);
+    setPS(converted.paceSeconds);
+    setUnit(next);
+  };
 
   const id = (k: string) => `pace-${k}`;
   const dist = n(distance);
@@ -105,7 +117,7 @@ export default function PaceCalculator(_: { slug: string }) {
           <h2 class="calc__heading">Running Pace</h2>
           <div class="seg" role="group" aria-label="Unit">
             {(['km', 'mi'] as Unit[]).map((u) => (
-              <button type="button" class={`seg__btn${unit === u ? ' is-active' : ''}`} aria-pressed={unit === u} onClick={() => setUnit(u)}>{u}</button>
+              <button type="button" class={`seg__btn${unit === u ? ' is-active' : ''}`} aria-pressed={unit === u} onClick={() => handleUnitChange(u)}>{u}</button>
             ))}
           </div>
         </div>
