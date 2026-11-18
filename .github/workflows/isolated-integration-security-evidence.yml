@@ -81,6 +81,10 @@ jobs:
           node scripts/seo/validate-jsonld.ts
           node scripts/seo/sitemap-canonical-audit.mjs
 
+      - name: Block unpatched high/critical vulnerabilities in review
+        if: always()
+        run: npm audit --audit-level=high
+
       - name: Original expired-baseline security gate is still required
         if: always()
         run: node scripts/ci/audit-delta.ts
