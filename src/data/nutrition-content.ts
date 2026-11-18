@@ -672,54 +672,97 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
 
   // ============================================================
   'keto-calculator': {
-    seoTitle: 'Keto Calculator – Macros & Net Carbs',
+    directAnswer: {
+      question: 'Does a 70/25/5 keto macro calculation guarantee ketosis?',
+      answer:
+        'No. This calculator illustrates one 70% fat, 25% protein, 5% TOTAL-carbohydrate split using estimated resting energy and a selected activity multiplier. There is no single required ketogenic macro ratio; 5% of a high calorie amount can exceed the under-50-g/day carbohydrate pattern discussed in research. It does not measure ketones or calculate net carbohydrates.',
+    },
+    seoTitle: 'Keto Calculator — 70/25/5 Macro Example and Limits',
     metaDescription:
-      'Calculate your ketogenic macros — about 70% fat, 25% protein, 5% carbs — plus your daily net carb cap. Free keto calculator, metric or imperial.',
+      'Explore a 70/25/5 keto macro illustration with estimated REE and TDEE, total carbohydrates, unit conversions and clinical limitations.',
     intro:
-      'The ketogenic diet is very low in carbohydrate and high in fat. Enter your details to get your daily calories split into keto macros, along with your net carb limit.',
+      'See how an illustrative 70% fat, 25% protein and 5% total-carbohydrate allocation looks when applied to an estimated daily energy budget. The calculator does not prescribe a keto diet, calculate net carbohydrate, confirm nutritional ketosis, or identify a safe calorie intake.',
+    notice:
+      'Adult education only. Very-low-carbohydrate diets are not recommended during pregnancy or breastfeeding, for children, people with kidney disease or disordered eating. Avoid ketogenic diets while taking SGLT2 inhibitors because of ketoacidosis risk; diabetes and other medicines require professional oversight. This is not a diet or medication plan.',
     sections: [
       {
-        h2: 'How keto macros are split',
+        h2: 'How the calculator estimates energy',
         paragraphs: [
-          'A standard ketogenic diet draws roughly 70% of calories from fat, 25% from protein, and just 5% from carbohydrate. This calculator finds your daily calories (TDEE) using the Mifflin-St Jeor equation and an activity factor, then converts each share into grams — remembering that fat provides 9 calories per gram while protein and carbs provide 4.',
-          'The very high fat and very low carb intake is what shifts your body into ketosis, a state in which it burns fat for fuel and produces molecules called ketones in place of glucose.',
+          'The preserved simplified Mifflin–St Jeor formula estimates resting energy expenditure (REE), in kcal/day: 10 × weight in kilograms + 6.25 × height in centimeters − 5 × age in years, then add 5 for the male equation or subtract 161 for the female equation. These are historical equation inputs, not a measurement of a person’s metabolic health. The original study enrolled healthy adults ages 19–78; the site allows adults through 100 as a transparent extrapolation, not a validation at older ages.',
+          'The selectable activity multipliers, preserved from the existing calorie and macro calculators, are 1.2, 1.375, 1.55, 1.725 and 1.9. Predicted REE multiplied by the selected assumption gives illustrative total daily energy expenditure (TDEE), not measured calories burned or a clinical food-intake prescription.',
         ],
       },
       {
-        h2: 'Net carbs and your daily cap',
+        h2: 'What 70% fat, 25% protein and 5% carbohydrate actually calculate',
         paragraphs: [
-          'Keto plans count "net carbs" — total carbohydrate minus fibre (and sugar alcohols), since fibre is not digested for energy and has little effect on blood sugar. Most people need to keep net carbs under about 20–50 grams a day to reach and stay in ketosis; 20 g is a strict target, while up to 50 g works for more active people.',
-          'Your 5% carbohydrate allowance above is your starting point. Treat 20–50 g of net carbs as your daily ceiling, and prioritise carbs from non-starchy vegetables rather than grains, sugar or fruit.',
+          'For a 70-kg, 175-cm, 30-year-old using the male equation and a 1.375 activity multiplier, the predicted REE is 1,648.75 kcal/day and illustrative TDEE is about 2,267 kcal/day. The unrounded 70/25/5 energy allocations produce approximately 176 g fat, 142 g protein and 28.34 g TOTAL carbohydrate. The calculation uses 9 kcal per gram of fat and 4 kcal per gram of protein or carbohydrate, so the unrounded energy shares reconcile to the assumed budget.',
+          'The 70/25/5 ratio is retained for continuity with the original calculator; it is ONE possible distribution, not an established universal ketogenic diet. It gives about 2.0 g protein per kg of body weight in the example—whether that is medically or nutritionally appropriate depends on the individual. Rounded grams need not sum exactly to displayed calories.',
         ],
       },
       {
-        h2: 'Getting into ketosis safely',
+        h2: 'Why five percent carbohydrate is not a net-carb cap',
         paragraphs: [
-          'It typically takes a few days to a week of very low carbohydrate intake to enter ketosis. During the transition some people experience the temporary "keto flu" — fatigue, headache and irritability — which is eased by drinking enough water and replacing electrolytes such as sodium, potassium and magnesium.',
-          'Keto suits some people well but is not for everyone. If you are pregnant, have type 1 diabetes, take medication for blood sugar or blood pressure, or have liver, kidney or pancreatic conditions, speak to your doctor before starting, as your needs and medication may need adjusting.',
+          'The 5% calculation above is a percentage of assumed calories assigned to TOTAL carbohydrate. In many exercise and dietary studies a ketogenic pattern is described as fewer than about 50 g of total carbohydrate daily, but ketosis varies by person and circumstances. If this calculator’s 5% share reaches 50 g or more, it flags the difference rather than silently calling it a ketogenic target. No percentage, gram threshold or online calculator can confirm nutritional ketosis.',
+          'The American Diabetes Association does not recognize “net carbs” as a standardized or FDA-defined quantity. Subtracting all fiber and all sugar alcohols from total carbohydrate can be inaccurate because different substances are digested differently. Since this calculator asks for no fiber, sugar-alcohol or food information, it cannot calculate net carbs or a personal net-carbohydrate ceiling; someone using diabetes medication should follow professional carbohydrate-counting advice.',
+        ],
+      },
+      {
+        h2: 'What the energy, grams and donut chart mean',
+        paragraphs: [
+          'The donut chart is computed from the unrounded 4/4/9 energy equivalents of the three allocations and therefore represents 25% protein, 5% total carbohydrate and 70% fat. The predicted REE and the selected activity factor appear separately so the assumptions behind TDEE are visible.',
+          'For unusual inputs that create a modeled energy budget below 1,000 kcal/day, the tool suppresses the macro amounts instead of implying a very low food plan is acceptable. This is a conservative calculator-display decision, not a minimum intake that is medically safe for everyone. Predictions at older ages and very large body sizes can be particularly uncertain.',
+        ],
+      },
+      {
+        h2: 'Ketosis, ketoacidosis and people needing individual care',
+        paragraphs: [
+          'Nutritional ketosis is not the same condition as diabetic ketoacidosis (DKA), which is potentially life-threatening. ADA 2026 recommendations advise avoiding very-low-carbohydrate eating patterns when taking SGLT2 inhibitor medicines because of ketoacidosis risk, including when blood glucose is not dramatically high. Insulin and other glucose-lowering medicines may also require clinical adjustments to prevent hypoglycemia. Do not discontinue or change any medicine because of this calculator.',
+          'Very-low-carbohydrate plans are not recommended during pregnancy, breastfeeding, childhood, kidney disease or a history of disordered eating. Liver or pancreatic conditions, special metabolic disorders and other medical circumstances can make restrictive diets inappropriate. If considering dietary change, assess nutritional adequacy and medication safety with a qualified clinician or registered dietitian. A chart of grams alone cannot establish suitability or safety.',
         ],
       },
     ],
     faq: [
       {
-        q: 'What are the macros for a keto diet?',
-        a: 'A standard ketogenic diet is about 70% of calories from fat, 25% from protein, and 5% from carbohydrate. This calculator converts those percentages into daily gram targets for you.',
+        q: 'Is 70/25/5 the only standard ketogenic ratio?',
+        a: 'No. It is the original site illustration, not a universal prescription. Published ketogenic patterns vary by goals, population and clinical setting.',
       },
       {
-        q: 'How many carbs can I eat on keto?',
-        a: 'Most people stay in ketosis by keeping net carbs (total carbs minus fibre) under 20–50 grams a day. Twenty grams is a strict limit; more active people can sometimes tolerate up to 50.',
+        q: 'Is the five-percent carbohydrate number a net-carbohydrate limit?',
+        a: 'No. It is a calculated amount of total carbohydrate. The tool has no fiber or sugar-alcohol inputs, so it cannot derive net carbohydrates; ADA notes that net carbohydrate is not a standardized FDA label term.',
       },
       {
-        q: 'What are net carbs?',
-        a: 'Net carbs are total carbohydrate minus fibre and sugar alcohols. Because fibre is not absorbed for energy, keto diets count only the carbs that actually affect blood sugar.',
+        q: 'Does 20–50 g of carbohydrates guarantee ketosis?',
+        a: 'No. Some studies use below 50 g of total carbohydrate as a broad ketogenic definition, but the amount associated with nutritional ketosis varies. This calculator does not measure ketones.',
+      },
+      {
+        q: 'Does the calorie estimate mean how much I should eat?',
+        a: 'No. REE is predicted from the Mifflin–St Jeor equation and TDEE assumes an activity multiplier. Neither is a measured personal intake prescription.',
+      },
+      {
+        q: 'Is keto safe if I have diabetes or take an SGLT2 inhibitor?',
+        a: 'Do not follow the calculator as a diet plan. Very-low-carbohydrate diets should be avoided when taking SGLT2 inhibitors because of DKA risk. Diabetes medicines and dietary plans require medical oversight.',
       },
     ],
     sources: [
-      MIFFLIN,
       {
-        citation:
-          'Masood W, Annamaraju P, Uppaluri KR. "Ketogenic Diet." In: StatPearls. Treasure Island (FL): StatPearls Publishing; 2023.',
-        url: pubmed('Ketogenic Diet StatPearls Masood'),
+        citation: 'Mifflin MD et al. A new predictive equation for resting energy expenditure in healthy individuals. Am J Clin Nutr. 1990;51:241–247.',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/2305711/',
+      },
+      {
+        citation: 'International Society of Sports Nutrition Position Stand: Ketogenic Diets. J Int Soc Sports Nutr. 2024.',
+        url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC11212571/',
+      },
+      {
+        citation: 'American Diabetes Association. Get to Know Carbs: net carbs are not a standardized or recognized FDA/ADA label term.',
+        url: 'https://diabetes.org/food-nutrition/understanding-carbs/get-to-know-carbs',
+      },
+      {
+        citation: 'American Diabetes Association. Standards of Care in Diabetes 2026, Facilitating Positive Health Behaviors: very-low-carb exclusions and SGLT2 safety.',
+        url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC12690188/',
+      },
+      {
+        citation: 'Harvard T.H. Chan School of Public Health. Diet Review: Ketogenic Diet for Weight Loss (multiple ratios and contraindications).',
+        url: 'https://nutritionsource.hsph.harvard.edu/healthy-weight/diet-reviews/ketogenic-diet/',
       },
     ],
   },

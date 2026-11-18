@@ -1176,35 +1176,93 @@ export const DEFS: Record<string, CalcDef> = {
     },
   },
 
-  // ---- Keto / Carb ----
+  // ---- Keto: original 70/25/5 arithmetic, with honest clinical limits ----
   'keto-calculator': {
     slug: 'keto-calculator',
-    heading: 'Calculate your keto macros',
+    heading: 'Explore an illustrative 70/25/5 macro split',
     hasSex: true,
-    fields: [F.weight(72), F.height(175), F.age(30), activityField()],
-    compute: ({ vals, selects, sex }) => {
-      const factor = parseFloat(selects.activity) || 1.375;
-      const bmr = mifflin(vals.weight, vals.height, vals.age, sex);
-      const tdee = bmr * factor;
-      const fatG = (tdee * 0.7) / 9;
-      const proteinG = (tdee * 0.25) / 4;
-      const carbsG = (tdee * 0.05) / 4;
+    fields: [
+      F.weight(72),
+      F.height(175),
+      { ...F.age(30), min: 19, help: 'Adults only. The original Mifflin–St Jeor study enrolled ages 19–78; predictions at older ages extrapolate beyond that sample.' },
+      activityField(),
+    ],
+    compute: ({ vals, selects, sex, units }) => {
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Illustrative 70/25/5 energy split',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      const { weight, height, age } = vals;
+      if (units !== 'metric' && units !== 'imperial') {
+        return fail('Choose metric or imperial units.');
+      }
+      if ((sex !== 'male' && sex !== 'female') ||
+          ![weight, height, age].every(Number.isFinite)) {
+        return fail('Enter valid finite adult measurements and an equation sex.');
+      }
+      if (weight < 25 || weight > 300 || height < 120 || height > 230 ||
+          !Number.isInteger(age) || age < 19 || age > 100) {
+        return fail('Enter weight (25–300 kg), height (120–230 cm), and whole-year adult age (19–100).');
+      }
+      // Reuse the shared set of five existing activity multipliers. An exact
+      // match prevents malformed strings or missing values from silently
+      // falling back to the original 1.375 multiplier.
+      const activity = ACTIVITY_OPTIONS.find(option => option.value === selects.activity);
+      if (!activity) return fail('Choose one of the listed activity levels.');
+
+      const ree = mifflin(weight, height, age, sex); // Predicted REE, NOT measured BMR.
+      const factor = Number(activity.value);
+      const tdee = ree * factor; // Assumed activity-adjusted expenditure.
+      if (![ree, factor, tdee].every(value => Number.isFinite(value) && value > 0)) {
+        return fail('These inputs cannot produce a valid estimated energy budget.');
+      }
+      // Align with the existing nonprescriptive nutrition-tool display guard:
+      // no macronutrient handoff from a very low modeled daily budget.
+      // This 1000-kcal threshold is NOT a universally safe energy intake.
+      if (tdee < 1000) {
+        return fail('This model produces an energy budget under 1,000 kcal/day. No diet macro split is shown. The display threshold is NOT a universal safe-calorie minimum; ask a qualified clinician or registered dietitian for individualized advice.');
+      }
+
+      // Preserve the EXISTING 70/25/5 example exactly. All three rows show
+      // TOTAL carbohydrate, fat and protein energies (4/9/4 kcal per gram).
+      // Nothing here converts total carbohydrate to NET carbohydrate: fiber
+      // and sugar-alcohol amounts were never requested from the visitor.
+      const fatKcal = tdee * 0.70;
+      const proteinKcal = tdee * 0.25;
+      const carbKcal = tdee * 0.05;
+      const fatG = fatKcal / 9;
+      const proteinG = proteinKcal / 4;
+      const totalCarbG = carbKcal / 4;
+      if (![fatKcal, proteinKcal, carbKcal, fatG, proteinG, totalCarbG]
+          .every(value => Number.isFinite(value) && value >= 0)) {
+        return fail('The macro split cannot be calculated from these inputs.');
+      }
+      const aboveCommonCarbReference = totalCarbG >= 50;
+      const olderSampleCaution = age > 78
+        ? ' The Mifflin–St Jeor study originally sampled adults aged 19–78, so this age extrapolates beyond that research population.'
+        : '';
       return {
         ok: true,
-        primaryLabel: 'Daily calories (keto)',
-        primaryValue: `${fmt(tdee, 0)} kcal/day`,
-        visual: macroDonut(proteinG, carbsG, fatG),
+        primaryLabel: 'Illustrative 70/25/5 energy split',
+        primaryValue: fmt(tdee, 0) + ' kcal/day (estimate)',
+        visual: macroDonut(proteinG, totalCarbG, fatG),
         rows: [
-          { label: 'Fat (70%)', value: `${fmt(fatG, 0)} g · ${fmt(tdee * 0.7, 0)} kcal`, strong: true },
-          { label: 'Protein (25%)', value: `${fmt(proteinG, 0)} g · ${fmt(tdee * 0.25, 0)} kcal` },
-          { label: 'Carbs (5%)', value: `${fmt(carbsG, 0)} g · ${fmt(tdee * 0.05, 0)} kcal` },
-          { label: 'Net carb cap', value: '≤ 20–50 g', strong: true },
+          { label: 'Fat (70% illustrative)', value: fmt(fatG, 0) + ' g · ' + fmt(fatKcal, 0) + ' kcal', strong: true },
+          { label: 'Protein (25% illustrative)', value: fmt(proteinG, 0) + ' g · ' + fmt(proteinKcal, 0) + ' kcal' },
+          { label: 'TOTAL carbohydrate (5% illustrative; not net)',
+            value: fmt(totalCarbG, 2) + ' g · ' + fmt(carbKcal, 0) + ' kcal' },
+          { label: 'Predicted resting energy (REE)', value: fmt(ree, 0) + ' kcal/day' },
+          { label: 'Assumed activity factor', value: '×' + activity.value + ' (' + activity.label + ')' },
+          { label: 'Illustrative activity-adjusted expenditure (TDEE)', value: fmt(tdee, 0) + ' kcal/day' },
+          { label: 'Net carbohydrate allowance', value: 'Not calculable without individual fiber/sugar-alcohol data' },
         ],
         callout: {
-          tone: 'info',
-          text: `To reach and stay in ketosis, keep net carbs (total carbs minus fibre) under about 20–50 g per day. Your 5% target is ${fmt(carbsG, 0)} g.`,
+          tone: aboveCommonCarbReference ? 'warn' : 'info',
+          text: aboveCommonCarbReference
+            ? 'At this estimated energy budget, 5% equals ' + fmt(totalCarbG, 2) + ' g of TOTAL carbohydrate. That meets or exceeds a commonly cited UNDER-50-g/day research description of ketogenic diets. The ratio does NOT guarantee ketosis or define a safe net-carb allowance.' + olderSampleCaution
+            : 'The 70/25/5 allocation is one arithmetic example, not a universally validated ketogenic prescription or a guarantee of ketosis. The carbohydrate result is TOTAL carbohydrate, not net carbohydrate; individual requirements vary.' + olderSampleCaution,
         },
-        note: 'A standard ketogenic split is roughly 70% fat, 25% protein and 5% carbohydrate. Talk to your doctor before starting keto, especially with a medical condition.',
+        note: 'The simplified Mifflin–St Jeor equations estimate resting energy expenditure (REE), not measured BMR. The five activity multipliers are assumptions, not objectively measured expenditure or a personal calorie target. The preserved 70% fat, 25% protein, 5% TOTAL carbohydrate split uses 9/4/4 kcal per gram; displayed grams are rounded and may not sum precisely. Keto diets have no single universal macro ratio. Research commonly describes <50 g/day of total carbohydrate, not a proven individual ceiling. ADA does not recognize “net carbs” as a standardized label; this tool cannot compute net carbohydrate from the given inputs. Nutritional ketosis is different from life-threatening diabetic ketoacidosis. Very-low-carbohydrate diets should be avoided with SGLT2 inhibitor treatment and are not recommended in pregnancy, breastfeeding, children, kidney disease or eating disorders. Diabetes medicines, pancreatitis or liver conditions also need professional advice; never change medication or attempt this ratio on the basis of this calculator.',
       };
     },
   },

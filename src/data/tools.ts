@@ -121,7 +121,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'keto-calculator',
     title: 'Keto Calculator',
-    blurb: 'Get your ketogenic macros (70/25/5) and daily net carb limit.',
+    blurb: 'Explore a 70/25/5 macro example using estimated energy, total carbohydrates and clinical limitations.',
     category: 'nutrition',
     icon: 'wheat',
     gradient: 'amber',

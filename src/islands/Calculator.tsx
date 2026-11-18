@@ -20,12 +20,13 @@ const preciseHeight = (def: CalcDef): boolean =>
   def.slug === 'lean-body-mass-calculator' || def.slug === 'waist-to-height-ratio-calculator' ||
   def.slug === 'bmi-calculator' || def.slug === 'bmr-calculator' ||
   def.slug === 'ideal-weight-calculator' || def.slug === 'calorie-calculator' ||
-  def.slug === 'macro-calculator';
+  def.slug === 'macro-calculator' || def.slug === 'keto-calculator';
 
 const preciseWeight = (def: CalcDef): boolean =>
   def.slug === 'weight-loss-percentage-calculator' || def.slug === 'bmi-calculator' ||
   def.slug === 'bmr-calculator' || def.slug === 'calorie-calculator' ||
-  def.slug === 'macro-calculator' || def.slug === 'protein-intake-calculator' ||
+  def.slug === 'macro-calculator' || def.slug === 'keto-calculator' ||
+  def.slug === 'protein-intake-calculator' ||
   def.slug === 'water-intake-calculator' || def.slug === 'calorie-deficit-calculator';
 
 const num = (s: string | undefined): number => {
@@ -39,7 +40,7 @@ function initialDisplay(def: CalcDef, units: UnitSystem): Disp {
     if (f.type === 'height') {
       if (units === 'metric') d.height = String(round(f.metricDefault, 0));
       else {
-        const { ft, inch } = cmToFtIn(f.metricDefault, def.slug === 'ideal-weight-calculator' ? 0.001 : preciseHeight(def) ? 0.01 : 0.5);
+        const { ft, inch } = cmToFtIn(f.metricDefault, def.slug === 'keto-calculator' ? 0.001 : def.slug === 'ideal-weight-calculator' ? 0.001 : preciseHeight(def) ? 0.01 : 0.5);
         d.height_ft = String(ft);
         d.height_in = String(inch);
       }
@@ -70,10 +71,13 @@ function toMetric(def: CalcDef, disp: Disp, units: UnitSystem): Record<string, n
   const v: Record<string, number> = {};
   for (const f of def.fields) {
     if (f.type === 'height') {
-      v[f.key] = units === 'metric' ? num(disp.height) : ftInToCm(num(disp.height_ft), num(disp.height_in));
+      v[f.key] = units === 'metric' ? num(disp.height)
+        : def.slug === 'keto-calculator'
+          ? round(ftInToCm(num(disp.height_ft), num(disp.height_in)), 2)
+          : ftInToCm(num(disp.height_ft), num(disp.height_in));
     } else if (f.type === 'mass') {
       v[f.key] = units === 'metric' ? num(disp[f.key])
-        : (def.slug === 'protein-intake-calculator' || def.slug === 'water-intake-calculator' ||
+        : (def.slug === 'keto-calculator' || def.slug === 'protein-intake-calculator' || def.slug === 'water-intake-calculator' ||
           def.slug === 'calorie-deficit-calculator')
           // These calculators preserve 0.01-kg display precision across
           // 0.001-lb round trips; calorie-deficit includes its 0.5-kg boundary.
@@ -95,7 +99,7 @@ function convertDisplay(def: CalcDef, disp: Disp, to: UnitSystem): Disp {
   for (const f of def.fields) {
     if (f.type === 'height') {
       if (to === 'imperial') {
-        const { ft, inch } = cmToFtIn(num(disp.height), def.slug === 'ideal-weight-calculator' ? 0.001 : preciseHeight(def) ? 0.01 : 0.5);
+        const { ft, inch } = cmToFtIn(num(disp.height), def.slug === 'keto-calculator' ? 0.001 : def.slug === 'ideal-weight-calculator' ? 0.001 : preciseHeight(def) ? 0.01 : 0.5);
         d.height_ft = String(ft);
         d.height_in = String(inch);
         delete d.height;
@@ -676,8 +680,8 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
             <div class="calc__input">
               <input
                 type="number" inputMode="decimal" min="0"
-                max={slug === 'ideal-weight-calculator' ? '11.999' : preciseHeight(def) ? '11.99' : '11.5'}
-                step={slug === 'ideal-weight-calculator' ? '0.001' : preciseHeight(def) ? '0.01' : '0.5'}
+                max={slug === 'keto-calculator' ? '11.999' : slug === 'ideal-weight-calculator' ? '11.999' : preciseHeight(def) ? '11.99' : '11.5'}
+                step={slug === 'keto-calculator' ? '0.001' : slug === 'ideal-weight-calculator' ? '0.001' : preciseHeight(def) ? '0.01' : '0.5'}
                 id={id('height_in')} aria-label="Inches"
                 value={disp.height_in ?? ''} onInput={(e) => setField('height_in', (e.target as HTMLInputElement).value)}
               />
