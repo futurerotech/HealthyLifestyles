@@ -55,12 +55,32 @@ function isSpam(urlPath: string): boolean {
 
 function extractLinks(html: string): string[] {
   const links: string[] = []
-  // Match href="/..." or href='/...' (internal absolute paths only)
+  // Preserve existing root-relative link handling, but do not misclassify
+  // protocol-relative external URLs (//other-host/path) as internal paths.
   const regex = /href=(["'])(\/[^"']+)\1/g
   let match: RegExpExecArray | null
   while ((match = regex.exec(html)) !== null) {
-    // Strip query string and fragment for target matching.
-    links.push(match[2].split(/[?#]/)[0])
+    if (!match[2].startsWith('//')) {
+      links.push(match[2].split(/[?#]/)[0])
+    }
+  }
+
+  // The former scanner silently omitted absolute same-site <a> links.
+  // Only count navigational anchors: <link rel="canonical"> metadata must
+  // never create a phantom inbound edge that hides an orphan page.
+  const absoluteAnchors = /<a\b[^>]*?\s+href\s*=\s*(["'])(https?:\/\/[^"']+|\/\/[^"']+)\1/gi
+  while ((match = absoluteAnchors.exec(html)) !== null) {
+    try {
+      const target = new URL(match[2], 'https://www.healthylifesstyles.com')
+      if (
+        (target.protocol === 'https:' || target.protocol === 'http:') &&
+        (target.hostname === 'www.healthylifesstyles.com' || target.hostname === 'healthylifesstyles.com')
+      ) {
+        links.push(target.pathname)
+      }
+    } catch {
+      // Malformed/external navigation is not a known local page.
+    }
   }
   return links
 }
