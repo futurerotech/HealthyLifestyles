@@ -27,6 +27,7 @@ const EXCLUDED_PATHS = [/^\/og\//i, /^\/embed\//i, /^\/api\//i, /^\/404/i, /^\/$
 const ASSET_EXTENSIONS = /\.(woff2?|css|js|mjs|svg|png|jpg|jpeg|webp|ico|webmanifest|txt|xml|json|pdf)$/i
 const TRACKED_ARTICLE_OR_TOOL = /^\/(tools|wellness-hub)\/[^/]+$/
 const TRACKED_TAG_PAGE = /^\/wellness-hub\/tag\/[^/]+$/
+const STRICT_DEAD_LINKS = process.argv.includes('--strict-dead-links')
 
 function isTrackedPage(urlPath: string): boolean {
   // Track tools, articles, and tag pages. Tag pages were previously invisible
@@ -54,12 +55,32 @@ function isSpam(urlPath: string): boolean {
 
 function extractLinks(html: string): string[] {
   const links: string[] = []
-  // Match href="/..." or href='/...' (internal absolute paths only)
+  // Preserve existing root-relative link handling, but do not misclassify
+  // protocol-relative external URLs (//other-host/path) as internal paths.
   const regex = /href=(["'])(\/[^"']+)\1/g
   let match: RegExpExecArray | null
   while ((match = regex.exec(html)) !== null) {
-    // Strip query string and fragment for target matching.
-    links.push(match[2].split(/[?#]/)[0])
+    if (!match[2].startsWith('//')) {
+      links.push(match[2].split(/[?#]/)[0])
+    }
+  }
+
+  // The former scanner silently omitted absolute same-site <a> links.
+  // Only count navigational anchors: <link rel="canonical"> metadata must
+  // never create a phantom inbound edge that hides an orphan page.
+  const absoluteAnchors = /<a\b[^>]*?\s+href\s*=\s*(["'])(https?:\/\/[^"']+|\/\/[^"']+)\1/gi
+  while ((match = absoluteAnchors.exec(html)) !== null) {
+    try {
+      const target = new URL(match[2], 'https://www.healthylifesstyles.com')
+      if (
+        (target.protocol === 'https:' || target.protocol === 'http:') &&
+        (target.hostname === 'www.healthylifesstyles.com' || target.hostname === 'healthylifesstyles.com')
+      ) {
+        links.push(target.pathname)
+      }
+    } catch {
+      // Malformed/external navigation is not a known local page.
+    }
   }
   return links
 }
@@ -164,11 +185,13 @@ async function main() {
   }
 
   if (deadLinks.length > 0) {
-    console.log('\nWARN: dead internal links found (reported for fixing; not failing build).')
+    console.log(STRICT_DEAD_LINKS
+      ? '\nFAIL: dead internal links found in strict mode.'
+      : '\nWARN: dead internal links found (reported for fixing; not failing build).')
   }
 
-  if (orphans.length > 0 || spamLinks.length > 0) {
-    console.log('\nFAIL: orphan/spam-link checks failed.')
+  if (orphans.length > 0 || spamLinks.length > 0 || (STRICT_DEAD_LINKS && deadLinks.length > 0)) {
+    console.log('\nFAIL: orphan/spam/dead-link checks failed.')
     process.exit(1)
   }
 

@@ -1,0 +1,93 @@
+name: Isolated integration security evidence (no release)
+
+on:
+  pull_request:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+jobs:
+  review-evidence:
+    name: Review-only npm audit and Phase 1/2/3 tests
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'integration/seo-cms-review-safety-20261117' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout integration source
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install exact existing lockfile
+        run: npm ci
+
+      - name: Inspect exact committed lockfile (no mutation, no risk acceptance)
+        shell: bash
+        run: |
+          node <<'NODE'
+          const { spawnSync } = require('node:child_process');
+          const audit = spawnSync('npm', ['audit', '--json'], {
+            encoding: 'utf8', maxBuffer: 64 * 1024 * 1024,
+          });
+          if (audit.error || !audit.stdout) throw new Error('npm audit unavailable: ' + String(audit.error || audit.stderr).slice(0, 200));
+          const report = JSON.parse(audit.stdout);
+          if (!report.metadata?.vulnerabilities || !report.vulnerabilities) throw new Error('Invalid npm audit result');
+          const unique = new Map();
+          for (const [pkg, vulnerability] of Object.entries(report.vulnerabilities)) {
+            for (const advisory of vulnerability.via || []) {
+              if (advisory && typeof advisory === 'object' && advisory.source) {
+                unique.set(advisory.source, {
+                  id: advisory.source, package: pkg, severity: advisory.severity,
+                  title: advisory.title, fixAvailable: vulnerability.fixAvailable,
+                });
+              }
+            }
+          }
+          console.log('EXACT_LOCK_AUDIT_TOTALS=' + JSON.stringify(report.metadata.vulnerabilities));
+          console.log('EXACT_LOCK_UNIQUE_ADVISORIES=' + JSON.stringify([...unique.values()]));
+          console.log('This step inventories risk only; the original audit-delta gate below still fails closed.');
+          NODE
+
+      - name: Prove package specs and lockfile were not mutated
+        run: git diff --exit-code -- package.json package-lock.json
+
+      - name: Integrated SEO, CMS authority and review-evidence tests
+        run: npm run test:seo
+
+      - name: Internal-link audit strict-mode regressions
+        run: node --test scripts/seo/__tests__/orphan-check.test.mjs
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Real offline Astro build and metadata audit
+        # Isolated non-production fixture build only. Never alter the
+        # production AdManagement fail-closed contract or VERCEL_ENV.
+        env:
+          CMS_DISABLE: '1'
+        run: |
+          # Astro build-time import.meta.env reads Vite's .env file; keep the
+          # fixture local to this temporary runner, never commit or deploy it.
+          trap 'rm -f .env' EXIT
+          printf 'CMS_DISABLE=1\n' > .env
+          npm run build
+          npm run seo:meta
+          npm run seo:dates
+          npm run seo:shells
+          npm run seo:budgets
+          node scripts/seo/orphan-check.ts --strict-dead-links
+          node scripts/seo/validate-jsonld.ts
+          node scripts/seo/sitemap-canonical-audit.mjs
+
+      - name: Block unpatched high/critical vulnerabilities in review
+        if: always()
+        run: npm audit --audit-level=high
+
+      - name: Original expired-baseline security gate is still required
+        if: always()
+        run: node scripts/ci/audit-delta.ts

@@ -1,138 +1,29 @@
 /** @jsxImportSource preact */
 import { useEffect, useMemo, useState } from 'preact/hooks';
 
-/* ── Types ─────────────────────────────────────────────────────────── */
-interface Entry {
-  id: string;
-  datetime: string;        // ISO local datetime
-  foods: string;            // free-text, e.g. "oats, blueberries, milk"
-  symptoms: string[];       // from SYMPTOMS list
-  severity: number;          // 1–5
-  notes: string;
-}
-
-/* ── Constants ─────────────────────────────────────────────────────── */
-const STORE = 'hls-food-symptom-diary';
-
-const SYMPTOMS = [
-  'Bloating',
-  'Gas',
-  'Stomach pain / cramps',
-  'Nausea',
-  'Heartburn',
-  'Diarrhea',
-  'Constipation',
-  'Headache',
-  'Fatigue',
-  'Skin flare',
-  'Joint pain',
-  'Brain fog',
-] as const;
-
-const RED_FLAG_SYMPTOMS = [
-  'Trouble breathing',
-  'Throat swelling / tightness',
-  'Lip / tongue swelling',
-  'Hives (widespread)',
-  'Dizziness / fainting',
-] as const;
-
-const ALL_SYMPTOMS = [...SYMPTOMS, ...RED_FLAG_SYMPTOMS] as const;
-
-const SEVERITY_LABELS: Record<number, string> = {
-  1: '1 — Minimal',
-  2: '2 — Mild',
-  3: '3 — Moderate',
-  4: '4 — Strong',
-  5: '5 — Severe',
+import {
+  type DiaryEntry as Entry, SYMPTOMS, RED_FLAG_SYMPTOMS, SEVERITY_LABELS,
+  MAX_FOODS_LENGTH, MAX_NOTES_LENGTH, localDateTime, parseLocalDateTime,
+  parseStoredDiary, validateDiaryInput, hasRedFlag, detectDiaryPatterns,
+} from '../lib/foodSymptomDiary';
+const STORE = 'hls-food-symptom-diary'; // preserve original local records
+const now = () => localDateTime();
+const fmtDateTime = (value: string) => {
+  const date = parseLocalDateTime(value);
+  return date ? date.toLocaleString(undefined, {
+    weekday: 'short', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  }) : value;
 };
-
-const PATTERN_WINDOW_HOURS = 6;
-
-/* ── Utility ───────────────────────────────────────────────────────── */
-const now = () => new Date().toISOString().slice(0, 16);
-
-const fmtDateTime = (iso: string) => {
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return iso;
-  return d.toLocaleString(undefined, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-};
-
 const uid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
-
-const hasRedFlag = (symptoms: string[]) =>
-  symptoms.some((s) => (RED_FLAG_SYMPTOMS as readonly string[]).includes(s));
-
-/* ── Pattern detection ─────────────────────────────────────────────── */
-interface Pattern {
-  food: string;
-  symptom: string;
-  count: number;
-}
-
-function detectPatterns(entries: Entry[]): Pattern[] {
-  const sorted = [...entries].sort((a, b) => a.datetime.localeCompare(b.datetime));
-  const map = new Map<string, number>();
-
-  for (let i = 0; i < sorted.length; i++) {
-    const entry = sorted[i];
-    if (!entry.foods.trim() || entry.symptoms.length === 0) continue;
-
-    const foods = entry.foods
-      .split(/[,;]/)
-      .map((f) => f.trim().toLowerCase())
-      .filter(Boolean);
-
-    // Check same-entry food+symptom (most common: user logs both at once)
-    for (const food of foods) {
-      for (const sym of entry.symptoms) {
-        const key = `${food}|||${sym.toLowerCase()}`;
-        map.set(key, (map.get(key) ?? 0) + 1);
-      }
-    }
-
-    // Check if a symptom entry follows a food-only entry within window
-    for (let j = i + 1; j < sorted.length; j++) {
-      const later = sorted[j];
-      const gapH = (new Date(later.datetime).getTime() - new Date(entry.datetime).getTime()) / 3.6e6;
-      if (gapH > PATTERN_WINDOW_HOURS) break;
-      if (gapH < 0) continue;
-
-      if (later.symptoms.length === 0) continue;
-      for (const food of foods) {
-        for (const sym of later.symptoms) {
-          const key = `${food}|||${sym.toLowerCase()}`;
-          map.set(key, (map.get(key) ?? 0) + 1);
-        }
-      }
-    }
-  }
-
-  return [...map.entries()]
-    .filter(([, count]) => count >= 2)
-    .map(([key, count]) => {
-      const [food, symptom] = key.split('|||');
-      return {
-        food: food.charAt(0).toUpperCase() + food.slice(1),
-        symptom: symptom.charAt(0).toUpperCase() + symptom.slice(1),
-        count,
-      };
-    })
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 5);
-}
 
 /* ── Component ─────────────────────────────────────────────────────── */
 export default function FoodSymptomDiary() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [storageState, setStorageState] = useState<'ready' | 'unavailable' | 'invalid' | 'changed'>('ready');
+  const [formError, setFormError] = useState('');
 
   // Form state
   const [datetime, setDatetime] = useState(now());
@@ -141,29 +32,45 @@ export default function FoodSymptomDiary() {
   const [severity, setSeverity] = useState(2);
   const [notes, setNotes] = useState('');
 
-  /* Load from localStorage on mount (client-only — no hydration mismatch) */
+  /* Preserve unreadable legacy storage instead of overwriting it with []. */
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORE);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) setEntries(parsed);
-      }
-    } catch {
-      /* private mode / quota — ignore */
+    let raw: string | null;
+    try { raw = localStorage.getItem(STORE); }
+    catch { setStorageState('unavailable'); setLoaded(true); return; }
+    if (raw !== null) {
+      try {
+        const valid = parseStoredDiary(JSON.parse(raw));
+        if (valid === null) setStorageState('invalid');
+        else setEntries(valid);
+      } catch { setStorageState('invalid'); }
     }
     setLoaded(true);
   }, []);
 
-  /* Persist on every change */
   useEffect(() => {
-    if (!loaded) return;
+    if (!loaded || storageState !== 'ready') return;
     try {
-      localStorage.setItem(STORE, JSON.stringify(entries));
-    } catch {
-      /* ignore */
-    }
-  }, [entries, loaded]);
+      if (entries.length) localStorage.setItem(STORE, JSON.stringify(entries));
+      else localStorage.removeItem(STORE);
+    } catch { setStorageState('unavailable'); }
+  }, [entries, loaded, storageState]);
+
+  /* Avoid overwriting changes saved by another same-origin browser tab. */
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === STORE || e.key === null) {
+        setStorageState(prev => prev === 'ready' ? 'changed' : prev);
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  const clearUnreadableData = () => {
+    if (!window.confirm('Clear unreadable saved diary data? It cannot be recovered here.')) return;
+    try { localStorage.removeItem(STORE); setEntries([]); setStorageState('ready'); }
+    catch { setStorageState('unavailable'); }
+  };
 
   const toggleSymptom = (sym: string) => {
     setSelectedSymptoms((prev) =>
@@ -177,21 +84,19 @@ export default function FoodSymptomDiary() {
     setSelectedSymptoms([]);
     setSeverity(2);
     setNotes('');
+    setFormError('');
   };
 
   const addEntry = (e: Event) => {
     e.preventDefault();
-    if (!foods.trim() && selectedSymptoms.length === 0) return;
-
-    const entry: Entry = {
-      id: uid(),
-      datetime,
-      foods: foods.trim(),
-      symptoms: [...selectedSymptoms],
-      severity: selectedSymptoms.length > 0 ? severity : 0,
-      notes: notes.trim(),
+    const draft = {
+      datetime, foods: foods.trim(), symptoms: [...selectedSymptoms],
+      severity: selectedSymptoms.length ? severity : 0, notes: notes.trim(),
     };
-    setEntries((prev) => [...prev, entry]);
+    const error = validateDiaryInput(draft);
+    if (error) { setFormError(error); return; }
+    const entry: Entry = { id: uid(), ...draft };
+    setEntries(prev => [...prev, entry]);
     resetForm();
     setShowForm(false);
   };
@@ -211,7 +116,7 @@ export default function FoodSymptomDiary() {
     [entries],
   );
 
-  const patterns = useMemo(() => detectPatterns(entries), [entries]);
+  const patterns = useMemo(() => detectDiaryPatterns(entries), [entries]);
 
   const formHasRedFlag = hasRedFlag(selectedSymptoms);
   const anyEntryRedFlag = entries.some((e) => hasRedFlag(e.symptoms));
@@ -220,13 +125,16 @@ export default function FoodSymptomDiary() {
 
   return (
     <div class="calc diary">
-      {/* ── Emergency banner ─────────────────────────────────────────── */}
+      {/* Current and past reported warning signs are not the same event. */}
       {(formHasRedFlag || anyEntryRedFlag) && (
-        <div class="diary__emergency">
-          <strong>Seek emergency help now.</strong> If you or someone near you has
-          trouble breathing, throat swelling, or feels faint after eating, call your
-          local emergency number immediately. Do not wait — severe allergic reactions
-          can be life-threatening.
+        <div class="diary__emergency" role="alert">
+          <strong>Possible serious allergic symptoms recorded.</strong> If symptoms
+          are happening now—especially breathing difficulty, throat tightness,
+          tongue swelling, fainting or symptoms in multiple body systems—use
+          prescribed epinephrine according to your emergency action plan and
+          call local emergency services immediately. Do not wait for a diary
+          pattern or rely on antihistamines alone. Discuss past events with
+          a qualified clinician or allergist.
         </div>
       )}
 
@@ -236,7 +144,29 @@ export default function FoodSymptomDiary() {
         symptoms to discuss with a doctor or dietitian. It does <em>not</em> diagnose
         allergies, intolerances, or any condition. True food allergy testing must be
         done by a qualified healthcare professional.
+        <p class="diary__privacy">
+          <strong>Privacy:</strong> Entries are stored in this browser profile's
+          localStorage without encryption by this diary. People using this profile
+          and scripts running on this site's origin may access them. The diary
+          does not sync or back up entries; clearing site data can erase them.
+          Printing or saving a PDF creates a separate sensitive copy outside
+          this browser. Avoid shared devices.
+        </p>
       </div>
+      {storageState !== 'ready' && (
+        <div class="diary__storage-warning" role="status">
+          {storageState === 'invalid'
+            ? 'Saved diary data could not be read safely. It has NOT been overwritten. New changes in this tab are temporary until you choose to clear the unreadable saved data.'
+            : storageState === 'changed'
+              ? 'The diary changed in another tab. This tab will not overwrite it. Reload before further edits.'
+              : 'Browser storage is unavailable or full. Entries in this tab are NOT reliably saved. Print a copy if needed.'}
+          {storageState === 'invalid' && (
+            <button type="button" class="diary__btn diary__btn--danger" onClick={clearUnreadableData}>
+              Clear unreadable saved data
+            </button>
+          )}
+        </div>
+      )}
 
       {/* ── Toolbar ─────────────────────────────────────────────────── */}
       <div class="diary__toolbar">
@@ -277,6 +207,8 @@ export default function FoodSymptomDiary() {
             <input
               id="diary-dt"
               type="datetime-local"
+              min="1900-01-01T00:00"
+              max={now()}
               class="diary__input"
               value={datetime}
               onInput={(e) => setDatetime((e.target as HTMLInputElement).value)}
@@ -293,6 +225,7 @@ export default function FoodSymptomDiary() {
               placeholder="e.g. oats, blueberries, milk, coffee"
               value={foods}
               onInput={(e) => setFoods((e.target as HTMLInputElement).value)}
+              maxLength={MAX_FOODS_LENGTH}
             />
             <p class="diary__hint">Separate foods with commas. Include portions if you can.</p>
           </div>
@@ -306,6 +239,7 @@ export default function FoodSymptomDiary() {
                   type="button"
                   class={`diary__chip ${selectedSymptoms.includes(sym) ? 'diary__chip--on' : ''}`}
                   onClick={() => toggleSymptom(sym)}
+                  aria-pressed={selectedSymptoms.includes(sym)}
                 >
                   {sym}
                 </button>
@@ -318,6 +252,7 @@ export default function FoodSymptomDiary() {
                   type="button"
                   class={`diary__chip diary__chip--red ${selectedSymptoms.includes(sym) ? 'diary__chip--on' : ''}`}
                   onClick={() => toggleSymptom(sym)}
+                  aria-pressed={selectedSymptoms.includes(sym)}
                 >
                   {sym}
                 </button>
@@ -325,7 +260,7 @@ export default function FoodSymptomDiary() {
             </div>
             {formHasRedFlag && (
               <p class="diary__redflag-note">
-                Red-flag symptom selected. See the emergency banner above — seek immediate help.
+                Warning symptom selected. If the reaction is happening now, follow emergency guidance above immediately.
               </p>
             )}
           </div>
@@ -355,9 +290,11 @@ export default function FoodSymptomDiary() {
               placeholder="Anything else: stress, sleep, exercise, supplements..."
               value={notes}
               onInput={(e) => setNotes((e.target as HTMLTextAreaElement).value)}
+              maxLength={MAX_NOTES_LENGTH}
             />
           </div>
 
+          {formError && <p class="diary__form-error" role="alert">{formError}</p>}
           <button type="submit" class="diary__btn diary__btn--primary diary__btn--lg">
             Save entry
           </button>
@@ -369,20 +306,30 @@ export default function FoodSymptomDiary() {
         <div class="diary__patterns">
           <h3 class="diary__patterns-title">Observations</h3>
           <p class="diary__patterns-intro">
-            These are <strong>observations, not diagnoses</strong>. They show foods that
-            appeared before symptoms in your log. Share them with your doctor or dietitian.
+            These are <strong>timing observations, not a diagnosis or proof of cause</strong>.
+            They count distinct nonemergency symptom times logged after a food in a
+            separate earlier entry within an illustrative six-hour window.
+            Same-entry notes cannot establish order; repeating foods or meals
+            does not increase a single symptom count. Other unrecorded factors
+            may explain a symptom. Discuss patterns with a clinician and never
+            deliberately re-expose yourself to a suspected allergen.
           </p>
           <ul class="diary__patterns-list">
             {patterns.map((p, i) => (
               <li key={i} class="diary__pattern">
-                <span class="diary__pattern-food">{p.food}</span> appeared before
+                <span class="diary__pattern-food">{p.food}</span> was logged within six hours before
                 <span class="diary__pattern-sym">{p.symptom}</span>
-                <span class="diary__pattern-count">{p.count}x</span>
+                <span class="diary__pattern-count">{p.count} distinct times</span>
               </li>
             ))}
           </ul>
         </div>
       )}
+
+      <p class="diary__print-confidential">
+        Sensitive personal health diary — share only with the intended healthcare professional.
+        User-reported local timestamps do not establish food causation.
+      </p>
 
       {/* ── Timeline ────────────────────────────────────────────────── */}
       {entries.length === 0 ? (
@@ -401,7 +348,7 @@ export default function FoodSymptomDiary() {
                 <div class="diary__entry-dot" />
                 <div class="diary__entry-body">
                   <div class="diary__entry-head">
-                    <time class="diary__entry-time">{fmtDateTime(entry.datetime)}</time>
+                    <time class="diary__entry-time" dateTime={entry.datetime}>{fmtDateTime(entry.datetime)}</time>
                     {entry.severity > 0 && (
                       <span class={`diary__sev diary__sev--${entry.severity}`}>
                         {SEVERITY_LABELS[entry.severity]}
@@ -439,7 +386,8 @@ export default function FoodSymptomDiary() {
                   )}
                   {isRed && (
                     <p class="diary__entry-redflag">
-                      Red-flag symptom recorded. If this was an acute reaction, seek emergency care.
+                      Warning symptom recorded. If symptoms are current or recur severely,
+                      follow the emergency action plan and seek urgent care.
                     </p>
                   )}
                 </div>

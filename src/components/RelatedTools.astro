@@ -27,6 +27,7 @@ import {
 } from '../lib/cms';
 import type { Article } from '../data/articles';
 import type { Tool } from '../data/tools';
+import { toolCategoryHubPath } from '../lib/seo-url-policy.mjs';
 
 interface Props {
   article?: Article;
@@ -58,7 +59,6 @@ if (article) {
   const cat = await getArticleCategory(article.category);
   hubName = cat?.name || '';
 } else if (tool) {
-  hubHref = `/${tool.category}`;
   if (relatedTools.length === 0) {
     relatedTools = await getRelatedTools(tool.slug, 3);
   }
@@ -67,6 +67,7 @@ if (article) {
   }
   const cat = await getCategory(tool.category);
   hubName = cat?.name || '';
+  hubHref = toolCategoryHubPath(cat);
 }
 
 const toolsToShow = relatedTools.slice(0, 3);

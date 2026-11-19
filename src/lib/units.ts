@@ -17,11 +17,16 @@ export const cmToIn = (cm: number): number => cm / CM_PER_IN;
 export const ftInToCm = (ft: number, inch: number): number =>
   inToCm(ft * 12 + inch);
 
-/** Split centimetres into whole feet + remaining inches (rounded to 0.5"). */
-export const cmToFtIn = (cm: number): { ft: number; inch: number } => {
+/** Split cm into feet + inches. The default 0.5-inch step remains unchanged;
+ * selected calculators opt into 0.01 or 0.001 inch to reduce conversion drift.
+ */
+export const cmToFtIn = (
+  cm: number, inchStep: 0.5 | 0.01 | 0.001 = 0.5,
+): { ft: number; inch: number } => {
   const totalIn = cmToIn(cm);
   let ft = Math.floor(totalIn / 12);
-  let inch = Math.round((totalIn - ft * 12) * 2) / 2;
+  let inch = Math.round((totalIn - ft * 12) / inchStep) * inchStep;
+  inch = Number(inch.toFixed(inchStep === 0.001 ? 3 : inchStep === 0.01 ? 2 : 1));
   if (inch >= 12) {
     ft += 1;
     inch -= 12;

@@ -68,7 +68,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'calorie-calculator',
     title: 'Calorie Calculator',
-    blurb: 'Find your daily calorie target (TDEE) for losing, maintaining, or gaining weight.',
+    blurb: 'Estimate daily expenditure (TDEE) and compare non-prescriptive arithmetic scenarios.',
     category: 'nutrition',
     icon: 'flame',
     gradient: 'orange',
@@ -79,7 +79,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'macro-calculator',
     title: 'Macro Calculator',
-    blurb: 'Split your calories into protein, carbs, and fat that fit your goal.',
+    blurb: 'Explore reconciled protein, carb and fat estimates from an assumed adult energy budget.',
     category: 'nutrition',
     icon: 'pie-chart',
     gradient: 'orange',
@@ -90,7 +90,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'protein-intake-calculator',
     title: 'Protein Intake Calculator',
-    blurb: 'Get your daily protein target based on body weight and activity.',
+    blurb: 'Explore adult protein g/kg examples, approximate protein calories, and important clinical limits.',
     category: 'nutrition',
     icon: 'egg',
     gradient: 'orange',
@@ -100,7 +100,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'water-intake-calculator',
     title: 'Water Intake Calculator',
-    blurb: 'Find how much water to drink each day, in liters and fluid ounces.',
+    blurb: 'Explore total-water estimates by weight and activity, with US units and clear clinical limitations.',
     category: 'nutrition',
     icon: 'droplet',
     gradient: 'cyan',
@@ -111,7 +111,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'calorie-deficit-calculator',
     title: 'Calorie Deficit Calculator',
-    blurb: 'See the daily deficit needed to lose a target weight by your chosen date.',
+    blurb: 'Explore the static 3,500-kcal/lb energy-equivalent example and its non-predictive limits.',
     category: 'nutrition',
     icon: 'trending-down',
     gradient: 'orange',
@@ -121,7 +121,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'keto-calculator',
     title: 'Keto Calculator',
-    blurb: 'Get your ketogenic macros (70/25/5) and daily net carb limit.',
+    blurb: 'Explore a 70/25/5 macro example using estimated energy, total carbohydrates and clinical limitations.',
     category: 'nutrition',
     icon: 'wheat',
     gradient: 'amber',
@@ -131,7 +131,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'vitamin-d-sun-calculator',
     title: 'Vitamin D & Sun Exposure Calculator',
-    blurb: 'Estimate your vitamin D synthesis potential from sun, skin type, and diet. Educational — does not measure blood levels.',
+    blurb: 'Review UV Index and reported exposure with skin-cancer prevention guidance; no vitamin D or safe-UV score.',
     category: 'nutrition',
     icon: 'gauge',
     gradient: 'amber',
@@ -142,7 +142,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'gut-health-score',
     title: 'Gut Health Score',
-    blurb: 'Score your gut-friendly habits — fiber, plant diversity, fermented foods, sleep, stress, and more. Lifestyle self-check, not a microbiome test.',
+    blurb: 'Explore nine self-reported habits with illustrative points, red-flag safety and no microbiome diagnosis.',
     category: 'nutrition',
     icon: 'percent',
     gradient: 'green',
@@ -153,7 +153,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'anti-inflammatory-score',
     title: 'Anti-Inflammatory Diet Score',
-    blurb: 'Score your diet for anti-inflammatory vs pro-inflammatory foods — vegetables, fish, olive oil vs processed meat, sugar, fried food.',
+    blurb: 'Explore 11 food-frequency groups with illustrative reverse-coded points; not a test of inflammation or disease.',
     category: 'nutrition',
     icon: 'heart',
     gradient: 'teal',
@@ -164,7 +164,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'food-symptom-diary',
     title: 'Food & Symptom Diary',
-    blurb: 'Log meals, timing, and symptoms over days. Print a clean timeline for your doctor or dietitian. A tracker — not a diagnostic test.',
+    blurb: 'Keep a browser-local meal and symptom timeline, review noncausal timing observations, and print it for clinical discussion.',
     category: 'nutrition',
     icon: 'utensils',
     gradient: 'amber',
@@ -175,7 +175,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'recipe-nutrition-analyzer',
     title: 'Recipe Nutrition Analyzer',
-    blurb: 'Paste any recipe and get estimated nutrition per serving. AI parses ingredients, USDA FoodData Central provides the numbers. Free, no signup.',
+    blurb: 'Estimate nutrition from USDA-matched recipe ingredients with portions, missing-data and privacy warnings; not a medical nutrition test.',
     category: 'nutrition',
     icon: 'utensils',
     gradient: 'green',
@@ -186,7 +186,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'bmr-calculator',
     title: 'BMR Calculator',
-    blurb: 'Calculate the calories your body burns completely at rest.',
+    blurb: 'Estimate resting energy (REE) from Mifflin–St Jeor and compare illustrative daily expenditure scenarios.',
     category: 'body-weight',
     icon: 'flame',
     gradient: 'blue',
@@ -210,7 +210,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'bmi-calculator',
     title: 'BMI Calculator',
-    blurb: 'Check your body mass index and what your healthy weight range looks like.',
+    blurb: 'Calculate adult BMI and view CDC screening categories and an approximate weight reference interval.',
     category: 'body-weight',
     icon: 'scale',
     gradient: 'blue',
@@ -232,7 +232,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'ideal-weight-calculator',
     title: 'Ideal Weight Calculator',
-    blurb: 'See your healthy weight range from BMI and the Devine formula.',
+    blurb: 'Explore an adult BMI weight reference interval and a separate historical Devine dosing-weight estimate.',
     category: 'body-weight',
     icon: 'target',
     gradient: 'blue',
@@ -242,7 +242,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'lean-body-mass-calculator',
     title: 'Lean Body Mass Calculator',
-    blurb: 'Find how much of your weight is muscle, bone, and organs — not fat.',
+    blurb: 'Estimate lean body mass from height and weight with the Boer formula — not a direct muscle measurement.',
     category: 'body-weight',
     icon: 'dumbbell',
     gradient: 'blue',
@@ -252,7 +252,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'waist-to-height-ratio-calculator',
     title: 'Waist-to-Height Ratio Calculator',
-    blurb: 'A quick check of central fat risk — your waist should be under half your height.',
+    blurb: 'Estimate central adiposity from waist and height using NICE reference bands; not a medical diagnosis.',
     category: 'body-weight',
     icon: 'ruler',
     gradient: 'blue',
@@ -262,7 +262,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'waist-to-hip-ratio-calculator',
     title: 'Waist-to-Hip Ratio Calculator',
-    blurb: 'Measure body-shape health risk with your waist and hip measurements.',
+    blurb: 'Compare waist and hip measurements with sex-specific reference cutoffs, not a medical diagnosis.',
     category: 'body-weight',
     icon: 'person-standing',
     gradient: 'blue',
@@ -272,7 +272,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'weight-loss-percentage-calculator',
     title: 'Weight Loss Percentage Calculator',
-    blurb: 'See what percentage of your starting weight you’ve lost so far.',
+    blurb: 'Compare current and starting weight to find the percentage gained, lost or unchanged.',
     category: 'body-weight',
     icon: 'trending-down',
     gradient: 'blue',

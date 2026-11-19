@@ -1,11 +1,12 @@
 /** @jsxImportSource preact */
 import { useState } from 'preact/hooks';
+import { convertPaceInputs, runningPaceInputError, type PaceUnit, type PaceMode } from '../lib/pace';
 
-type Unit = 'km' | 'mi';
-type Mode = 'time' | 'pace' | 'distance';
+type Unit = PaceUnit;
+type Mode = PaceMode;
 
 const n = (s: string): number => {
-  const v = parseFloat(s);
+  const v = s.trim() === '' ? NaN : Number(s);
   return Number.isFinite(v) && v >= 0 ? v : 0;
 };
 const pad = (x: number): string => String(x).padStart(2, '0');
@@ -44,19 +45,34 @@ export default function PaceCalculator(_: { slug: string }) {
   const [pM, setPM] = useState('5');
   const [pS, setPS] = useState('0');
 
+  const handleUnitChange = (next: Unit) => {
+    if (next === unit) return;
+    const converted = convertPaceInputs(
+      { distance, paceMinutes: pM, paceSeconds: pS }, unit, next,
+    );
+    setDistance(converted.distance);
+    setPM(converted.paceMinutes);
+    setPS(converted.paceSeconds);
+    setUnit(next);
+  };
+
   const id = (k: string) => `pace-${k}`;
   const dist = n(distance);
   const timeSec = n(tH) * 3600 + n(tM) * 60 + n(tS);
   const paceSecIn = n(pM) * 60 + n(pS);
+  const inputError = runningPaceInputError(mode, {
+    distance, timeHours: tH, timeMinutes: tM, timeSeconds: tS,
+    paceMinutes: pM, paceSeconds: pS,
+  });
 
   // Resolve all three values from the two inputs that apply to the chosen mode.
   let outDist = dist;
   let outTime = timeSec;
   let outPace = paceSecIn;
-  let valid = true;
-  if (mode === 'time') { outTime = dist * paceSecIn; valid = dist > 0 && paceSecIn > 0; }
-  else if (mode === 'pace') { outPace = dist > 0 ? timeSec / dist : 0; valid = dist > 0 && timeSec > 0; }
-  else { outDist = paceSecIn > 0 ? timeSec / paceSecIn : 0; valid = timeSec > 0 && paceSecIn > 0; }
+  let valid = inputError === null;
+  if (mode === 'time') { outTime = dist * paceSecIn; valid = valid && dist > 0 && paceSecIn > 0; }
+  else if (mode === 'pace') { outPace = dist > 0 ? timeSec / dist : 0; valid = valid && dist > 0 && timeSec > 0; }
+  else { outDist = paceSecIn > 0 ? timeSec / paceSecIn : 0; valid = valid && timeSec > 0 && paceSecIn > 0; }
 
   const speed = outTime > 0 ? outDist / (outTime / 3600) : 0;
 
@@ -105,7 +121,7 @@ export default function PaceCalculator(_: { slug: string }) {
           <h2 class="calc__heading">Running Pace</h2>
           <div class="seg" role="group" aria-label="Unit">
             {(['km', 'mi'] as Unit[]).map((u) => (
-              <button type="button" class={`seg__btn${unit === u ? ' is-active' : ''}`} aria-pressed={unit === u} onClick={() => setUnit(u)}>{u}</button>
+              <button type="button" class={`seg__btn${unit === u ? ' is-active' : ''}`} aria-pressed={unit === u} onClick={() => handleUnitChange(u)}>{u}</button>
             ))}
           </div>
         </div>
@@ -121,7 +137,7 @@ export default function PaceCalculator(_: { slug: string }) {
 
       <div class="calc__result" aria-live="polite">
         {!valid ? (
-          <p class="calc__placeholder">Enter the two values above to calculate the third.</p>
+          <p class="calc__placeholder">{inputError || 'Enter the two values above to calculate the third.'}</p>
         ) : (
           <>
             <div class="calc__headline">

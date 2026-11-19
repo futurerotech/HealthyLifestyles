@@ -1,17 +1,21 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Breadcrumb from '../components/Breadcrumb.astro';
-import { getCategories, getTools, getArticles, getSiteConsts } from '../lib/cms';
+import { getCategories, getArticleCategories, getTools, getArticles, getSiteConsts } from '../lib/cms';
+import { groupSitemapArticles, sitemapArticlePath } from '../lib/seo-url-policy.mjs';
 
-const [categories, tools, articles, siteConsts] = await Promise.all([
+const [categories, articleCategories, tools, articles, siteConsts] = await Promise.all([
   getCategories(),
+  getArticleCategories(),
   getTools(),
   getArticles(),
   getSiteConsts(),
 ]);
 
 const liveTools = tools.filter((t) => t.live);
-const publishedArticles = articles.filter((a) => a._status === 'published');
+// Use the same normalized public article projection as article getStaticPaths;
+// normalized Article objects do not carry Payload's _status field.
+const sitemapArticles = articles;
 
 // Group tools by category
 const toolsByCategory = categories.map((cat) => ({
@@ -19,11 +23,10 @@ const toolsByCategory = categories.map((cat) => ({
   tools: liveTools.filter((t) => t.category === cat.id),
 })).filter((g) => g.tools.length > 0);
 
-// Group articles by category
-const articlesByCategory = categories.map((cat) => ({
-  category: cat,
-  articles: publishedArticles.filter((a) => a.category === cat.id),
-})).filter((g) => g.articles.length > 0);
+// Article sections are distinct from calculator categories. Keep articles
+// with an unavailable section visible instead of silently orphaning them.
+const { groups: articlesByCategory, uncategorized: uncategorizedArticles } =
+  groupSitemapArticles(sitemapArticles, articleCategories);
 
 const SITE = siteConsts.SITE;
 const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
@@ -53,7 +56,7 @@ const breadcrumbLd = {
       Sitemap
     </h1>
     <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem;">
-      {liveTools.length} health calculators & tools · {publishedArticles.length} wellness articles · all free
+      {liveTools.length} health calculators & tools · {sitemapArticles.length} wellness articles · all free
     </p>
 
     <!-- Site pages -->
@@ -99,7 +102,7 @@ const breadcrumbLd = {
     ))}
 
     <!-- Articles by category -->
-    {articlesByCategory.length > 0 && (
+    {(articlesByCategory.length > 0 || uncategorizedArticles.length > 0) && (
       <section style="margin-bottom: 2.5rem;">
         <h2 style="font-size: 1.2rem; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border);">
           Wellness Hub Articles
@@ -114,7 +117,7 @@ const breadcrumbLd = {
             <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 0.4rem;">
               {articles.map((article) => (
                 <li>
-                  <a href={`/wellness-hub/${article.category}/${article.slug}`} style="color: var(--green-700); font-size: 0.88rem; text-decoration: none;">
+                  <a href={sitemapArticlePath(article.slug)} style="color: var(--green-700); font-size: 0.88rem; text-decoration: none;">
                     {article.title}
                   </a>
                 </li>
@@ -122,6 +125,22 @@ const breadcrumbLd = {
             </ul>
           </div>
         ))}
+        {uncategorizedArticles.length > 0 && (
+          <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 0.95rem; color: var(--muted); margin-bottom: 0.4rem;">
+              Other Wellness Articles
+            </h3>
+            <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 0.4rem;">
+              {uncategorizedArticles.map((article) => (
+                <li>
+                  <a href={sitemapArticlePath(article.slug)} style="color: var(--green-700); font-size: 0.88rem; text-decoration: none;">
+                    {article.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </section>
     )}
 

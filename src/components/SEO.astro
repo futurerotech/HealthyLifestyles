@@ -4,6 +4,7 @@
  * favicons, manifest, theme-color, and JSON-LD. Drop one <SEO /> in every layout.
  */
 import { SITE, ANALYTICS, SOCIAL_FOLLOW } from '../consts';
+import { canonicalUrlForPath } from '../lib/seo-url-policy.mjs';
 
 interface Props {
   title: string;
@@ -34,7 +35,7 @@ const {
 } = Astro.props;
 
 const siteOrigin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
-const canonical = new URL(Astro.url.pathname, siteOrigin).href.replace(/\/$/, '') || siteOrigin.href;
+const canonical = canonicalUrlForPath(Astro.url.pathname, siteOrigin);
 const ogImage = new URL(image, siteOrigin).href;
 
 // Title is used verbatim — callers keep it ≤60 chars and brand-suffixed as needed.

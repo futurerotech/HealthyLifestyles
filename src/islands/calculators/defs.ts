@@ -6,7 +6,7 @@
  *
  * Formula sources are cited on each tool page (see body-weight-content.ts).
  */
-import { fmt, fmtMass, kgToLb, massUnitLabel, round, type Sex, type UnitSystem } from '../../lib/units';
+import { fmt, fmtMass, kgToLb, massUnitLabel, round, type Sex, type UnitSystem } from '../../lib/units.ts';
 
 // Brand-aligned status colours.
 const C = {
@@ -74,7 +74,7 @@ export interface ZoneItem {
 
 export type Visual =
   | { kind: 'gauge'; value: number; min: number; max: number; segments: Segment[]; valueLabel?: string }
-  | { kind: 'range'; min: number; max: number; low: number; high: number; unit: string }
+  | { kind: 'range'; min: number; max: number; low: number; high: number; unit: string; label?: string; upperExclusive?: boolean }
   | { kind: 'split'; aLabel: string; aValue: number; bLabel: string; bValue: number; aColor: string; bColor: string; unit: string }
   | { kind: 'donut'; centerValue: string; centerLabel: string; slices: DonutSlice[] }
   | { kind: 'zones'; items: ZoneItem[] }
@@ -161,6 +161,23 @@ const FREQ_OPTIONS: SelectOption[] = [
   { value: 'daily', label: 'Daily' },
 ];
 
+const PROTEIN_OPTIONS: SelectOption[] = [
+  { value: '0.8', label: 'Adult RDA reference — not a universal target (0.8 g/kg)' },
+  { value: '1.2', label: 'Higher-intake adult example (1.2 g/kg)' },
+  { value: '1.6', label: 'Resistance training example (1.6 g/kg)' },
+  { value: '2.0', label: 'Healthy exercising adult example (2.0 g/kg)' },
+  { value: '2.2', label: 'Higher training example — not a maximum (2.2 g/kg)' },
+];
+
+// The existing activity numbers are illustrative increments, NOT measured
+// sweat loss or validated fluid requirements for a given exercise duration.
+const WATER_ACTIVITY_OPTIONS: SelectOption[] = [
+  { value: '0', label: 'Little / no exercise — +0 L example' },
+  { value: '500', label: 'Moderate (30–60 min/day) — +0.5 L example' },
+  { value: '1000', label: 'Active (1–2 h/day) — +1.0 L example' },
+  { value: '1500', label: 'Very active (>2 h/day) — +1.5 L example' },
+];
+
 const ACTIVITY_OPTIONS: SelectOption[] = [
   { value: '1.2', label: 'Sedentary — little or no exercise' },
   { value: '1.375', label: 'Lightly active — 1–3 days/week' },
@@ -180,7 +197,7 @@ const activityField = (): CalcField => ({
   selectDefault: '1.375',
 });
 
-/** Mifflin-St Jeor BMR (kcal/day). */
+/** Simplified Mifflin-St Jeor predicted resting energy expenditure (REE, kcal/day). */
 const mifflin = (weightKg: number, heightCm: number, age: number, sex: Sex): number => {
   const base = 10 * weightKg + 6.25 * heightCm - 5 * age;
   return sex === 'male' ? base + 5 : base - 161;
@@ -215,103 +232,204 @@ const macroDonut = (
 // ============================================================
 
 export const DEFS: Record<string, CalcDef> = {
-  // ---- 1. BMI ----
+  // ---- 1. BMI (CDC adult screening categories) ----
   'bmi-calculator': {
     slug: 'bmi-calculator',
     heading: 'Calculate your BMI',
     hasSex: false,
     fields: [F.weight(72), F.height(175)],
     compute: ({ vals, units }) => {
-      const m = vals.height / 100;
-      const bmi = vals.weight / (m * m);
+      // BMI = kg/m²; metric base units reach this function after display conversion.
+      const { weight, height } = vals;
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Your BMI',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (![weight, height].every((v) => Number.isFinite(v) && v > 0)) {
+        return fail('Enter valid positive weight and height measurements.');
+      }
+      // Mirror the existing form's supported input ranges in the pure formula.
+      if (weight < 25 || weight > 300 || height < 120 || height > 230) {
+        return fail('Check weight (25–300 kg) and height (120–230 cm) are within the supported input range.');
+      }
+      const meters = height / 100;
+      const bmi = weight / (meters * meters);
+      if (!Number.isFinite(bmi) || bmi <= 0) {
+        return fail('These measurements cannot produce a valid BMI.');
+      }
+
+      // CDC adult boundaries are lower-inclusive: 18.5, 25 and 30
+      // must enter the new band. Classify raw BMI, not a rounded display.
+      const category = bmi < 18.5
+        ? { label: 'Underweight', color: C.blue }
+        : bmi < 25
+          ? { label: 'Healthy weight', color: C.green }
+          : bmi < 30
+            ? { label: 'Overweight', color: C.amber }
+            : { label: 'Obesity', color: C.red };
+      // The gauge has continuous ranges; the categorical result above uses
+      // strict threshold comparisons, not bandFor's inclusive upper bound.
+      const gaugeMax = Math.max(40, Math.ceil(bmi / 5) * 5);
       const segments: Segment[] = [
         { upTo: 18.5, label: 'Underweight', color: C.blue },
-        { upTo: 25, label: 'Normal weight', color: C.green },
+        { upTo: 25, label: 'Healthy weight', color: C.green },
         { upTo: 30, label: 'Overweight', color: C.amber },
-        { upTo: 40, label: 'Obese', color: C.red },
+        { upTo: gaugeMax, label: 'Obesity', color: C.red },
       ];
-      const band = bandFor(bmi, segments);
-      const lowKg = 18.5 * m * m;
-      const highKg = 24.9 * m * m;
+      // Near a category edge, expand display precision so a rounded 25.0
+      // does not normally appear alongside the preceding category.
+      const cutoffs = [18.5, 25, 30];
+      let precision = cutoffs.some((c) => Math.abs(bmi - c) < 0.05) ? 2 : 1;
+      while (precision < 6 && cutoffs.some((c) => bmi < c && round(bmi, precision) >= c)) {
+        precision++;
+      }
+
+      // Healthy adult BMI interval is 18.5 <= BMI < 25, not <= 24.9.
+      // Rounded weight endpoints are illustrative, not personal targets.
+      const lowKg = 18.5 * meters * meters;
+      const exclusiveHighKg = 25 * meters * meters;
       return {
         ok: true,
         primaryLabel: 'Your BMI',
-        primaryValue: fmt(bmi, 1),
-        category: { label: band.label, color: band.color },
-        visual: { kind: 'gauge', value: bmi, min: 15, max: 40, segments },
+        primaryValue: fmt(bmi, precision),
+        category,
+        visual: { kind: 'gauge', value: bmi, min: 0, max: gaugeMax, segments },
         rows: [
-          { label: 'Healthy weight for your height', value: `${fmtMass(lowKg, units, 0)} – ${fmtMass(highKg, units, 0)}`, strong: true },
+          {
+            label: 'Approximate BMI reference weight (18.5 to below 25)',
+            value: fmtMass(lowKg, units, 1) + ' to under ' + fmtMass(exclusiveHighKg, units, 1),
+            strong: true,
+          },
         ],
-        note: 'BMI is a screening tool — it does not distinguish muscle from fat. Very muscular people may read high.',
+        note: 'These CDC screening categories are for adults age 20 and older, not children or teens. BMI is not a diagnosis and cannot separate fat from muscle or show fat location. The weight interval is an approximate BMI reference, not a personal goal; interpretation also depends on health history and other measures.',
       };
     },
   },
 
-  // ---- 2. BMR (Mifflin-St Jeor) ----
+  // ---- 2. BMR calculator: Mifflin-St Jeor predicts resting energy (REE) ----
   'bmr-calculator': {
     slug: 'bmr-calculator',
-    heading: 'Calculate your BMR',
+    heading: 'Estimate your resting energy (BMR calculator)',
     hasSex: true,
-    fields: [F.weight(72), F.height(175), F.age(30)],
+    fields: [
+      F.weight(72),
+      F.height(175),
+      {
+        ...F.age(30),
+        min: 19,
+        help: 'For adults age 19 or older. The original equation was derived in adults ages 19–78; estimates at older ages are less certain.',
+      },
+    ],
     compute: ({ vals, sex }) => {
-      const base = 10 * vals.weight + 6.25 * vals.height - 5 * vals.age;
-      const bmr = sex === 'male' ? base + 5 : base - 161;
+      const { weight, height, age } = vals;
+      const fail = (error: string): CalcResult => ({
+        ok: false, error,
+        primaryLabel: 'Estimated resting energy (REE)',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (![weight, height, age].every((v) => Number.isFinite(v) && v > 0) ||
+          (sex !== 'male' && sex !== 'female')) {
+        return fail('Enter valid weight, height, age and sex.');
+      }
+      if (weight < 25 || weight > 300 || height < 120 || height > 230 ||
+          !Number.isInteger(age) || age < 19 || age > 100) {
+        return fail('Check weight (25–300 kg), height (120–230 cm) and whole-year age (19–100).');
+      }
+
+      // Original simplified Mifflin-St Jeor sex coefficients (1990):
+      // weight in kg, height in cm, age in years, predicted REE in kcal/day.
+      const ree = mifflin(weight, height, age, sex);
+      if (!Number.isFinite(ree) || ree <= 0) {
+        return fail('These measurements cannot produce a valid resting-energy estimate.');
+      }
       const levels: [string, number][] = [
-        ['Sedentary (little exercise)', 1.2],
-        ['Light (1–3 days/week)', 1.375],
-        ['Moderate (3–5 days/week)', 1.55],
-        ['Active (6–7 days/week)', 1.725],
-        ['Very active (hard daily training)', 1.9],
+        ['Sedentary (×1.2)', 1.2],
+        ['Lightly active (×1.375)', 1.375],
+        ['Moderately active (×1.55)', 1.55],
+        ['Active (×1.725)', 1.725],
+        ['Very active (×1.9)', 1.9],
       ];
       return {
         ok: true,
-        primaryLabel: 'Your BMR',
-        primaryValue: `${fmt(bmr, 0)} kcal/day`,
+        primaryLabel: 'Estimated resting energy (REE)',
+        primaryValue: fmt(ree, 0) + ' kcal/day',
         visual: { kind: 'none' },
-        rows: levels.map(([label, mult]) => ({
-          label,
-          value: `${fmt(bmr * mult, 0)} kcal/day`,
+        rows: levels.map(([label, factor]) => ({
+          label: 'Illustrative TDEE — ' + label,
+          value: fmt(ree * factor, 0) + ' kcal/day',
         })),
-        note: 'BMR is the energy you burn at complete rest. The table estimates total daily calories (TDEE) once activity is added.',
+        note: 'Mifflin–St Jeor predicts resting energy expenditure (REE), which is related to but not identical to measured basal metabolic rate (BMR). TDEE rows are illustrative REE × activity-factor scenarios, not measured expenditure or calorie prescriptions. The original study included adults ages 19–78; accuracy may be lower for other ages or health conditions.',
       };
     },
   },
 
-  // ---- 3. Ideal Weight (BMI range + Devine) ----
+  // ---- 3. BMI reference interval + historical Devine dosing-weight equation ----
   'ideal-weight-calculator': {
     slug: 'ideal-weight-calculator',
-    heading: 'Calculate your ideal weight',
+    heading: 'Explore BMI reference weights',
     hasSex: true,
     fields: [F.height(175)],
     compute: ({ vals, sex, units }) => {
-      const m = vals.height / 100;
-      const lowKg = 18.5 * m * m;
-      const highKg = 24.9 * m * m;
-      const inches = vals.height / 2.54;
-      const over5ft = Math.max(0, inches - 60);
-      const devineKg = (sex === 'male' ? 50 : 45.5) + 2.3 * over5ft;
+      const height = vals.height;
+      const fail = (error: string): CalcResult => ({
+        ok: false, error,
+        primaryLabel: 'Adult BMI reference weight interval',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (!Number.isFinite(height) || height <= 0 ||
+          (sex !== 'male' && sex !== 'female')) {
+        return fail('Enter a valid positive height and a supported equation sex.');
+      }
+      if (height < 120 || height > 230) {
+        return fail('Check the height is within the supported 120–230 cm range.');
+      }
+
+      const meters = height / 100;
+      // CDC adult healthy-weight category: 18.5 <= BMI < 25 (upper exclusive).
+      const lowKg = 18.5 * meters * meters;
+      const upperExclusiveKg = 25 * meters * meters;
+      const inches = height / 2.54;
+
+      // Devine (1974): 50kg male / 45.5kg female plus 2.3kg per inch
+      // over five feet. The historic over-5-ft formula is not validated
+      // below 60 inches. Do not clamp all shorter heights to the 5-ft value.
+      const devineApplicable = height >= 152.4;
+      const devineKg = devineApplicable
+        ? (sex === 'male' ? 50 : 45.5) + 2.3 * (inches - 60)
+        : null;
+
+      const lowerDisplay = fmtMass(lowKg, units, 1);
+      const upperDisplay = fmtMass(upperExclusiveKg, units, 1);
       const unit = units === 'metric' ? 'kg' : 'lb';
       return {
         ok: true,
-        primaryLabel: 'Healthy weight range (BMI 18.5–24.9)',
-        primaryValue: `${fmtMass(lowKg, units, 1)} – ${fmtMass(highKg, units, 1)}`,
+        primaryLabel: 'Adult BMI reference weight interval',
+        primaryValue: lowerDisplay + ' to under ' + upperDisplay,
         visual: {
           kind: 'range',
           min: round(massScale(lowKg, units) - 12, 0),
-          max: round(massScale(highKg, units) + 12, 0),
+          max: round(massScale(upperExclusiveKg, units) + 12, 0),
           low: round(massScale(lowKg, units), 1),
-          high: round(massScale(highKg, units), 1),
+          high: round(massScale(upperExclusiveKg, units), 1),
           unit,
+          label: 'BMI reference (not a goal)',
+          upperExclusive: true,
         },
-        rows: [
-          { label: 'Devine formula ideal weight', value: fmtMass(devineKg, units, 1), strong: true },
-        ],
-        note: 'There is no single "ideal" weight. A healthy BMI range and the Devine clinical formula give complementary targets.',
+        rows: [{
+          label: 'Devine historical dosing-weight reference',
+          value: devineKg === null
+            ? 'Not provided below 5 ft (152.4 cm)'
+            : fmtMass(devineKg, units, 1),
+          strong: devineKg !== null,
+        }],
+        note: devineKg === null
+          ? 'The BMI interval is an approximate adult screening reference, not a personal weight goal. The historical Devine formula is stated in inches above 5 ft; no Devine value is provided for shorter heights rather than silently repeating the 5-ft value. This calculator cannot determine drug doses or diagnose health.'
+          : 'The BMI interval (18.5 to below 25) is an approximate adult screening reference, not a personal weight goal. Devine was developed as a dosing-weight reference, not an individual fitness target; do not use it to determine medication or ventilator settings. These estimates do not account for age, body composition or medical history.',
       };
     },
   },
 
-  // ---- 4. Body Fat % (US Navy) ----
+  // ---- 4. Body Fat % (historical US Navy circumference equations) ----
   'body-fat-calculator': {
     slug: 'body-fat-calculator',
     heading: 'Estimate your body fat',
@@ -319,49 +437,71 @@ export const DEFS: Record<string, CalcDef> = {
     fields: [
       F.height(175),
       F.neck(),
-      F.waist(88),
+      {
+        ...F.waist(88),
+        label: 'Abdomen / waist circumference',
+        help: 'Men: measure at the navel, not the narrowest waist. Women: measure at the narrowest natural waist. Breathe out normally; keep the tape level and snug.',
+      },
       { ...F.hip(), showIf: ({ sex }) => sex === 'female' },
     ],
     compute: ({ vals, sex }) => {
+      // Hodgdon-Beckett body-density equations require centimetres; the island
+      // converts imperial length inputs with the exact 2.54 cm/in factor.
       const { height, neck, waist } = vals;
-      const hip = vals.hip ?? 0;
-      const log10 = Math.log10;
-      let bf: number;
-      if (sex === 'male') {
-        if (waist - neck <= 0) {
-          return { ok: false, error: 'Waist must be larger than neck. Re-check your measurements.', primaryLabel: 'Body fat', primaryValue: '—', visual: { kind: 'none' } };
-        }
-        bf = 495 / (1.0324 - 0.19077 * log10(waist - neck) + 0.15456 * log10(height)) - 450;
-      } else {
-        if (waist + hip - neck <= 0) {
-          return { ok: false, error: 'Check your waist, hip and neck measurements.', primaryLabel: 'Body fat', primaryValue: '—', visual: { kind: 'none' } };
-        }
-        bf = 495 / (1.29579 - 0.35004 * log10(waist + hip - neck) + 0.22100 * log10(height)) - 450;
+      const hip = vals.hip;
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Body fat', primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (![height, neck, waist].every((v) => Number.isFinite(v) && v > 0) ||
+          (sex === 'female' && !(Number.isFinite(hip) && hip > 0))) {
+        return fail('Enter valid, positive height and circumference measurements.');
       }
-      bf = Math.max(2, Math.min(60, bf));
+
+      const circumference = sex === 'male' ? waist - neck : waist + hip - neck;
+      if (!(circumference > 0)) {
+        return fail(sex === 'male'
+          ? 'Abdomen must be larger than neck. Re-check your measurements.'
+          : 'Waist plus hip must exceed neck. Re-check your measurements.');
+      }
+      const density = sex === 'male'
+        ? 1.0324 - 0.19077 * Math.log10(circumference) + 0.15456 * Math.log10(height)
+        : 1.29579 - 0.35004 * Math.log10(circumference) + 0.22100 * Math.log10(height);
+      if (!Number.isFinite(density) || density <= 0) {
+        return fail('These measurements do not produce a usable body-fat estimate.');
+      }
+      // Do not silently turn an impossible estimate into 2% or 60%.
+      const bf = round(495 / density - 450, 1);
+      if (!Number.isFinite(bf) || bf <= 0 || bf >= 100) {
+        return fail('These measurements produce an implausible body-fat estimate. Recheck tape placement and units.');
+      }
+
+      // General *fitness* reference bands, not diagnoses or Navy BCA standards.
+      // Classify the same one-decimal percentage that is actually displayed.
       const segments: Segment[] = sex === 'male'
         ? [
-            { upTo: 6, label: 'Essential fat', color: C.blue },
-            { upTo: 14, label: 'Athletic', color: C.green },
-            { upTo: 18, label: 'Fitness', color: C.teal },
-            { upTo: 25, label: 'Average', color: C.amber },
-            { upTo: 45, label: 'Above average', color: C.red },
+            { upTo: 1.9, label: 'Below reference chart', color: C.blue },
+            { upTo: 5.9, label: 'Essential fat', color: C.blue },
+            { upTo: 13.9, label: 'Athletic', color: C.green },
+            { upTo: 17.9, label: 'Fitness', color: C.teal },
+            { upTo: 24.9, label: 'Average', color: C.amber },
+            { upTo: 100, label: 'Higher reference range', color: C.red },
           ]
         : [
-            { upTo: 14, label: 'Essential fat', color: C.blue },
-            { upTo: 21, label: 'Athletic', color: C.green },
-            { upTo: 25, label: 'Fitness', color: C.teal },
-            { upTo: 32, label: 'Average', color: C.amber },
-            { upTo: 45, label: 'Above average', color: C.red },
+            { upTo: 9.9, label: 'Below reference chart', color: C.blue },
+            { upTo: 13.9, label: 'Essential fat', color: C.blue },
+            { upTo: 20.9, label: 'Athletic', color: C.green },
+            { upTo: 24.9, label: 'Fitness', color: C.teal },
+            { upTo: 31.9, label: 'Average', color: C.amber },
+            { upTo: 100, label: 'Higher reference range', color: C.red },
           ];
       const band = bandFor(bf, segments);
       return {
         ok: true,
         primaryLabel: 'Estimated body fat',
-        primaryValue: `${fmt(bf, 1)}%`,
+        primaryValue: fmt(bf, 1) + '%',
         category: { label: band.label, color: band.color },
-        visual: { kind: 'gauge', value: bf, min: 0, max: 45, segments },
-        note: 'This is an estimate from the U.S. Navy circumference method. Lab methods such as DEXA are more accurate.',
+        visual: { kind: 'gauge', value: bf, min: 0, max: 100, segments },
+        note: 'This tape-based estimate is not a diagnosis or personal target. The fitness labels are illustrative, not age-adjusted. This historical formula is not the current official U.S. Navy BCA.',
       };
     },
   },
@@ -369,100 +509,172 @@ export const DEFS: Record<string, CalcDef> = {
   // ---- 5. Lean Body Mass (Boer) ----
   'lean-body-mass-calculator': {
     slug: 'lean-body-mass-calculator',
-    heading: 'Calculate your lean body mass',
+    heading: 'Estimate your lean body mass',
     hasSex: true,
     fields: [F.weight(72), F.height(175)],
     compute: ({ vals, sex, units }) => {
+      // Boer (1984): weight in kg, height in cm. Never clamp an impossible
+      // lean/fat mass prediction to a credible-looking zero-fat result.
       const { weight, height } = vals;
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Estimated lean body mass',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (![weight, height].every((v) => Number.isFinite(v) && v > 0)) {
+        return fail('Enter valid positive weight and height measurements.');
+      }
+
       const lbm = sex === 'male'
         ? 0.407 * weight + 0.267 * height - 19.2
         : 0.252 * weight + 0.473 * height - 48.3;
-      const fatMass = Math.max(0, weight - lbm);
+      const fatMass = weight - lbm;
+      if (!Number.isFinite(lbm) || !(lbm > 0) || !(fatMass > 0)) {
+        return fail('These measurements imply an impossible lean/fat mass split. Recheck weight, height and units; this equation may not fit your body proportions.');
+      }
+
       const unit = massUnitLabel(units);
       return {
         ok: true,
-        primaryLabel: 'Lean body mass',
+        primaryLabel: 'Estimated lean body mass',
         primaryValue: fmtMass(lbm, units, 1),
         visual: {
           kind: 'split',
-          aLabel: 'Lean mass',
+          aLabel: 'Estimated lean mass',
           aValue: round(massScale(lbm, units), 1),
-          bLabel: 'Fat mass',
+          bLabel: 'Estimated fat mass',
           bValue: round(massScale(fatMass, units), 1),
           aColor: C.green,
           bColor: C.amber,
           unit,
         },
         rows: [
-          { label: 'Estimated fat mass', value: fmtMass(fatMass, units, 1) },
-          { label: 'Lean mass as % of weight', value: `${fmt((lbm / weight) * 100, 1)}%`, strong: true },
+          { label: 'Derived fat mass (not measured)', value: fmtMass(fatMass, units, 1) },
+          { label: 'Estimated lean share of body weight', value: fmt((lbm / weight) * 100, 1) + '%', strong: true },
         ],
-        note: 'Lean body mass is everything that is not fat — muscle, bone, organs and water. Estimated with the Boer formula.',
+        note: 'Boer predicts lean body mass from weight, height and sex; it does not measure muscle or fat. The fat portion is a mathematical remainder, not a scan result. Do not use this estimate to diagnose health, prescribe treatment or calculate medication doses.',
       };
     },
   },
 
-  // ---- 6. Waist-to-Height Ratio ----
+  // ---- 6. Waist-to-Height Ratio (NICE central-adiposity reference bands) ----
   'waist-to-height-ratio-calculator': {
     slug: 'waist-to-height-ratio-calculator',
     heading: 'Calculate your waist-to-height ratio',
     hasSex: false,
-    fields: [F.waist(85), F.height(175)],
+    fields: [
+      {
+        ...F.waist(85),
+        help: 'Measure halfway between your lowest rib and the top of your hip bone (just above your navel). Keep the tape level and breathe out normally.',
+      },
+      F.height(175),
+    ],
     compute: ({ vals }) => {
-      const ratio = vals.waist / vals.height;
+      const { waist, height } = vals;
+      if (![waist, height].every((v) => Number.isFinite(v) && v > 0)) {
+        return {
+          ok: false, error: 'Enter valid positive waist and height measurements.',
+          primaryLabel: 'Waist-to-height ratio', primaryValue: '—',
+          visual: { kind: 'none' },
+        };
+      }
+      // Both inputs are centimetres, even when the display is imperial.
+      const ratio = waist / height;
+      if (!Number.isFinite(ratio) || !(ratio > 0)) {
+        return {
+          ok: false, error: 'These measurements cannot produce a valid ratio.',
+          primaryLabel: 'Waist-to-height ratio', primaryValue: '—',
+          visual: { kind: 'none' },
+        };
+      }
+
+      // NICE reference bands are stated to 2 decimals. Classify the same
+      // 2-decimal number shown to the user, including at 0.40/0.50/0.60.
+      const shown = round(ratio, 2);
+      const gaugeMax = Math.max(0.8, Math.ceil(shown * 10) / 10);
       const segments: Segment[] = [
-        { upTo: 0.4, label: 'Slim', color: C.blue },
-        { upTo: 0.5, label: 'Healthy', color: C.green },
-        { upTo: 0.6, label: 'Increased risk', color: C.amber },
-        { upTo: 0.7, label: 'High risk', color: C.red },
+        { upTo: 0.39, label: 'Below reference range', color: C.blue },
+        { upTo: 0.49, label: 'Within reference range', color: C.green },
+        { upTo: 0.59, label: 'Increased central adiposity', color: C.amber },
+        { upTo: gaugeMax, label: 'High central adiposity', color: C.red },
       ];
-      const band = bandFor(ratio, segments);
+      const band = bandFor(shown, segments);
       return {
         ok: true,
         primaryLabel: 'Waist-to-height ratio',
-        primaryValue: fmt(ratio, 2),
+        primaryValue: fmt(shown, 2),
         category: { label: band.label, color: band.color },
-        visual: { kind: 'gauge', value: ratio, min: 0.3, max: 0.7, segments },
-        note: 'A simple rule: keep your waist to less than half your height (ratio under 0.5).',
+        visual: { kind: 'gauge', value: shown, min: 0, max: gaugeMax, segments },
+        note: 'Reference bands are based on the displayed, rounded ratio; near a boundary, small tape differences may change the band. NICE uses these adult bands alongside BMI (particularly BMI below 35). This is a screening estimate, not a diagnosis; a ratio under 0.5 does not rule out other health risks.',
       };
     },
   },
 
-  // ---- 7. Waist-to-Hip Ratio ----
+  // ---- 7. Waist-to-Hip Ratio (WHO-referenced sex-specific cutoffs) ----
   'waist-to-hip-ratio-calculator': {
     slug: 'waist-to-hip-ratio-calculator',
     heading: 'Calculate your waist-to-hip ratio',
     hasSex: true,
-    fields: [F.waist(85), F.hip()],
+    fields: [
+      {
+        ...F.waist(85),
+        help: 'Measure halfway between the bottom of the last palpable rib and the top of the hip bone. Breathe out normally; keep the tape horizontal and snug, not tight.',
+      },
+      {
+        ...F.hip(),
+        help: 'Measure around the widest part of the buttocks, keeping the tape horizontal and snug, not tight.',
+      },
+    ],
     compute: ({ vals, sex }) => {
-      const ratio = vals.waist / vals.hip;
-      const segments: Segment[] = sex === 'male'
-        ? [
-            { upTo: 0.9, label: 'Low risk', color: C.green },
-            { upTo: 1.0, label: 'Increased risk', color: C.amber },
-            { upTo: 1.3, label: 'High risk', color: C.red },
-          ]
-        : [
-            { upTo: 0.85, label: 'Low risk', color: C.green },
-            { upTo: 0.9, label: 'Increased risk', color: C.amber },
-            { upTo: 1.3, label: 'High risk', color: C.red },
-          ];
-      const band = bandFor(ratio, segments);
+      const { waist, hip } = vals;
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Waist-to-hip ratio',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (![waist, hip].every((v) => Number.isFinite(v) && v > 0)) {
+        return fail('Enter valid positive waist and hip measurements.');
+      }
+
+      // Both measurements arrive in centimeters. The ratio is dimensionless.
+      const ratio = waist / hip;
+      if (!Number.isFinite(ratio) || !(ratio > 0)) {
+        return fail('These measurements cannot produce a valid waist-to-hip ratio.');
+      }
+
+      // Annex A, Table A1 of WHO 2008 consultation (published 2011) prints
+      // >= 0.90 for men and >= 0.85 for women. The consultation did not
+      // establish new universal diagnostic cutoffs or a three-tier WHO scale.
+      // Compare the unrounded value so 0.8996 is not misclassified as >=0.90.
+      const cutoff = sex === 'male' ? 0.90 : 0.85;
+      const atOrAbove = ratio >= cutoff;
+      const gaugeMax = Math.max(1.2, Math.ceil(ratio * 10) / 10);
+      const segments: Segment[] = [
+        { upTo: cutoff, label: 'Below reference cutoff', color: C.green },
+        { upTo: gaugeMax, label: 'At/above reference cutoff', color: C.amber },
+      ];
+      // Near the threshold, show extra digits so a rounded 0.90 does not
+      // ordinarily conceal an underlying value just below the cutoff.
+      const shownPrecision = Math.abs(ratio - cutoff) < 0.005 ? 4 : 2;
       return {
         ok: true,
         primaryLabel: 'Waist-to-hip ratio',
-        primaryValue: fmt(ratio, 2),
-        category: { label: band.label, color: band.color },
-        visual: { kind: 'gauge', value: ratio, min: 0.6, max: 1.1, segments },
-        note: `WHO links higher abdominal fat with greater health risk above ${sex === 'male' ? '0.90 for men' : '0.85 for women'}.`,
+        primaryValue: fmt(ratio, shownPrecision),
+        category: atOrAbove
+          ? { label: 'At/above reference cutoff', color: C.amber }
+          : { label: 'Below reference cutoff', color: C.green },
+        visual: { kind: 'gauge', value: ratio, min: 0, max: gaugeMax, segments },
+        rows: [
+          { label: sex === 'male' ? 'Male reference cutoff' : 'Female reference cutoff',
+            value: (sex === 'male' ? '≥0.90' : '≥0.85') },
+        ],
+        note: 'WHO’s 2008 consultation reproduced these commonly cited reference cutoffs but did not set definitive universal diagnostic limits. Categories use the unrounded ratio; tape placement and rounding can matter near a cutoff. This is not a direct measurement of visceral fat or an individual disease-risk diagnosis.',
       };
     },
   },
 
-  // ---- 8. Weight Loss Percentage ----
+  // ---- 8. Weight Change Percentage (baseline = starting weight) ----
   'weight-loss-percentage-calculator': {
     slug: 'weight-loss-percentage-calculator',
-    heading: 'Calculate your weight loss percentage',
+    heading: 'Calculate your weight change percentage',
     hasSex: false,
     fields: [
       { key: 'start', label: 'Starting weight', type: 'mass', metricDefault: 90, min: 25, max: 350 },
@@ -470,28 +682,57 @@ export const DEFS: Record<string, CalcDef> = {
     ],
     compute: ({ vals, units }) => {
       const { start, current } = vals;
-      if (start <= 0) {
-        return { ok: false, error: 'Starting weight must be greater than zero.', primaryLabel: 'Weight change', primaryValue: '—', visual: { kind: 'none' } };
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Weight change',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (![start, current].every((v) => Number.isFinite(v) && v > 0)) {
+        return fail('Enter valid positive starting and current weights.');
       }
-      const lostKg = start - current;
-      const pct = (lostKg / start) * 100;
-      const gained = lostKg < 0;
-      let cat: { label: string; color: string };
-      if (gained) cat = { label: 'Weight gained', color: C.red };
-      else if (pct >= 10) cat = { label: 'Significant loss (≥10%)', color: C.green };
-      else if (pct >= 5) cat = { label: 'Clinically meaningful (≥5%)', color: C.teal };
-      else if (pct > 0) cat = { label: 'In progress', color: C.amber };
-      else cat = { label: 'No change yet', color: C.slate };
+      if ([start, current].some((v) => v < 25 || v > 350)) {
+        return fail('Check both weights are within the supported 25–350 kg input range.');
+      }
+
+      // The starting weight is the denominator for both directions of change:
+      // loss = positive; gain = negative. Do not divide by the current weight.
+      const differenceKg = start - current;
+      const percentLost = (differenceKg / start) * 100;
+      if (!Number.isFinite(percentLost)) {
+        return fail('These weights cannot produce a valid percentage.');
+      }
+      const gained = differenceKg < 0;
+      const unchanged = differenceKg === 0;
+      const absPercent = Math.abs(percentLost);
+      // Keep numeric classification based on raw percentage, not a rounded
+      // value that can incorrectly promote 4.96% to the 5% milestone.
+      const nearMilestone = !gained && !unchanged &&
+        [5, 10].some((point) => Math.abs(percentLost - point) < 0.05);
+      const percentPrecision = nearMilestone ? 4 : 1;
+      let category: { label: string; color: string };
+      if (gained) category = { label: 'Weight increased', color: C.amber };
+      else if (unchanged) category = { label: 'No weight change', color: C.slate };
+      else if (percentLost >= 10) category = { label: '10%+ decrease (reference milestone)', color: C.green };
+      else if (percentLost >= 5) category = { label: '5%+ decrease (reference milestone)', color: C.teal };
+      else category = { label: 'Weight decreased', color: C.blue };
+      const note = gained
+        ? 'This is a comparison with your starting weight, not a diagnosis or evidence of a harmful change. Weight changes can reflect fluid, fat, muscle, pregnancy or other factors. Discuss unexplained changes with a clinician.'
+        : unchanged
+          ? 'Your recorded starting and current weights are equal. This comparison alone does not assess health, body composition or changes between measurements.'
+          : '5–10% weight loss may improve some health measures in adults with overweight or obesity when appropriate and sustained; benefits are not automatic and these are not personal targets. This tool does not measure fat loss, rate of change or health outcomes. Consult a clinician about unexpected or rapid changes.';
       return {
         ok: true,
-        primaryLabel: gained ? 'Weight gained' : 'Weight lost',
-        primaryValue: `${fmt(Math.abs(pct), 1)}%`,
-        category: cat,
+        primaryLabel: gained ? 'Weight gained' : unchanged ? 'Weight unchanged' : 'Weight lost',
+        primaryValue: fmt(absPercent, percentPrecision) + '%',
+        category,
         visual: { kind: 'none' },
         rows: [
-          { label: gained ? 'Total gained' : 'Total lost', value: fmtMass(Math.abs(lostKg), units, 1), strong: true },
+          {
+            label: gained ? 'Total gained' : unchanged ? 'Absolute change' : 'Total lost',
+            value: fmtMass(Math.abs(differenceKg), units, 1),
+            strong: true,
+          },
         ],
-        note: 'Losing 5–10% of your starting weight delivers meaningful health benefits, even before reaching a "goal" weight.',
+        note,
       };
     },
   },
@@ -500,253 +741,528 @@ export const DEFS: Record<string, CalcDef> = {
   // Nutrition
   // ============================================================
 
-  // ---- Calorie Calculator (TDEE) ----
+  // ---- Calorie Calculator: predicted REE and illustrative TDEE ----
   'calorie-calculator': {
     slug: 'calorie-calculator',
-    heading: 'Calculate your daily calories',
+    heading: 'Estimate your daily energy expenditure',
     hasSex: true,
-    fields: [F.weight(72), F.height(175), F.age(30), activityField()],
+    fields: [
+      F.weight(72),
+      F.height(175),
+      {
+        ...F.age(30),
+        min: 19,
+        help: 'For adults age 19 or older. The original Mifflin–St Jeor study included ages 19–78; older-age predictions are extrapolations.',
+      },
+      {
+        ...activityField(),
+        help: 'Choose an illustrative activity multiplier. Days of exercise alone cannot measure your actual daily expenditure.',
+      },
+    ],
     compute: ({ vals, selects, sex }) => {
-      const factor = parseFloat(selects.activity) || 1.375;
-      const bmr = mifflin(vals.weight, vals.height, vals.age, sex);
-      const tdee = bmr * factor;
-      const floor = calorieFloor(sex);
-      const loseRaw = tdee - 500;
-      const lose = Math.max(loseRaw, floor);
-      const clamped = loseRaw < floor;
+      const { weight, height, age } = vals;
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Estimated daily expenditure (TDEE)',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (![weight, height, age].every((v) => Number.isFinite(v) && v > 0) ||
+          (sex !== 'male' && sex !== 'female')) {
+        return fail('Enter valid positive weight, height, whole-year age and an equation sex.');
+      }
+      if (weight < 25 || weight > 300 || height < 120 || height > 230 ||
+          !Number.isInteger(age) || age < 19 || age > 100) {
+        return fail('Check weight (25–300 kg), height (120–230 cm) and whole-year age (19–100).');
+      }
+      // Accept only the existing selectable multiplier, never arbitrary input
+      // or parseFloat's permissive partial strings or silent fallbacks.
+      const activity = ACTIVITY_OPTIONS.find((option) => option.value === selects.activity);
+      if (!activity) return fail('Choose one of the listed activity levels.');
+
+      const ree = mifflin(weight, height, age, sex);
+      const factor = Number(activity.value);
+      const tdee = ree * factor;
+      if (![ree, factor, tdee].every((v) => Number.isFinite(v) && v > 0)) {
+        return fail('These measurements cannot produce a valid daily-energy estimate.');
+      }
+
+      const lessExample = tdee - 500;
+      const moreExample = tdee + 500;
+      // NIDDK's Body Weight Planner flags intakes under 1,000 kcal/day for
+      // nutrient-adequacy concerns. This is only a display-withholding guard,
+      // NOT a universal safe intake floor or a personalized prescription.
+      const displayExamples = tdee >= 1000;
+      const displayLess = displayExamples && lessExample >= 1000;
+      const displayMore = displayExamples && moreExample >= 1000;
+      const sampleValue = (value: number, show: boolean) =>
+        show ? fmt(value, 0) + ' kcal/day' : 'Not shown';
+      const commonSub = 'Arithmetic illustration, not an intake target';
+      const callout: NonNullable<CalcResult['callout']> = !displayExamples
+        ? {
+            tone: 'warn',
+            text: 'This model predicts unusually low daily expenditure. Check your measurements; do not use this number to plan food intake. Seek individualized advice from a qualified clinician or registered dietitian.',
+          }
+        : !displayLess
+          ? {
+              tone: 'warn',
+              text: 'A 500-kcal subtraction would be below 1,000 kcal/day, so that example is withheld. NIDDK flags nutrient-adequacy concerns below this level; 1,000 is NOT a universal safe minimum, and amounts above it are not automatically appropriate.',
+            }
+          : {
+              tone: 'info',
+              text: 'The 500-kcal differences are mathematical illustrations only. They do not establish safe food-intake goals or predict a fixed weekly rate of weight loss or gain.',
+            };
+
       return {
         ok: true,
-        primaryLabel: 'Maintenance calories (TDEE)',
-        primaryValue: `${fmt(tdee, 0)} kcal/day`,
+        primaryLabel: 'Estimated daily expenditure (TDEE)',
+        primaryValue: fmt(tdee, 0) + ' kcal/day',
         visual: { kind: 'none' },
         cards: [
-          { label: 'Lose weight', value: `${fmt(lose, 0)} kcal`, sub: '≈ 0.5 kg (1 lb)/week', tone: clamped ? 'warn' : 'good' },
-          { label: 'Maintain', value: `${fmt(tdee, 0)} kcal`, sub: 'Stay at current weight', tone: 'neutral' },
-          { label: 'Gain weight', value: `${fmt(tdee + 500, 0)} kcal`, sub: '≈ 0.5 kg (1 lb)/week', tone: 'good' },
+          {
+            label: '500 kcal less (example)',
+            value: sampleValue(lessExample, displayLess),
+            sub: commonSub,
+            tone: 'warn',
+          },
+          {
+            label: 'Estimated maintenance expenditure',
+            value: fmt(tdee, 0) + ' kcal/day',
+            sub: 'Model estimate, not a measured intake requirement',
+            tone: 'neutral',
+          },
+          {
+            label: '500 kcal more (example)',
+            value: sampleValue(moreExample, displayMore),
+            sub: commonSub,
+            tone: 'neutral',
+          },
         ],
-        callout: clamped
-          ? {
-              tone: 'warn',
-              text: `A 500 kcal deficit would drop you below the safe minimum of ${floor} kcal/day for ${sex === 'female' ? 'women' : 'men'}. We’ve set your weight-loss target to ${fmt(floor, 0)} kcal — for faster loss, work with a healthcare professional.`,
-            }
-          : undefined,
-        rows: [{ label: 'BMR (calories at rest)', value: `${fmt(bmr, 0)} kcal/day` }],
-        note: 'TDEE = your BMR (Mifflin-St Jeor) multiplied by an activity factor from 1.2 (sedentary) to 1.9 (extra active).',
+        callout,
+        rows: [
+          { label: 'Predicted resting energy (REE)', value: fmt(ree, 0) + ' kcal/day' },
+          { label: 'Assumed activity multiplier', value: '×' + activity.value + ' (' + activity.label + ')' },
+        ],
+        note: 'Mifflin–St Jeor predicts resting energy expenditure (REE), not a measured BMR. TDEE is an estimate made by multiplying REE by a selected activity factor. Actual expenditure varies and changes over time; a fixed 500-kcal difference does not guarantee a weekly weight change. This calculator is for adult education, not a calorie prescription during pregnancy, breastfeeding, illness or individual nutritional care.',
       };
     },
   },
 
-  // ---- Macro Calculator ----
+  // ---- Macro Calculator: illustrative TDEE and internally consistent macro shares ----
   'macro-calculator': {
     slug: 'macro-calculator',
-    heading: 'Calculate your macros',
+    heading: 'Explore estimated daily macros',
     hasSex: true,
     fields: [
-      F.weight(72), F.height(175), F.age(30), activityField(),
+      F.weight(72),
+      F.height(175),
       {
-        key: 'goal', label: 'Goal', type: 'select', metricDefault: 0, min: 0, max: 0,
+        ...F.age(30),
+        min: 19,
+        help: 'For adults age 19 or older. The Mifflin–St Jeor study included ages 19–78; results above that age are extrapolations.',
+      },
+      {
+        ...activityField(),
+        help: 'Choose an illustrative activity multiplier. This selection does not measure your true daily energy expenditure.',
+      },
+      {
+        key: 'goal', label: 'Illustrative scenario', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'maintain',
         options: [
-          { value: 'cut', label: 'Cut — lose fat' },
-          { value: 'maintain', label: 'Maintain' },
-          { value: 'bulk', label: 'Bulk — build muscle' },
+          { value: 'cut', label: 'Cut — lower energy example' },
+          { value: 'maintain', label: 'Maintain — estimated TDEE' },
+          { value: 'bulk', label: 'Bulk — higher energy example' },
         ],
       },
     ],
     compute: ({ vals, selects, sex }) => {
-      const factor = parseFloat(selects.activity) || 1.375;
-      const goal = selects.goal || 'maintain';
-      const bmr = mifflin(vals.weight, vals.height, vals.age, sex);
-      const tdee = bmr * factor;
-      const floor = calorieFloor(sex);
-      let calories: number;
-      let pPerKg: number;
-      let fPerKg: number;
-      let goalLabel: string;
-      if (goal === 'cut') { calories = tdee - 500; pPerKg = 2.2; fPerKg = 0.8; goalLabel = 'Cut'; }
-      else if (goal === 'bulk') { calories = tdee + 300; pPerKg = 1.6; fPerKg = 1.0; goalLabel = 'Bulk'; }
-      else { calories = tdee; pPerKg = 1.8; fPerKg = 0.9; goalLabel = 'Maintain'; }
-      const clamped = calories < floor;
-      if (clamped) calories = floor;
-      const proteinG = pPerKg * vals.weight;
-      const fatG = fPerKg * vals.weight;
-      let carbsG = (calories - proteinG * 4 - fatG * 9) / 4;
-      let lowCarb = false;
-      if (carbsG < 0) { carbsG = 0; lowCarb = true; }
-      return {
-        ok: true,
-        primaryLabel: `Daily calories (${goalLabel})`,
-        primaryValue: `${fmt(calories, 0)} kcal/day`,
-        visual: macroDonut(proteinG, carbsG, fatG),
-        rows: [
-          { label: 'Protein', value: `${fmt(proteinG, 0)} g · ${fmt(proteinG * 4, 0)} kcal`, strong: true },
-          { label: 'Carbs', value: `${fmt(carbsG, 0)} g · ${fmt(carbsG * 4, 0)} kcal` },
-          { label: 'Fat', value: `${fmt(fatG, 0)} g · ${fmt(fatG * 9, 0)} kcal` },
-        ],
-        callout: clamped
-          ? { tone: 'warn', text: `Your cut target was raised to the safe minimum of ${fmt(floor, 0)} kcal/day.` }
-          : lowCarb
-          ? { tone: 'info', text: 'Your protein and fat targets already use all your calories, so carbs are set to zero. Consider a smaller deficit.' }
-          : undefined,
-        note: `Protein set at ${pPerKg} g/kg and fat at ${fPerKg} g/kg of body weight; the rest of your calories go to carbs (protein & carbs = 4 kcal/g, fat = 9 kcal/g).`,
-        cta: {
-          label: 'Build a free 7-day meal plan from these numbers →',
-          href: `/tools/meal-plan-generator?calories=${Math.round(calories)}&protein=${Math.round(proteinG)}&carbs=${Math.round(carbsG)}&fat=${Math.round(fatG)}`,
-        },
-      };
-    },
-  },
-
-  // ---- Protein Intake ----
-  'protein-intake-calculator': {
-    slug: 'protein-intake-calculator',
-    heading: 'Calculate your protein target',
-    hasSex: false,
-    fields: [
-      F.weight(72),
-      {
-        key: 'goal', label: 'Activity / goal', type: 'select', metricDefault: 0, min: 0, max: 0,
-        selectDefault: '1.6',
-        options: [
-          { value: '0.8', label: 'Sedentary — minimum (0.8 g/kg)' },
-          { value: '1.2', label: 'Active / general fitness (1.2 g/kg)' },
-          { value: '1.6', label: 'Building muscle / strength (1.6 g/kg)' },
-          { value: '2.0', label: 'Athlete / fat loss (2.0 g/kg)' },
-          { value: '2.2', label: 'Maximum — heavy training (2.2 g/kg)' },
-        ],
-      },
-    ],
-    compute: ({ vals, selects }) => {
-      const gPerKg = parseFloat(selects.goal) || 1.6;
-      const proteinG = gPerKg * vals.weight;
-      return {
-        ok: true,
-        primaryLabel: 'Daily protein target',
-        primaryValue: `${fmt(proteinG, 0)} g/day`,
-        visual: { kind: 'none' },
-        rows: [
-          { label: 'Based on', value: `${fmt(gPerKg, 1)} g per kg body weight`, strong: true },
-          { label: 'Per meal (4 meals)', value: `${fmt(proteinG / 4, 0)} g` },
-          { label: 'Calories from protein', value: `${fmt(proteinG * 4, 0)} kcal` },
-        ],
-        note: 'General health needs about 0.8 g/kg. Active people and those building muscle benefit from 1.6–2.2 g/kg, spread across the day.',
-      };
-    },
-  },
-
-  // ---- Water Intake ----
-  'water-intake-calculator': {
-    slug: 'water-intake-calculator',
-    heading: 'Calculate your water intake',
-    hasSex: false,
-    fields: [
-      F.weight(72),
-      {
-        key: 'activity', label: 'Daily activity', type: 'select', metricDefault: 0, min: 0, max: 0,
-        selectDefault: '500',
-        options: [
-          { value: '0', label: 'Light — little exercise' },
-          { value: '500', label: 'Moderate — 30–60 min/day' },
-          { value: '1000', label: 'Active — 1–2 hours/day' },
-          { value: '1500', label: 'Very active — over 2 hours/day' },
-        ],
-      },
-    ],
-    compute: ({ vals, selects }) => {
-      const baselineMl = 35 * vals.weight;
-      const extraMl = parseFloat(selects.activity) || 0;
-      const totalMl = baselineMl + extraMl;
-      const liters = totalMl / 1000;
-      const oz = totalMl / 29.5735;
-      return {
-        ok: true,
-        primaryLabel: 'Recommended water intake',
-        primaryValue: `${fmt(liters, 1)} L/day`,
-        visual: { kind: 'none' },
-        rows: [
-          { label: 'In fluid ounces', value: `${fmt(oz, 0)} oz`, strong: true },
-          { label: 'Roughly in cups (8 oz)', value: `${fmt(oz / 8, 0)} cups` },
-          { label: 'Baseline (35 ml/kg)', value: `${fmt(baselineMl / 1000, 1)} L` },
-        ],
-        note: 'Based on ~35 ml per kg of body weight plus an activity adjustment. Drink more in heat, illness or pregnancy; food provides roughly 20% of your fluids.',
-      };
-    },
-  },
-
-  // ---- Calorie Deficit ----
-  'calorie-deficit-calculator': {
-    slug: 'calorie-deficit-calculator',
-    heading: 'Calculate your calorie deficit',
-    hasSex: true,
-    fields: [
-      { key: 'maintenance', label: 'Your maintenance calories', type: 'number', metricDefault: 2200, min: 1000, max: 6000, suffix: 'kcal', help: 'Not sure? Use the Calorie Calculator first.' },
-      { key: 'amount', label: 'Weight to lose', type: 'mass', metricDefault: 5, min: 0.5, max: 100 },
-      { key: 'weeks', label: 'Timeframe', type: 'number', metricDefault: 10, min: 1, max: 104, suffix: 'weeks' },
-    ],
-    compute: ({ vals, sex }) => {
-      const weeks = vals.weeks;
-      if (weeks <= 0) {
-        return { ok: false, error: 'Enter a timeframe of at least one week.', primaryLabel: 'Daily deficit', primaryValue: '—', visual: { kind: 'none' } };
+      const { weight, height, age } = vals;
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Illustrative macro energy',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (![weight, height, age].every((v) => Number.isFinite(v) && v > 0) ||
+          (sex !== 'male' && sex !== 'female')) {
+        return fail('Enter valid positive weight, height, whole-year age and an equation sex.');
       }
-      const lossLb = kgToLb(vals.amount);
-      const totalKcal = lossLb * 3500;
-      const days = weeks * 7;
-      const dailyDeficit = totalKcal / days;
-      const resulting = vals.maintenance - dailyDeficit;
-      const floor = calorieFloor(sex);
-      const weeklyKg = vals.amount / weeks;
-      // Flag below-floor intake, very large deficits, or rapid loss (>1 kg/week).
-      const unsafe = dailyDeficit > 1000 || resulting < floor || weeklyKg > 1;
-      return {
-        ok: true,
-        primaryLabel: 'Daily calorie deficit needed',
-        primaryValue: `${fmt(dailyDeficit, 0)} kcal/day`,
-        visual: { kind: 'none' },
-        rows: [
-          { label: 'Total energy to burn', value: `${fmt(totalKcal, 0)} kcal` },
-          { label: 'Resulting daily intake', value: `${fmt(Math.max(resulting, 0), 0)} kcal/day`, strong: true },
-          { label: 'Timeframe', value: `${fmt(weeks, 0)} weeks (${fmt(days, 0)} days)` },
-        ],
-        callout: unsafe
-          ? {
-              tone: 'warn',
-              text: `${resulting < floor ? `This drops your intake below the safe minimum of ${floor} kcal/day.` : 'This means rapid weight loss.'} A safe pace is about 0.5–1 kg (1–2 lb) a week — extend your timeframe, avoid crash dieting, and talk to your doctor before attempting faster loss.`,
-            }
-          : undefined,
-        note: 'Uses the classic 3,500 kcal-per-pound rule. Real metabolism adapts as you lose weight, so treat this as a starting estimate, never crash diet, and adjust to results.',
-      };
-    },
-  },
+      if (weight < 25 || weight > 300 || height < 120 || height > 230 ||
+          !Number.isInteger(age) || age < 19 || age > 100) {
+        return fail('Check weight (25–300 kg), height (120–230 cm) and whole-year age (19–100).');
+      }
+      // Match the existing activity choices exactly; do not parse partial
+      // strings or silently assume the default when input is missing.
+      const activity = ACTIVITY_OPTIONS.find((option) => option.value === selects.activity);
+      if (!activity) return fail('Choose one of the listed activity levels.');
+      const goal = selects.goal;
+      if (goal !== 'cut' && goal !== 'maintain' && goal !== 'bulk') {
+        return fail('Choose one of the listed macro scenarios.');
+      }
 
-  // ---- Keto / Carb ----
-  'keto-calculator': {
-    slug: 'keto-calculator',
-    heading: 'Calculate your keto macros',
-    hasSex: true,
-    fields: [F.weight(72), F.height(175), F.age(30), activityField()],
-    compute: ({ vals, selects, sex }) => {
-      const factor = parseFloat(selects.activity) || 1.375;
-      const bmr = mifflin(vals.weight, vals.height, vals.age, sex);
-      const tdee = bmr * factor;
-      const fatG = (tdee * 0.7) / 9;
-      const proteinG = (tdee * 0.25) / 4;
-      const carbsG = (tdee * 0.05) / 4;
+      // The original Mifflin helper already predicts REE in kcal/day.
+      const ree = mifflin(weight, height, age, sex);
+      const factor = Number(activity.value);
+      const tdee = ree * factor;
+      if (![ree, factor, tdee].every((v) => Number.isFinite(v) && v > 0)) {
+        return fail('These measurements cannot produce a valid energy estimate.');
+      }
+      // Preserve the existing illustrative energy shifts and per-kg macro
+      // coefficients; they are examples, NOT validated dietary prescriptions.
+      const offset = goal === 'cut' ? -500 : goal === 'bulk' ? 300 : 0;
+      const goalLabel = goal === 'cut' ? 'Cut' : goal === 'bulk' ? 'Bulk' : 'Maintain';
+      const proteinPerKg = goal === 'cut' ? 2.2 : goal === 'bulk' ? 1.6 : 1.8;
+      const fatPerKg = goal === 'cut' ? 0.8 : goal === 'bulk' ? 1.0 : 0.9;
+      const energy = tdee + offset;
+
+      // Withhold invalid low-energy demonstrations rather than declaring the
+      // former sex-dependent 1200/1500-kcal clamp universally safe. NIDDK's
+      // 1000-kcal guard is a display limit, NOT an approved personal minimum.
+      if (tdee < 1000 || energy < 1000) {
+        return fail('This example would use an unusually low modeled energy budget (under 1,000 kcal/day). No macro split or meal-plan handoff is shown. The NIDDK nutrient-adequacy warning is not a universal safe-calorie threshold; discuss appropriate intake with a qualified clinician or registered dietitian.');
+      }
+
+      const proteinG = proteinPerKg * weight;
+      const fatG = fatPerKg * weight;
+      const proteinKcal = proteinG * 4;
+      const fatKcal = fatG * 9;
+      const remainingKcal = energy - proteinKcal - fatKcal;
+
+      // Never substitute zero carbohydrate after the other two macros have
+      // already exceeded the energy budget: it would show an impossible total.
+      if (!Number.isFinite(remainingKcal) || remainingKcal < 0) {
+        return fail('The selected protein and fat illustrations already exceed the estimated energy budget; a consistent carbohydrate remainder cannot be calculated. Try a different scenario or activity level, or seek individualized nutrition guidance. No inaccurate split is shown.');
+      }
+
+      const carbsG = remainingKcal / 4;
       return {
         ok: true,
-        primaryLabel: 'Daily calories (keto)',
-        primaryValue: `${fmt(tdee, 0)} kcal/day`,
+        primaryLabel: 'Illustrative macro energy (' + goalLabel + ')',
+        primaryValue: fmt(energy, 0) + ' kcal/day',
         visual: macroDonut(proteinG, carbsG, fatG),
         rows: [
-          { label: 'Fat (70%)', value: `${fmt(fatG, 0)} g · ${fmt(tdee * 0.7, 0)} kcal`, strong: true },
-          { label: 'Protein (25%)', value: `${fmt(proteinG, 0)} g · ${fmt(tdee * 0.25, 0)} kcal` },
-          { label: 'Carbs (5%)', value: `${fmt(carbsG, 0)} g · ${fmt(tdee * 0.05, 0)} kcal` },
-          { label: 'Net carb cap', value: '≤ 20–50 g', strong: true },
+          { label: 'Protein (illustrative)', value: fmt(proteinG, 0) + ' g · ' + fmt(proteinKcal, 0) + ' kcal', strong: true },
+          { label: 'Carbohydrate (remainder)', value: fmt(carbsG, 0) + ' g · ' + fmt(remainingKcal, 0) + ' kcal' },
+          { label: 'Fat (illustrative)', value: fmt(fatG, 0) + ' g · ' + fmt(fatKcal, 0) + ' kcal' },
+          { label: 'Predicted resting energy (REE)', value: fmt(ree, 0) + ' kcal/day' },
+          { label: 'Illustrative TDEE', value: fmt(tdee, 0) + ' kcal/day (×' + activity.value + ')' },
+          { label: 'Energy scenario offset', value: (offset > 0 ? '+' : '') + offset + ' kcal/day' },
         ],
         callout: {
           tone: 'info',
-          text: `To reach and stay in ketosis, keep net carbs (total carbs minus fibre) under about 20–50 g per day. Your 5% target is ${fmt(carbsG, 0)} g.`,
+          text: 'This split is a mathematical illustration, not a safe calorie target or individualized protein, fat or carbohydrate prescription. Macro grams are rounded for display and may not sum to the displayed calories exactly. There is no guaranteed weight-change rate.',
         },
-        note: 'A standard ketogenic split is roughly 70% fat, 25% protein and 5% carbohydrate. Talk to your doctor before starting keto, especially with a medical condition.',
+        note: 'REE comes from the Mifflin–St Jeor adult prediction, not a measured BMR; TDEE assumes the selected activity multiplier. This example uses ' + proteinPerKg + ' g/kg protein and ' + fatPerKg + ' g/kg fat, then assigns the remaining energy to carbohydrate (4, 4 and 9 kcal/g). These coefficients may not fit individual health or dietary needs. No fixed calorie floor or macro ratio is universally safe; pregnancy, illness and clinical diets require personal guidance.',
+        cta: {
+          label: 'Preview these estimates in the existing meal planner →',
+          href: '/tools/meal-plan-generator?calories=' + Math.round(energy) +
+            '&protein=' + Math.round(proteinG) +
+            '&carbs=' + Math.round(carbsG) +
+            '&fat=' + Math.round(fatG),
+        },
+      };
+    },
+  },
+
+  // ---- Protein Intake: weight-based illustrations for generally healthy adults ----
+  'protein-intake-calculator': {
+    slug: 'protein-intake-calculator',
+    heading: 'Explore daily protein amounts',
+    hasSex: false,
+    fields: [
+      F.weight(72),
+      {
+        key: 'goal', label: 'Protein reference / training example', type: 'select',
+        metricDefault: 0, min: 0, max: 0,
+        selectDefault: '1.6',
+        options: PROTEIN_OPTIONS,
+        help: 'These are reference or illustrative g/kg values for generally healthy adults, not prescribed targets or safe upper limits.',
+      },
+    ],
+    compute: ({ vals, selects, units }) => {
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Illustrative daily protein amount',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      const weight = vals.weight;
+      if (!Number.isFinite(weight) || weight < 25 || weight > 300) {
+        return fail('Enter a finite body weight between 25 and 300 kg (about 55–661 lb).');
+      }
+      if (units !== 'metric' && units !== 'imperial') {
+        return fail('Choose a supported unit system.');
+      }
+      // Exact select matching prevents partial numeric strings, missing choices
+      // or silent fallback to the default 1.6 g/kg example.
+      const choice = PROTEIN_OPTIONS.find((option) => option.value === selects.goal);
+      if (!choice) return fail('Choose one of the listed protein examples.');
+      const gPerKg = Number(choice.value);
+      const proteinG = gPerKg * weight;
+      const proteinKcal = proteinG * 4;
+      if (!Number.isFinite(proteinG) || !Number.isFinite(proteinKcal)) {
+        return fail('This input cannot produce a finite protein estimate.');
+      }
+      return {
+        ok: true,
+        primaryLabel: 'Illustrative daily protein amount',
+        primaryValue: fmt(proteinG, 0) + ' g/day',
+        visual: { kind: 'none' },
+        rows: [
+          { label: 'Selected illustration', value: fmt(gPerKg, 1) + ' g per kg body weight', strong: true },
+          { label: 'If divided evenly among 4 meals', value: fmt(proteinG / 4, 0) + ' g/meal (example)' },
+          { label: 'Approximate energy from protein', value: fmt(proteinKcal, 0) + ' kcal/day (4 kcal/g)' },
+        ],
+        callout: {
+          tone: 'info',
+          text: 'Not a personal prescription. Kidney disease, pregnancy, breastfeeding, adolescence, frailty, clinical illness, and substantial weight or body-composition differences call for individualized nutrition advice.',
+        },
+        note: 'The longstanding US adult RDA is 0.8 g/kg/day, while the 2025–2030 Dietary Guidelines describe 1.2–1.6 g/kg/day food-pattern goals and exercise guidance commonly describes 1.4–2.0 g/kg/day for healthy exercising adults. The 2.2 option is an example, not a maximum or a guarantee of benefit. Even four-way meal division and 4-kcal/g energy are illustrative, not meal prescriptions or total calorie needs.',
+      };
+    },
+  },
+
+  // ---- Water Intake: PR #54's high-weight rule + strict input safety ----
+  'water-intake-calculator': {
+    slug: 'water-intake-calculator',
+    heading: 'Explore a daily total-water example',
+    hasSex: false,
+    fields: [
+      F.weight(72),
+      {
+        key: 'activity', label: 'Illustrative activity adjustment',
+        type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: '500',
+        options: WATER_ACTIVITY_OPTIONS,
+        help: 'The optional fixed increments are simple examples, not estimates of your sweat loss or a drinking prescription.',
+      },
+    ],
+    compute: ({ vals, selects, units }) => {
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Illustrative daily total water',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      const weight = vals.weight;
+      if (!Number.isFinite(weight) || weight < 25 || weight > 300) {
+        return fail('Enter a finite weight between 25 and 300 kg (about 55–661 lb).');
+      }
+      if (units !== 'metric' && units !== 'imperial') {
+        return fail('Choose metric or imperial units.');
+      }
+      // The original UI's allowed increments must match EXACTLY. Do not
+      // silently map missing, partial or malformed values to the zero example.
+      const activity = WATER_ACTIVITY_OPTIONS.find(option => option.value === selects.activity);
+      if (!activity) return fail('Choose one of the listed activity examples.');
+
+      // Reuse the existing PR #54 review correction: 35 mL/kg is held above
+      // 100 kg rather than being extrapolated into a 6–12 L/day "recommendation".
+      // This 100-kg boundary is an ENGINEERING display guard, not a clinical
+      // upper intake limit, validated cutoff, or individualized dose.
+      const SCALING_LIMIT_KG = 100;
+      const held = weight > SCALING_LIMIT_KG;
+      const baselineMl = 35 * Math.min(weight, SCALING_LIMIT_KG);
+      const extraMl = Number(activity.value);
+      const totalMl = baselineMl + extraMl;
+      const ML_PER_US_FL_OZ = 29.5735295625;
+      const totalOz = totalMl / ML_PER_US_FL_OZ;
+      // Rough illustrative split based on historical US population surveys.
+      const drinksMl = totalMl * 0.8;
+      if (![baselineMl, extraMl, totalMl, totalOz, drinksMl]
+          .every(value => Number.isFinite(value) && value >= 0)) {
+        return fail('The inputs cannot produce a valid total-water example.');
+      }
+      return {
+        ok: true,
+        primaryLabel: 'Illustrative total water (drinks + food)',
+        primaryValue: fmt(totalMl / 1000, 1) + ' L/day',
+        visual: { kind: 'none' },
+        callout: held ? {
+          tone: 'info',
+          text: 'For body weight above 100 kg (220 lb), this example holds the 35-mL/kg baseline at its 100-kg value rather than continuing to scale it. This is a formula display limit, NOT a maximum intake. It is not a validated clinical cutoff. Actual needs may be higher or lower.',
+        } : undefined,
+        rows: [
+          { label: 'Total-water equivalent (US fluid ounces)', value: fmt(totalOz, 0) + ' US fl oz', strong: true },
+          { label: 'Total-water equivalent (8-US-fl-oz cups)', value: fmt(totalOz / 8, 0) + ' cups' },
+          { label: 'Illustrative activity addition', value: '+' + fmt(extraMl / 1000, 1) + ' L (not measured sweat loss)' },
+          { label: 'If about 80% comes from drinks', value: fmt(drinksMl / 1000, 2) + ' L · ' + fmt(drinksMl / ML_PER_US_FL_OZ, 0) + ' US fl oz' },
+          { label: held ? 'Formula baseline (35 mL/kg, held at 100 kg)' : 'Formula baseline (35 mL/kg)', value: fmt(baselineMl / 1000, 2) + ' L' },
+          { label: 'U.S. adult adequate-intake references (total water)', value: '3.7 L men · 2.7 L women (food + drinks)' },
+        ],
+        note: 'This is arithmetic for generally healthy adults, not a personal water or beverage prescription. The 35 mL/kg rule and 0–1.5 L exercise additions do not measure individual needs or sweat losses. The National Academies adequate-intake references describe total water from drinks AND food in healthy adults in temperate climates; they are neither targets for everyone nor upper limits. Roughly 80% from drinks is a survey average, not an individual rule. If pregnant or breastfeeding, ill, very active, in hot weather, or living with heart, kidney or liver disease or prescribed fluid restrictions, use individualized professional guidance. Excessive rapid drinking can cause dangerous hyponatremia; do not force fluids to meet this example.',
+      };
+    },
+  },
+
+  // ---- Calorie Deficit: historical energy-equivalent illustration ONLY ----
+  'calorie-deficit-calculator': {
+    slug: 'calorie-deficit-calculator',
+    heading: 'Explore a static energy-gap example',
+    // This formula depends on entered kcal, body-mass change and elapsed time,
+    // NOT on binary sex. Previously sex only selected a false "safe minimum".
+    hasSex: false,
+    fields: [
+      {
+        key: 'maintenance', label: 'Assumed maintenance energy',
+        type: 'number', metricDefault: 2200, min: 1000, max: 6000,
+        suffix: 'kcal/day',
+        help: 'Enter a whole-number daily energy estimate. You can explore predicted resting energy and assumed activity with the separate Calorie Calculator. This is not measured maintenance.',
+      },
+      {
+        key: 'amount', label: 'Hypothetical weight change', type: 'mass',
+        metricDefault: 5, min: 0.5, max: 100,
+        help: 'A positive change amount for a mathematical example, not a medically appropriate or guaranteed loss goal.',
+      },
+      {
+        key: 'weeks', label: 'Hypothetical timeframe',
+        type: 'number', metricDefault: 10, min: 1, max: 104,
+        suffix: 'weeks',
+        help: 'Choose 1–104 whole weeks. The static model does not predict when a person will reach a weight.',
+      },
+    ],
+    compute: ({ vals, units }) => {
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Static daily energy-gap illustration',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      const { maintenance, amount, weeks } = vals;
+      if (units !== 'metric' && units !== 'imperial') {
+        return fail('Choose a supported metric or imperial unit system.');
+      }
+      if (!Number.isFinite(maintenance) || !Number.isInteger(maintenance) ||
+          maintenance < 1000 || maintenance > 6000) {
+        return fail('Enter an assumed maintenance energy of 1,000–6,000 whole kcal/day.');
+      }
+      if (!Number.isFinite(amount) || amount < 0.5 || amount > 100) {
+        return fail('Enter a finite hypothetical change between 0.5 and 100 kg (about 1.1–220 lb).');
+      }
+      if (!Number.isFinite(weeks) || !Number.isInteger(weeks) || weeks < 1 || weeks > 104) {
+        return fail('Enter a whole-number example timeframe of 1–104 weeks.');
+      }
+
+      // Retain the site's ORIGINAL Wishnofsky-style 3,500-kcal/lb constant as
+      // energy-equivalent arithmetic. This does NOT forecast the deficit,
+      // actual weight loss, or a future weight. Real Δenergy is dynamic (Hall).
+      const staticTotalKcal = kgToLb(amount) * 3500;
+      const days = weeks * 7;
+      const staticDailyGap = staticTotalKcal / days;
+      const arithmeticRemainder = maintenance - staticDailyGap;
+      const exampleKgPerWeek = amount / weeks;
+      if (![staticTotalKcal, days, staticDailyGap, arithmeticRemainder, exampleKgPerWeek]
+          .every(Number.isFinite) || staticDailyGap <= 0) {
+        return fail('These inputs cannot produce a finite static energy example.');
+      }
+      // Never clamp a negative intake to 0 kcal/day and still display the
+      // incompatible energy gap. In the NIH NIDDK Body Weight Planner, modeled
+      // intakes under 1,000 kcal/day fail the food-group/nutrient adequacy
+      // display criterion. THIS IS A WITHHOLDING GUARD, NOT A SAFE CALORIE FLOOR.
+      if (arithmeticRemainder < 1000) {
+        return fail('This static example would leave under 1,000 kcal/day of modeled energy (or less than zero). No intake or deficit number is shown. The NIH NIDDK planner cannot meet its nutrient and food-group targets below that display threshold; 1,000 kcal/day is NOT a universally safe intake. Change the scenario or consult a qualified clinician or registered dietitian.');
+      }
+      const highExample = staticDailyGap > 1000 || exampleKgPerWeek > 1;
+      return {
+        ok: true,
+        primaryLabel: 'Static daily energy-gap illustration',
+        primaryValue: fmt(staticDailyGap, 0) + ' kcal/day (not a target)',
+        visual: { kind: 'none' },
+        rows: [
+          { label: 'Historical 3,500-kcal/lb energy-equivalent example',
+            value: fmt(staticTotalKcal, 0) + ' kcal total', strong: true },
+          { label: 'Assumed maintenance energy', value: fmt(maintenance, 0) + ' kcal/day' },
+          { label: 'Arithmetic remainder (NOT a dietary goal)', value: fmt(arithmeticRemainder, 0) + ' kcal/day' },
+          { label: 'Hypothetical time interval', value: fmt(weeks, 0) + ' weeks (' + fmt(days, 0) + ' days)' },
+        ],
+        callout: {
+          tone: highExample ? 'warn' : 'info',
+          text: highExample
+            ? 'This scenario implies a large static energy difference or a rapid hypothetical change, but it cannot predict weight loss or establish a safe daily intake. Do not attempt this result as a diet plan; seek individualized guidance.'
+            : 'This is a historical, STATIC energy-equivalent example—not a predicted rate of weight loss, an intake prescription or a validated safe deficit. Real metabolism and body composition change over time.',
+        },
+        note: 'The original 3,500 kcal per pound (about 7,716 kcal/kg) is retained only to demonstrate the limits of fixed arithmetic. It does not determine the daily deficit needed to lose a specified weight in the chosen weeks. Actual results depend on changing energy expenditure, intake, fat/lean mass and individual circumstances. The old sex-based 1,200/1,500-kcal “safe minimums” are not universal; this calculator does not set a safe intake. The 1,000-kcal suppression is an NIH NIDDK model display safeguard, NOT an assurance that values above it are appropriate. Do not apply the example to pregnancy, breastfeeding, children, eating disorders or therapeutic diets without clinical guidance.',
+      };
+    },
+  },
+
+  // ---- Keto: original 70/25/5 arithmetic, with honest clinical limits ----
+  'keto-calculator': {
+    slug: 'keto-calculator',
+    heading: 'Explore an illustrative 70/25/5 macro split',
+    hasSex: true,
+    fields: [
+      F.weight(72),
+      F.height(175),
+      { ...F.age(30), min: 19, help: 'Adults only. The original Mifflin–St Jeor study enrolled ages 19–78; predictions at older ages extrapolate beyond that sample.' },
+      activityField(),
+    ],
+    compute: ({ vals, selects, sex, units }) => {
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Illustrative 70/25/5 energy split',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      const { weight, height, age } = vals;
+      if (units !== 'metric' && units !== 'imperial') {
+        return fail('Choose metric or imperial units.');
+      }
+      if ((sex !== 'male' && sex !== 'female') ||
+          ![weight, height, age].every(Number.isFinite)) {
+        return fail('Enter valid finite adult measurements and an equation sex.');
+      }
+      if (weight < 25 || weight > 300 || height < 120 || height > 230 ||
+          !Number.isInteger(age) || age < 19 || age > 100) {
+        return fail('Enter weight (25–300 kg), height (120–230 cm), and whole-year adult age (19–100).');
+      }
+      // Reuse the shared set of five existing activity multipliers. An exact
+      // match prevents malformed strings or missing values from silently
+      // falling back to the original 1.375 multiplier.
+      const activity = ACTIVITY_OPTIONS.find(option => option.value === selects.activity);
+      if (!activity) return fail('Choose one of the listed activity levels.');
+
+      const ree = mifflin(weight, height, age, sex); // Predicted REE, NOT measured BMR.
+      const factor = Number(activity.value);
+      const tdee = ree * factor; // Assumed activity-adjusted expenditure.
+      if (![ree, factor, tdee].every(value => Number.isFinite(value) && value > 0)) {
+        return fail('These inputs cannot produce a valid estimated energy budget.');
+      }
+      // Align with the existing nonprescriptive nutrition-tool display guard:
+      // no macronutrient handoff from a very low modeled daily budget.
+      // This 1000-kcal threshold is NOT a universally safe energy intake.
+      if (tdee < 1000) {
+        return fail('This model produces an energy budget under 1,000 kcal/day. No diet macro split is shown. The display threshold is NOT a universal safe-calorie minimum; ask a qualified clinician or registered dietitian for individualized advice.');
+      }
+
+      // Preserve the EXISTING 70/25/5 example exactly. All three rows show
+      // TOTAL carbohydrate, fat and protein energies (4/9/4 kcal per gram).
+      // Nothing here converts total carbohydrate to NET carbohydrate: fiber
+      // and sugar-alcohol amounts were never requested from the visitor.
+      const fatKcal = tdee * 0.70;
+      const proteinKcal = tdee * 0.25;
+      const carbKcal = tdee * 0.05;
+      const fatG = fatKcal / 9;
+      const proteinG = proteinKcal / 4;
+      const totalCarbG = carbKcal / 4;
+      if (![fatKcal, proteinKcal, carbKcal, fatG, proteinG, totalCarbG]
+          .every(value => Number.isFinite(value) && value >= 0)) {
+        return fail('The macro split cannot be calculated from these inputs.');
+      }
+      const aboveCommonCarbReference = totalCarbG >= 50;
+      const olderSampleCaution = age > 78
+        ? ' The Mifflin–St Jeor study originally sampled adults aged 19–78, so this age extrapolates beyond that research population.'
+        : '';
+      return {
+        ok: true,
+        primaryLabel: 'Illustrative 70/25/5 energy split',
+        primaryValue: fmt(tdee, 0) + ' kcal/day (estimate)',
+        visual: macroDonut(proteinG, totalCarbG, fatG),
+        rows: [
+          { label: 'Fat (70% illustrative)', value: fmt(fatG, 0) + ' g · ' + fmt(fatKcal, 0) + ' kcal', strong: true },
+          { label: 'Protein (25% illustrative)', value: fmt(proteinG, 0) + ' g · ' + fmt(proteinKcal, 0) + ' kcal' },
+          { label: 'TOTAL carbohydrate (5% illustrative; not net)',
+            value: fmt(totalCarbG, 2) + ' g · ' + fmt(carbKcal, 0) + ' kcal' },
+          { label: 'Predicted resting energy (REE)', value: fmt(ree, 0) + ' kcal/day' },
+          { label: 'Assumed activity factor', value: '×' + activity.value + ' (' + activity.label + ')' },
+          { label: 'Illustrative activity-adjusted expenditure (TDEE)', value: fmt(tdee, 0) + ' kcal/day' },
+          { label: 'Net carbohydrate allowance', value: 'Not calculable without individual fiber/sugar-alcohol data' },
+        ],
+        callout: {
+          tone: aboveCommonCarbReference ? 'warn' : 'info',
+          text: aboveCommonCarbReference
+            ? 'At this estimated energy budget, 5% equals ' + fmt(totalCarbG, 2) + ' g of TOTAL carbohydrate. That meets or exceeds a commonly cited UNDER-50-g/day research description of ketogenic diets. The ratio does NOT guarantee ketosis or define a safe net-carb allowance.' + olderSampleCaution
+            : 'The 70/25/5 allocation is one arithmetic example, not a universally validated ketogenic prescription or a guarantee of ketosis. The carbohydrate result is TOTAL carbohydrate, not net carbohydrate; individual requirements vary.' + olderSampleCaution,
+        },
+        note: 'The simplified Mifflin–St Jeor equations estimate resting energy expenditure (REE), not measured BMR. The five activity multipliers are assumptions, not objectively measured expenditure or a personal calorie target. The preserved 70% fat, 25% protein, 5% TOTAL carbohydrate split uses 9/4/4 kcal per gram; displayed grams are rounded and may not sum precisely. Keto diets have no single universal macro ratio. Research commonly describes <50 g/day of total carbohydrate, not a proven individual ceiling. ADA does not recognize “net carbs” as a standardized label; this tool cannot compute net carbohydrate from the given inputs. Nutritional ketosis is different from life-threatening diabetic ketoacidosis. Very-low-carbohydrate diets should be avoided with SGLT2 inhibitor treatment and are not recommended in pregnancy, breastfeeding, children, kidney disease or eating disorders. Diabetes medicines, pancreatitis or liver conditions also need professional advice; never change medication or attempt this ratio on the basis of this calculator.',
       };
     },
   },
@@ -1592,30 +2108,29 @@ export const DEFS: Record<string, CalcDef> = {
     },
   },
 
-  // ---- Vitamin D & Sun Exposure (educational estimator) ----
+  // ---- Vitamin D & Sun Exposure (restore PRs #5/#6/#7's NON-SCORING behavior) ----
   'vitamin-d-sun-calculator': {
     slug: 'vitamin-d-sun-calculator',
-    heading: 'Estimate your vitamin D potential',
+    heading: 'Review sun exposure and vitamin D safety',
     hasSex: false,
     fields: [
-      F.age(30),
       {
-        key: 'skinType', label: 'Skin type (Fitzpatrick)', type: 'select', metricDefault: 0, min: 0, max: 0,
-        selectDefault: 'iii',
-        help: 'Darker skin (higher type) needs more sun to make the same vitamin D — melanin absorbs UVB.',
+        key: 'skinType', label: 'Skin reaction type (Fitzpatrick)', type: 'select',
+        metricDefault: 0, min: 0, max: 0, selectDefault: 'iii',
+        help: 'A self-reported skin reaction pattern; no skin tone is immune to UV damage. It cannot predict vitamin D status or safe exposure time.',
         options: [
-          { value: 'i', label: 'Type I — Very fair, always burns, never tans' },
-          { value: 'ii', label: 'Type II — Fair, easily burns, tans minimally' },
-          { value: 'iii', label: 'Type III — Medium, burns moderately, tans gradually' },
-          { value: 'iv', label: 'Type IV — Olive, burns minimally, tans well' },
-          { value: 'v', label: 'Type V — Brown, rarely burns, tans darkly' },
-          { value: 'vi', label: 'Type VI — Dark, never burns, tans darkly' },
+          { value: 'i', label: 'Type I — Very fair; burns very easily' },
+          { value: 'ii', label: 'Type II — Fair; burns easily' },
+          { value: 'iii', label: 'Type III — Sometimes burns; gradually tans' },
+          { value: 'iv', label: 'Type IV — Tans more easily; can still burn' },
+          { value: 'v', label: 'Type V — Often tans; can still have UV damage' },
+          { value: 'vi', label: 'Type VI — Deeply pigmented; UV damage remains possible' },
         ],
       },
       {
-        key: 'uvIndex', label: 'UV index at your location', type: 'select', metricDefault: 0, min: 0, max: 0,
-        selectDefault: '3-5',
-        help: 'Check your local UV index on a weather app. Higher UV = more vitamin D potential, but also more skin risk.',
+        key: 'uvIndex', label: 'Reported local UV Index category', type: 'select',
+        metricDefault: 0, min: 0, max: 0, selectDefault: '3-5',
+        help: 'Check the UV Index forecast for your location and time. The UV Index describes environmental UV hazard, NOT personal UV dose or vitamin D synthesis.',
         options: [
           { value: '0-2', label: '0–2 (Low)' },
           { value: '3-5', label: '3–5 (Moderate)' },
@@ -1624,116 +2139,122 @@ export const DEFS: Record<string, CalcDef> = {
           { value: '11+', label: '11+ (Extreme)' },
         ],
       },
-      { key: 'timeOutdoors', label: 'Time outdoors midday', type: 'number', metricDefault: 15, min: 0, max: 600, suffix: 'min', allowZero: true, help: 'Minutes spent outdoors around midday (10am–3pm), when UVB is strongest.' },
       {
-        key: 'skinExposed', label: 'Skin exposed', type: 'select', metricDefault: 0, min: 0, max: 0,
-        selectDefault: 'arms-face',
-        help: 'More skin exposed = more vitamin D — but also more UV risk.',
+        key: 'timeOutdoors', label: 'Time already spent outdoors', type: 'number',
+        metricDefault: 15, min: 0, max: 600, suffix: 'min', allowZero: true,
+        help: 'Record time already spent outside (0–600 whole minutes). Never increase UV exposure to achieve a vitamin D target.',
+      },
+      {
+        key: 'skinExposed', label: 'Skin coverage reported', type: 'select',
+        metricDefault: 0, min: 0, max: 0, selectDefault: 'arms-face',
+        help: 'More uncovered skin can increase UV injury. Choose what was actually uncovered, not what you should expose.',
         options: [
-          { value: 'face-hands', label: 'Face & hands only (~5%)' },
-          { value: 'arms-face', label: 'Arms & face (~15%)' },
-          { value: 'arms-legs', label: 'Arms & legs (~35%)' },
-          { value: 'most-body', label: 'Most of body (~60%+)' },
+          { value: 'face-hands', label: 'Face and hands uncovered' },
+          { value: 'arms-face', label: 'Arms and face uncovered' },
+          { value: 'arms-legs', label: 'Arms and legs uncovered' },
+          { value: 'most-body', label: 'Most of body uncovered' },
         ],
       },
       {
-        key: 'sunscreen', label: 'Sunscreen use', type: 'select', metricDefault: 0, min: 0, max: 0,
-        selectDefault: 'after',
-        help: 'Sunscreen blocks UVB — the rays that make vitamin D. A short unprotected exposure before applying is a common compromise.',
+        key: 'sunscreen', label: 'Sunscreen use (reported)', type: 'select',
+        metricDefault: 0, min: 0, max: 0, selectDefault: 'spf30',
+        help: 'Do not delay protection for vitamin D. Use shade, protective clothing and broad-spectrum SPF 30+ on exposed skin.',
         options: [
-          { value: 'none', label: 'None' },
-          { value: 'after', label: 'Applied after initial sun exposure' },
-          { value: 'spf30', label: 'SPF 30+ properly applied' },
+          { value: 'none', label: 'No sunscreen reported' },
+          { value: 'after', label: 'Applied only after initial exposure (not recommended)' },
+          { value: 'spf30', label: 'Broad-spectrum SPF 30+ reported' },
         ],
       },
       {
-        key: 'diet', label: 'Dietary vitamin D intake', type: 'select', metricDefault: 0, min: 0, max: 0,
-        selectDefault: 'occasional',
-        help: 'Few foods naturally contain vitamin D. Fatty fish, fortified milk, and eggs are the main sources.',
+        key: 'diet', label: 'Reported vitamin D foods/supplement pattern', type: 'select',
+        metricDefault: 0, min: 0, max: 0, selectDefault: 'occasional',
+        help: 'Food frequency or saying “supplement” is not an IU dose. Check actual food and supplement labels when reviewing intake.',
         options: [
-          { value: 'rarely', label: 'Rarely — few vitamin D foods' },
-          { value: 'occasional', label: 'Occasionally — some dairy, eggs' },
-          { value: 'regular', label: 'Regularly — fortified milk, eggs, weekly fish' },
-          { value: 'frequent', label: 'Frequently — fatty fish 2–3×/week, fortified foods daily' },
-          { value: 'supplement', label: 'Daily vitamin D supplement' },
+          { value: 'rarely', label: 'Vitamin D foods rarely' },
+          { value: 'occasional', label: 'Vitamin D foods occasionally' },
+          { value: 'regular', label: 'Vitamin D foods regularly' },
+          { value: 'frequent', label: 'Vitamin D foods frequently' },
+          { value: 'supplement', label: 'Vitamin D supplement reported (dose not supplied)' },
         ],
       },
     ],
-    compute: ({ vals, selects }) => {
-      const age = vals.age;
-      const skinType = selects.skinType || 'iii';
-      const uvKey = selects.uvIndex || '3-5';
-      const timeOutdoors = vals.timeOutdoors;
-      const skinExposed = selects.skinExposed || 'arms-face';
-      const sunscreen = selects.sunscreen || 'after';
-      const diet = selects.diet || 'occasional';
-
-      // Transparent points system (0–4 per factor, max 20). Avoids the
-      // over-penalisation that comes from multiplying five sub-1 factors.
-      const UV_PTS: Record<string, number> = { '0-2': 0, '3-5': 2, '6-7': 3, '8-10': 4, '11+': 4 };
-      const SKIN_PTS: Record<string, number> = { i: 4, ii: 3.5, iii: 3, iv: 2.5, v: 2, vi: 1.5 };
-      const EXPOSED_PTS: Record<string, number> = { 'face-hands': 1, 'arms-face': 2, 'arms-legs': 3, 'most-body': 4 };
-      const SCREEN_PTS: Record<string, number> = { none: 4, after: 3, spf30: 1 };
-
-      let timePts: number;
-      if (timeOutdoors < 10) timePts = 1;
-      else if (timeOutdoors <= 20) timePts = 2;
-      else if (timeOutdoors <= 30) timePts = 3;
-      else timePts = 4;
-
-      const uvPts = UV_PTS[uvKey] ?? 2;
-      const skinPts = SKIN_PTS[skinType] ?? 3;
-      const exposedPts = EXPOSED_PTS[skinExposed] ?? 2;
-      const screenPts = SCREEN_PTS[sunscreen] ?? 3;
-
-      const ageAdj = age >= 70 ? -2 : 0;
-      const total = Math.max(0, uvPts + skinPts + timePts + exposedPts + screenPts + ageAdj);
-      const maxPts = 20;
-      const gaugeVal = (total / maxPts) * 10;
-
-      const segments: Segment[] = [
-        { upTo: 3.3, label: 'Low', color: C.red },
-        { upTo: 6.6, label: 'Moderate', color: C.amber },
-        { upTo: 10, label: 'Good', color: C.green },
-      ];
-      const band = bandFor(gaugeVal, segments);
-
-      // Dietary intake estimate (qualitative vs general RDA target).
-      const DIET: Record<string, { label: string; pts: number }> = {
-        rarely: { label: 'Well below target', pts: 0 },
-        occasional: { label: 'Below target', pts: 1 },
-        regular: { label: 'Near target', pts: 2 },
-        frequent: { label: 'Meets target', pts: 3 },
-        supplement: { label: 'Above target (from supplement)', pts: 4 },
-      };
-      const dietInfo = DIET[diet] ?? DIET.occasional;
-
-      const skinTypeLabel = `Type ${skinType.toUpperCase()}`;
-      const uvLabel = uvKey;
-
-      let dietNote = `NIH RDA is ~600 IU/day (800 if 70+). You appear to be: ${dietInfo.label}.`;
-      if (diet === 'supplement') {
-        dietNote += ' Do not exceed 4,000 IU/day from all sources without medical supervision — the safe upper limit for adults.';
+    compute: ({ vals, selects, units }) => {
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Vitamin D & sun-safety context',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      // An age-derived vitamin D / exposure score was removed in merged PR #5;
+      // do NOT reintroduce an unused age field or an invented UV/synthesis score.
+      if (units !== 'metric' && units !== 'imperial') {
+        return fail('Choose a supported unit system.');
       }
-
+      const duration = vals.timeOutdoors;
+      if (!Number.isFinite(duration) || !Number.isInteger(duration) ||
+          duration < 0 || duration > 600) {
+        return fail('Enter time already spent outdoors as a whole number from 0 to 600 minutes.');
+      }
+      const choices: Record<string, string[]> = {
+        skinType: ['i', 'ii', 'iii', 'iv', 'v', 'vi'],
+        uvIndex: ['0-2', '3-5', '6-7', '8-10', '11+'],
+        skinExposed: ['face-hands', 'arms-face', 'arms-legs', 'most-body'],
+        sunscreen: ['none', 'after', 'spf30'],
+        diet: ['rarely', 'occasional', 'regular', 'frequent', 'supplement'],
+      };
+      // Exact matches: do not default missing or tampered choices into a
+      // reassuring-sounding result. No numeric synthesis inputs are inferred.
+      for (const [key, allowed] of Object.entries(choices)) {
+        if (!allowed.includes(selects[key])) {
+          return fail('Choose a listed option for ' + key + '.');
+        }
+      }
+      const uvRisk: Record<string, string> = {
+        '0-2': 'Low', '3-5': 'Moderate', '6-7': 'High',
+        '8-10': 'Very high', '11+': 'Extreme',
+      };
+      const coverage: Record<string, string> = {
+        'face-hands': 'Face and hands',
+        'arms-face': 'Arms and face',
+        'arms-legs': 'Arms and legs',
+        'most-body': 'Most of body',
+      };
+      const sunscreen: Record<string, string> = {
+        none: 'None reported',
+        after: 'Applied only after initial exposure (not recommended)',
+        spf30: 'Broad-spectrum SPF 30+ reported',
+      };
+      const diet: Record<string, string> = {
+        rarely: 'Rarely reported; IU unknown',
+        occasional: 'Occasionally reported; IU unknown',
+        regular: 'Regularly reported; IU unknown',
+        frequent: 'Frequently reported; IU unknown',
+        supplement: 'Supplement reported; dose and IU unknown',
+      };
+      const unprotected = selects.sunscreen !== 'spf30';
+      const elevatedUV = ['6-7', '8-10', '11+'].includes(selects.uvIndex);
+      const caution = unprotected
+        ? 'You reported no sunscreen or application only after initial exposure. Do NOT delay sun protection to make vitamin D. '
+        : '';
+      const uvCaution = elevatedUV
+        ? 'The selected UV Index category is high or greater; seek shade and take extra care to cover skin and eyes. '
+        : 'The selected UV Index is a forecast category, not a personal UV dose. ';
       return {
         ok: true,
-        primaryLabel: 'Sun synthesis potential',
-        primaryValue: band.label,
-        category: { label: band.label, color: band.color },
-        visual: { kind: 'gauge', value: gaugeVal, min: 0, max: 10, segments },
+        primaryLabel: 'Vitamin D & sun-safety context',
+        primaryValue: 'No safe UV target',
+        visual: { kind: 'none' },
         rows: [
-          { label: 'Dietary intake', value: dietInfo.label, strong: true },
-          { label: 'UV index', value: uvLabel },
-          { label: 'Skin type', value: skinTypeLabel },
-          { label: 'Time outdoors', value: `${fmt(timeOutdoors, 0)} min` },
-          { label: 'Age adjustment', value: ageAdj < 0 ? `Reduced (70+)` : 'None', strong: ageAdj < 0 },
+          { label: 'Reported UV Index (forecast hazard)', value: selects.uvIndex + ' · ' + uvRisk[selects.uvIndex] },
+          { label: 'Time already outdoors', value: duration === 0 ? '0 min (none reported)' : fmt(duration, 0) + ' min (not a target)' },
+          { label: 'Self-reported skin reaction type', value: 'Type ' + selects.skinType.toUpperCase() },
+          { label: 'Uncovered areas reported', value: coverage[selects.skinExposed] },
+          { label: 'Sunscreen use reported', value: sunscreen[selects.sunscreen] },
+          { label: 'Dietary sources/supplements', value: diet[selects.diet] },
         ],
         callout: {
           tone: 'warn',
-          text: 'Balance sun for vitamin D with skin-cancer protection. The same UVB that makes vitamin D also damages skin and raises cancer risk. Never sunburn. If UV is high (6+), limit unprotected exposure to a few minutes and then apply SPF 30+. Check the EPA UV Index forecast for your area.',
+          text: caution + uvCaution + 'UV radiation can cause skin cancer even without sunburn and with darker skin. Use shade, protective clothing, sunglasses and broad-spectrum SPF 30+ sunscreen. There is no established safe unprotected UV time to meet vitamin D needs.',
         },
-        note: `This tool estimates synthesis likelihood qualitatively — it does NOT measure your blood vitamin D level. ${dietNote} If you are concerned about deficiency, ask your doctor for a 25(OH)D blood test. Only a blood test can confirm your actual vitamin D status.`,
+        note: 'This tool summarizes self-reported conditions ONLY. The reported UV Index is a forecast category, NOT an individualized exposure measurement. It does not estimate vitamin D synthesis, IU made, blood 25(OH)D, deficiency risk, personal UV dose, recommended sun exposure or dietary adequacy. A 0-minute entry is NOT a vitamin D score. Food frequency and supplement use without dose cannot establish actual intake. Healthy adults generally do not require routine 25(OH)D screening; a clinician may recommend testing when there is an established indication. Vitamin D can be obtained from foods, fortified products and, when appropriate, supplements without seeking unprotected UV exposure.',
       };
     },
   },
@@ -1741,13 +2262,13 @@ export const DEFS: Record<string, CalcDef> = {
   // ---- Gut Health Score (lifestyle/diet, NOT a diagnosis) ----
   'gut-health-score': {
     slug: 'gut-health-score',
-    heading: 'Score your gut habits',
+    heading: 'Explore a self-reported gut-habits checklist',
     hasSex: false,
     fields: [
       {
         key: 'redFlags', label: 'Any digestive red flags?', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'none',
-        help: 'If you have any of these, see a doctor — do not rely on this score.',
+        help: 'Blood in stool, unexplained weight loss, or persistent pain/change in bowel habits require medical evaluation; selecting one withholds the habit score.',
         options: [
           { value: 'none', label: 'None — just curious about my gut habits' },
           { value: 'blood', label: 'Blood in stool' },
@@ -1758,7 +2279,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'fiber', label: 'Daily fiber intake', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'some',
-        help: 'Fiber feeds gut bacteria. Aim for 25–35g/day from whole grains, veg, fruit, legumes.',
+        help: 'Fiber supports digestive function. Adult reference intakes often range from 22–34 g/day; needs and tolerance vary.',
         options: [
           { value: 'low', label: 'Low — little fiber' },
           { value: 'some', label: 'Some — occasional whole grains, veg' },
@@ -1769,7 +2290,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'fermented', label: 'Fermented foods per week', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'Yogurt, kefir, sauerkraut, kimchi, kombucha — these add live cultures to your gut.',
+        help: 'Some fermented foods contain live cultures, but not all are clinically proven probiotics; choose according to your needs and tolerance.',
         options: [
           { value: 'rarely', label: 'Rarely' },
           { value: '1-2', label: '1–2 times/week' },
@@ -1780,7 +2301,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'plantDiversity', label: 'Plant diversity (different plants/week)', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '10-20',
-        help: 'Different plants feed different gut bacteria. Aim for 30+ types/week (grains, veg, fruit, nuts, seeds, herbs).',
+        help: 'The 30+ plant-types category comes from observational research; it is not a proven personal microbiome threshold.',
         options: [
           { value: '0-10', label: '0–10 different plants' },
           { value: '10-20', label: '10–20 different plants' },
@@ -1791,7 +2312,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'water', label: 'Daily water intake', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'Hydration keeps things moving through your digestive tract.',
+        help: 'Record approximate daily beverage water. Higher volumes are not universally better; fluid needs depend on health, diet and activity.',
         options: [
           { value: 'under-1', label: 'Under 1 L' },
           { value: '1-2', label: '1–2 L' },
@@ -1802,7 +2323,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'processed', label: 'Processed/ultra-processed food', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'several',
-        help: 'Highly processed foods low in fiber and high in additives can disrupt gut bacteria.',
+        help: 'This broad food-frequency category does not measure the gut microbiome; nutrient content and overall diet matter.',
         options: [
           { value: 'daily', label: 'Daily' },
           { value: 'several', label: 'Several times/week' },
@@ -1813,7 +2334,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'sleep', label: 'Sleep quality', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'fair',
-        help: 'Poor sleep disrupts the gut-brain axis and gut rhythm.',
+        help: 'Sleep matters for general health, but self-rated sleep quality cannot measure gut microbial composition.',
         options: [
           { value: 'poor', label: 'Poor' },
           { value: 'fair', label: 'Fair' },
@@ -1824,7 +2345,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'stress', label: 'Stress level', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'moderate',
-        help: 'Chronic stress affects gut motility and the gut-brain connection.',
+        help: 'Stress may affect digestive symptoms; a stress response does not diagnose a gut disorder.',
         options: [
           { value: 'high', label: 'High' },
           { value: 'moderate', label: 'Moderate' },
@@ -1835,7 +2356,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'activity', label: 'Physical activity', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'light',
-        help: 'Movement stimulates gut motility and is linked to a more diverse microbiome.',
+        help: 'Regular activity can support general health and bowel function, but this response is not a microbiome measurement.',
         options: [
           { value: 'sedentary', label: 'Sedentary' },
           { value: 'light', label: 'Light — occasional walks' },
@@ -1846,7 +2367,7 @@ export const DEFS: Record<string, CalcDef> = {
       {
         key: 'regularity', label: 'Bowel-habit regularity', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'variable',
-        help: 'General regularity only — not a clinical assessment. Regular = consistent timing and form.',
+        help: 'Bowel pattern varies between people. Persistent changes, bleeding or pain need clinical evaluation regardless of score.',
         options: [
           { value: 'irregular', label: 'Irregular — often constipated or loose' },
           { value: 'variable', label: 'Variable' },
@@ -1855,47 +2376,96 @@ export const DEFS: Record<string, CalcDef> = {
         ],
       },
     ],
-    compute: ({ selects }) => {
-      const redFlag = selects.redFlags || 'none';
+    compute: ({ selects, units }) => {
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Self-reported gut-habit checklist',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (units !== 'metric' && units !== 'imperial') {
+        return fail('Choose a supported unit system.');
+      }
 
-      // Points per factor. Key gut-health factors (fiber, plant diversity,
-      // fermented) max 4; lifestyle factors max 3. Grand max = 30.
-      const FIBER_PTS: Record<string, number> = { low: 0, some: 1, good: 2, high: 4 };
-      const FERMENTED_PTS: Record<string, number> = { rarely: 0, '1-2': 1, '3-5': 2, daily: 4 };
-      const PLANT_PTS: Record<string, number> = { '0-10': 0, '10-20': 1, '20-30': 2, '30+': 4 };
-      const WATER_PTS: Record<string, number> = { 'under-1': 0, '1-2': 1, '2-3': 2, '3+': 3 };
-      const PROCESSED_PTS: Record<string, number> = { daily: 0, several: 1, occasionally: 2, rarely: 3 };
-      const SLEEP_PTS: Record<string, number> = { poor: 0, fair: 1, good: 2, excellent: 3 };
-      const STRESS_PTS: Record<string, number> = { high: 0, moderate: 1, low: 2, minimal: 3 };
-      const ACTIVITY_PTS: Record<string, number> = { sedentary: 0, light: 1, moderate: 2, active: 3 };
-      const REGULARITY_PTS: Record<string, number> = { irregular: 0, variable: 1, fairly: 2, regular: 3 };
+      const FLAG_LABELS: Record<string, string> = {
+        none: 'No listed alarm symptom',
+        blood: 'Blood in stool',
+        weight: 'Unexplained weight loss',
+        pain: 'Persistent abdominal pain or change in bowel habits',
+      };
+      // The red-flag answer is mandatory and must be validated BEFORE any
+      // score is calculated. It must not silently default to "none".
+      const redFlag = selects.redFlags;
+      if (!Object.hasOwn(FLAG_LABELS, redFlag)) {
+        return fail('Choose one of the listed digestive red-flag responses.');
+      }
+      if (redFlag !== 'none') {
+        // Withhold scores, colored tiers, bars and lifestyle tips even when
+        // all nine habits appear favorable: symptoms outrank habit patterns.
+        const urgency = redFlag === 'blood'
+          ? ' Heavy or ongoing bleeding, black tarry stool, fainting or severe pain warrants urgent/emergency assessment.'
+          : ' Seek prompt assessment; worsening or severe symptoms require urgent care.';
+        return {
+          ok: true,
+          primaryLabel: 'Digestive symptom safety',
+          primaryValue: 'Medical evaluation recommended',
+          visual: { kind: 'none' },
+          rows: [{ label: 'Reported warning sign', value: FLAG_LABELS[redFlag], strong: true }],
+          callout: {
+            tone: 'danger',
+            text: FLAG_LABELS[redFlag] + ' is a warning sign that needs clinical assessment. Do not rely on a habit score or delay care while making diet changes.' + urgency,
+          },
+          note: 'The self-reported habit score and all percentile-like tiers are withheld when an alarm symptom is selected. This checklist is not a microbiome test and cannot diagnose, exclude or grade gastrointestinal disease. A healthcare professional can evaluate symptoms and determine appropriate next steps.',
+        };
+      }
+
+      // Original nine-factor, 30-point educational framework is preserved.
+      // These point weights and categorical cutoffs are SITE-DEFINED, not a
+      // validated health, microbiome diversity, or disease prediction index.
+      const POINTS: Record<string, Record<string, number>> = {
+        fiber: { low: 0, some: 1, good: 2, high: 4 },
+        plantDiversity: { '0-10': 0, '10-20': 1, '20-30': 2, '30+': 4 },
+        fermented: { rarely: 0, '1-2': 1, '3-5': 2, daily: 4 },
+        water: { 'under-1': 0, '1-2': 1, '2-3': 3, '3+': 3 },
+        processed: { daily: 0, several: 1, occasionally: 2, rarely: 3 },
+        sleep: { poor: 0, fair: 1, good: 2, excellent: 3 },
+        stress: { high: 0, moderate: 1, low: 2, minimal: 3 },
+        activity: { sedentary: 0, light: 1, moderate: 2, active: 3 },
+        regularity: { irregular: 0, variable: 1, fairly: 2, regular: 3 },
+      };
+      // The previous 3+ L option was ranked above 2–3 L, encouraging ever
+      // higher consumption without clinical justification. Both now tie;
+      // neither is a prescribed hydration target for any person.
+      for (const [key, values] of Object.entries(POINTS)) {
+        if (!Object.hasOwn(values, selects[key])) {
+          return fail('Choose one of the listed answers for ' + key + '.');
+        }
+      }
 
       const factors = [
-        { name: 'Fiber intake', key: 'fiber', pts: FIBER_PTS[selects.fiber] ?? 1, max: 4, suggestion: 'Add whole grains, legumes, vegetables, and fruit. Aim for 25–35g fiber/day.' },
-        { name: 'Plant diversity', key: 'plantDiversity', pts: PLANT_PTS[selects.plantDiversity] ?? 1, max: 4, suggestion: 'Eat 30+ different plants/week — nuts, seeds, herbs, and spices all count.' },
-        { name: 'Fermented foods', key: 'fermented', pts: FERMENTED_PTS[selects.fermented] ?? 1, max: 4, suggestion: 'Add yogurt, kefir, sauerkraut, or kimchi 3–5×/week.' },
-        { name: 'Hydration', key: 'water', pts: WATER_PTS[selects.water] ?? 1, max: 3, suggestion: 'Drink 2–3L water/day to keep digestion moving.' },
-        { name: 'Processed foods (less is better)', key: 'processed', pts: PROCESSED_PTS[selects.processed] ?? 1, max: 3, suggestion: 'Swap ultra-processed snacks for whole foods.' },
-        { name: 'Sleep', key: 'sleep', pts: SLEEP_PTS[selects.sleep] ?? 1, max: 3, suggestion: 'Aim for 7–9 hours — gut and brain are linked.' },
-        { name: 'Stress (lower is better)', key: 'stress', pts: STRESS_PTS[selects.stress] ?? 1, max: 3, suggestion: 'Breathing, walks, or mindfulness calm the gut-brain axis.' },
-        { name: 'Activity', key: 'activity', pts: ACTIVITY_PTS[selects.activity] ?? 1, max: 3, suggestion: 'Even a daily 20-minute walk improves gut motility.' },
-        { name: 'Regularity', key: 'regularity', pts: REGULARITY_PTS[selects.regularity] ?? 1, max: 3, suggestion: 'Consistent meals, hydration, and movement support regularity.' },
+        { name: 'Fiber intake', key: 'fiber', pts: POINTS.fiber[selects.fiber], max: 4, suggestion: 'Consider a gradual increase in fiber-rich whole grains, legumes, vegetables and fruit when appropriate; adult needs and tolerance vary.' },
+        { name: 'Plant diversity', key: 'plantDiversity', pts: POINTS.plantDiversity[selects.plantDiversity], max: 4, suggestion: 'Try a broader variety of plant foods if accessible; 30 types/week is a research category, not a clinical target.' },
+        { name: 'Fermented foods', key: 'fermented', pts: POINTS.fermented[selects.fermented], max: 4, suggestion: 'If tolerated, explore fermented foods such as yogurt; not all fermented foods contain proven probiotics.' },
+        { name: 'Hydration (self-reported)', key: 'water', pts: POINTS.water[selects.water], max: 3, suggestion: 'Discuss personal fluid needs if you have dehydration concerns or medical fluid restrictions; do not force a fixed liter target.' },
+        { name: 'Processed-food frequency', key: 'processed', pts: POINTS.processed[selects.processed], max: 3, suggestion: 'Where practical, choose a balanced variety of nutrient-rich foods, including foods with fiber.' },
+        { name: 'Sleep quality', key: 'sleep', pts: POINTS.sleep[selects.sleep], max: 3, suggestion: 'Review sleep routines when needed; sleep quality does not measure gut microbes.' },
+        { name: 'Stress (self-reported)', key: 'stress', pts: POINTS.stress[selects.stress], max: 3, suggestion: 'Consider stress-management strategies that fit your circumstances, without treating symptoms as stress alone.' },
+        { name: 'Activity', key: 'activity', pts: POINTS.activity[selects.activity], max: 3, suggestion: 'Regular movement may help bowel function; start at a level appropriate for your health.' },
+        { name: 'Bowel-habit regularity', key: 'regularity', pts: POINTS.regularity[selects.regularity], max: 3, suggestion: 'Track persistent changes and seek advice for concerning symptoms rather than aiming for a fixed bowel frequency.' },
       ];
 
       const total = factors.reduce((sum, f) => sum + f.pts, 0);
-      const maxPts = 30;
+      const maxPts = factors.reduce((sum, f) => sum + f.max, 0);
+      if (maxPts !== 30 || !Number.isFinite(total) || total < 0 || total > maxPts) {
+        return fail('The reported habits cannot produce a valid checklist result.');
+      }
       const score = Math.round((total / maxPts) * 100);
-
       const segments: Segment[] = [
-        { upTo: 33, label: 'Needs improvement', color: C.red },
-        { upTo: 50, label: 'Fair', color: C.amber },
-        { upTo: 70, label: 'Good', color: C.teal },
-        { upTo: 85, label: 'Very good', color: C.green },
-        { upTo: 100, label: 'Excellent', color: C.blue },
+        { upTo: 33, label: 'Fewer listed habits', color: C.red },
+        { upTo: 50, label: 'Some listed habits', color: C.amber },
+        { upTo: 70, label: 'Several listed habits', color: C.teal },
+        { upTo: 85, label: 'Many listed habits', color: C.green },
+        { upTo: 100, label: 'Most listed habits', color: C.blue },
       ];
       const band = bandFor(score, segments);
-
-      // Per-factor zones with bars.
       const areaColor = (pts: number, max: number): string => {
         const pct = pts / max;
         if (pct >= 0.85) return C.blue;
@@ -1904,207 +2474,220 @@ export const DEFS: Record<string, CalcDef> = {
         if (pct > 0) return C.amber;
         return C.red;
       };
-
-      const zones = factors.map((f) => ({
-        label: f.name,
-        detail: `${f.pts}/${f.max} pts`,
+      const zones = factors.map(f => ({
+        label: f.name, detail: String(f.pts) + '/' + String(f.max) + ' points',
         color: areaColor(f.pts, f.max),
       }));
-
-      // Top improvements: 2-3 lowest-scoring factors.
-      const weakest = [...factors].sort((a, b) => a.pts / a.max - b.pts / b.max).slice(0, 3);
-      const improvements = weakest.map((f) => `${f.name}: ${f.suggestion}`).join('  ');
-
-      // Red flag label for the danger callout.
-      const RED_FLAG_LABELS: Record<string, string> = {
-        blood: 'Blood in stool',
-        weight: 'Unexplained weight loss',
-        pain: 'Persistent pain or change in bowel habits',
-      };
-
-      const hasRedFlag = redFlag !== 'none';
-      const callout = hasRedFlag
-        ? {
-            tone: 'danger' as const,
-            text: `⚠️ ${RED_FLAG_LABELS[redFlag] ?? 'Your symptom'} is a digestive red flag that needs prompt medical evaluation — do not rely on this score. See your doctor. Blood in stool, unexplained weight loss, or persistent changes in bowel habits can signal serious conditions that need clinical assessment, not lifestyle scoring.`,
-          }
-        : {
-            tone: 'info' as const,
-            text: 'Red flags that need prompt medical care: blood in stool, unexplained weight loss, persistent abdominal pain, or a lasting change in bowel habits. If you develop any of these, see a doctor — do not score them away with lifestyle changes alone.',
-          };
+      const weakest = [...factors].sort((a,b)=>a.pts/a.max-b.pts/b.max).slice(0,3);
+      const improvements = weakest.map(f => f.name + ': ' + f.suggestion).join('  ');
 
       return {
         ok: true,
-        primaryLabel: 'Gut-habits score',
-        primaryValue: `${score}/100`,
-        category: { label: band.label, color: band.color },
+        primaryLabel: 'Self-reported gut-habit checklist (unvalidated)',
+        primaryValue: String(score) + '/100',
+        category: { label: band.label + ' (site-defined)', color: band.color },
         visual: { kind: 'zones', items: zones },
         rows: [
-          { label: 'Total points', value: `${total}/${maxPts}` },
-          { label: 'Top factor', value: factors.sort((a, b) => b.pts / b.max - a.pts / a.max)[0].name, strong: true },
+          { label: 'Illustrative point total', value: String(total) + '/' + String(maxPts) },
+          { label: 'Highest-rated listed factor', value: [...factors].sort((a,b)=>b.pts/b.max-a.pts/a.max)[0].name, strong: true },
         ],
-        callout,
-        note: hasRedFlag
-          ? 'Your score reflects general gut-friendly habits only. Red-flag symptoms override any score — see a doctor promptly. This tool is not a microbiome test and does not diagnose any condition.'
-          : `${improvements} Method: 9 factors scored on points (fiber, plant diversity, and fermented foods weighted higher at max 4; others max 3; grand max 30 → 0–100). This is a lifestyle self-check, not a microbiome test or diagnosis. Sources: Dietary Guidelines for Americans, NIH fiber recommendations.`,
+        callout: {
+          tone: 'info',
+          text: 'This is an unvalidated checklist of self-reported habits, NOT a gut-health grade, microbiome diversity score or medical test. Any blood in stool, unexplained weight loss, or persistent pain/change in bowel habits needs medical evaluation regardless of points.',
+        },
+        note: improvements + ' These nine self-report items have SITE-DEFINED points: three factors up to 4, six up to 3 (30 maximum), rescaled to 0–100. Weights and bands have not been clinically validated; a higher number does NOT establish a healthier microbiome, confirm digestive health or exclude disease. More water is not automatically better, and 30 plant types/week is an observational research category, not a medical requirement. Responses are not laboratory measurements or diagnosis.',
       };
     },
   },
 
-  // ---- Anti-Inflammatory Diet Score (food-frequency) ----
+  // ---- Anti-Inflammatory Diet Score (educational food-frequency checklist) ----
   'anti-inflammatory-score': {
     slug: 'anti-inflammatory-score',
-    heading: 'Score your anti-inflammatory diet',
+    heading: 'Explore a food-pattern checklist',
     hasSex: false,
     fields: [
       {
         key: 'vegetables', label: 'Vegetables', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '3-5',
-        help: 'Leafy greens, cruciferous veg, tomatoes, peppers — rich in antioxidants and fiber.',
+        help: 'Record frequency, not servings or biomarkers. Vegetables provide fiber and micronutrients; amounts and variety also matter.',
         options: FREQ_OPTIONS,
       },
       {
         key: 'fruit', label: 'Fruit', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '3-5',
-        help: 'Berries, citrus, apples — high in polyphenols and fiber.',
+        help: 'A frequency category is not a measured amount. Choose a variety of fruits that fits your diet.',
         options: FREQ_OPTIONS,
       },
       {
         key: 'wholeGrains', label: 'Whole grains', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '3-5',
-        help: 'Oats, brown rice, quinoa, whole wheat — vs refined grains.',
+        help: 'Whole-grain frequency is one rough marker of dietary pattern; serving size and total intake are not captured.',
         options: FREQ_OPTIONS,
       },
       {
         key: 'fattyFish', label: 'Fatty fish', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'Salmon, sardines, mackerel — omega-3s (EPA/DHA) are powerfully anti-inflammatory.',
+        help: 'Salmon and sardines supply EPA/DHA; this survey does not measure omega-3 intake. Alternatives may fit vegetarian diets or allergies.',
         options: FREQ_OPTIONS,
       },
       {
         key: 'oliveOil', label: 'Olive oil', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '3-5',
-        help: 'Extra virgin olive oil — oleic acid and polyphenols.',
+        help: 'An unsaturated-fat source used in Mediterranean-style patterns; the survey does not measure amounts or substitutions.',
         options: FREQ_OPTIONS,
       },
       {
         key: 'nuts', label: 'Nuts', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'Walnuts, almonds — healthy fats and antioxidants.',
+        help: 'Nuts may fit a healthy dietary pattern; avoid them if allergic and use suitable alternatives.',
         options: FREQ_OPTIONS,
       },
       {
         key: 'legumes', label: 'Legumes', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'Beans, lentils, chickpeas — fiber and plant protein.',
+        help: 'Beans, lentils and peas provide fiber and plant protein. This is a simple frequency check.',
         options: FREQ_OPTIONS,
       },
       {
-        key: 'redMeat', label: 'Red / processed meat', type: 'select', metricDefault: 0, min: 0, max: 0,
+        key: 'redMeat', label: 'Red or processed meat', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'Beef, pork, bacon, sausage — high in saturated fat and inflammatory compounds. Less is better.',
+        help: 'Red and processed meats differ; they are combined solely for the original coarse checklist, not to classify every food as inflammatory.',
         options: FREQ_OPTIONS,
       },
       {
-        key: 'refinedCarbs', label: 'Refined carbs', type: 'select', metricDefault: 0, min: 0, max: 0,
+        key: 'refinedCarbs', label: 'Refined grain foods', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'White bread, white rice, pastries — spike blood sugar. Less is better.',
+        help: 'This coarse category cannot assess the nutrition quality or amount of an individual grain food.',
         options: FREQ_OPTIONS,
       },
       {
-        key: 'sugaryDrinks', label: 'Sugary drinks', type: 'select', metricDefault: 0, min: 0, max: 0,
+        key: 'sugaryDrinks', label: 'Sugar-sweetened beverages', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'Soda, energy drinks, sweet juice — liquid sugar drives inflammation. Less is better.',
+        help: 'Frequent added-sugar drinks are less aligned with common dietary guidance; this is not an inflammation blood test.',
         options: FREQ_OPTIONS,
       },
       {
-        key: 'friedFood', label: 'Fried food', type: 'select', metricDefault: 0, min: 0, max: 0,
+        key: 'friedFood', label: 'Deep-fried foods', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: '1-2',
-        help: 'Deep-fried foods — advanced glycation end products (AGEs). Less is better.',
+        help: 'Preparation methods and food composition vary; frequency alone does not measure inflammatory activity.',
         options: FREQ_OPTIONS,
       },
     ],
-    compute: ({ selects }) => {
-      // Anti-inflammatory foods: more is better (rarely=0 -> daily=3).
-      // Pro-inflammatory foods: less is better (rarely=3 -> daily=0, inverse).
-      const ANTI: Record<string, number> = { rarely: 0, '1-2': 1, '3-5': 2, daily: 3 };
-      const PRO: Record<string, number> = { rarely: 3, '1-2': 2, '3-5': 1, daily: 0 };
+    compute: ({ selects, units }) => {
+      const fail = (error: string): CalcResult => ({
+        ok: false, error, primaryLabel: 'Food-pattern checklist (unvalidated)',
+        primaryValue: '—', visual: { kind: 'none' },
+      });
+      if (units !== 'metric' && units !== 'imperial') {
+        return fail('Choose a supported unit system.');
+      }
 
-      const antiFoods = [
-        { name: 'Vegetables', freq: selects.vegetables, pts: ANTI[selects.vegetables] ?? 1, add: 'Add more vegetables — aim for 5+ servings/day, varied colours.' },
-        { name: 'Fruit', freq: selects.fruit, pts: ANTI[selects.fruit] ?? 1, add: 'Add 2–3 fruit servings/day, especially berries and citrus.' },
-        { name: 'Whole grains', freq: selects.wholeGrains, pts: ANTI[selects.wholeGrains] ?? 1, add: 'Swap refined grains for oats, brown rice, quinoa.' },
-        { name: 'Fatty fish', freq: selects.fattyFish, pts: ANTI[selects.fattyFish] ?? 1, add: 'Aim for 2+ servings of fatty fish/week (salmon, sardines).' },
-        { name: 'Olive oil', freq: selects.oliveOil, pts: ANTI[selects.oliveOil] ?? 1, add: 'Use extra virgin olive oil as your primary cooking fat.' },
-        { name: 'Nuts', freq: selects.nuts, pts: ANTI[selects.nuts] ?? 1, add: 'A handful of nuts/day (walnuts, almonds).' },
-        { name: 'Legumes', freq: selects.legumes, pts: ANTI[selects.legumes] ?? 1, add: 'Add beans or lentils 3+×/week.' },
+      // Preserve the original 7 favorable / 4 reverse-coded food groups,
+      // equal 0..3 point rubrics and 33-point maximum. This is NOT the
+      // research Dietary Inflammatory Index and does not predict CRP/IL-6.
+      const MORE: Record<string, number> = { rarely: 0, '1-2': 1, '3-5': 2, daily: 3 };
+      const LESS: Record<string, number> = { rarely: 3, '1-2': 2, '3-5': 1, daily: 0 };
+      const moreKeys = [
+        'vegetables', 'fruit', 'wholeGrains', 'fattyFish',
+        'oliveOil', 'nuts', 'legumes',
       ];
+      const lessKeys = ['redMeat', 'refinedCarbs', 'sugaryDrinks', 'friedFood'];
+      // Exact membership, not parseFloat, fallback points, or inherited
+      // object prototype keys. Invalid/missing answers never earn points.
+      for (const key of moreKeys) {
+        if (!Object.hasOwn(MORE, selects[key])) {
+          return fail('Choose one of the listed frequencies for ' + key + '.');
+        }
+      }
+      for (const key of lessKeys) {
+        if (!Object.hasOwn(LESS, selects[key])) {
+          return fail('Choose one of the listed frequencies for ' + key + '.');
+        }
+      }
 
-      const proFoods = [
-        { name: 'Red / processed meat', freq: selects.redMeat, pts: PRO[selects.redMeat] ?? 1, reduce: 'Limit red/processed meat to 1–2×/week; swap for fish or legumes.' },
-        { name: 'Refined carbs', freq: selects.refinedCarbs, pts: PRO[selects.refinedCarbs] ?? 1, reduce: 'Replace white bread/rice with whole-grain versions.' },
-        { name: 'Sugary drinks', freq: selects.sugaryDrinks, pts: PRO[selects.sugaryDrinks] ?? 1, reduce: 'Swap sugary drinks for water or unsweetened tea.' },
-        { name: 'Fried food', freq: selects.friedFood, pts: PRO[selects.friedFood] ?? 1, reduce: 'Bake, grill, or air-fry instead of deep-frying.' },
+      const addFoods = [
+        { name: 'Vegetables', key: 'vegetables', pts: MORE[selects.vegetables],
+          advice: 'Consider adding a variety of vegetables as tolerated.' },
+        { name: 'Fruit', key: 'fruit', pts: MORE[selects.fruit],
+          advice: 'Consider fruit options that fit your health needs and preferences.' },
+        { name: 'Whole grains', key: 'wholeGrains', pts: MORE[selects.wholeGrains],
+          advice: 'Try replacing some refined-grain choices with whole grains when suitable.' },
+        { name: 'Fatty fish', key: 'fattyFish', pts: MORE[selects.fattyFish],
+          advice: 'If appropriate, consider seafood rich in omega-3s; use alternatives for allergies or dietary restrictions.' },
+        { name: 'Olive oil', key: 'oliveOil', pts: MORE[selects.oliveOil],
+          advice: 'When appropriate, choose unsaturated-fat sources such as olive oil in place of saturated-fat sources.' },
+        { name: 'Nuts', key: 'nuts', pts: MORE[selects.nuts],
+          advice: 'If you have no nut allergy, consider nuts as part of a balanced food pattern.' },
+        { name: 'Legumes', key: 'legumes', pts: MORE[selects.legumes],
+          advice: 'Try beans, lentils or other legumes if tolerated.' },
       ];
-
-      const allFoods = [...antiFoods, ...proFoods];
-      const total = allFoods.reduce((sum, f) => sum + f.pts, 0);
-      const maxPts = 33;
+      const reduceFoods = [
+        { name: 'Red or processed meat', key: 'redMeat', pts: LESS[selects.redMeat],
+          advice: 'Consider replacing some red or processed meat with other protein sources.' },
+        { name: 'Refined grain foods', key: 'refinedCarbs', pts: LESS[selects.refinedCarbs],
+          advice: 'Consider replacing some refined grains with whole-grain options.' },
+        { name: 'Sugar-sweetened beverages', key: 'sugaryDrinks', pts: LESS[selects.sugaryDrinks],
+          advice: 'Choose water or other unsweetened drinks more often if appropriate.' },
+        { name: 'Deep-fried foods', key: 'friedFood', pts: LESS[selects.friedFood],
+          advice: 'Consider using a variety of cooking methods, including baking or grilling.' },
+      ];
+      const allFoods = [...addFoods, ...reduceFoods];
+      const maxPts = allFoods.length * 3;
+      const moreTotal = addFoods.reduce((sum, f) => sum + f.pts, 0);
+      const lessTotal = reduceFoods.reduce((sum, f) => sum + f.pts, 0);
+      const total = moreTotal + lessTotal;
+      if (maxPts !== 33 || !Number.isFinite(total) || total < 0 || total > maxPts) {
+        return fail('The supplied food frequencies cannot produce a valid checklist result.');
+      }
       const score = Math.round((total / maxPts) * 100);
-
       const segments: Segment[] = [
-        { upTo: 33, label: 'Pro-inflammatory', color: C.red },
-        { upTo: 50, label: 'Low anti-inflammatory', color: C.amber },
-        { upTo: 70, label: 'Moderate', color: C.teal },
-        { upTo: 85, label: 'Good', color: C.green },
-        { upTo: 100, label: 'Strongly anti-inflammatory', color: C.blue },
+        { upTo: 33, label: 'Fewer listed choices', color: C.red },
+        { upTo: 50, label: 'Some listed choices', color: C.amber },
+        { upTo: 70, label: 'Several listed choices', color: C.teal },
+        { upTo: 85, label: 'Many listed choices', color: C.green },
+        { upTo: 100, label: 'Most listed choices', color: C.blue },
       ];
       const band = bandFor(score, segments);
 
-      // Per-food zones with bars.
       const areaColor = (pts: number): string => {
         if (pts >= 3) return C.blue;
         if (pts >= 2) return C.green;
         if (pts >= 1) return C.amber;
         return C.red;
       };
-
-      const FREQ_LABEL: Record<string, string> = { rarely: 'Rarely', '1-2': '1-2/wk', '3-5': '3-5/wk', daily: 'Daily' };
-      const zones = allFoods.map((f) => {
-        const fl = FREQ_LABEL[f.freq] ?? f.freq ?? '';
-        return {
-          label: f.name,
-          detail: `${fl} - ${f.pts}/3`,
-          color: areaColor(f.pts),
-        };
-      });
-
-      // Foods to ADD (anti-inflammatory, scoring 0-1) and REDUCE (pro-inflammatory, scoring 0-1).
-      const toAdd = antiFoods.filter((f) => f.pts <= 1).map((f) => f.add);
-      const toReduce = proFoods.filter((f) => f.pts <= 1).map((f) => f.reduce);
+      const FREQ_LABEL: Record<string, string> = {
+        rarely: 'Rarely', '1-2': '1–2/week', '3-5': '3–5/week', daily: 'Daily',
+      };
+      const zones = allFoods.map(f => ({
+        label: f.name,
+        detail: FREQ_LABEL[selects[f.key]] + ' · ' + f.pts + '/3 points',
+        color: areaColor(f.pts),
+      }));
+      const toAdd = addFoods.filter(f => f.pts <= 1).map(f => f.advice);
+      const toReduce = reduceFoods.filter(f => f.pts <= 1).map(f => f.advice);
       const suggestions: string[] = [];
-      if (toAdd.length > 0) suggestions.push(`Add: ${toAdd.join('  ')}`);
-      if (toReduce.length > 0) suggestions.push(`Reduce: ${toReduce.join('  ')}`);
-      const suggestionText = suggestions.length > 0
+      if (toAdd.length) suggestions.push('Explore: ' + toAdd.join('  '));
+      if (toReduce.length) suggestions.push('Consider limiting: ' + toReduce.join('  '));
+      const summary = suggestions.length
         ? suggestions.join('  ')
-        : 'Your food choices are well-balanced — maintain your current pattern.';
+        : 'No low-rated foods within this particular checklist; that does not prove the diet is nutritionally complete or medically protective.';
 
       return {
         ok: true,
-        primaryLabel: 'Anti-inflammatory diet score',
-        primaryValue: `${score}/100`,
-        category: { label: band.label, color: band.color },
+        primaryLabel: 'Food-pattern checklist (unvalidated)',
+        primaryValue: String(score) + '/100',
+        category: { label: band.label + ' (site-defined)', color: band.color },
         visual: { kind: 'zones', items: zones },
         rows: [
-          { label: 'Total points', value: `${total}/${maxPts}` },
-          { label: 'Anti-inflammatory foods', value: `${antiFoods.reduce((s, f) => s + f.pts, 0)}/21`, strong: true },
-          { label: 'Pro-inflammatory foods (inverted)', value: `${proFoods.reduce((s, f) => s + f.pts, 0)}/12` },
+          { label: 'Illustrative point total', value: total + '/' + maxPts },
+          { label: 'More-frequent listed foods (7 groups)', value: moreTotal + '/21', strong: true },
+          { label: 'Reverse-coded listed foods (4 groups)', value: lessTotal + '/12' },
         ],
         callout: {
           tone: 'info',
-          text: 'This pattern closely overlaps with the Mediterranean diet (vegetables, fruit, whole grains, fatty fish, olive oil, legumes, nuts) and the DASH diet (which additionally emphasizes low sodium for blood pressure). Following any of these patterns gives similar anti-inflammatory benefits.',
+          text: 'An 11-question, SITE-DEFINED food-frequency checklist—not a validated dietary inflammatory index, a CRP/IL-6 blood test, a disease-risk estimate or a diagnosis. A high result does NOT confirm low body inflammation or rule out illness. Seek clinical assessment for persistent, severe or unexplained symptoms rather than using a diet score to dismiss them.',
         },
-        note: `${suggestionText} Method: 11 foods scored 0-3 each (anti-inflammatory foods: rarely=0->daily=3; pro-inflammatory foods: rarely=3->daily=0, inverted). Max 33 points -> 0-100 score. Inspired by published research on Mediterranean and anti-inflammatory dietary patterns - this is a transparent adherence score, not a licensed dietary index. Educational only.`,
+        note: summary + ' Method: 7 food groups scored more often = 0→3 and 4 groups reverse-scored less often = 0→3, all weighted equally (33 possible points), then rounded to 0–100. The weights and category bands are site-defined and have NOT been clinically validated. Food frequencies alone omit serving sizes, energy intake, substitutions, many nutrients, medical conditions and medication use. Diet-pattern research concerns populations; this output does not measure inflammation, predict CRP, IL-6 or any biomarker, or establish treatment effectiveness. Medical diets and allergies require individualized advice.',
       };
     },
   },
