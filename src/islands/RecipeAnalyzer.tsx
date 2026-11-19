@@ -195,11 +195,23 @@ export default function RecipeAnalyzer() {
             </div>
           )}
           <p class="ra__provenance" role="note">
-            Food matches and nutrition data are returned by the configured CMS
-            using USDA FoodData Central searches. This response does not supply
-            USDA FDC IDs or data types for individual matches, so each selection
-            cannot be independently verified here. Check ingredients and quantities.
+            {result.coverage.hasVerifiableFdcIds
+              ? <>Each matched food shows its USDA FoodData Central record (FDC ID and data type) so
+                  you can check the selection on the USDA site.</>
+              : <>Food matches come from USDA FoodData Central searches, but this response does not
+                  supply USDA FDC IDs or data types for individual matches, so each selection cannot
+                  be independently verified here.</>}
+            {' '}<strong>Match confidence is a heuristic</strong>: “exact” means most words of your
+            ingredient name appear in the USDA description; “approximate” means only some do. Neither
+            confirms the same food, brand, cut or preparation. Check ingredients and quantities.
           </p>
+          {(result.coverage.approximateCount > 0 || result.coverage.unspecifiedPreparationCount > 0) && (
+            <p class="ra__provenance" role="status">
+              {result.coverage.approximateCount > 0 && <>{result.coverage.approximateCount} ingredient(s) matched only approximately. </>}
+              {result.coverage.unspecifiedPreparationCount > 0 && <>{result.coverage.unspecifiedPreparationCount} ingredient(s) did not say raw or cooked; the matched USDA food states one, and raw and cooked values differ substantially. </>}
+              Review those rows below.
+            </p>
+          )}
           {/* Per-serving headline + macro ring */}
           <div class="ra__headline card">
             <div class="ra__headline-left">
@@ -263,6 +275,25 @@ export default function RecipeAnalyzer() {
                     <span class="ra__ing-grams">{fmt(ing.quantity, 'g')}</span>
                     <span class="ra__ing-match">Reported database match: {ing.usedFood}</span>
                   </div>
+                  {ing.provenance && (
+                    <div class="ra__ing-source">
+                      <span class={`ra__badge ra__badge--${ing.provenance.matchConfidence}`}
+                        title={ing.provenance.matchConfidence === 'exact'
+                          ? 'Heuristic: most words of the ingredient name appear in the USDA description'
+                          : 'Heuristic: only some words match; verify the food and preparation state'}>
+                        {ing.provenance.matchConfidence === 'exact' ? 'name match' : 'approximate match'}
+                      </span>
+                      <span>USDA {ing.provenance.dataType}, FDC ID{' '}
+                        <a href={ing.provenance.fdcUrl} target="_blank" rel="noopener noreferrer">{ing.provenance.fdcId}</a>
+                      </span>
+                    </div>
+                  )}
+                  {ing.preparation.status === 'unspecified' && (
+                    <p class="ra__ing-note">
+                      You did not state raw or cooked; this USDA food is <strong>{ing.preparation.matched}</strong>.
+                      Add the state to your ingredient line if it differs.
+                    </p>
+                  )}
                 </li>
               ))}
             </ul>

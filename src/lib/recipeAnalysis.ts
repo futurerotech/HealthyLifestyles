@@ -15,8 +15,35 @@ export interface IngredientResult {
   originalQuantity: number | string;
   originalUnit: string;
   unitConverted: boolean;
-  usedFood: string; // only a name; CMS does NOT return an FDC ID or data type
+  usedFood: string; // USDA description reported by the CMS
   nutrients: NutrientSet;
+  /**
+   * USDA provenance returned by CMS PR #76 (fdcId and dataType come from USDA, never inferred
+   * from descriptions). Null when the connected CMS does not report it (older CMS); a
+   * malformed value makes the whole response fail closed.
+   */
+  provenance: IngredientProvenance | null;
+  /** Raw/cooked state requested by the user's text compared with the matched USDA food. */
+  preparation: PreparationCheck;
+}
+/** Data types the CMS searches (SR Legacy, Foundation, then Branded). */
+export const USDA_DATA_TYPES = ['SR Legacy', 'Foundation', 'Branded'] as const;
+export type UsdaDataType = typeof USDA_DATA_TYPES[number];
+/** Heuristic word-overlap confidence from the CMS; "none" matches are never returned as matched. */
+export type MatchConfidence = 'exact' | 'approx';
+export interface IngredientProvenance {
+  fdcId: number;
+  dataType: UsdaDataType;
+  matchConfidence: MatchConfidence;
+  /** Official FoodData Central page for the matched record. */
+  fdcUrl: string;
+}
+export type PreparationState = 'raw' | 'cooked';
+export interface PreparationCheck {
+  requested: PreparationState | null;
+  matched: PreparationState | null;
+  /** consistent: both state the same; unspecified: the user gave no state; unknown: USDA name gives none. */
+  status: 'consistent' | 'unspecified' | 'unknown';
 }
 export interface AnalyzeResponse {
   perRecipe: NutrientSet;
@@ -31,8 +58,12 @@ export interface VerifiedRecipeResponse extends AnalyzeResponse {
     partial: boolean;
     missingNutrients: NutrientKey[];
     unmatchedCount: number;
-    /** Per-ingredient database identifiers are not returned by this CMS API. */
-    hasVerifiableFdcIds: false;
+    /** True only when every matched ingredient carries a validated USDA FDC ID and data type. */
+    hasVerifiableFdcIds: boolean;
+    /** Matched ingredients whose heuristic match is only approximate. */
+    approximateCount: number;
+    /** Matched ingredients where the user did not state raw or cooked but the USDA food does. */
+    unspecifiedPreparationCount: number;
   };
 }
 type InputCheck =
@@ -68,6 +99,42 @@ const bounded = (x: unknown, max = RECIPE_TEXT_MAX): x is string =>
 const nonempty = (x: unknown, max = RECIPE_TEXT_MAX): x is string =>
   bounded(x, max) && !!x.trim();
 
+const RAW_WORDS = ['raw', 'uncooked'];
+const COOKED_WORDS = ['cooked', 'boiled', 'baked', 'steamed', 'roasted', 'grilled', 'fried', 'braised'];
+/** Same word lists as the CMS (usda.ts stateOf); "ambiguous" means both kinds of words appear. */
+export function preparationState(text: string): PreparationState | 'ambiguous' | null {
+  const words = new Set(text.toLowerCase().replace(/[()[\],;:]+/g, ' ').split(/\s+/).filter(Boolean));
+  const raw = RAW_WORDS.some(w => words.has(w));
+  const cooked = COOKED_WORDS.some(w => words.has(w));
+  return raw && cooked ? 'ambiguous' : raw ? 'raw' : cooked ? 'cooked' : null;
+}
+/**
+ * The CMS refuses explicit raw/cooked contradictions (matchConfidence "none" → unmatched).
+ * If one reaches the frontend anyway, the contract is broken: fail closed rather than show
+ * nutrition for the wrong preparation state.
+ */
+function preparationCheck(raw: string, name: string, usedFood: string): PreparationCheck | null {
+  const asked = [preparationState(raw), preparationState(name)];
+  if (asked.includes('ambiguous')) return null;
+  const explicit = [...new Set(asked.filter((s): s is PreparationState => s === 'raw' || s === 'cooked'))];
+  if (explicit.length > 1) return null;
+  const matched = preparationState(usedFood);
+  if (matched === 'ambiguous') return null;
+  const requested = explicit[0] ?? null;
+  if (requested && matched !== requested) return null;
+  return { requested, matched, status: requested ? 'consistent' : matched ? 'unspecified' : 'unknown' };
+}
+function provenance(x: Record<string, unknown>): IngredientProvenance | null | undefined {
+  const present = ['fdcId', 'dataType', 'matchConfidence'].filter(k => x[k] !== undefined);
+  if (!present.length) return null; // older CMS: no provenance reported
+  if (present.length !== 3 || !Number.isSafeInteger(x.fdcId) || (x.fdcId as number) <= 0 ||
+      !USDA_DATA_TYPES.includes(x.dataType as UsdaDataType) ||
+      (x.matchConfidence !== 'exact' && x.matchConfidence !== 'approx')) return undefined;
+  const fdcId = x.fdcId as number;
+  return { fdcId, dataType: x.dataType as UsdaDataType, matchConfidence: x.matchConfidence as MatchConfidence,
+    fdcUrl: `https://fdc.nal.usda.gov/food-details/${fdcId}/nutrients` };
+}
+
 function ingredient(x: unknown): IngredientResult | null {
   if (!record(x) || !bounded(x.raw) || !nonempty(x.name) ||
       !nonempty(x.usedFood) || !Number.isFinite(x.quantity) ||
@@ -78,19 +145,23 @@ function ingredient(x: unknown): IngredientResult | null {
     return null;
   const n = nutrientSet(x.nutrients);
   if (!n) return null;
+  const source = provenance(x);
+  if (source === undefined) return null;
+  const preparation = preparationCheck(x.raw, x.name, x.usedFood);
+  if (!preparation) return null;
   return {
     raw: x.raw, name: x.name, quantity: x.quantity as number, unit: 'g',
     originalQuantity: x.originalQuantity, originalUnit: x.originalUnit,
     unitConverted: x.unitConverted, usedFood: x.usedFood, nutrients: n,
+    provenance: source, preparation,
   };
 }
 
 /**
- * The CMS totals currently initialize all nutrients at 0 and skip null values.
- * This can silently present unavailable nutrients as zero. We cannot fix the
- * CMS in a frontend PR: mask any nutrient that is unavailable for a matched
- * ingredient, validate remaining 100g/portion arithmetic and mark unmatched
- * items as excluded. Never fabricate missing USDA FDC IDs or data types.
+ * CMS PR #76 returns null for unknown nutrients; the CMS currently in production initialized
+ * totals at 0 and skipped nulls. Either way: mask any nutrient that is unavailable for a
+ * matched ingredient, validate remaining 100g/portion arithmetic, mark unmatched items as
+ * excluded and validate (never fabricate) USDA FDC IDs and data types.
  */
 export function verifyRecipeResponse(payload: unknown, requestedServings: number): VerifiedRecipeResponse {
   if (!record(payload) || !Number.isInteger(requestedServings) || requestedServings < 1 ||
@@ -103,6 +174,9 @@ export function verifyRecipeResponse(payload: unknown, requestedServings: number
   const parsed = payload.ingredients.map(ingredient);
   if (parsed.some(x => x === null)) throw new Error('Invalid ingredient values returned.');
   const ingredients = parsed as IngredientResult[];
+  const ids = ingredients.map(i => i.provenance).filter(Boolean);
+  if (ids.length && ids.length !== ingredients.length)
+    throw new Error('USDA provenance was reported for only some matched ingredients.');
   const unmatched: AnalyzeResponse['unmatched'] = [];
   for (const item of payload.unmatched) {
     if (!record(item) || !bounded(item.raw) || !bounded(item.name))
@@ -153,7 +227,22 @@ export function verifyRecipeResponse(payload: unknown, requestedServings: number
       partial: unmatched.length > 0 || missingNutrients.length > 0,
       missingNutrients,
       unmatchedCount: unmatched.length,
-      hasVerifiableFdcIds: false,
+      hasVerifiableFdcIds: ingredients.length > 0 && ingredients.every(i => i.provenance !== null),
+      approximateCount: ingredients.filter(i => i.provenance?.matchConfidence === 'approx').length,
+      unspecifiedPreparationCount: ingredients.filter(i => i.preparation.status === 'unspecified').length,
     },
   };
+}
+
+/**
+ * Map a non-OK CMS status to the fixed message the proxy returns. Upstream bodies are never
+ * forwarded (they could echo recipe text or provider details).
+ */
+export function upstreamFailure(status: number): { status: number; error: string } {
+  if (status === 429) return { status: 429, error: 'Recipe analysis is busy. Try again later.' };
+  if (status === 503) return { status: 503, error: 'Nutrition lookup or ingredient parsing is unavailable.' };
+  if (status === 400) return { status: 400, error: 'The recipe could not be analyzed. Review ingredient quantities.' };
+  // 422: the recipe was parsed but NO ingredient matched usable USDA data (CMS PR #76).
+  if (status === 422) return { status: 422, error: 'No ingredient could be matched to usable USDA nutrition data, so no totals are shown. Add amounts in grams or common units, and clear food names with raw or cooked state.' };
+  return { status: 502, error: 'The nutrition analysis provider could not complete this request.' };
 }

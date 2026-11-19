@@ -480,3 +480,9 @@
   background: var(--dark, #1e293b);
   border-color: var(--border, #334155);
 }
+
+.ra__ing-source { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; font-size: 0.85rem; margin-top: 0.25rem; }
+.ra__ing-source a { text-decoration: underline; }
+.ra__ing-note { font-size: 0.85rem; margin: 0.25rem 0 0; color: #92400e; }
+.ra__badge--exact { background: #dcfce7; color: #166534; }
+.ra__badge--approx { background: #fef3c7; color: #92400e; }

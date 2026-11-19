@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { validateRecipeRequest, verifyRecipeResponse } from '../../lib/recipeAnalysis';
+import { upstreamFailure, validateRecipeRequest, verifyRecipeResponse } from '../../lib/recipeAnalysis';
 
 export const prerender = false;
 
@@ -59,14 +59,10 @@ export const POST: APIRoute = async ({ request }) => {
       cache: 'no-store',
       redirect: 'error',
     });
-    if (upstream.status === 429)
-      return json({ error: 'Recipe analysis is busy. Try again later.' }, 429);
-    if (upstream.status === 503)
-      return json({ error: 'Nutrition lookup or ingredient parsing is unavailable.' }, 503);
-    if (upstream.status === 400)
-      return json({ error: 'The recipe could not be analyzed. Review ingredient quantities.' }, 400);
-    if (!upstream.ok)
-      return json({ error: 'The nutrition analysis provider could not complete this request.' }, 502);
+    if (!upstream.ok) {
+      const failure = upstreamFailure(upstream.status);
+      return json({ error: failure.error }, failure.status);
+    }
 
     const raw = await upstream.text();
     if (raw.length > MAX_RESPONSE_CHARS)
