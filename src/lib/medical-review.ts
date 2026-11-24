@@ -1,3 +1,5 @@
+import { resolveAuthorIdentity } from './author-identity.mjs';
+
 /** Resolve an explicit CMS reviewer assignment, never a site-wide fallback.
  * A profile is attribution, not independent verification of a professional license.
  * The publisher must verify credentials and the completed review before assignment.
@@ -8,7 +10,7 @@ export function assignedReviewer<T extends { slug: string; name: string; schemaT
   authors: T[],
 ): T | undefined {
   if (!assignment?.trim()) return undefined;
-  const reviewer = authors.find((a) => a.slug === assignment || a.name === assignment);
+  const reviewer = resolveAuthorIdentity(assignment, authors);
   if (!reviewer || reviewer.schemaType !== 'Person' || !reviewer.name.trim() ||
       !reviewer.credential?.trim() || !reviewer.bio?.trim() || reviewer.slug === 'medical-review') return undefined;
   return reviewer;

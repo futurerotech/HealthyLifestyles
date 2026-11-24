@@ -131,3 +131,60 @@ test('only a successful complete pSEO response may establish an empty collection
   globalThis.fetch = (async () => Response.json({ totalDocs: 0, docs: [] })) as typeof fetch;
   assert.deepEqual(await (await fresh()).getPseoPages(), []);
 });
+
+test('author inventory shares a complete paginated read; an empty list stays empty', async () => {
+  let calls = 0;
+  globalThis.fetch = (async (input) => {
+    const url = new URL(String(input));
+    calls++;
+    assert.equal(url.pathname, '/api/authors');
+    const page = Number(url.searchParams.get('page'));
+    return Response.json({ totalDocs: 2, docs: [{ id: page, slug: `person-${page}`, name: `Person ${page}`, schemaType: 'Person' }] });
+  }) as typeof fetch;
+  const cms = await fresh();
+  const [all, same] = await Promise.all([cms.getAuthors(), cms.getAuthors()]);
+  assert.strictEqual(all, same);
+  assert.equal(all.length, 2);
+  assert.equal((await cms.resolveAuthor('person-2'))?.cmsId, '2');
+  assert.equal(await cms.resolveAuthor('unknown'), undefined);
+  assert.equal(calls, 2);
+  globalThis.fetch = (async () => Response.json({ totalDocs: 0, docs: [] })) as typeof fetch;
+  const empty = await fresh();
+  assert.deepEqual(await empty.getAuthors(), []);
+  assert.equal(await empty.resolveAuthor('editorial-team'), undefined);
+});
+
+test('duplicate author slugs and incomplete author inventories fail closed', async () => {
+  globalThis.fetch = (async () => Response.json({ totalDocs: 2, docs: [
+    { id: 1, slug: 'same', name: 'First', schemaType: 'Person' },
+    { id: 2, slug: 'same', name: 'Second', schemaType: 'Person' },
+  ] })) as typeof fetch;
+  await assert.rejects((await fresh()).getAuthors(), /Duplicate author/);
+  globalThis.fetch = (async (input) => Number(new URL(String(input)).searchParams.get('page')) === 1
+    ? Response.json({ totalDocs: 2, docs: [{ id: 1, slug: 'one', name: 'One', schemaType: 'Person' }] })
+    : new Response('', { status: 503 })) as typeof fetch;
+  await assert.rejects((await fresh()).getAuthors(), /Refusing stale LOCAL/);
+});
+
+test('CMS relationships preserve exact author IDs across translations and never rescue missing IDs', async () => {
+  const authors = [{ id: 1, slug: 'cms-person', name: 'Person', schemaType: 'Person', bio: 'Synthetic biography' }];
+  globalThis.fetch = (async (input) => {
+    const url = new URL(String(input));
+    if (url.pathname === '/api/authors') return Response.json({ totalDocs: 1, docs: authors });
+    const localized = url.searchParams.has('locale');
+    const docs = [
+      { id: 11, slug: 'valid', title: localized ? 'Localized article' : 'Article', author: { id: 1, slug: 'cms-person', name: localized ? 'Translated person' : 'Person' }, reviewer: 1, layout: [{ blockType: 'text', style: 'p', text: 'Synthetic article content.' }] },
+      { id: 12, slug: 'unknown', title: 'Missing author', author: { id: 99, name: 'Person' }, reviewer: { id: 98, slug: 'cms-person' }, layout: [{ blockType: 'text', style: 'p', text: 'Synthetic article content.' }] },
+    ];
+    return Response.json({ totalDocs: docs.length, docs });
+  }) as typeof fetch;
+  const cms = await fresh();
+  for (const list of [await cms.getArticles(), await cms.getArticlesForLocale('es')]) {
+    assert.equal(list[0].author, 'cms-person');
+    assert.equal(list[0].reviewer, 'cms-person');
+    assert.equal(list[0].authorBio, 'Synthetic biography');
+    assert.equal(list[1].author, '');
+    assert.equal(list[1].reviewer, undefined);
+    assert.equal(list[1].authorBio, undefined);
+  }
+});

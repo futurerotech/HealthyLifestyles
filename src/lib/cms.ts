@@ -17,13 +17,14 @@
 import { TOOLS as LOCAL_TOOLS, getPopularTools as localPopularTools, getToolsByCategory as localToolsByCat, getRelatedTools as localRelatedTools, getLiveTools as localLiveTools, type Tool } from '../data/tools';
 import { CATEGORIES as LOCAL_CATEGORIES, type Category } from '../data/categories';
 import { ARTICLES as LOCAL_ARTICLES, ARTICLE_CATEGORIES as LOCAL_ARTICLE_CATEGORIES, ARTICLES_PER_PAGE, type Article, type ArticleCategory, type ArticleBlock } from '../data/articles';
-import { AUTHORS as LOCAL_AUTHORS, resolveAuthor as localResolveAuthor, type Author } from '../data/authors';
+import { AUTHORS as LOCAL_AUTHORS, type Author } from '../data/authors';
 import { P7_FIXTURE_ARTICLE } from '../data/p7-fixture';
 import { canonicalToolSlug, SUPPORTED_TOOL_SLUGS, TOOL_ALIASES, publicContentPath, SITE_ORIGIN, assertUniquePublicPaths } from './site-routes';
 import { resolveCanonical } from './seo';
 import type { SeoMetadata } from './seo';
 import { mapToolContent } from './cms-content';
 import { appendContentPage, documentProof } from './content-integrity.mjs';
+import { resolveAuthorIdentity, resolveCmsAuthorRelation, validateAuthorInventory } from './author-identity.mjs';
 
 // P15-P7 — off by default; set P7_FIXTURE=1 ONLY for the render-proof build.
 const P7_FIXTURE_ON = process.env.P7_FIXTURE === '1';
@@ -529,10 +530,10 @@ interface CmsArticle {
   _status?: string;
 }
 
-function mapArticle(a: CmsArticle): Article {
+function mapArticle(a: CmsArticle, authors: Author[]): Article {
   const catSlug = pickSlug(a.category);
-  const authorObj = a.author as Record<string, unknown> | undefined;
-  const reviewerObj = a.reviewer as Record<string, unknown> | undefined;
+  const authorObj = resolveCmsAuthorRelation(a.author, authors);
+  const reviewerObj = resolveCmsAuthorRelation(a.reviewer, authors);
   const body = mapArticleBlocks(a.layout || []);
   const visibleFaq = new Set(body.flatMap((b) => b.type === 'paa' ? b.items.map((i) => `${i.q.trim()}\n${i.a.trim()}`) : []));
   const additionalFaq = (a.faq || []).filter((f) => f.question && f.answer && !visibleFaq.has(`${f.question.trim()}\n${f.answer.trim()}`)).map((f) => ({ q: f.question!, a: f.answer! }));
@@ -557,9 +558,9 @@ function mapArticle(a: CmsArticle): Article {
           height: typeof a.heroImage.height === 'number' ? a.heroImage.height : undefined,
         }
       : undefined,
-    author: str(authorObj?.name || pickSlug(a.author)),
+    author: authorObj?.slug || '',
     authorBio: str(authorObj?.bio) || undefined,
-    reviewer: str(reviewerObj?.name || pickSlug(a.reviewer)) || undefined,
+    reviewer: reviewerObj?.slug,
     reviewerBio: str(reviewerObj?.bio) || undefined,
     publishDate: str(a.publishDate).split('T')[0],
     updatedDate: str(a.updatedDate).split('T')[0] || str(a.publishDate).split('T')[0],
@@ -673,7 +674,8 @@ export function getArticles(): Promise<Article[]> {
         // paper a reachable-but-empty CMS (e.g. a data-loss incident) over with
         // stale LOCAL content: that would hide the outage from every build gate.
         for (const doc of data.docs) if (!doc.slug || !doc.title) throw new Error(`[CMS] Invalid published article ${doc.id}; cannot omit it silently.`);
-        const mapped = data.docs.map(mapArticle);
+        const authors = data.docs.some((doc) => doc.author != null || doc.reviewer != null) ? await getAuthors() : [];
+        const mapped = data.docs.map((doc) => mapArticle(doc, authors));
         if (mapped.length === 0) {
           console.error(`[CMS] articles endpoint reachable but yielded 0 usable articles (docs=${data.docs.length}) — surfacing the empty result, NOT masking with LOCAL fallback.`);
         }
@@ -707,10 +709,11 @@ export function getArticlesForLocale(locale: string): Promise<Article[]> {
         `/api/articles?where[_status][equals]=published&limit=100&depth=2&sort=-publishDate&draft=false&locale=${locale}&fallback-locale=none`,
       );
       if (!data) { if (!DISABLED) assertLocalFallbackAllowed(`articles locale ${locale}`); return []; }
+      const authors = data.docs.some((doc) => doc.author != null || doc.reviewer != null) ? await getAuthors() : [];
       return data.docs
         // Translated = the localized essentials genuinely exist in this locale.
         .filter((d) => d.title && Array.isArray(d.layout) && d.layout.length > 0)
-        .map(mapArticle)
+        .map((doc) => mapArticle(doc, authors))
         .filter((a) => a.slug && a.title && a.body.length > 0);
     })();
     _localeArticles.set(locale, p);
@@ -802,7 +805,7 @@ interface CmsAuthorLink {
 }
 
 interface CmsAuthor {
-  id?: string;
+  id?: string | number;
   slug?: string;
   name?: string;
   role?: string;
@@ -816,6 +819,7 @@ interface CmsAuthor {
 
 function mapAuthor(a: CmsAuthor): Author {
   return {
+    cmsId: String(a.id),
     slug: str(a.slug),
     name: str(a.name),
     role: str(a.role),
@@ -831,15 +835,23 @@ function mapAuthor(a: CmsAuthor): Author {
   };
 }
 
-export async function getAuthors(): Promise<Author[]> {
-  const data = await cmsList<CmsAuthor>(
-    '/api/authors?limit=50&depth=0&sort=name',
-  );
-  if (data && Array.isArray(data.docs) && data.docs.length > 0) {
-    return data.docs.map(mapAuthor).filter((a) => a.slug && a.name && !(a.slug === 'medical-review' && a.schemaType === 'Organization'));
+// All routes and bylines consume the same complete, validated inventory.
+let _authorsPromise: Promise<Author[]> | null = null;
+export function getAuthors(): Promise<Author[]> {
+  if (!_authorsPromise) {
+    _authorsPromise = (async () => {
+      const data = await cmsList<CmsAuthor>('/api/authors?limit=50&depth=0&sort=name');
+      if (!data) {
+        assertLocalFallbackAllowed('authors');
+        return LOCAL_AUTHORS;
+      }
+      validateAuthorInventory(data);
+      // The retired medical-review placeholder is not a real named reviewer.
+      // An authoritative empty list stays empty (no stale local resurrection).
+      return data.docs.filter((doc) => doc.slug !== 'medical-review').map(mapAuthor);
+    })();
   }
-  if (!data) assertLocalFallbackAllowed('authors');
-  return LOCAL_AUTHORS;
+  return _authorsPromise;
 }
 
 export async function getAuthor(slug: string): Promise<Author | undefined> {
@@ -847,18 +859,8 @@ export async function getAuthor(slug: string): Promise<Author | undefined> {
   return all.find((a) => a.slug === slug);
 }
 
-export async function resolveAuthor(nameOrSlug: string): Promise<Author> {
-  const all = await getAuthors();
-  const bySlug = all.find((a) => a.slug === nameOrSlug);
-  if (bySlug) return bySlug;
-  const byName = all.find((a) => a.name === nameOrSlug);
-  if (byName) return byName;
-  // Fallback to local hard-coded authors if CMS fetch succeeded but didn't include this slug.
-  const localBySlug = LOCAL_AUTHORS.find((a) => a.slug === nameOrSlug);
-  if (localBySlug) return localBySlug;
-  const localByName = LOCAL_AUTHORS.find((a) => a.name === nameOrSlug);
-  if (localByName) return localByName;
-  return all[0] || LOCAL_AUTHORS[0]!;
+export async function resolveAuthor(nameOrSlug: string): Promise<Author | undefined> {
+  return resolveAuthorIdentity(nameOrSlug, await getAuthors());
 }
 
 export { DEFAULT_AUTHOR_SLUG } from '../data/authors';

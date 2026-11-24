@@ -12,7 +12,9 @@
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import ArticleBody from '../../../components/ArticleBody.astro';
 import '../../../styles/wellness-hub.css';
-import { getArticlesForLocale, getTranslatedLocales, getArticleCategory } from '../../../lib/cms';
+import { getArticlesForLocale, getTranslatedLocales, getArticleCategory, getAuthors, resolveAuthor } from '../../../lib/cms';
+import { assignedReviewer } from '../../../lib/medical-review';
+import { authorLd } from '../../../lib/author-identity.mjs';
 import { NON_DEFAULT_LOCALES, hreflangSet, localePath, ogLocaleFor } from '../../../lib/i18n';
 import { speakableSelectors, buildFaqPage } from '../../../lib/article-schema';
 
@@ -46,6 +48,9 @@ const alternates = hreflangSet(originStr, path, translated);
 
 const localeUrl = (p: string) => `${originStr}${localePath(locale, p)}`;
 
+const authorEntity = await resolveAuthor(article.author);
+const reviewerEntity = assignedReviewer(article.reviewer, await getAuthors());
+
 const jsonLd: Record<string, unknown>[] = [
   {
     '@context': 'https://schema.org',
@@ -70,6 +75,8 @@ const jsonLd: Record<string, unknown>[] = [
     description: article.metaDescription,
     datePublished: article.publishDate,
     dateModified: article.updatedDate,
+    ...(authorEntity ? { author: authorLd(authorEntity, origin) } : {}),
+    ...(reviewerEntity ? { reviewedBy: authorLd(reviewerEntity, origin) } : {}),
     image: ogImage,
     articleSection: category.name,
     inLanguage: locale,

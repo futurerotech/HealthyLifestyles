@@ -7,7 +7,7 @@ import SocialIcon from '../../components/SocialIcon.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
 import { getAuthors, getArticles } from '../../lib/cms';
 import { getSiteConsts } from '../../lib/cms';
-import { resolveAuthor } from '../../data/authors';
+import { resolveAuthorIdentity } from '../../lib/author-identity.mjs';
 import type { Author } from '../../data/authors';
 
 export async function getStaticPaths() {
@@ -24,7 +24,7 @@ const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
 const pageUrl = new URL(`/author/${author.slug}`, origin).href.replace(/\/$/, '');
 
 // Articles this entity authored.
-const [allArticles, siteConsts] = await Promise.all([getArticles(), getSiteConsts()]);
+const [allArticles, siteConsts, allAuthors] = await Promise.all([getArticles(), getSiteConsts(), getAuthors()]);
 const SITE = siteConsts.SITE;
 const SOCIAL_NETWORKS = siteConsts.SOCIAL_NETWORKS;
 /** Safe lookup: an author link's network may not exist in the site-wide social
@@ -32,7 +32,7 @@ const SOCIAL_NETWORKS = siteConsts.SOCIAL_NETWORKS;
  *  it) — fall back to the raw network name instead of crashing the build. */
 const netInfo = (network: string) =>
   SOCIAL_NETWORKS[network] ?? { label: network.charAt(0).toUpperCase() + network.slice(1), color: '#16a34a' };
-const articles = allArticles.filter((a) => resolveAuthor(a.author).slug === author.slug);
+const articles = allArticles.filter((a) => resolveAuthorIdentity(a.author, allAuthors)?.slug === author.slug);
 
 const items = [
   { label: 'Home', href: '/' },

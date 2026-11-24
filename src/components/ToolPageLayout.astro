@@ -37,6 +37,7 @@ import '../styles/calculator.css';
 import { getSiteConsts, getRelatedTools } from '../lib/cms';
 import { getCategory } from '../lib/cms';
 import { getArticlesForTool, resolveAuthor } from '../lib/cms';
+import { authorLd } from '../lib/author-identity.mjs';
 import type { Tool } from '../data/tools';
 import { getAffiliates } from '../data/affiliates';
 import type { ToolContent } from '../data/content-types';
@@ -103,17 +104,6 @@ const breadcrumbLd = {
   })),
 };
 
-function authorLd(a: typeof authorEntity) {
-  return {
-    '@type': a.schemaType,
-    '@id': new URL(`/author/${a.slug}`, origin).href,
-    name: a.name,
-    url: new URL(`/author/${a.slug}`, origin).href,
-    ...(a.credential ? { credential: a.credential } : {}),
-    ...(a.schemaType === 'Person' ? { jobTitle: a.role, worksFor: { '@id': orgId } } : {}),
-  };
-}
-
 const appLd = {
   '@context': 'https://schema.org',
   '@type': 'WebApplication',
@@ -125,7 +115,7 @@ const appLd = {
   description: content.metaDescription,
   isAccessibleForFree: true,
   offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-  author: authorLd(authorEntity),
+  ...(authorEntity ? { author: authorLd(authorEntity, origin) } : {}),
   publisher: { '@id': orgId },
 };
 
@@ -159,7 +149,7 @@ const medicalLd = {
   url: pageUrl,
   description: content.metaDescription,
   inLanguage: 'en',
-  author: authorLd(authorEntity),
+  ...(authorEntity ? { author: authorLd(authorEntity, origin) } : {}),
   audience: { '@type': 'MedicalAudience', audienceType: 'https://schema.org/Patient' },
   isPartOf: { '@type': 'WebSite', '@id': origin.href },
   // CMS semantic entities → DefinedTerm `about` (same pattern as articles):

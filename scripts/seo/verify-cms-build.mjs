@@ -2,7 +2,7 @@ import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
 import { readFile, access } from 'node:fs/promises';
 import { createReviewWorkspace, resolveAstroCli } from '../content/workspace.mjs';
-import { verifyOutput } from '../content/preflight.mjs';
+import { inspectDocument, verifyOutput } from '../content/preflight.mjs';
 import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
@@ -33,6 +33,25 @@ const catalogue = {
     { id: 4, slug: 'draft-generated-guide', headline: 'Unpublished draft', bodyHtml: '<p>Never public.</p>', status: 'draft', updatedAt },
   ],
 };
+// Synthetic identities exist only in this local fixture server. Do not publish.
+const fixtureAuthor = { id: 901, slug: 'fixture-author', name: 'Synthetic Fixture Author', schemaType: 'Person', role: 'Fixture writer', bio: 'Synthetic test profile.', initials: 'FA', updatedAt };
+const fixtureReviewer = { id: 902, slug: 'fixture-reviewer', name: 'Synthetic Fixture Reviewer', schemaType: 'Person', credential: 'Fixture-only credential', bio: 'Synthetic test reviewer; not a real clinician.', initials: 'FR', updatedAt };
+catalogue.authors.push(fixtureAuthor, fixtureReviewer);
+catalogue.articles[0].author = fixtureAuthor;
+catalogue.articles[0].reviewer = fixtureReviewer;
+catalogue.articles[0].isHealthTopic = true;
+// Keep the positive preservation catalogue internally consistent: an explicitly
+// unassigned author/reviewer is legitimate; a dangling relationship is not.
+const danglingAuthor = { id: 99999, slug: fixtureAuthor.slug, name: fixtureAuthor.name };
+const danglingReviewer = { id: 99998, slug: fixtureReviewer.slug, name: fixtureReviewer.name };
+catalogue.articles[1].author = null;
+catalogue.articles[1].reviewer = null;
+catalogue.articles[1].isHealthTopic = true;
+const translatedArticles = catalogue.articles.slice(0, 2).map((doc) => ({ ...doc, title: `Traduccion de prueba ${doc.slug}`, excerpt: 'Contenido sintetico de prueba.' }));
+// Exercise the actual localized render with dangling IDs even when the names
+// and slugs match existing profiles. Never substitute those profiles.
+translatedArticles[1].author = danglingAuthor;
+translatedArticles[1].reviewer = danglingReviewer;
 const cmsEditedTool = catalogue.tools.find((t) => t.slug === 'body-fat-calculator');
 catalogue.articles[0].layout.push(
   { blockType: 'hero', title: 'Inline CMS article hero' },
@@ -54,7 +73,9 @@ const server = createServer((req, res) => {
   }
   const name = url.pathname.split('/')[2];
   let docs = catalogue[name] || [];
-  if (url.searchParams.has('locale')) docs = [];
+  if (url.searchParams.has('locale')) {
+    docs = name === 'articles' && url.searchParams.get('locale') === 'es' ? translatedArticles : [];
+  }
   if (url.searchParams.get('where[enabled][equals]') === 'true') docs = docs.filter((d) => d.enabled);
   if (url.searchParams.get('where[status][equals]') === 'published') docs = docs.filter((d) => d.status === 'published');
   const kind = url.searchParams.get('where[kind][equals]');
@@ -95,6 +116,36 @@ try {
   assert.match(renderedArticle, /CMS article columns/);
   assert.match(renderedArticle, /CMS article banner/);
   assert.doesNotMatch(renderedArticle, /cms\.healthylifesstyles\.com\/embed\//);
+  const schemaNodes = (page) => [...page.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)].flatMap((match) => {
+    const value = JSON.parse(match[1]);
+    return Array.isArray(value) ? value : Array.isArray(value['@graph']) ? value['@graph'] : [value];
+  });
+  const articleNode = (page) => {
+    const node = schemaNodes(page).find((n) => [].concat(n['@type']).includes('Article'));
+    assert.ok(node, 'Article JSON-LD must exist');
+    return node;
+  };
+  const knownPath = 'wellness-hub/calories-burned-calculator-guide';
+  const unknownPath = 'wellness-hub/how-many-calories-to-lose-weight';
+  for (const prefix of ['', 'es/']) {
+    const known = await html(prefix + knownPath);
+    const unknown = await html(prefix + unknownPath);
+    assert.match(known, /href="\/author\/fixture-author"/);
+    assert.match(known, /href="\/author\/fixture-reviewer"/);
+    assert.equal(articleNode(known).author.name, fixtureAuthor.name);
+    assert.equal(articleNode(known).reviewedBy.name, fixtureReviewer.name);
+    assert.equal(articleNode(known).author['@id'], 'https://www.healthylifesstyles.com/author/fixture-author');
+    assert.match(unknown, /Author not specified/);
+    assert.doesNotMatch(unknown, /href="\/author\/fixture-author"|href="\/author\/fixture-reviewer"/);
+    assert.ok(!('author' in articleNode(unknown)) && !('reviewedBy' in articleNode(unknown)));
+  }
+  const knownTopic = schemaNodes(renderedArticle).find((n) => n['@type'] === 'HealthTopicContent');
+  const unknownTopic = schemaNodes(await html(unknownPath)).find((n) => n['@type'] === 'HealthTopicContent');
+  assert.equal(knownTopic?.author.name, fixtureAuthor.name);
+  assert.ok(unknownTopic && !('author' in unknownTopic) && !('reviewedBy' in unknownTopic));
+  const profile = await html('author/fixture-author');
+  assert.ok(profile.includes(`href="/${knownPath}"`));
+  assert.ok(!profile.includes(`href="/${unknownPath}"`));
   const hub = await html('wellness-hub');
   assert.doesNotMatch(hub, /\[object Promise\]/);
   const xml = await readFile(artifact('dist/client/sitemap-0.xml'), 'utf8');
@@ -120,7 +171,17 @@ try {
   const baseline = { cmsOrigin: env.CMS_URL, collections: Object.fromEntries(Object.entries(inventory.collections).map(([name, docs]) => [name, docs.map((doc) => ({ id: String(doc.id), slug: doc.slug }))])) };
   const preserved = await verifyOutput({ dist: artifact('dist/client'), providerDir: artifact('.vercel/output/static'), inventory, baseline, requireReleaseProvenance: false });
   assert.deepEqual(preserved.errors, [], JSON.stringify(preserved.errors, null, 2));
+  // The positive fixture must pass every unchanged production preservation check.
+  // Separately prove that the real gate still rejects a missing assigned author;
+  // use the generated unassigned English HTML, without changing its manifest or
+  // filtering any error from verifyOutput. CMS snapshot tests cover dangling IDs
+  // in both languages; the Spanish HTML assertions above cover actual rendering.
+  const invalidArticle = { ...catalogue.articles[1], author: danglingAuthor, reviewer: danglingReviewer };
+  assert.deepEqual(inspectDocument('articles', invalidArticle, await html(unknownPath), env.CMS_URL).errors,
+    ['author relationship mismatch'], 'Dangling author must still block preservation');
   assert.ok([...requests.entries()].filter(([url]) => url.startsWith('/api/articles?')).every(([, n]) => n === 1), 'Pages must share article requests');
+  const authorRequests = [...requests.entries()].filter(([url]) => url.startsWith('/api/authors?'));
+  assert.ok(authorRequests.length > 0 && authorRequests.every(([, n]) => n === 1), 'All pages must share the complete author inventory');
   assert.equal(await readFile('dist/client/content-manifest.json', 'utf8').catch(() => null), originalManifest, 'Fixture must not overwrite the project content manifest');
   assert.equal(await readFile('.vercel/output/config.json', 'utf8').catch(() => null), originalProvider, 'Fixture must not overwrite provider release output');
   console.log('CMS integration build passed: SEO/social metadata, aliases, disabled tools, pSEO, noindex/canonical sitemap policy, provider output, shared snapshot, deployment manifest.');

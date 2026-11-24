@@ -15,6 +15,7 @@ import {
   getAuthors,
 } from '../../lib/cms';
 import { assignedReviewer } from '../../lib/medical-review';
+import { authorLd } from '../../lib/author-identity.mjs';
 import { getTranslatedLocales } from '../../lib/cms';
 import { hreflangSet, NON_DEFAULT_LOCALES } from '../../lib/i18n';
 import { speakableSelectors, buildFaqPage } from '../../lib/article-schema';
@@ -126,7 +127,7 @@ function buildHowTo(a: Article, pageUrl: string, ogImage: string): Record<string
 function buildHealthTopicContent(
   a: Article,
   pageUrl: string,
-  author: ReturnType<typeof authorLd>,
+  author?: ReturnType<typeof authorLd>,
   reviewer?: ReturnType<typeof authorLd>,
 ): Record<string, unknown> | null {
   const topic = a.semanticEntities?.[0]?.term || a.title.replace(/^what is (an? )?/i, '').replace(/\?$/, '');
@@ -140,7 +141,7 @@ function buildHealthTopicContent(
     mainEntity: { '@type': 'MedicalCondition', name: topic },
     text: a.excerpt,
     url: pageUrl,
-    author,
+    ...(author ? { author } : {}),
     ...(reviewer ? { reviewedBy: reviewer } : {}),
   };
 }
@@ -176,19 +177,6 @@ if (props.kind === 'article' && article) {
   const reviewerEntity = assignedReviewer(article.reviewer, await getAuthors());
   const orgId = `${origin.href}#org`;
 
-  function authorLd(a: typeof authorEntity) {
-    return {
-      '@type': a.schemaType,
-      '@id': new URL(`/author/${a.slug}`, origin).href,
-      name: a.name,
-      url: new URL(`/author/${a.slug}`, origin).href,
-      ...(a.credential ? { credential: a.credential } : {}),
-      ...(a.schemaType === 'Person'
-        ? { jobTitle: a.role, worksFor: { '@id': orgId } }
-        : {}),
-    };
-  }
-
   const articleLd = {
     '@context': 'https://schema.org',
     '@type': ['MedicalWebPage', 'Article'],
@@ -197,8 +185,8 @@ if (props.kind === 'article' && article) {
     description: article.metaDescription,
     datePublished: article.publishDate,
     dateModified: article.updatedDate,
-    author: authorLd(authorEntity),
-    ...(reviewerEntity ? { reviewedBy: authorLd(reviewerEntity) } : {}),
+    ...(authorEntity ? { author: authorLd(authorEntity, origin) } : {}),
+    ...(reviewerEntity ? { reviewedBy: authorLd(reviewerEntity, origin) } : {}),
     publisher: { '@id': orgId },
     mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
     image: ogImage,
@@ -246,8 +234,8 @@ if (props.kind === 'article' && article) {
     const topic = buildHealthTopicContent(
       article,
       pageUrl,
-      authorLd(authorEntity),
-      reviewerEntity ? authorLd(reviewerEntity) : undefined,
+      authorEntity ? authorLd(authorEntity, origin) : undefined,
+      reviewerEntity ? authorLd(reviewerEntity, origin) : undefined,
     );
     if (topic) jsonLd.push(topic);
   }
