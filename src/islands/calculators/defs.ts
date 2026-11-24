@@ -687,13 +687,13 @@ export const DEFS: Record<string, CalcDef> = {
       const drinksMl = baselineMl * 0.8 + extraMl;
       return {
         ok: true,
-        primaryLabel: 'Recommended water intake',
+        primaryLabel: 'Estimated total daily fluid (drinks + food)',
         primaryValue: `${fmt(liters, 1)} L/day`,
         visual: { kind: 'none' },
         callout: held
           ? {
               tone: 'info',
-              text: 'The 35 ml/kg rule of thumb has not been established for higher body weights, so this site stops scaling it above 100 kg (220 lb). That cut-off is a site choice, not a clinically validated threshold, and not a maximum — your needs may be higher or lower. Thirst, urine colour and your doctor’s advice are better guides.',
+              text: 'The 35 ml/kg rule of thumb has not been established for higher body weights, so this site stops scaling it above 100 kg (220 lb). That cut-off is a site choice, not a clinically validated threshold, and not a maximum — your needs may be higher or lower. Thirst, urine color and your doctor’s advice are better guides.',
             }
           : undefined,
         rows: [

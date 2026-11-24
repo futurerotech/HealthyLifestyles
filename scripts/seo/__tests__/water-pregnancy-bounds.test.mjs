@@ -30,7 +30,6 @@ const loadCompute = (startMarker, endMarker) => {
 };
 
 const water = loadCompute("  'water-intake-calculator': {", '  // ---- Calorie Deficit ----');
-const preg = loadCompute("  'pregnancy-weight-gain-calculator': {", '  // Fitness');
 const row = (r, label) => r.rows?.find((x) => x.label.startsWith(label))?.value;
 const litres = (r) => parseFloat(r.primaryValue);
 
@@ -81,16 +80,6 @@ test('water: reference intakes are shown as total water (drinks + food), not as 
   assert.equal(r.primaryLabel, 'Estimated total daily fluid (drinks + food)');
 });
 
-// [height cm, pre-pregnancy kg, IOM total lb low/high, IOM total kg low/high]
-const CATS = [
-  [165, 48, 28, 40, 12.5, 18], // underweight
-  [165, 60, 25, 35, 11.5, 16], // normal
-  [165, 75, 15, 25, 7, 11.5], // overweight
-  [165, 90, 11, 20, 5, 9], // obesity
-];
-const range = (r) => row(r, 'Estimated range by week').split(' ')[0].split('–').map(Number);
-const run = (height, weight, week, gainKg, units) => preg({ vals: { height, weight, week, current: weight + gainKg }, units });
-
 test('water: totals and drinks-only share stay internally consistent for every input', () => {
   for (const weight of [40, 70, 100, 150]) {
     for (const activity of ['0', '500', '1000', '1500']) {
@@ -114,57 +103,5 @@ test('water: the 100 kg cut-off is never described as clinically validated', () 
   assert.doesNotMatch(src + content, /not reliable at higher body weights/);
 });
 
-test('pregnancy: totals are the published IOM values in both unit systems', () => {
-  for (const [h, w, loLb, hiLb, loKg, hiKg] of CATS) {
-    assert.equal(run(h, w, 20, 5, 'imperial').primaryValue, `${loLb}–${hiLb} lb`);
-    assert.equal(run(h, w, 20, 5, 'metric').primaryValue, `${loKg}–${hiKg} kg`); // was rounded to 11–16 kg etc.
-  }
-});
-
-test('pregnancy: BMI category boundaries follow the IOM cut-offs', () => {
-  const cat = (bmi) => preg({ vals: { height: 100, weight: bmi, week: 20, current: bmi }, units: 'metric' }).category.label;
-  assert.equal(cat(18.4), 'Underweight');
-  assert.equal(cat(18.5), 'Normal weight');
-  assert.equal(cat(24.9), 'Normal weight');
-  assert.equal(cat(25), 'Overweight');
-  assert.equal(cat(29.9), 'Overweight');
-  assert.equal(cat(30), 'Obesity');
-});
-
-test('pregnancy: by-week range never exceeds the IOM total at any week, in either unit system', () => {
-  for (const [h, w, loLb, hiLb, loKg, hiKg] of CATS) {
-    for (let week = 1; week <= 42; week++) {
-      const [iLo, iHi] = range(run(h, w, week, 5, 'imperial'));
-      const [mLo, mHi] = range(run(h, w, week, 5, 'metric'));
-      assert.ok(iLo <= loLb && iHi <= hiLb && iLo <= iHi, `lb week ${week}: ${iLo}-${iHi}`);
-      assert.ok(mLo <= loKg && mHi <= hiKg && mLo <= mHi, `kg week ${week}: ${mLo}-${mHi}`);
-    }
-  }
-});
-
-test('pregnancy: the previously overshooting cases are held at the total', () => {
-  // Obesity group at week 40 was 11.9–20.6 lb against a 20 lb total; underweight week 42 was 30.1–42.1 against 40.
-  assert.deepEqual(range(run(165, 90, 40, 5, 'imperial')), [11, 20]);
-  assert.deepEqual(range(run(165, 48, 42, 12, 'imperial')), [28, 40]);
-});
-
-test('pregnancy: by-week arithmetic uses the IOM first-trimester assumption and weekly rates', () => {
-  assert.deepEqual(range(run(165, 60, 20, 6, 'imperial')), [6.7, 11.4]); // 1.1 + 0.8×7, 4.4 + 1.0×7
-  assert.deepEqual(range(run(165, 60, 20, 3, 'metric')), [3, 5.5]); // 0.5 + 0.35×7 = 2.95, 2 + 0.5×7
-  assert.deepEqual(range(run(165, 60, 13, 1, 'metric')), [0.5, 2]); // end of first trimester
-});
-
-test('pregnancy: weight loss, low and high gain each get the right message', () => {
-  assert.match(run(165, 60, 24, -2, 'metric').callout.text, /below your pre-pregnancy weight/);
-  assert.match(run(165, 60, 30, 2, 'metric').callout.text, /tracking below/);
-  assert.match(run(165, 60, 20, 12, 'metric').callout.text, /tracking above/);
-  assert.equal(run(165, 60, 20, 4, 'metric').callout, undefined);
-});
-
-test('pregnancy: limitations are stated — singleton only, estimate not target, confirm with OB-GYN', () => {
-  const r = run(165, 60, 20, 4, 'metric');
-  assert.match(r.note, /single baby/);
-  assert.match(r.note, /do not apply to twins or other multiples/);
-  assert.match(r.note, /our estimate/);
-  assert.match(r.note, /confirm your targets with your OB-GYN/);
-});
+// Pregnancy weight-gain cases were superseded by the accepted ID37 rework;
+// see pregnancy-weight-gain-safety.test.ts and pregnancy-inputs.test.ts.

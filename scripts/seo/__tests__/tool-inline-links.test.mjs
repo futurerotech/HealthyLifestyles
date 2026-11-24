@@ -18,10 +18,13 @@ test('existing tool-page text renders scientific Markdown as clickable HTML', ()
   assert.match(template, /s\.paragraphs\?\.map\(\(p\) => <p set:html=\{renderInline\(p\)\} \/>/);
 });
 
-test('ordinary scientific sources are followable with safe new-tab rel', () => {
+// The accepted editorial-citation renderer is fail-closed: an external link is
+// followable only when it is an audited citation passed in the link policy.
+// Tool-page prose passes no policy, so its external links stay clickable,
+// open safely in a new tab, and carry nofollow.
+test('tool-page scientific sources are clickable, open safely, and stay nofollow without an approved citation list', () => {
   const html = renderInline('Read [NICE recommendations](https://www.nice.org.uk/guidance/ng246/).');
-  assert.match(html, /<a href="https:\/\/www\.nice\.org\.uk\/guidance\/ng246\/" target="_blank" rel="noopener noreferrer">NICE recommendations<\/a>/);
-  assert.doesNotMatch(html, /nofollow/);
+  assert.match(html, /<a href="https:\/\/www\.nice\.org\.uk\/guidance\/ng246\/" target="_blank" rel="noopener nofollow">NICE recommendations<\/a>/);
 });
 
 test('trusted inline renderer escapes HTML and rejects script protocols', () => {

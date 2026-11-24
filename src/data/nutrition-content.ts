@@ -409,7 +409,7 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
   'water-intake-calculator': {
     seoTitle: 'Water Intake Calculator (Liters & oz)',
     metaDescription:
-      'Calculate how much water to drink each day from your body weight and activity. Get your target in liters and fluid ounces. Free, no signup.',
+      'Estimate your total daily fluid from body weight and activity, and the part from drinks, in liters and fluid ounces. A rule of thumb, not a target or limit.',
     intro:
       'How much water you need depends on your size and how active you are. Enter your weight and activity level to get a daily target in both liters and fluid ounces.',
     sections: [
@@ -417,13 +417,13 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
         h2: 'How your water target is calculated',
         paragraphs: [
           'This tool uses a widely used clinical guide of about 35 ml of fluid per kilogram of body weight as a baseline, then adds an allowance for activity — exercise increases losses through sweat and breathing, so more active people need more.',
-          'For example, a 70 kg person has a baseline of roughly 2.45 litres, rising with training. The per-kilogram rule is a rough guide that has not been established for higher body weights, so the calculator stops scaling it above 100 kg (220 lb). That cut-off is a site design choice, not a clinically validated threshold or a maximum intake. The result is shown in litres and fluid ounces so it works wherever you live. Remember this is total fluid: drinks of all kinds count, and food (especially fruit and vegetables) typically supplies around 20% of everyday fluid. Extra fluid for activity replaces sweat, so the calculator counts that part as drinks.',
+          'For example, a 70 kg person has a baseline of roughly 2.45 liters, rising with training. The per-kilogram rule is a rough guide that has not been established for higher body weights, so the calculator stops scaling it above 100 kg (220 lb). That cut-off is a site design choice, not a clinically validated threshold or a maximum intake. The result is shown in liters and fluid ounces so it works wherever you live. Remember this is total fluid: drinks of all kinds count, and food (especially fruit and vegetables) typically supplies around 20% of everyday fluid. Extra fluid for activity replaces sweat, so the calculator counts that part as drinks.',
         ],
       },
       {
         h2: 'Signs you are well hydrated',
         paragraphs: [
-          'The simplest check is the colour of your urine: pale straw means you are well hydrated, while dark yellow signals you need more fluid. Thirst, headaches, tiredness and poor concentration can all be early signs of mild dehydration.',
+          'The simplest check is the color of your urine: pale straw means you are well hydrated, while dark yellow signals you need more fluid. Thirst, headaches, tiredness and poor concentration can all be early signs of mild dehydration.',
           'There is no need to force large amounts at once. Sipping steadily through the day is more effective, and drinking to thirst plus the guidance above keeps most healthy adults in good balance.',
         ],
       },
@@ -431,6 +431,7 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
         h2: 'When you need more — or less',
         paragraphs: [
           'Increase your intake in hot or humid weather, at altitude, during illness with fever, and during pregnancy or breastfeeding. Endurance athletes lose significant fluid and electrolytes in sweat and should plan their drinking around training.',
+          'For comparison, the U.S. National Academies set adequate intakes for total water — drinks and food together — of about 3.7 liters a day for men and 2.7 liters for women. These describe what healthy adults in temperate climates typically take in; they are not upper limits, and no upper limit has been set for water. Very active people in hot conditions can need considerably more.',
           'A small number of people — for example those with certain heart or kidney conditions — need to limit fluids, and should follow their doctor’s advice rather than a general formula. Drinking extreme amounts very quickly can dilute blood sodium dangerously, so aim for steady, sensible hydration.',
         ],
       },
@@ -438,7 +439,7 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
     faq: [
       {
         q: 'How many liters of water should I drink a day?',
-        a: 'A common guide is about 35 ml per kg of body weight, plus extra for activity — often 2 to 3 litres a day for adults. This calculator personalises that to your weight and activity level.',
+        a: 'A common guide is about 35 ml per kg of body weight, plus extra for activity — often 2 to 3 liters a day for adults. This calculator personalizes that to your weight and activity level.',
       },
       {
         q: 'Do other drinks and food count?',
