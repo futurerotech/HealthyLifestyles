@@ -16,7 +16,8 @@ import {
 import { articlePlainText } from '../data/articles';
 import PageRenderer from './blocks/PageRenderer.astro';
 import type { Article } from '../data/articles';
-import { renderInline, slugify, readingTimeMinutes, formatDate } from '../lib/text';
+import { renderInline, safeLinkAttributes, slugify, readingTimeMinutes, formatDate } from '../lib/text';
+import { editorialLinkPolicy } from '../data/editorial-citations';
 
 interface Props {
   article: Article;
@@ -24,6 +25,7 @@ interface Props {
 }
 
 const { article, pageUrl } = Astro.props;
+const citationPolicy = editorialLinkPolicy(article.slug);
 const [category, related, tools, allCats] = await Promise.all([
   // Undefined when the article's category isn't a content section (e.g. a
   // kind='tool' category) — render without category chrome, never crash SSG.
@@ -147,18 +149,18 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
               </>
             );
           if (block.type === 'h3') return <h3 id={slugify(block.text)}>{block.text}</h3>;
-          if (block.type === 'p') return <p set:html={renderInline(block.text)} />;
+          if (block.type === 'p') return <p set:html={renderInline(block.text, citationPolicy)} />;
           if (block.type === 'ul')
-            return <ul>{block.items.map((it) => <li set:html={renderInline(it)} />)}</ul>;
+            return <ul>{block.items.map((it) => <li set:html={renderInline(it, citationPolicy)} />)}</ul>;
           if (block.type === 'ol')
-            return <ol>{block.items.map((it) => <li set:html={renderInline(it)} />)}</ol>;
+            return <ol>{block.items.map((it) => <li set:html={renderInline(it, citationPolicy)} />)}</ol>;
           if (block.type === 'callout')
             return (
               <div class:list={['wh-callout', `wh-callout--${block.tone}`]} role="note">
                 <Icon name={calloutIcon[block.tone] ?? 'book'} size={20} />
                 <p>
                   {block.title && <strong class="wh-callout__title">{block.title}</strong>}
-                  <span set:html={renderInline(block.text)} />
+                  <span set:html={renderInline(block.text, citationPolicy)} />
                 </p>
               </div>
             );
@@ -168,11 +170,11 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
               <div class="wh-table-wrap">
                 <table class="wh-table">
                   <thead>
-                    <tr>{block.headers.map((h) => <th set:html={renderInline(h)} />)}</tr>
+                    <tr>{block.headers.map((h) => <th set:html={renderInline(h, citationPolicy)} />)}</tr>
                   </thead>
                   <tbody>
                     {block.rows.map((r) => (
-                      <tr>{r.map((c) => <td set:html={renderInline(c)} />)}</tr>
+                      <tr>{r.map((c) => <td set:html={renderInline(c, citationPolicy)} />)}</tr>
                     ))}
                   </tbody>
                 </table>
@@ -190,7 +192,7 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
                         <span>{qa.q}</span>
                         <Icon name="chevron-down" size={20} class="wh-paa__chev" />
                       </summary>
-                      <p set:html={renderInline(qa.a)} />
+                      <p set:html={renderInline(qa.a, citationPolicy)} />
                     </details>
                   ))}
                 </div>
@@ -204,11 +206,10 @@ const calloutIcon: Record<string, string> = { info: 'book', tip: 'zap', warning:
         <section class="wh-sources" aria-labelledby="wh-sources-title">
           <h2 id="wh-sources-title">Sources</h2>
           <ol>
-            {article.sources.map((s) => (
-              <li>
-                {s.url ? <a href={s.url} target="_blank" rel="noopener nofollow">{s.citation}</a> : s.citation}
-              </li>
-            ))}
+            {article.sources.map((s) => {
+              const link = safeLinkAttributes(s.url, citationPolicy);
+              return <li>{link ? <a {...link}>{s.citation}</a> : s.citation}</li>;
+            })}
           </ol>
         </section>
       )}

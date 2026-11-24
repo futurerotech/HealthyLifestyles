@@ -47,7 +47,16 @@ const danglingReviewer = { id: 99998, slug: fixtureReviewer.slug, name: fixtureR
 catalogue.articles[1].author = null;
 catalogue.articles[1].reviewer = null;
 catalogue.articles[1].isHealthTopic = true;
-const translatedArticles = catalogue.articles.slice(0, 2).map((doc) => ({ ...doc, title: `Traduccion de prueba ${doc.slug}`, excerpt: 'Contenido sintetico de prueba.' }));
+// Synthetic link-policy fixtures; no remote medical URL is fetched.
+const auditedCitation = 'https://www.acog.org/clinical/clinical-guidance/committee-opinion/articles/2017/05/methods-for-estimating-the-due-date';
+const wrongCitation = 'https://www.ncbi.nlm.nih.gov/books/NBK459351/';
+const commercialLink = 'https://shop.example.test/offer?ref=affiliate';
+const citationArticle = article('due-date-by-conception-date');
+citationArticle.layout.push({ blockType: 'text', style: 'p', text: `[Audited citation](${auditedCitation}) and [Unapproved citation](${wrongCitation}) and [Commercial link](${commercialLink}).` });
+citationArticle.sources = [{ label: 'Audited source entry', url: auditedCitation }, { label: 'Unapproved source entry', url: wrongCitation }];
+catalogue.articles.push(citationArticle);
+catalogue.articles[0].layout.push({ blockType: 'text', style: 'p', text: `[Citation outside its audited article](${auditedCitation}).` });
+const translatedArticles = [...catalogue.articles.slice(0, 2), citationArticle].map((doc) => ({ ...doc, title: `Traduccion de prueba ${doc.slug}`, excerpt: 'Contenido sintetico de prueba.' }));
 // Exercise the actual localized render with dangling IDs even when the names
 // and slugs match existing profiles. Never substitute those profiles.
 translatedArticles[1].author = danglingAuthor;
@@ -139,6 +148,23 @@ try {
     assert.doesNotMatch(unknown, /href="\/author\/fixture-author"|href="\/author\/fixture-reviewer"/);
     assert.ok(!('author' in articleNode(unknown)) && !('reviewedBy' in articleNode(unknown)));
   }
+  const checkExternalLinks = (page, href, expectedRel, count) => {
+    const anchors = [...page.matchAll(/<a\b[^>]*>/gi)].map((m) => m[0]).filter((tag) => tag.includes(`href="${href}"`));
+    assert.equal(anchors.length, count, `Unexpected anchor count for ${href}`);
+    for (const tag of anchors) {
+      assert.match(tag, /\btarget="_blank"/);
+      const rel = tag.match(/\brel="([^"]+)"/)?.[1];
+      assert.deepEqual(rel?.split(/\s+/).sort(), expectedRel.split(/\s+/).sort(), `Wrong link qualification: ${tag}`);
+    }
+  };
+  for (const prefix of ['', 'es/']) {
+    const page = await html(prefix + 'wellness-hub/due-date-by-conception-date');
+    checkExternalLinks(page, auditedCitation, 'noopener', 2);
+    checkExternalLinks(page, wrongCitation, 'noopener nofollow', 2);
+    checkExternalLinks(page, commercialLink, 'noopener nofollow', 1);
+    checkExternalLinks(await html(prefix + knownPath), auditedCitation, 'noopener nofollow', 1);
+  }
+  assert.match(bodyFat, /rel="sponsored nofollow noopener"/, 'Existing affiliate links must remain sponsored');
   const knownTopic = schemaNodes(renderedArticle).find((n) => n['@type'] === 'HealthTopicContent');
   const unknownTopic = schemaNodes(await html(unknownPath)).find((n) => n['@type'] === 'HealthTopicContent');
   assert.equal(knownTopic?.author.name, fixtureAuthor.name);
