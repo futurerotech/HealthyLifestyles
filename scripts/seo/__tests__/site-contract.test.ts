@@ -73,4 +73,8 @@ test('review metadata never requires invented reviews and rejects malformed clai
   assert.ok(reviewMetadataIssues({ lastReviewed: '2026-01-01' }).length);
   assert.ok(reviewMetadataIssues({ reviewedBy: { name: 'Reviewer' }, lastReviewed: '2026-02-30' }).length);
   assert.ok(reviewMetadataIssues({ reviewedBy: { name: 'Reviewer' }, lastReviewed: '2099-01-01' }).length);
+  // Self-review is not independent review (by @id or by name).
+  assert.ok(reviewMetadataIssues({ author: { '@id': '/author/a', name: 'A' }, reviewedBy: { '@id': '/author/a' } }).length);
+  assert.ok(reviewMetadataIssues({ author: { name: 'Jane Doe' }, reviewedBy: [{ name: ' Jane Doe ' }] }).length);
+  assert.deepEqual(reviewMetadataIssues({ author: { '@id': '/author/a', name: 'A' }, reviewedBy: { '@id': '/author/b', name: 'B' } }), []);
 });
