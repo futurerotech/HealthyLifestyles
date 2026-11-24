@@ -13,6 +13,7 @@ import {
 } from '../lib/units';
 import { getDef, type CalcDef, type CalcField, type Segment, type Visual } from './calculators/defs';
 import ShareResult from '../components/ShareResult';
+import { readPregnancyMeasurements, pregnancyDisplay, forgetPregnancyMeasurement, type PregnancyMeasurements } from '../lib/pregnancy-inputs';
 
 type Disp = Record<string, string>;
 
@@ -422,11 +423,15 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
   const [disp, setDisp] = useState<Disp>(() => (def ? initialDisplay(def, 'metric') : {}));
   const [selects, setSelects] = useState<Record<string, string>>(() => (def ? initialSelects(def) : {}));
 
+  const pregnancy = slug === 'pregnancy-weight-gain-calculator';
+  const [preservedPregnancy, setPreservedPregnancy] = useState<Partial<PregnancyMeasurements>>({});
+
   if (!def) return null;
 
+  const pregnancyValues = useMemo(() => pregnancy ? { ...readPregnancyMeasurements(disp, units), ...preservedPregnancy } : null, [pregnancy, disp, units, preservedPregnancy]);
   const ctx = useMemo(
-    () => ({ vals: toMetric(def, disp, units), selects, sex, units }),
-    [def, disp, units, sex, selects]
+    () => ({ vals: (pregnancyValues ?? toMetric(def, disp, units)) as Record<string, number>, selects, sex, units }),
+    [def, disp, units, sex, selects, pregnancyValues]
   );
   const visible = def.fields.filter((f) => !f.showIf || f.showIf(ctx));
   // Only show the metric/imperial toggle if some field actually converts.
@@ -586,14 +591,22 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
 
   const animatedValue = useCountUp(
     result && result.ok ? result.primaryValue : '',
-    !!(result && result.ok),
+    !pregnancy && !!(result && result.ok),
   );
 
-  const setField = (key: string, val: string) => setDisp((d) => ({ ...d, [key]: val }));
+  const setField = (key: string, val: string) => {
+    setDisp((d) => ({ ...d, [key]: val }));
+    if (pregnancy) setPreservedPregnancy((p) => forgetPregnancyMeasurement(p, key));
+  };
   const setSelect = (key: string, val: string) => setSelects((s) => ({ ...s, [key]: val }));
   const switchUnits = (to: UnitSystem) => {
     if (to === units) return;
-    setDisp((d) => convertDisplay(def, d, to));
+    if (pregnancyValues) {
+      setPreservedPregnancy(pregnancyValues);
+      setDisp(pregnancyDisplay(pregnancyValues, to, disp.week ?? ''));
+    } else {
+      setDisp((d) => convertDisplay(def, d, to));
+    }
     setUnits(to);
   };
 
@@ -651,7 +664,7 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
             </div>
             <div class="calc__input">
               <input
-                type="number" inputMode="decimal" min="0" max="11.5" step="0.5"
+                type="number" inputMode="decimal" min="0" max={pregnancy ? 11.99 : 11.5} step={pregnancy ? 0.01 : 0.5}
                 id={id('height_in')} aria-label="Inches"
                 value={disp.height_in ?? ''} onInput={(e) => setField('height_in', (e.target as HTMLInputElement).value)}
               />
@@ -665,7 +678,7 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
       f.type === 'mass' ? (units === 'metric' ? 'kg' : 'lb')
       : f.type === 'length' || f.type === 'height' ? (units === 'metric' ? 'cm' : 'in')
       : 'yrs';
-    const step = f.type === 'age' || f.type === 'height' ? '1' : '0.1';
+    const step = pregnancy && (f.type === 'height' || f.type === 'mass') ? '0.01' : f.type === 'age' || f.type === 'height' ? '1' : '0.1';
     return (
       <div class="calc__field" key={f.key}>
         <label class="calc__label" for={id(f.key)}>{f.label}</label>
@@ -712,6 +725,7 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
         )}
 
         <div class="calc__fields">{visible.map(renderField)}</div>
+        {pregnancy && <p class="calc__help">Unit conversions are rounded for display; the last measurement entered is used until you edit that field.</p>}
       </div>
 
       <div class="calc__result" aria-live="polite">

@@ -70,6 +70,11 @@ catalogue.articles[0].layout.push(
 );
 cmsEditedTool.whatItIs = { root: { children: [{ type: 'paragraph', children: [{ type: 'text', text: 'CMS revised tool explanation.' }] }] } };
 cmsEditedTool.faq = [{ question: 'CMS question?', answer: 'CMS answer.' }];
+const pregnancyFixtureTool = catalogue.tools.find(t => t.slug === 'pregnancy-weight-gain-calculator');
+assert.ok(pregnancyFixtureTool, 'Missing fixture pregnancy calculator');
+const pregnancyFixtureSlug = 'pregnancy-weight-gain-calculator-healthy-range-guide';
+assert.ok(!catalogue.articles.some(a => a.slug === pregnancyFixtureSlug || String(a.id) === '61'), 'Synthetic ID61 fixture already exists');
+catalogue.articles.push({ ...article(pregnancyFixtureSlug), id: 61, primaryTool: pregnancyFixtureTool, layout: [{ blockType: 'text', style: 'p', text: 'Synthetic local calculator integration fixture. Not published content.' }, { blockType: 'toolEmbed', tool: pregnancyFixtureTool, label: 'Pregnancy weight gain calculator' }] });
 const requests = new Map();
 const server = createServer((req, res) => {
   const url = new URL(req.url, 'http://localhost');
@@ -178,6 +183,12 @@ try {
   assert.match(pregnancyToolHtml, /Confirm that you are carrying one baby/);
   assert.match(pregnancyToolHtml, /Seek immediate medical care for urgent maternal warning signs/);
   assert.doesNotMatch(pregnancyToolHtml, /On track for now|Recommended by week|class="calc__result-in"/);
+  const pregnancyArticleHtml = await html('wellness-hub/pregnancy-weight-gain-calculator-healthy-range-guide');
+  assert.match(pregnancyArticleHtml, /data-tool="pregnancy-weight-gain-calculator"/);
+  assert.match(pregnancyArticleHtml, /value="unconfirmed"/);
+  assert.match(pregnancyArticleHtml, /Confirm that you are carrying one baby/);
+  assert.match(pregnancyArticleHtml, /Seek immediate medical care for urgent maternal warning signs/);
+  assert.doesNotMatch(pregnancyArticleHtml, /On track for now|Recommended by week|class="calc__result-in"/);
   const hub = await html('wellness-hub');
   assert.doesNotMatch(hub, /\[object Promise\]/);
   const xml = await readFile(artifact('dist/client/sitemap-0.xml'), 'utf8');
@@ -216,6 +227,10 @@ try {
   assert.ok(authorRequests.length > 0 && authorRequests.every(([, n]) => n === 1), 'All pages must share the complete author inventory');
   assert.equal(await readFile('dist/client/content-manifest.json', 'utf8').catch(() => null), originalManifest, 'Fixture must not overwrite the project content manifest');
   assert.equal(await readFile('.vercel/output/config.json', 'utf8').catch(() => null), originalProvider, 'Fixture must not overwrite provider release output');
+  if (process.env.HLS_PREGNANCY_BROWSER_QA === '1') {
+    const { verifyPregnancyBrowser } = await import('./pregnancy-browser-qa.mjs');
+    await verifyPregnancyBrowser(artifact('dist/client'));
+  }
   console.log('CMS integration build passed: SEO/social metadata, aliases, disabled tools, pSEO, noindex/canonical sitemap policy, provider output, shared snapshot, deployment manifest.');
 } catch (error) {
   console.error(error.message);
