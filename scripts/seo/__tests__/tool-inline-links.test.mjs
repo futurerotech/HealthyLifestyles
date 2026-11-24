@@ -14,8 +14,8 @@ const { renderInline } = await import('../../../src/lib/text.ts');
 
 test('existing tool-page text renders scientific Markdown as clickable HTML', () => {
   const template = source('src/components/ToolPageLayout.astro');
-  assert.match(template, /import \{ renderInline \} from '\.\.\/lib\/text'/);
-  assert.match(template, /s\.paragraphs\?\.map\(\(p\) => <p set:html=\{renderInline\(p\)\} \/>/);
+  assert.match(template, /import \{ renderInline, safeLinkAttributes \} from '\.\.\/lib\/text'/);
+  assert.match(template, /s\.paragraphs\?\.map\(\(p\) => <p set:html=\{renderInline\(p, linkPolicy\)\} \/>/);
 });
 
 // The accepted editorial-citation renderer is fail-closed: an external link is

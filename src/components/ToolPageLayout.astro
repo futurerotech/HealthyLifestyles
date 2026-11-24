@@ -41,7 +41,8 @@ import { authorLd } from '../lib/author-identity.mjs';
 import type { Tool } from '../data/tools';
 import { getAffiliates } from '../data/affiliates';
 import type { ToolContent } from '../data/content-types';
-import { renderInline } from '../lib/text';
+import { renderInline, safeLinkAttributes } from '../lib/text';
+import { toolLinkPolicy } from '../data/tool-citations';
 import { MEDICAL_SCORE_SLUGS, resolveToolPagePresentation } from '../lib/tool-copy-safety';
 
 interface Props {
@@ -174,6 +175,8 @@ const medicalLd = {
       }
     : {}),
 };
+// Exact, audited per-tool citations are followable; everything else stays nofollow.
+const linkPolicy = toolLinkPolicy(tool.slug);
 ---
 
 <BaseLayout
@@ -340,7 +343,7 @@ const medicalLd = {
           content.sections.map((s) => (
             <section class="prose">
               <h2>{s.h2}</h2>
-              {s.paragraphs?.map((p) => <p set:html={renderInline(p)} />)}
+              {s.paragraphs?.map((p) => <p set:html={renderInline(p, linkPolicy)} />)}
               {s.list && (
                 <>
                   {s.list.intro && <p>{s.list.intro}</p>}
@@ -413,7 +416,10 @@ const medicalLd = {
             {
               content.sources.map((src) => (
                 <li>
-                  {src.url ? <a href={src.url} target="_blank" rel="noopener nofollow">{src.citation}</a> : src.citation}
+                  {(() => {
+                    const link = safeLinkAttributes(src.url, linkPolicy);
+                    return link ? <a href={link.href} target={link.target} rel={link.rel}>{src.citation}</a> : src.citation;
+                  })()}
                 </li>
               ))
             }
