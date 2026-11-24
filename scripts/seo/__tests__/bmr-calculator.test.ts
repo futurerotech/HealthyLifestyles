@@ -38,6 +38,19 @@ test('the adult-derived equation is limited to adults', () => {
   assert.match(compute(72, 175, 30, 'male').note ?? '', /pregnan/i);
 });
 
+test('every Mifflin-St Jeor based tool is limited to adults and states pregnancy scope', () => {
+  for (const slug of ['bmr-calculator', 'calorie-calculator', 'macro-calculator', 'keto-calculator', 'metabolic-age-calculator']) {
+    const tool = DEFS[slug];
+    const age = tool.fields.find(f => f.key === 'age');
+    assert.ok(age && age.min >= 18, `${slug} age minimum must exclude minors`);
+    assert.equal(age.help, 'For adults 18 and older.');
+    if (slug === 'metabolic-age-calculator') continue;
+    const result = tool.compute({ vals: { weight: 72, height: 175, age: 30 }, units: 'metric', sex: 'female',
+      selects: { activity: '1.375', goal: 'cut' } });
+    assert.match(result.note ?? '', /pregnan/i, `${slug} note must exclude pregnancy`);
+  }
+});
+
 test('page content states the adult scope rather than the general population', () => {
   const text = JSON.stringify(BODY_WEIGHT_CONTENT['bmr-calculator']);
   assert.doesNotMatch(text, /for the general population/);

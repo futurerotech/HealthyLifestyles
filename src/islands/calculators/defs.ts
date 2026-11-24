@@ -149,6 +149,9 @@ const F = {
   hip: (): CalcField => ({ key: 'hip', label: 'Hip circumference', type: 'length', metricDefault: 100, min: 50, max: 200, help: 'Measure at the widest point.' }),
 } as const;
 
+/** Mifflin-St Jeor was derived in adults (19–78 y); never apply it to minors. */
+const adultAge = (def = 30): CalcField => ({ ...F.age(def), min: 18, help: 'For adults 18 and older.' });
+
 // ---------- nutrition helpers ----------
 
 // Macro colours (protein / carbs / fat).
@@ -252,8 +255,7 @@ export const DEFS: Record<string, CalcDef> = {
     slug: 'bmr-calculator',
     heading: 'Calculate your BMR',
     hasSex: true,
-    // Mifflin-St Jeor was derived in adults (19–78 y); do not apply it to minors.
-    fields: [F.weight(72), F.height(175), { ...F.age(30), min: 18, help: 'For adults 18 and older.' }],
+    fields: [F.weight(72), F.height(175), adultAge(30)],
     compute: ({ vals, sex }) => {
       const base = 10 * vals.weight + 6.25 * vals.height - 5 * vals.age;
       const bmr = sex === 'male' ? base + 5 : base - 161;
@@ -506,7 +508,7 @@ export const DEFS: Record<string, CalcDef> = {
     slug: 'calorie-calculator',
     heading: 'Calculate your daily calories',
     hasSex: true,
-    fields: [F.weight(72), F.height(175), F.age(30), activityField()],
+    fields: [F.weight(72), F.height(175), adultAge(30), activityField()],
     compute: ({ vals, selects, sex }) => {
       const factor = parseFloat(selects.activity) || 1.375;
       const bmr = mifflin(vals.weight, vals.height, vals.age, sex);
@@ -532,7 +534,7 @@ export const DEFS: Record<string, CalcDef> = {
             }
           : undefined,
         rows: [{ label: 'BMR (calories at rest)', value: `${fmt(bmr, 0)} kcal/day` }],
-        note: 'TDEE = your BMR (Mifflin-St Jeor) multiplied by an activity factor from 1.2 (sedentary) to 1.9 (extra active).',
+        note: 'TDEE = your BMR (Mifflin-St Jeor) multiplied by an activity factor from 1.2 (sedentary) to 1.9 (extra active). Adults only; not for use during pregnancy or breastfeeding.',
       };
     },
   },
@@ -543,7 +545,7 @@ export const DEFS: Record<string, CalcDef> = {
     heading: 'Calculate your macros',
     hasSex: true,
     fields: [
-      F.weight(72), F.height(175), F.age(30), activityField(),
+      F.weight(72), F.height(175), adultAge(30), activityField(),
       {
         key: 'goal', label: 'Goal', type: 'select', metricDefault: 0, min: 0, max: 0,
         selectDefault: 'maintain',
@@ -589,7 +591,7 @@ export const DEFS: Record<string, CalcDef> = {
           : lowCarb
           ? { tone: 'info', text: 'Your protein and fat targets already use all your calories, so carbs are set to zero. Consider a smaller deficit.' }
           : undefined,
-        note: `Protein set at ${pPerKg} g/kg and fat at ${fPerKg} g/kg of body weight; the rest of your calories go to carbs (protein & carbs = 4 kcal/g, fat = 9 kcal/g).`,
+        note: `Protein set at ${pPerKg} g/kg and fat at ${fPerKg} g/kg of body weight; the rest of your calories go to carbs (protein & carbs = 4 kcal/g, fat = 9 kcal/g). Adults only; not for use during pregnancy or breastfeeding.`,
         cta: {
           label: 'Build a free 7-day meal plan from these numbers →',
           href: `/tools/meal-plan-generator?calories=${Math.round(calories)}&protein=${Math.round(proteinG)}&carbs=${Math.round(carbsG)}&fat=${Math.round(fatG)}`,
@@ -724,7 +726,7 @@ export const DEFS: Record<string, CalcDef> = {
     slug: 'keto-calculator',
     heading: 'Calculate your keto macros',
     hasSex: true,
-    fields: [F.weight(72), F.height(175), F.age(30), activityField()],
+    fields: [F.weight(72), F.height(175), adultAge(30), activityField()],
     compute: ({ vals, selects, sex }) => {
       const factor = parseFloat(selects.activity) || 1.375;
       const bmr = mifflin(vals.weight, vals.height, vals.age, sex);
@@ -747,7 +749,7 @@ export const DEFS: Record<string, CalcDef> = {
           tone: 'info',
           text: `To reach and stay in ketosis, keep net carbs (total carbs minus fibre) under about 20–50 g per day. Your 5% target is ${fmt(carbsG, 0)} g.`,
         },
-        note: 'A standard ketogenic split is roughly 70% fat, 25% protein and 5% carbohydrate. Talk to your doctor before starting keto, especially with a medical condition.',
+        note: 'A standard ketogenic split is roughly 70% fat, 25% protein and 5% carbohydrate. Talk to your doctor before starting keto, especially with a medical condition. Adults only; not for use during pregnancy or breastfeeding.',
       };
     },
   },
@@ -968,7 +970,7 @@ export const DEFS: Record<string, CalcDef> = {
     slug: 'metabolic-age-calculator',
     heading: 'Estimate your metabolic age',
     hasSex: true,
-    fields: [F.weight(72), F.height(175), F.age(30)],
+    fields: [F.weight(72), F.height(175), adultAge(30)],
     compute: ({ vals, sex }) => {
       const userBMR = mifflin(vals.weight, vals.height, vals.age, sex);
       const avgForAge = sex === 'male' ? 1700 - 6 * (vals.age - 25) : 1400 - 5 * (vals.age - 25);
