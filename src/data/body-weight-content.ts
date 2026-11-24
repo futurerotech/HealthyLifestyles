@@ -135,7 +135,7 @@ export const BODY_WEIGHT_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'How your BMR is calculated',
         paragraphs: [
-          'This tool uses the Mifflin-St Jeor equation, which research has found to be the most accurate of the common BMR formulas for the general population. It uses weight, height, age and sex:',
+          'This tool uses the Mifflin-St Jeor equation, which research has found to be the most accurate of the common BMR formulas for healthy adults. It uses weight, height, age and sex. It was developed in adults, so it is not suitable for anyone under 18, and it does not account for the extra energy needs of pregnancy or breastfeeding:',
           'For men: BMR = (10 × weight kg) + (6.25 × height cm) − (5 × age) + 5. For women: BMR = (10 × weight kg) + (6.25 × height cm) − (5 × age) − 161. The result is the energy, in calories per day, needed just to keep your body running — breathing, circulating blood, and maintaining temperature — if you did nothing else all day.',
         ],
       },

@@ -252,7 +252,8 @@ export const DEFS: Record<string, CalcDef> = {
     slug: 'bmr-calculator',
     heading: 'Calculate your BMR',
     hasSex: true,
-    fields: [F.weight(72), F.height(175), F.age(30)],
+    // Mifflin-St Jeor was derived in adults (19–78 y); do not apply it to minors.
+    fields: [F.weight(72), F.height(175), { ...F.age(30), min: 18, help: 'For adults 18 and older.' }],
     compute: ({ vals, sex }) => {
       const base = 10 * vals.weight + 6.25 * vals.height - 5 * vals.age;
       const bmr = sex === 'male' ? base + 5 : base - 161;
@@ -272,7 +273,7 @@ export const DEFS: Record<string, CalcDef> = {
           label,
           value: `${fmt(bmr * mult, 0)} kcal/day`,
         })),
-        note: 'BMR is the energy you burn at complete rest. The table estimates total daily calories (TDEE) once activity is added.',
+        note: 'BMR is the energy you burn at complete rest. The table estimates total daily calories (TDEE) once activity is added. These estimates are for adults and do not apply during pregnancy or breastfeeding.',
       };
     },
   },
