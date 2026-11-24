@@ -19,5 +19,5 @@ export function resolveCanonical(value: string | undefined, pathname: string, or
     throw new Error('Canonical must be an HTTP(S) URL without credentials.');
   }
   url.hash = '';
-  return url.href.replace(/\/$/, '');
+  return url.pathname === '/' ? url.href : url.href.replace(/\/$/, '');
 }

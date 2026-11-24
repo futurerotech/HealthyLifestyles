@@ -2,6 +2,9 @@
 # Search engines: full access.
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /embed/
+Disallow: /og/
 
 # Generative-AI / LLM crawlers — explicitly welcomed so our science-backed
 # health content is eligible for AI answers and citations.

@@ -39,6 +39,7 @@ const {
 } = Astro.props;
 
 const siteOrigin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
+const homeUrl = new URL('/', siteOrigin).href;
 const canonical = resolveCanonical(seo?.canonical, Astro.url.pathname, siteOrigin);
 const ogImage = new URL(seo?.ogImage || image, siteOrigin).href;
 const metaDescription = seo?.metaDescription || description;
@@ -52,9 +53,9 @@ const baseJsonLd: Record<string, unknown>[] = [
   {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    '@id': `${siteOrigin.href}#org`,
+    '@id': `${homeUrl}#org`,
     name: SITE.name,
-    url: siteOrigin.href,
+    url: homeUrl,
     logo: new URL('/icon-512.png', siteOrigin).href,
     slogan: SITE.tagline,
     sameAs: SOCIAL_FOLLOW.map((s) => s.href),
@@ -62,8 +63,9 @@ const baseJsonLd: Record<string, unknown>[] = [
   {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
+    '@id': `${homeUrl}#website`,
     name: SITE.name,
-    url: siteOrigin.href,
+    url: homeUrl,
     description: SITE.description,
     potentialAction: {
       '@type': 'SearchAction',

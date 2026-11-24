@@ -22,6 +22,24 @@ const push = (await import('../src/pages/api/push-subscribe.ts')).POST;
 const lead = (await import('../src/pages/api/lead.ts')).POST;
 const originalFetch = globalThis.fetch;
 
+test('lead rejects cross-site, null, localhost, and missing Origins before CMS delivery', async () => {
+  const body = JSON.stringify({ email: 'user@example.com' });
+  for (const origin of ['https://attacker.example', 'https://www.healthylifesstyles.com.attacker.example', 'http://localhost:4321', 'null', '']) {
+    const headers = new Headers({ 'Content-Type': 'text/plain' });
+    if (origin) headers.set('Origin', origin);
+    const response = await lead({
+      request: new Request('https://www.healthylifesstyles.com/api/lead', { method: 'POST', headers, body }),
+    } as any);
+    assert.equal(response.status, 403, origin || 'missing Origin');
+    assert.deepEqual(await response.json(), { ok: false, error: 'Origin not allowed.' });
+    assert.equal(response.headers.get('access-control-allow-origin'), null);
+    assert.equal(calls.length, 0, 'Denied origin must never reach CMS or webhook I/O');
+  }
+  const allowed = await lead(request({ email: 'user@example.com' }));
+  assert.equal(allowed.status, 200);
+  assert.equal(calls[0]?.url, 'https://cms.example.test/api/subscribers');
+});
+
 test('server delivery configuration uses env or authenticated CMS and public config strips secrets', async () => {
   const config = await import('../src/lib/lead-config.ts');
   env.N8N_WEBHOOK_URL = 'https://workflow.example.test/lead';
@@ -70,7 +88,7 @@ test('invalid subscription payloads are rejected before contacting CMS', async (
     for (const body of bodies) {
       assert.equal((await handler(request(body))).status, 400, JSON.stringify(body));
     }
-    assert.equal((await handler({ request: new Request('https://site.test', { method: 'POST', body: '{' }) } as any)).status, 400);
+    assert.equal((await handler({ request: new Request('https://site.test', { method: 'POST', headers: { Origin: 'https://www.healthylifesstyles.com' }, body: '{' }) } as any)).status, 400);
   }
   assert.equal(calls.length, 0);
 });
@@ -100,7 +118,7 @@ beforeEach(() => {
   globalThis.fetch = async (url, init = {}) => { calls.push({ url: String(url), init }); return respond(String(url), init); };
 });
 afterEach(() => { globalThis.fetch = originalFetch; });
-const request = (body: unknown) => ({ request: new Request('https://www.healthylifesstyles.com/api/test', { method: 'POST', body: JSON.stringify(body) }) }) as any;
+const request = (body: unknown) => ({ request: new Request('https://www.healthylifesstyles.com/api/test', { method: 'POST', headers: { Origin: 'https://www.healthylifesstyles.com' }, body: JSON.stringify(body) }) }) as any;
 const pushBody = { endpoint: 'https://push.example.test/send/id', keys: { auth: 'a'.repeat(22), p256dh: 'B'.repeat(87) } };
 
 test('subscription proxies authenticate CMS creates with the internal key only', async () => {
