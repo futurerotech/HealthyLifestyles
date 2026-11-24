@@ -49,5 +49,5 @@ test('tool page and catalog cite NICE, preserve original route and reject combin
   const x=getTool('waist-health-risk-calculator')!;
   assert.ok(x);
   assert.equal(x.slug,'waist-health-risk-calculator');
-  assert.match(x.blurb,/separately/i);
+  assert.match(x.blurb ?? '',/separately/i);
 });

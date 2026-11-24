@@ -53,5 +53,5 @@ test('existing tool identity and cautious catalog copy remain aligned',()=>{
   const tool=getTool('heart-disease-risk-calculator')!;
   assert.ok(tool);
   assert.equal(tool.slug,'heart-disease-risk-calculator');
-  assert.match(tool.blurb,/not a validated clinical risk estimate/i);
+  assert.match(tool.blurb ?? '',/not a validated clinical risk estimate/i);
 });
