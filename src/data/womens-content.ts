@@ -17,7 +17,7 @@ const WILCOX: Source = {
 const IOM_WEIGHT: Source = {
   citation:
     'Institute of Medicine & National Research Council. "Weight Gain During Pregnancy: Reexamining the Guidelines." Washington, DC: National Academies Press; 2009.',
-  url: pubmed('Weight Gain During Pregnancy Reexamining the Guidelines Institute of Medicine'),
+  url: 'https://www.ncbi.nlm.nih.gov/books/NBK32799/',
 };
 
 export const WOMENS_CONTENT: Record<string, ToolContent> = {
@@ -228,47 +228,50 @@ export const WOMENS_CONTENT: Record<string, ToolContent> = {
   'pregnancy-weight-gain-calculator': {
     seoTitle: 'Pregnancy Weight Gain Calculator (IOM)',
     metaDescription:
-      'See your recommended pregnancy weight-gain range by pre-pregnancy BMI using IOM guidelines, plus a healthy target for your current week. Free.',
+      'Compare singleton pregnancy weight change and BMI-based IOM total and trimester reference ranges. No weekly target or medical diagnosis.',
     intro:
-      'Healthy pregnancy weight gain depends on your weight before pregnancy. Enter your details to see your recommended total gain and a healthy target for the week you’re in, based on IOM guidelines.',
-    notice: OBGYN_NOTICE,
+      'For adults carrying one baby, compare measured weight change with general IOM/NRC reference ranges based on pre-pregnancy BMI. The calculator does not assess pregnancy safety or prescribe a target for your current week.',
+    notice: 'One baby only. Do not use this tool for twins or higher-order multiples. Seek immediate medical care for urgent maternal warning signs, including persistent severe headache, vision changes, extreme face or hand swelling, severe abdominal pain, inability to keep fluids down or decreased fetal movement. Chest pain, serious breathing difficulty, fainting or seizures require emergency care.',
     sections: [
       {
         h2: 'How much weight should you gain?',
         paragraphs: [
           'The Institute of Medicine (IOM) bases its recommendations on your pre-pregnancy body mass index (BMI). For a single baby the guidelines are: 28–40 lb (12.5–18 kg) if you were underweight, 25–35 lb (11.5–16 kg) if a healthy weight, 15–25 lb (7–11.5 kg) if overweight, and 11–20 lb (5–9 kg) if obese.',
-          'This calculator works out your pre-pregnancy BMI, shows your recommended total range, and estimates how much of that you should have gained by your current week.',
+          'The calculator uses the published rounded metric and imperial reference values separately, calculates pre-pregnancy BMI and reports signed weight change. Evidence for higher obesity classes is limited; discuss an individual goal with your prenatal team.',
         ],
       },
       {
-        h2: 'Gaining at a healthy pace',
+        h2: 'How to interpret the trimester references',
         paragraphs: [
-          'Most weight gain happens in the second and third trimesters. In the first trimester, a gain of just 1–4.5 lb (about 0.5–2 kg) is typical. After that, a steady rate of roughly 0.5–1 lb per week is recommended for those who started at a healthy weight, and a little less if you began overweight.',
-          'The gauge above compares the weight you’ve gained so far with the healthy range for your week, so you can see whether you’re on track, a little behind, or ahead.',
+          'The IOM/NRC reference table assumes total first-trimester gain of 0.5–2 kg (1.1–4.4 lb). For the second and third trimesters, its average weekly reference intervals are 1–1.3 lb for underweight, 0.8–1 lb for normal weight, 0.5–0.7 lb for overweight and 0.4–0.6 lb for obesity.',
+          'The displayed rate is a population reference, not a required gain in a particular week. There is no cumulative week-specific target, color-coded safety classification or separate target for weeks 41–42. Compare trends with your prenatal clinician, not a presumed linear curve.',
         ],
       },
       {
-        h2: 'Why healthy gain matters',
+        h2: 'Why individual assessment matters',
         paragraphs: [
-          'Gaining within the recommended range supports your baby’s growth while lowering the risk of complications such as gestational diabetes, high blood pressure, a very large or very small baby, and difficulties at delivery. It also makes it easier to return to a healthy weight afterwards.',
-          'These ranges are general guidance, not strict rules — and they differ for twins or other multiples. Your OB-GYN will track your gain at appointments and give you advice tailored to your pregnancy and health.',
+          'Gestational weight gain outside population reference ranges is associated with some pregnancy outcomes, but a scale cannot assess fetal growth, blood pressure, placental function or the cause of fluid retention. Do not change food intake, medication or exercise to force a calculator result into a range.',
+          'These references are general and apply here to one baby only. Twin and higher-order pregnancies require separate clinical guidance. Contact your maternity-care team promptly for sudden unexplained gain or ongoing weight loss; urgent maternal warning signs require immediate medical care.',
         ],
       },
     ],
     faq: [
       {
         q: 'How much weight should I gain during pregnancy?',
-        a: 'It depends on your pre-pregnancy BMI. IOM guidance suggests 25–35 lb for a healthy starting weight, 28–40 lb if underweight, 15–25 lb if overweight, and 11–20 lb if obese (for a single baby).',
+        a: 'It depends on pre-pregnancy BMI. The IOM/NRC singleton reference ranges are 25–35 lb for normal weight, 28–40 lb for underweight, 15–25 lb for overweight, and 11–20 lb for obesity. Your prenatal clinician personalizes the goal.',
       },
       {
         q: 'Is it normal to gain little in the first trimester?',
-        a: 'Yes. Gaining only 1–4.5 lb in the first trimester is typical; nausea can even cause slight loss. Most pregnancy weight gain occurs in the second and third trimesters.',
+        a: 'It can be. The reference table assumes 0.5–2 kg (1.1–4.4 lb) in total, not a required weekly increase. Ongoing weight loss warrants clinical advice, and inability to keep fluids down requires immediate medical care.',
       },
       {
         q: 'What if I gain more or less than recommended?',
-        a: 'Week-to-week variation is normal, but consistently gaining well above or below the range is worth discussing with your OB-GYN, who can check that you and your baby are healthy.',
+        a: 'The calculator cannot determine whether a pregnancy is healthy. Discuss the overall trend with your prenatal team, contact them promptly for unexplained rapid gain or ongoing loss, and seek immediate medical care for urgent warning signs rather than waiting for the next appointment.',
       },
     ],
-    sources: [IOM_WEIGHT],
+    sources: [IOM_WEIGHT,
+      { citation: 'CDC. Weight Gain During Pregnancy. May 15, 2024.', url: 'https://www.cdc.gov/maternal-infant-health/pregnancy-weight/' },
+      { citation: 'CDC. Urgent Maternal Warning Signs and Symptoms. May 15, 2024.', url: 'https://www.cdc.gov/hearher/maternal-warning-signs/index.html' },
+    ],
   },
 };

@@ -172,6 +172,12 @@ try {
   const profile = await html('author/fixture-author');
   assert.ok(profile.includes(`href="/${knownPath}"`));
   assert.ok(!profile.includes(`href="/${unknownPath}"`));
+  const pregnancyToolHtml = await html('tools/pregnancy-weight-gain-calculator');
+  assert.match(pregnancyToolHtml, /Pregnancy weight gain reference \(one baby only\)/);
+  assert.match(pregnancyToolHtml, /value="unconfirmed"/);
+  assert.match(pregnancyToolHtml, /Confirm that you are carrying one baby/);
+  assert.match(pregnancyToolHtml, /Seek immediate medical care for urgent maternal warning signs/);
+  assert.doesNotMatch(pregnancyToolHtml, /On track for now|Recommended by week|class="calc__result-in"/);
   const hub = await html('wellness-hub');
   assert.doesNotMatch(hub, /\[object Promise\]/);
   const xml = await readFile(artifact('dist/client/sitemap-0.xml'), 'utf8');

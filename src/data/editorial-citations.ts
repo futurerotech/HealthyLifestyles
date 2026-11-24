@@ -29,6 +29,15 @@ const reviewedCitationUrls = new Map<string, readonly string[]>([
     'https://www.cdc.gov/high-blood-pressure/data-research/facts-stats/index.html',
     'https://www.nhlbi.nih.gov/health/high-blood-pressure',
   ]],
+  ['pregnancy-weight-gain-calculator-healthy-range-guide', [
+    'https://www.cdc.gov/maternal-infant-health/pregnancy-weight/',
+    'https://www.cdc.gov/bmi/adult-calculator/bmi-categories.html',
+    'https://www.ncbi.nlm.nih.gov/books/NBK32799/',
+    'https://www.ncbi.nlm.nih.gov/books/NBK32799/table/summary.t1/?report=objectonly',
+    'https://health.canada.ca/en/health-canada/services/food-nutrition/healthy-eating/prenatal-nutrition/pregnancy-weight-gain-calculator.html',
+    'https://medlineplus.gov/highbloodpressureinpregnancy.html',
+    'https://www.cdc.gov/hearher/maternal-warning-signs/index.html',
+  ]],
 ]);
 
 export function editorialLinkPolicy(slug: string): LinkPolicy {

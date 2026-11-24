@@ -1049,62 +1049,68 @@ export const DEFS: Record<string, CalcDef> = {
   // Women's Health
   // ============================================================
 
-  // ---- Pregnancy Weight Gain (IOM) ----
+  // ---- Pregnancy Weight Gain (IOM/NRC 2009 Table S-1) ----
   'pregnancy-weight-gain-calculator': {
     slug: 'pregnancy-weight-gain-calculator',
-    heading: 'Check your pregnancy weight gain',
+    heading: 'Pregnancy weight gain reference (one baby only)',
     hasSex: false,
     fields: [
+      {
+        key: 'pregnancyType', label: 'Pregnancy type', type: 'select', metricDefault: 0, min: 0, max: 0,
+        selectDefault: 'unconfirmed',
+        options: [
+          { value: 'unconfirmed', label: 'Choose pregnancy type' },
+          { value: 'singleton', label: 'One baby' },
+          { value: 'multiple-or-unknown', label: 'Twins, more babies, or unsure' },
+        ],
+        help: 'For adults carrying one baby only. Seek immediate medical care for urgent maternal warning signs, including persistent severe headache, vision changes, extreme face or hand swelling, severe abdominal pain, inability to keep fluids down, or decreased fetal movement. Chest pain, serious breathing difficulty, fainting or seizures require emergency care. Do not wait for this calculator.',
+      },
       { key: 'weight', label: 'Pre-pregnancy weight', type: 'mass', metricDefault: 65, min: 35, max: 200 },
       F.height(165),
-      { key: 'week', label: 'Current week of pregnancy', type: 'number', metricDefault: 20, min: 1, max: 42, suffix: 'weeks' },
+      { key: 'week', label: 'Completed weeks of pregnancy', type: 'number', metricDefault: 20, min: 1, max: 42, step: 1, suffix: 'weeks' },
       { key: 'current', label: 'Current weight', type: 'mass', metricDefault: 71, min: 35, max: 250 },
     ],
-    compute: ({ vals, units }) => {
-      const m = vals.height / 100;
-      const bmi = vals.weight / (m * m);
-      let cat: string; let loLb: number; let hiLb: number; let rLo: number; let rHi: number; let color: string;
-      if (bmi < 18.5) { cat = 'Underweight'; loLb = 28; hiLb = 40; rLo = 1.0; rHi = 1.3; color = '#3b82f6'; }
-      else if (bmi < 25) { cat = 'Normal weight'; loLb = 25; hiLb = 35; rLo = 0.8; rHi = 1.0; color = '#16a34a'; }
-      else if (bmi < 30) { cat = 'Overweight'; loLb = 15; hiLb = 25; rLo = 0.5; rHi = 0.7; color = '#f59e0b'; }
-      else { cat = 'Obese'; loLb = 11; hiLb = 20; rLo = 0.4; rHi = 0.6; color = '#ef4444'; }
-      const w = Math.max(1, Math.min(42, vals.week));
-      const firstLo = 1.1; const firstHi = 4.4;
-      const byLoLb = w <= 13 ? firstLo * (w / 13) : firstLo + rLo * (w - 13);
-      const byHiLb = w <= 13 ? firstHi * (w / 13) : firstHi + rHi * (w - 13);
-      const toDisp = (lb: number) => (units === 'metric' ? lb * 0.45359237 : lb);
-      const gainKg = vals.current - vals.weight;
-      const gainDisp = units === 'metric' ? gainKg : kgToLb(gainKg);
+    compute: ({ vals, units, selects }) => {
+      const invalid = (error: string): CalcResult => ({ ok: false, error, primaryLabel: '', primaryValue: '', visual: { kind: 'none' } });
+      if (selects?.pregnancyType !== 'singleton') return invalid('Confirm that you are carrying one baby. Twins, higher-order multiples or uncertain pregnancy type require individualized prenatal guidance; no reference result is calculated.');
+      const { height, weight, week, current } = vals;
+      if (units !== 'metric' && units !== 'imperial') return invalid('Please select a valid unit system.');
+      if (![height, weight, week, current].every(Number.isFinite) || height < 120 || height > 230 || weight < 35 || weight > 200 || current < 35 || current > 250 || !Number.isInteger(week) || week < 1 || week > 42) {
+        return invalid('Check the measurements and enter a whole gestational week from 1 to 42. Values outside this calculator\'s input limits need individual assessment.');
+      }
+      const bmi = weight / (height / 100) ** 2;
+      // Published rounded metric and imperial ranges are taken independently from
+      // Table S-1, not converted and re-rounded from one another. These are
+      // population references, not a validated cumulative curve or a diagnosis.
+      const reference = bmi < 18.5 ? { cat: 'Underweight', totalKg: [12.5, 18], totalLb: [28, 40], rateKg: [0.44, 0.58], rateLb: [1, 1.3] }
+        : bmi < 25 ? { cat: 'Normal weight', totalKg: [11.5, 16], totalLb: [25, 35], rateKg: [0.35, 0.50], rateLb: [0.8, 1] }
+        : bmi < 30 ? { cat: 'Overweight', totalKg: [7, 11.5], totalLb: [15, 25], rateKg: [0.23, 0.33], rateLb: [0.5, 0.7] }
+        : { cat: 'Obesity', totalKg: [5, 9], totalLb: [11, 20], rateKg: [0.17, 0.27], rateLb: [0.4, 0.6] };
+      const metric = units === 'metric';
       const unit = massUnitLabel(units);
-      const totalLo = toDisp(loLb); const totalHi = toDisp(hiLb);
-      const byLo = toDisp(byLoLb); const byHi = toDisp(byHiLb);
-      const maxScale = totalHi * 1.3;
-      let callout: CalcResult['callout'];
-      if (gainDisp < byLo * 0.9) callout = { tone: 'info', text: `You're tracking below the recommended gain for week ${Math.round(w)}. Week-to-week gain varies — your OB-GYN can confirm whether you're on track.` };
-      else if (gainDisp > byHi * 1.1) callout = { tone: 'warn', text: `You're tracking above the recommended gain for week ${Math.round(w)}. It's worth discussing your weight gain with your OB-GYN.` };
+      const range = (bounds: number[], decimals: number) => `${fmt(bounds[0], decimals)}–${fmt(bounds[1], decimals)} ${unit}`;
+      const gainKg = current - weight;
+      const gain = metric ? gainKg : kgToLb(gainKg);
+      const gainText = gain !== 0 && round(gain, 1) === 0
+        ? `Less than 0.1 ${unit} ${gain < 0 ? 'loss' : 'gain'}` : `${fmt(gain, 1)} ${unit}`;
+      const period: ResultRow = week <= 13
+        ? { label: 'First-trimester total reference (not a weekly target)', value: range(metric ? [0.5, 2] : [1.1, 4.4], 1) }
+        : { label: 'Second/third-trimester weekly reference rate', value: `${range(metric ? reference.rateKg : reference.rateLb, metric ? 2 : 1)}/week` };
       return {
         ok: true,
-        primaryLabel: 'Recommended total gain',
-        primaryValue: `${fmt(totalLo, 0)}–${fmt(totalHi, 0)} ${unit}`,
-        category: { label: cat, color },
-        visual: {
-          kind: 'gauge',
-          value: Math.max(0, gainDisp),
-          min: 0,
-          max: maxScale,
-          segments: [
-            { upTo: byLo, label: 'Below pace', color: '#f59e0b' },
-            { upTo: byHi, label: 'On track for now', color: '#16a34a' },
-            { upTo: maxScale, label: 'Above pace', color: '#ef4444' },
-          ],
-        },
-        callout,
+        primaryLabel: 'Total reference range (one baby)',
+        primaryValue: range(metric ? reference.totalKg : reference.totalLb, 1),
+        visual: { kind: 'none' },
         rows: [
-          { label: 'Pre-pregnancy BMI', value: `${fmt(bmi, 1)} (${cat})` },
-          { label: `Recommended by week ${Math.round(w)}`, value: `${fmt(byLo, 1)}–${fmt(byHi, 1)} ${unit}`, strong: true },
-          { label: "You've gained so far", value: `${fmt(gainDisp, 1)} ${unit}` },
+          { label: 'Pre-pregnancy BMI (category uses unrounded BMI)', value: `${fmt(bmi, 2)} (${reference.cat})` },
+          { label: 'Measured weight change', value: gainText, strong: true },
+          { label: 'Completed gestational weeks', value: fmt(week, 0) },
+          period,
         ],
-        note: 'Ranges follow Institute of Medicine (IOM) guidance for single pregnancies and depend on your starting BMI. Always confirm your targets with your OB-GYN.',
+        callout: { tone: 'warn', text: 'This result cannot assess fetal growth, blood pressure, fluid retention or pregnancy safety. Contact your maternity-care team promptly for sudden unexplained weight gain or ongoing weight loss. Seek immediate medical care for urgent maternal warning signs; never wait for a calculator result.' },
+        note: 'IOM/NRC 2009 Table S-1: total and trimester rate references for adults carrying one baby. No cumulative week-specific target or safety classification is calculated. Confirm your individual goals with your prenatal clinician.'
+          + (bmi >= 40 ? ' Evidence for higher obesity classes is limited; individual clinical guidance is particularly important.' : '')
+          + (week > 40 ? ' There is no separate target for weeks 41–42; follow your maternity-care team\'s instructions.' : ''),
       };
     },
   },
