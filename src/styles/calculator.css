@@ -934,3 +934,64 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Sleep timing consistency (Phase 5 Candidate 4) */
+.sleep-reg {
+  margin-top: 1.25rem;
+  padding: 1rem 1.25rem;
+}
+.sleep-reg__summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--ink);
+  min-height: 24px;
+}
+.sleep-reg__summary:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
+}
+.sleep-reg__intro,
+.sleep-reg__note {
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+.sleep-reg__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.6rem;
+  margin: 0.75rem 0 1rem;
+}
+.sleep-reg__night {
+  display: grid;
+  gap: 0.2rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.6rem 0.6rem;
+  margin: 0;
+  min-width: 0;
+}
+.sleep-reg__night legend {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0 0.25rem;
+}
+.sleep-reg__night label {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.sleep-reg__night input {
+  width: 100%;
+  min-height: 36px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.3rem 0.4rem;
+  font: inherit;
+  color: var(--ink);
+  background: #fff;
+}
+.sleep-reg__night input:focus-visible {
+  outline: none;
+  border-color: var(--green-accent);
+  box-shadow: var(--focus-ring);
+}

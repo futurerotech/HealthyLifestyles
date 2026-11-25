@@ -8,6 +8,7 @@ import {
   formatClock,
   formatHours,
 } from '../lib/time';
+import { sleepRegularity, type NightTimes } from '../lib/sleep-regularity';
 
 const round1 = (n: number): number => Math.round(n * 10) / 10;
 
@@ -207,6 +208,7 @@ function SleepDebtCalc() {
       ];
 
   return (
+    <>
     <div class="calc">
       <div class="calc__form">
         <div class="calc__toolbar">
@@ -276,6 +278,65 @@ function SleepDebtCalc() {
         </>)}
       </div>
     </div>
+    <SleepTimingLog />
+    </>
+  );
+}
+
+// ---------- Sleep timing consistency (Phase 5 Candidate 4) ----------
+const fmtMin = (m: number): string => (m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`);
+
+function SleepTimingLog() {
+  const [nights, setNights] = useState<NightTimes[]>(() => DAY_LABELS.map(() => ({ bed: '', wake: '' })));
+  const setNight = (i: number, k: keyof NightTimes, v: string) =>
+    setNights((ns) => ns.map((n, idx) => (idx === i ? { ...n, [k]: v } : n)));
+  const res = sleepRegularity(nights);
+  const shift = res?.weekendShift ?? null;
+
+  return (
+    <details class="sleep-reg card">
+      <summary class="sleep-reg__summary">Check your sleep timing consistency (optional)</summary>
+      <p class="sleep-reg__intro">Enter the time you went to bed and woke up for each night (at least 3 nights). This shows how much your timing moves from night to night. Regular bed and wake times are part of healthy sleep, alongside getting enough of it. Nothing is saved or sent.</p>
+      <div class="sleep-reg__grid">
+        {DAY_LABELS.map((d, i) => (
+          <fieldset class="sleep-reg__night">
+            <legend>{d} night</legend>
+            <label for={`sleep-bed-${i}`}>Bedtime</label>
+            <input type="time" id={`sleep-bed-${i}`} value={nights[i].bed} onInput={(e) => setNight(i, 'bed', (e.target as HTMLInputElement).value)} />
+            <label for={`sleep-wake-${i}`}>Wake time</label>
+            <input type="time" id={`sleep-wake-${i}`} value={nights[i].wake} onInput={(e) => setNight(i, 'wake', (e.target as HTMLInputElement).value)} />
+          </fieldset>
+        ))}
+      </div>
+      <div class="sleep-reg__result" aria-live="polite">
+        {!res ? (
+          <p class="calc__callout calc__callout--info">Enter bed and wake times for at least 3 nights to see your consistency.</p>
+        ) : (<>
+          {res.implausible.length > 0 && (
+            <p class="calc__callout calc__callout--warn" role="status">
+              Check the times for {res.implausible.map((i) => DAY_LABELS[i]).join(', ')}: they give less than 3 or more than 14 hours of sleep.
+            </p>
+          )}
+          <dl class="calc__rows">
+            <div class="calc__row"><dt>Nights entered</dt><dd>{res.nights}</dd></div>
+            <div class="calc__row"><dt>Average time asleep (from your times)</dt><dd>{formatHours(res.meanDuration)}</dd></div>
+            <div class="calc__row"><dt>Bedtime varies by about</dt><dd>± {fmtMin(res.bedSd)}</dd></div>
+            <div class="calc__row"><dt>Wake time varies by about</dt><dd>± {fmtMin(res.wakeSd)}</dd></div>
+            <div class="calc__row is-strong"><dt>Sleep midpoint varies by about</dt><dd>± {fmtMin(res.midSd)}</dd></div>
+            {shift !== null && (
+              <div class="calc__row">
+                <dt>Weekend (Fri and Sat nights) vs weekdays</dt>
+                <dd>{shift === 0 ? 'Same timing' : `${fmtMin(Math.abs(shift))} ${shift > 0 ? 'later' : 'earlier'}`}</dd>
+              </div>
+            )}
+          </dl>
+          <p class="sleep-reg__note">"Varies by about" is the standard deviation: on a typical night your time differs from your own average by roughly this much. Smaller numbers mean a steadier routine. A large weekend shift works like a small weekly time-zone change for your body clock. If you want steadier timing, keeping the same wake time every day, weekends included, is the usual first step.</p>
+        </>)}
+        <div class="calc__callout calc__callout--warn">
+          <strong>Talk to a clinician if</strong> you often snore loudly or someone notices pauses in your breathing, you are very sleepy during the day despite enough time in bed, or trouble falling or staying asleep happens most nights for several weeks. This log is for education and cannot diagnose a sleep disorder.
+        </div>
+      </div>
+    </details>
   );
 }
 
