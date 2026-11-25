@@ -406,6 +406,27 @@ test('changed calculators: hydration, interaction, 390px and desktop fit, access
       report.push('strength-program-builder: next-block=checked');
     } catch (e) { failures.push('strength-program-builder: ' + e); }
 
+    // Sleep timing consistency (Phase 5 C4): opens, needs 3 nights, handles midnight, fits 390px.
+    try {
+      await openTool('sleep-debt-calculator');
+      await js("document.querySelector('.tool__calc details.sleep-reg').open = true");
+      const regText = () => js("document.querySelector('.tool__calc .sleep-reg__result').textContent");
+      if (!/at least 3 nights/.test(await regText())) failures.push('sleep-debt-calculator: missing 3-night prompt');
+      const times = [['23:30', '07:30'], ['00:30', '08:30'], ['23:30', '07:30'], ['00:30', '08:30']];
+      for (let i = 0; i < times.length; i++) { await setField('sleep-bed-' + i, times[i][0]); await setField('sleep-wake-' + i, times[i][1]); }
+      const bedSpread = () => js("[...document.querySelectorAll('.tool__calc .sleep-reg .calc__row')].find((r) => /Bedtime varies/.test(r.textContent))?.querySelector('dd').textContent.replace(/\s+/g, ' ').trim() ?? ''");
+      await until(async () => (await bedSpread()) === '± 30 min', 'bedtime spread 30 min', 5000)
+        .catch(async () => failures.push('sleep-debt-calculator: spread text ' + (await regText()).slice(0, 220)));
+      const r = await js(`(() => ({ clinician: /Talk to a clinician/.test(document.querySelector('.tool__calc .sleep-reg').textContent),
+        scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth,
+        unnamed: [...document.querySelectorAll('.tool__calc .sleep-reg input')].filter((e) => !document.querySelector('label[for="' + e.id + '"]')).length }))()`);
+      if (!r.clinician) failures.push('sleep-debt-calculator: clinician warning signs missing');
+      if (r.unnamed) failures.push('sleep-debt-calculator: ' + r.unnamed + ' unlabeled time inputs');
+      if (r.scroll > r.client + 1) failures.push(`sleep-debt-calculator: 390px overflow (${r.scroll} > ${r.client})`);
+      if (exceptions.length) failures.push('sleep-debt-calculator: uncaught exceptions ' + JSON.stringify(exceptions.slice(0, 3)));
+      report.push('sleep-debt-calculator: timing-log=checked');
+    } catch (e) { failures.push('sleep-debt-calculator: ' + e); }
+
     // BMR: a metric -> imperial -> metric round trip must not change the measurement or result
     // (176 cm used to come back as 175 cm, shifting BMR by about 6 kcal).
     try {
