@@ -20,7 +20,6 @@ import { MEAL_PLAN } from '../consts';
 import GroceryBudget from './GroceryBudget';
 
 // Phase 5 Candidate 1 is a non-public engineering candidate: shown only in lab builds.
-const LAB = import.meta.env.PUBLIC_HLS_LAB === '1';
 import { normalizeAiMealPlan } from '../lib/ai-mealplan';
 
 type Status = 'idle' | 'ok' | 'below-floor' | 'no-pool';
@@ -436,7 +435,7 @@ export default function MealPlanGenerator() {
               ))}
             </ul>
           </section>
-          {LAB && <GroceryBudget days={days} pool={filterPool(RECIPES, inputsUsed ?? buildInputs())} recipes={RECIPES} />}
+          <GroceryBudget days={days} pool={filterPool(RECIPES, inputsUsed ?? buildInputs())} recipes={RECIPES} />
         </div>
       )}
     </div>

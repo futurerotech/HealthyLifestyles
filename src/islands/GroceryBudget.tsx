@@ -1,8 +1,7 @@
 /** @jsxImportSource preact */
-// Phase 5 Candidate 1 (non-public engineering candidate, not demand-validated): quantity-aware
-// grocery list, BLS-based cost estimate, household size and optional weekly budget for the
-// existing meal-plan generator. Rendered only when PUBLIC_HLS_LAB=1. Everything stays in
-// memory in the browser; nothing is stored or sent.
+// Phase 5 Candidate 1: quantity-aware grocery list, BLS-based cost estimate, household size
+// and optional weekly budget for the existing meal-plan generator. Estimates only; the price
+// source and month are shown. Everything stays in memory in the browser; nothing is stored or sent.
 import { useMemo, useState } from 'preact/hooks';
 import { groceryCost, cheaperSwaps, clampHousehold, formatAmount } from '../lib/grocery-cost.ts';
 import type { PlannedDay } from '../lib/mealplan';
