@@ -42,7 +42,9 @@ test('breathing timer: pause resumes, phase-only announcements, correct heading,
 test('recipe analyzer: no silent truncation; visitor address forwarded for per-visitor limits', () => {
   const api = read('src/pages/api/analyze-recipe.ts');
   assert.doesNotMatch(api, /\.slice\(0, 5000\)/);
-  assert.match(api, /length > MAX_RECIPE_CHARS/);
+  // The shared request validator rejects over-long text instead of truncating it.
+  assert.match(read('src/lib/recipeAnalysis.ts'), /length > RECIPE_TEXT_MAX/);
+  assert.match(api, /validateRecipeRequest\(body\)/);
   assert.match(api, /'X-Forwarded-For': visitor/);
   const ui = read('src/islands/RecipeAnalyzer.tsx');
   assert.match(ui, /aria-describedby="ra-text-count"/);

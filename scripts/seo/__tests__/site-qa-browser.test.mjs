@@ -32,7 +32,7 @@ const TOOLS = contract.tools.map((t) => (typeof t === 'string' ? t : t.slug));
 const STATE_TOOLS = ['bmi-calculator', 'meal-plan-generator', 'strength-program-builder', 'hrv-explainer-log', 'due-date-calculator', 'sleep-calculator',
   'running-pace-calculator', 'phq-9-depression-screener', 'food-symptom-diary', 'recipe-nutrition-analyzer', 'box-breathing-timer', 'healthspan-score', 'intermittent-fasting-calculator'];
 const TEMPLATES = ['/', '/tools', '/wellness-hub', '/nutrition', '/sleep', '/about', '/methodology', '/contact', '/health-score', '/sitemap',
-  '/wellness-hub/how-many-calories-to-lose-weight', '/wellness-hub/healthy-bmi-by-age', '/wellness-hub/due-date-by-conception-date'];
+  '/wellness-hub/how-many-calories-to-lose-weight', '/wellness-hub/healthy-bmi-by-age', '/wellness-hub/due-date-by-conception-date', '/unsubscribe'];
 
 export const PAGE_AUDIT = `(() => {
   const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none'; };

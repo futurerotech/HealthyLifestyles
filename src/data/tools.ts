@@ -181,7 +181,7 @@ export const TOOLS: Tool[] = [
   {
     slug: 'recipe-nutrition-analyzer',
     title: 'Recipe Nutrition Analyzer',
-    blurb: 'Paste any recipe and get estimated nutrition per serving. AI parses ingredients, USDA FoodData Central provides the numbers. Free, no signup.',
+    blurb: 'Estimate nutrition from USDA-matched recipe ingredients with portions, missing-data and privacy warnings; not a medical nutrition test.',
     category: 'nutrition',
     icon: 'utensils',
     gradient: 'green',
