@@ -169,7 +169,11 @@ try {
     checkExternalLinks(page, commercialLink, 'noopener nofollow', 1);
     checkExternalLinks(await html(prefix + knownPath), auditedCitation, 'noopener nofollow', 1);
   }
-  assert.match(bodyFat, /rel="sponsored nofollow noopener"/, 'Existing affiliate links must remain sponsored');
+  // Product suggestions are untagged search links: no affiliate claim, no rel=sponsored (Phase 9 §13.2).
+  assert.match(bodyFat, /href="https:\/\/www\.amazon\.com\/s\?k=[^"]*" target="_blank" rel="nofollow noopener"/, 'Untagged product links must be nofollow and not sponsored');
+  assert.doesNotMatch(bodyFat, /rel="sponsored[^"]*"[^>]*>\s*<strong>/, 'Untagged product links must not be marked sponsored');
+  assert.doesNotMatch(bodyFat, /As an affiliate we may earn/, 'No affiliate-earnings claim without tagged affiliate links');
+  assert.match(bodyFat, /not sponsored or affiliate placements/, 'Product suggestions must state the actual relationship');
   const knownTopic = schemaNodes(renderedArticle).find((n) => n['@type'] === 'HealthTopicContent');
   const unknownTopic = schemaNodes(await html(unknownPath)).find((n) => n['@type'] === 'HealthTopicContent');
   assert.equal(knownTopic?.author.name, fixtureAuthor.name);
