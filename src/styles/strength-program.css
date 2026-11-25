@@ -330,6 +330,13 @@
 .sp__next-row {
   display: grid;
   gap: 0.4rem;
+  min-width: 0;
+}
+.sp__next-row select {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  text-overflow: ellipsis;
 }
 .sp__next-res {
   margin: 0;
