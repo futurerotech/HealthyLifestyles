@@ -174,7 +174,10 @@ test('production gates never apply to a fixture or synthetic CMS inventory', asy
   // A fixture inventory (other origin) with no tool-focused articles passes with the real gate file.
   const result = await verify({ toolGates: g });
   assert.deepEqual(result.errors, []);
-  // On the production origin, the same gates against an inventory without those articles are reported as stale.
-  const prod = await verifyContent({ inventory: { ...inventory, cmsOrigin: g.cmsOrigin }, baseline: { ...baseline, cmsOrigin: g.cmsOrigin }, manifest: { ...manifest(), cmsOrigin: g.cmsOrigin }, readHtml: async () => html(), toolGates: g });
+  // On the production origin, a gate against an inventory without its article is reported as stale.
+  // All recorded production gates were fixed on 2026-11-25, so use a synthetic gate for this rule.
+  const staleGate = { id: 999, slug: 'no-such-article', kind: 'missing', expected: 'bmi-calculator', actual: '', evidence: 'test', correction: 'test' };
+  const gp = { ...g, gates: [...g.gates, staleGate] };
+  const prod = await verifyContent({ inventory: { ...inventory, cmsOrigin: gp.cmsOrigin }, baseline: { ...baseline, cmsOrigin: gp.cmsOrigin }, manifest: { ...manifest(), cmsOrigin: gp.cmsOrigin }, readHtml: async () => html(), toolGates: gp });
   assert.ok(prod.errors.some((e) => /does not match any published article/.test(e)));
 });
