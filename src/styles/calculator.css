@@ -995,3 +995,12 @@
   border-color: var(--green-accent);
   box-shadow: var(--focus-ring);
 }
+
+/* Print-ready sleep log (Phase 9 Option A): keep each night together on paper. */
+@media print {
+  .sleep-reg__night,
+  .sleep-reg__result .calc__rows,
+  .sleep-reg__result .calc__callout {
+    break-inside: avoid;
+  }
+}

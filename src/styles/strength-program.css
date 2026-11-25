@@ -345,3 +345,27 @@
 .sp__next .btn {
   justify-self: start;
 }
+
+/* Print-ready program (Phase 9 Option A): print the block and the next-block worksheet,
+   not the form or action buttons. */
+@media print {
+  .sp__form,
+  .sp__summary .btn,
+  .sp__next .btn {
+    display: none !important;
+  }
+  .sp__lift-block,
+  .sp__chart-block,
+  .sp__schedule,
+  .sp__next-row {
+    break-inside: avoid;
+  }
+  /* Grid fragmentation across pages overlaps rows in Chromium print; use block flow. */
+  .sp__next {
+    display: block;
+    break-inside: avoid;
+  }
+  .sp__next > * + * {
+    margin-top: 0.85rem;
+  }
+}
