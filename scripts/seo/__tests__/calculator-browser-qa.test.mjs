@@ -390,14 +390,17 @@ test('changed calculators: hydration, interaction, 390px and desktop fit, access
       await setField('calc-bmr-calculator-age', '30');
       // 10 x 72.5 + 6.25 x 176 - 5 x 30 + 5 = 1,680 kcal/day
       await until(async () => /1,680 kcal\/day/.test(await resultText()), 'BMR for 72.5 kg / 176 cm / 30 y', 5000);
-      const before = await resultText();
+      // Compare the computed energy values only; the input echo legitimately shows lb / ft-in in imperial.
+      const kcal = async () => ((await resultText()).match(/[\d,]+ kcal\/day/g) || []).join(' | ');
+      const before = await kcal();
+      if (!/1,680 kcal\/day/.test(before)) throw new Error('unexpected BMR ' + before);
       if (!(await clickUnit('Imperial'))) throw new Error('imperial toggle not found');
       await until(async () => (await fieldValue('height')) === null, 'imperial height fields', 5000);
-      if ((await resultText()) !== before) failures.push('bmr-calculator: result changed after switching to imperial');
+      if ((await kcal()) !== before) failures.push('bmr-calculator: BMR/TDEE changed after switching to imperial: ' + (await kcal()));
       if (!(await clickUnit('Metric'))) throw new Error('metric toggle not found');
       await until(async () => (await fieldValue('height')) !== null, 'metric height field', 5000);
-      const after = { result: await resultText(), weight: await fieldValue('weight'), height: await fieldValue('height') };
-      if (after.result !== before) failures.push('bmr-calculator: result changed after the metric round trip');
+      const after = { result: await kcal(), weight: await fieldValue('weight'), height: await fieldValue('height') };
+      if (after.result !== before) failures.push('bmr-calculator: BMR/TDEE changed after the metric round trip: ' + after.result);
       if (after.weight !== '72.5' || after.height !== '176') failures.push(`bmr-calculator: round trip shows ${after.weight} kg / ${after.height} cm`);
       report.push('bmr-calculator: unit-round-trip=checked');
     } catch (e) { failures.push('bmr-calculator: ' + e); }
