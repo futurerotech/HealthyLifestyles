@@ -399,3 +399,24 @@
 .mpg__qty th, .mpg__qty td { text-align: left; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border); }
 .mpg__qty thead th { color: var(--muted); font-weight: 700; }
 .mpg__qty tbody th { font-weight: 600; }
+
+/* Print-ready weekly plan (Phase 9 Option A): print the plan, grocery list and cost
+   estimate, not the form or editing controls. */
+@media print {
+  .mpg__form,
+  .mpg__pdf,
+  .mpg__swap,
+  .mpg__stepper button,
+  .mpg__budget-inputs {
+    display: none !important;
+  }
+  .mpg__stepper {
+    border: 0 !important;
+    background: none !important;
+  }
+  .mpg__day,
+  .mpg__meal,
+  .mpg__budget table tr {
+    break-inside: avoid;
+  }
+}
