@@ -39,7 +39,7 @@ import { getCategory } from '../lib/cms';
 import { getArticlesForTool, resolveAuthor } from '../lib/cms';
 import { authorLd } from '../lib/author-identity.mjs';
 import type { Tool } from '../data/tools';
-import { getAffiliates } from '../data/affiliates';
+import { getAffiliates, isAffiliateLink } from '../data/affiliates';
 import type { ToolContent } from '../data/content-types';
 import { renderInline, safeLinkAttributes } from '../lib/text';
 import { toolLinkPolicy } from '../data/tool-citations';
@@ -69,6 +69,8 @@ const [siteConsts, category, related, guides, authorEntity] = await Promise.all(
 ]);
 const SITE = siteConsts.SITE;
 const affiliate = getAffiliates(tool.slug);
+// Only tagged links are affiliate links; plain search links must not claim earnings.
+const affiliateEarns = !!affiliate?.items.some((it) => isAffiliateLink(it.href));
 
 // Result-level safety line (YMYL). Names the relevant authority for sensitive topics.
 const RESULT_AUTHORITY: Record<string, string> = {
@@ -361,19 +363,22 @@ const linkPolicy = toolLinkPolicy(tool.slug);
           ))
         }
 
-        <!-- Affiliate recommendations (relevant, disclosed) -->
+        <!-- Product suggestions (relevant; disclosure states the actual relationship) -->
         {
           affiliate && (
             <section class="affil" aria-labelledby="affil-title">
               <h2 id="affil-title">{affiliate.heading}</h2>
               {affiliate.intro && <p class="affil__intro">{affiliate.intro}</p>}
               <p class="affil__ftc">
-                <Icon name="shield" size={15} /> As an affiliate we may earn from qualifying purchases — at no extra cost to you.
+                <Icon name="shield" size={15} />{' '}
+                {affiliateEarns
+                  ? 'As an affiliate we may earn from qualifying purchases — at no extra cost to you.'
+                  : 'These are general Amazon search links, not sponsored or affiliate placements. We don’t earn from them.'}
               </p>
               <ul class="affil__grid">
                 {affiliate.items.map((it) => (
                   <li>
-                    <a href={it.href} target="_blank" rel="sponsored nofollow noopener">
+                    <a href={it.href} target="_blank" rel={isAffiliateLink(it.href) ? 'sponsored nofollow noopener' : 'nofollow noopener'}>
                       <strong>{it.name}</strong>
                       <span>{it.blurb}</span>
                       <span class="affil__cta">View options <Icon name="arrow-right" size={14} /></span>
