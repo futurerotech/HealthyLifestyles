@@ -314,12 +314,12 @@ function SleepTimingLog() {
         ) : (<>
           {res.implausible.length > 0 && (
             <p class="calc__callout calc__callout--warn" role="status">
-              Check the times for {res.implausible.map((i) => DAY_LABELS[i]).join(', ')}: they give less than 3 or more than 14 hours of sleep.
+              Check the times for {res.implausible.map((i) => DAY_LABELS[i]).join(', ')}: they give less than 3 or more than 14 hours in bed.
             </p>
           )}
           <dl class="calc__rows">
             <div class="calc__row"><dt>Nights entered</dt><dd>{res.nights}</dd></div>
-            <div class="calc__row"><dt>Average time asleep (from your times)</dt><dd>{formatHours(res.meanDuration)}</dd></div>
+            <div class="calc__row"><dt>Average time in bed (from your times)</dt><dd>{formatHours(res.meanDuration)}</dd></div>
             <div class="calc__row"><dt>Bedtime varies by about</dt><dd>± {fmtMin(res.bedSd)}</dd></div>
             <div class="calc__row"><dt>Wake time varies by about</dt><dd>± {fmtMin(res.wakeSd)}</dd></div>
             <div class="calc__row is-strong"><dt>Sleep midpoint varies by about</dt><dd>± {fmtMin(res.midSd)}</dd></div>
@@ -330,7 +330,7 @@ function SleepTimingLog() {
               </div>
             )}
           </dl>
-          <p class="sleep-reg__note">"Varies by about" is the standard deviation: on a typical night your time differs from your own average by roughly this much. Smaller numbers mean a steadier routine. A large weekend shift works like a small weekly time-zone change for your body clock. If you want steadier timing, keeping the same wake time every day, weekends included, is the usual first step.</p>
+          <p class="sleep-reg__note">"Varies by about" is the standard deviation: on a typical night your time differs from your own average by roughly this much. Smaller numbers mean a steadier routine. A large weekend shift works like a small weekly time-zone change for your body clock. If you work weekends or shifts, this comparison may not apply. If you want steadier timing, keeping the same wake time every day, weekends included, is the usual first step.</p>
         </>)}
         <div class="calc__callout calc__callout--warn">
           <strong>Talk to a clinician if</strong> you often snore loudly or someone notices pauses in your breathing, you are very sleepy during the day despite enough time in bed, or trouble falling or staying asleep happens most nights for several weeks. This log is for education and cannot diagnose a sleep disorder.

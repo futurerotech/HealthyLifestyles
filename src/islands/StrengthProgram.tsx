@@ -18,7 +18,7 @@ const OUTCOME_LABEL: Record<BlockOutcome, string> = {
   completed: 'Completed every set and rep with good form',
   'missed-one': 'Missed reps in one week',
   'missed-multiple': 'Missed reps in two or more weeks',
-  pain: 'Had pain with this lift',
+  pain: 'Sharp or joint pain, or pain that doesn’t go away',
 };
 
 interface LiftState { enabled: boolean; oneRm: number; }
@@ -329,7 +329,7 @@ export default function StrengthProgram() {
             >
               Build my next block
             </button>
-            <p class="sp__next-note">Rules follow the general progression guidance of the American College of Sports Medicine for healthy adults. This is educational, not individual coaching. Lifts marked with pain are left out of the next block.</p>
+            <p class="sp__next-note">Only the cap on increases (2–10% of the load) comes from American College of Sports Medicine progression guidance for healthy adults. Repeating the block and the 10% reset are this tool’s own simple rules. This is educational, not individual coaching. Lifts marked with pain are left out of the next block.</p>
           </section>
         </div>
       )}

@@ -214,12 +214,13 @@ export function buildProgram(inputs: ProgramInputs): Program {
 
 // ---------------------------------------------------------------------------
 // Phase 5 Candidate 3: transparent next-block progression.
-// Rule basis: ACSM Position Stand "Progression models in resistance training for
-// healthy adults" (Med Sci Sports Exerc 2009;41(3):687-708) recommends a 2–10% load
-// increase once the current load is completed for the target repetitions. Here the
-// increase is a fixed small step (upper body 2.5 kg / 5 lb, lower body 5 kg / 10 lb),
-// never more than 10% of the 1RM. Missed reps in one week repeat the block; missed reps
-// in two or more weeks reset the 1RM by 10%. Pain never produces a number.
+// Only the increase cap is sourced: ACSM Position Stand "Progression models in
+// resistance training for healthy adults" (Med Sci Sports Exerc 2009;41(3):687-708)
+// recommends a 2–10% load increase once the current load is completed for the target
+// repetitions. Here the increase is a fixed small step (upper body 2.5 kg / 5 lb, lower
+// body 5 kg / 10 lb), never more than 10% of the 1RM. The tool's own simple rules (not
+// ACSM): missed reps in one week repeat the block; missed reps in two or more weeks reset
+// the 1RM by 10%. Pain never produces a number.
 // Educational only, adults only; nothing is stored.
 
 export type BlockOutcome = 'completed' | 'missed-one' | 'missed-multiple' | 'pain';

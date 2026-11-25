@@ -3,7 +3,7 @@
  *
  * From up to 7 nights of bedtime and wake time, reports how much bedtime, wake time and
  * the sleep midpoint vary from night to night (standard deviation in minutes) and the
- * shift in sleep midpoint between weekend nights (Sat, Sun) and weekdays. Clock times are
+ * shift in sleep midpoint between weekend nights (Fri and Sat nights, before the free days) and weekdays. Clock times are
  * circular, so each series is centred on its circular mean before the spread is measured
  * (23:30 and 00:30 are 60 minutes apart, not 23 hours). Descriptive only: no score, no
  * diagnosis. Nothing is stored or sent.
@@ -16,7 +16,7 @@ export interface NightTimes { bed: string; wake: string; }
 
 export interface RegularityResult {
   nights: number;
-  /** Mean sleep duration from the entered times, hours. */
+  /** Mean time in bed from the entered times, hours. */
   meanDuration: number;
   bedSd: number;
   wakeSd: number;
