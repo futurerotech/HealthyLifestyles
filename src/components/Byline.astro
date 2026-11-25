@@ -5,11 +5,12 @@
 import Avatar from './Avatar.astro';
 import Icon from './Icon.astro';
 import { getAuthors } from '../lib/cms';
+import { resolveAuthorIdentity } from '../lib/author-identity.mjs';
 import { assignedReviewer } from '../lib/medical-review';
 import { formatDate } from '../lib/text';
 
 interface Props {
-  /** Author slug or display name; defaults to the editorial team. */
+  /** Explicit author slug or display name; no implicit attribution. */
   author?: string;
   /** ISO date of a substantive content update, when available. */
   updated?: string;
@@ -19,18 +20,15 @@ interface Props {
 }
 
 const allAuthors = await getAuthors();
-const authorMap = Object.fromEntries(allAuthors.map((a) => [a.slug, a]));
-const nameMap = Object.fromEntries(allAuthors.map((a) => [a.name, a]));
-const resolveAuthorLocal = (nameOrSlug: string) => authorMap[nameOrSlug] || nameMap[nameOrSlug] || allAuthors[0]!;
-const { author = 'editorial-team', updated, reviewer, class: className } = Astro.props;
-const a = resolveAuthorLocal(author);
+const { author, updated, reviewer, class: className } = Astro.props;
+const a = resolveAuthorIdentity(author, allAuthors);
 const r = assignedReviewer(reviewer, allAuthors);
 ---
 
 <div class:list={['byline', className]}>
-  <Avatar initials={a.initials} color={a.color} size={40} class="byline__avatar" />
+  {a && <Avatar initials={a.initials} color={a.color} size={40} class="byline__avatar" />}
   <p class="byline__text">
-    Written by <a href={`/author/${a.slug}`}>{a.name}</a>
+    {a ? <>Written by <a href={`/author/${a.slug}`}>{a.name}</a></> : <span>Author not specified</span>}
     {r && (
       <>
         <span class="byline__sep" aria-hidden="true">·</span>

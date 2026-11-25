@@ -122,7 +122,7 @@ const collectionLd = {
           {!featured.heroImage?.url && <Icon name={featuredCat.icon} />}
         </span>
         <span class="wh-featured__body">
-          <span class="wh-featured__tag" style={`color:${featuredCat.color}`}>
+          <span class="wh-featured__tag" style={`color:color-mix(in srgb, ${featuredCat.color} 55%, #000)`}>
             <Icon name="star" size={14} /> {featuredCat.name}
           </span>
           <h3>{featured.title}</h3>

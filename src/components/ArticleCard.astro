@@ -31,7 +31,7 @@ const color = category?.color ?? '#16a34a';
     {!article.heroImage?.url && <Icon name={category?.icon ?? 'book'} />}
   </span>
   <span class="wh-card__body">
-    <span class="wh-card__cat" style={`color:${color}`}>{category?.name}</span>
+    <span class="wh-card__cat" style={`color:color-mix(in srgb, ${color} 55%, #000)`}>{category?.name}</span>
     <h3 class="wh-card__title">{article.title}</h3>
     <span class="wh-card__excerpt">{article.excerpt}</span>
     <span class="wh-card__meta">

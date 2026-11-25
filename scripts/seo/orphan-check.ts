@@ -56,14 +56,19 @@ function isSpam(urlPath: string): boolean {
 
 function extractLinks(html: string): string[] {
   const links: string[] = []
-  // Match href="/..." or href='/...' (internal absolute paths only)
-  const regex = /href=(["'])([^"']+)\1/g
+  // Count only navigational <a> anchors: <link rel="canonical"> and other
+  // metadata must never create a phantom inbound edge that hides an orphan.
+  // Root-relative and absolute same-site links (www or apex) both count;
+  // protocol-relative and other hosts are external.
+  const anchors = /<a\b[^>]*?\shref\s*=\s*(["'])([^"']+)\1/gi
   let match: RegExpExecArray | null
-  while ((match = regex.exec(html)) !== null) {
-    // Strip query string and fragment for target matching.
+  while ((match = anchors.exec(html)) !== null) {
     try {
       const url = new URL(match[2].replace(/&amp;/g, '&'), 'https://www.healthylifesstyles.com');
-      if (url.origin === 'https://www.healthylifesstyles.com') links.push(url.pathname.replace(/\/$/, '') || '/');
+      if ((url.protocol === 'https:' || url.protocol === 'http:') &&
+          (url.hostname === 'www.healthylifesstyles.com' || url.hostname === 'healthylifesstyles.com')) {
+        links.push(url.pathname.replace(/\/$/, '') || '/');
+      }
     } catch { /* Invalid links are reported by the metadata/URL checks. */ }
   }
   return links

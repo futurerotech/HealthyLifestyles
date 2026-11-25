@@ -6,8 +6,8 @@
 .wt__form-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .wt__units { display: inline-flex; border: 1.5px solid var(--border); border-radius: var(--radius-pill); padding: 0.15rem; background: var(--surface-2); }
 .wt__units button { border: 0; background: transparent; padding: 0.4rem 1rem; border-radius: var(--radius-pill); font-weight: 700; font-size: 0.85rem; color: var(--muted); }
-.wt__units button.is-on { background: var(--green-primary); color: #fff; }
-.wt__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.85rem 1rem; }
+.wt__units button.is-on { background: var(--green-700); color: #fff; }
+.wt__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.85rem 1rem; }
 .wt__field { display: flex; flex-direction: column; gap: 0.3rem; font-weight: 600; font-size: 0.9rem; }
 .wt__iu { display: flex; align-items: center; gap: 0.4rem; }
 .wt__iu input { width: 100%; padding: 0.6rem 0.7rem; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font: inherit; font-weight: 600; background: #fff; }
@@ -16,7 +16,8 @@
 .wt__safe { margin: 0; font-size: 0.85rem; color: var(--muted); }
 .wt__safe strong { color: var(--ink); }
 
-.wt__hero {
+/* Compound selector: beats .card's background regardless of stylesheet order. */
+.wt__hero, .wt__hero.card {
   text-align: center; padding: clamp(1.5rem, 4vw, 2.5rem) 1.25rem; border: 0; color: #fff;
   background: radial-gradient(600px 280px at 50% 0%, rgba(59,130,246,0.4), transparent 60%), var(--dark);
 }
@@ -37,7 +38,7 @@
 .wt__ms-list { display: grid; gap: 0; }
 .wt__ms-list li { display: grid; grid-template-columns: 80px 1fr auto; gap: 0.85rem; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
 .wt__ms-list li:last-child { border-bottom: 0; }
-.wt__ms-week { font-family: var(--font-display); font-weight: 800; font-size: 0.82rem; color: var(--c-body); }
+.wt__ms-week { font-family: var(--font-display); font-weight: 800; font-size: 0.82rem; color: color-mix(in srgb, var(--c-body) 55%, #000); }
 .wt__ms-body { display: flex; flex-direction: column; }
 .wt__ms-body strong { font-size: 1rem; }
 .wt__ms-body small { color: var(--muted); font-size: 0.82rem; }

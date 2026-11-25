@@ -45,7 +45,7 @@
   color: var(--muted);
 }
 .sp__units button.is-on {
-  background: var(--green-primary);
+  background: var(--green-700);
   color: #fff;
 }
 .sp__lifts-hint {
@@ -68,7 +68,8 @@
   border-radius: var(--radius-sm);
   background: var(--surface-2);
 }
-.sp__lift.is-off {
+.sp__lift.is-off .sp__lift-input {
+  /* Only the inactive 1RM field dims; the lift's toggle label stays legible (4.5:1). */
   opacity: 0.55;
 }
 .sp__lift-toggle {
@@ -312,5 +313,59 @@
   }
   .sp__opts {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Next-block progression (Phase 5 Candidate 3) */
+.sp__next {
+  display: grid;
+  gap: 0.85rem;
+}
+.sp__next-intro,
+.sp__next-note {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+.sp__next-row {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+}
+.sp__next-row select {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  text-overflow: ellipsis;
+}
+.sp__next-res {
+  margin: 0;
+  font-size: 0.95rem;
+}
+.sp__next .btn {
+  justify-self: start;
+}
+
+/* Print-ready program (Phase 9 Option A): print the block and the next-block worksheet,
+   not the form or action buttons. */
+@media print {
+  .sp__form,
+  .sp__summary .btn,
+  .sp__next .btn {
+    display: none !important;
+  }
+  .sp__lift-block,
+  .sp__chart-block,
+  .sp__schedule,
+  .sp__next-row {
+    break-inside: avoid;
+  }
+  /* Grid fragmentation across pages overlaps rows in Chromium print; use block flow. */
+  .sp__next {
+    display: block;
+    break-inside: avoid;
+  }
+  .sp__next > * + * {
+    margin-top: 0.85rem;
   }
 }

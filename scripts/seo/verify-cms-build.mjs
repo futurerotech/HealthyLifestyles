@@ -2,7 +2,7 @@ import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
 import { readFile, access } from 'node:fs/promises';
 import { createReviewWorkspace, resolveAstroCli } from '../content/workspace.mjs';
-import { verifyOutput } from '../content/preflight.mjs';
+import { inspectDocument, verifyOutput } from '../content/preflight.mjs';
 import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
@@ -33,6 +33,34 @@ const catalogue = {
     { id: 4, slug: 'draft-generated-guide', headline: 'Unpublished draft', bodyHtml: '<p>Never public.</p>', status: 'draft', updatedAt },
   ],
 };
+// Synthetic identities exist only in this local fixture server. Do not publish.
+const fixtureAuthor = { id: 901, slug: 'fixture-author', name: 'Synthetic Fixture Author', schemaType: 'Person', role: 'Fixture writer', bio: 'Synthetic test profile.', initials: 'FA', updatedAt };
+const fixtureReviewer = { id: 902, slug: 'fixture-reviewer', name: 'Synthetic Fixture Reviewer', schemaType: 'Person', credential: 'Fixture-only credential', bio: 'Synthetic test reviewer; not a real clinician.', initials: 'FR', updatedAt };
+catalogue.authors.push(fixtureAuthor, fixtureReviewer);
+catalogue.articles[0].author = fixtureAuthor;
+catalogue.articles[0].reviewer = fixtureReviewer;
+catalogue.articles[0].isHealthTopic = true;
+// Keep the positive preservation catalogue internally consistent: an explicitly
+// unassigned author/reviewer is legitimate; a dangling relationship is not.
+const danglingAuthor = { id: 99999, slug: fixtureAuthor.slug, name: fixtureAuthor.name };
+const danglingReviewer = { id: 99998, slug: fixtureReviewer.slug, name: fixtureReviewer.name };
+catalogue.articles[1].author = null;
+catalogue.articles[1].reviewer = null;
+catalogue.articles[1].isHealthTopic = true;
+// Synthetic link-policy fixtures; no remote medical URL is fetched.
+const auditedCitation = 'https://www.acog.org/clinical/clinical-guidance/committee-opinion/articles/2017/05/methods-for-estimating-the-due-date';
+const wrongCitation = 'https://www.ncbi.nlm.nih.gov/books/NBK459351/';
+const commercialLink = 'https://shop.example.test/offer?ref=affiliate';
+const citationArticle = article('due-date-by-conception-date');
+citationArticle.layout.push({ blockType: 'text', style: 'p', text: `[Audited citation](${auditedCitation}) and [Unapproved citation](${wrongCitation}) and [Commercial link](${commercialLink}).` });
+citationArticle.sources = [{ label: 'Audited source entry', url: auditedCitation }, { label: 'Unapproved source entry', url: wrongCitation }];
+catalogue.articles.push(citationArticle);
+catalogue.articles[0].layout.push({ blockType: 'text', style: 'p', text: `[Citation outside its audited article](${auditedCitation}).` });
+const translatedArticles = [...catalogue.articles.slice(0, 2), citationArticle].map((doc) => ({ ...doc, title: `Traduccion de prueba ${doc.slug}`, excerpt: 'Contenido sintetico de prueba.' }));
+// Exercise the actual localized render with dangling IDs even when the names
+// and slugs match existing profiles. Never substitute those profiles.
+translatedArticles[1].author = danglingAuthor;
+translatedArticles[1].reviewer = danglingReviewer;
 const cmsEditedTool = catalogue.tools.find((t) => t.slug === 'body-fat-calculator');
 catalogue.articles[0].layout.push(
   { blockType: 'hero', title: 'Inline CMS article hero' },
@@ -42,6 +70,11 @@ catalogue.articles[0].layout.push(
 );
 cmsEditedTool.whatItIs = { root: { children: [{ type: 'paragraph', children: [{ type: 'text', text: 'CMS revised tool explanation.' }] }] } };
 cmsEditedTool.faq = [{ question: 'CMS question?', answer: 'CMS answer.' }];
+const pregnancyFixtureTool = catalogue.tools.find(t => t.slug === 'pregnancy-weight-gain-calculator');
+assert.ok(pregnancyFixtureTool, 'Missing fixture pregnancy calculator');
+const pregnancyFixtureSlug = 'pregnancy-weight-gain-calculator-healthy-range-guide';
+assert.ok(!catalogue.articles.some(a => a.slug === pregnancyFixtureSlug || String(a.id) === '61'), 'Synthetic ID61 fixture already exists');
+catalogue.articles.push({ ...article(pregnancyFixtureSlug), id: 61, primaryTool: pregnancyFixtureTool, layout: [{ blockType: 'text', style: 'p', text: 'Synthetic local calculator integration fixture. Not published content.' }, { blockType: 'toolEmbed', tool: pregnancyFixtureTool, label: 'Pregnancy weight gain calculator' }] });
 const requests = new Map();
 const server = createServer((req, res) => {
   const url = new URL(req.url, 'http://localhost');
@@ -54,7 +87,9 @@ const server = createServer((req, res) => {
   }
   const name = url.pathname.split('/')[2];
   let docs = catalogue[name] || [];
-  if (url.searchParams.has('locale')) docs = [];
+  if (url.searchParams.has('locale')) {
+    docs = name === 'articles' && url.searchParams.get('locale') === 'es' ? translatedArticles : [];
+  }
   if (url.searchParams.get('where[enabled][equals]') === 'true') docs = docs.filter((d) => d.enabled);
   if (url.searchParams.get('where[status][equals]') === 'published') docs = docs.filter((d) => d.status === 'published');
   const kind = url.searchParams.get('where[kind][equals]');
@@ -95,6 +130,69 @@ try {
   assert.match(renderedArticle, /CMS article columns/);
   assert.match(renderedArticle, /CMS article banner/);
   assert.doesNotMatch(renderedArticle, /cms\.healthylifesstyles\.com\/embed\//);
+  const schemaNodes = (page) => [...page.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)].flatMap((match) => {
+    const value = JSON.parse(match[1]);
+    return Array.isArray(value) ? value : Array.isArray(value['@graph']) ? value['@graph'] : [value];
+  });
+  const articleNode = (page) => {
+    const node = schemaNodes(page).find((n) => [].concat(n['@type']).includes('Article'));
+    assert.ok(node, 'Article JSON-LD must exist');
+    return node;
+  };
+  const knownPath = 'wellness-hub/calories-burned-calculator-guide';
+  const unknownPath = 'wellness-hub/how-many-calories-to-lose-weight';
+  for (const prefix of ['', 'es/']) {
+    const known = await html(prefix + knownPath);
+    const unknown = await html(prefix + unknownPath);
+    assert.match(known, /href="\/author\/fixture-author"/);
+    assert.match(known, /href="\/author\/fixture-reviewer"/);
+    assert.equal(articleNode(known).author.name, fixtureAuthor.name);
+    assert.equal(articleNode(known).reviewedBy.name, fixtureReviewer.name);
+    assert.equal(articleNode(known).author['@id'], 'https://www.healthylifesstyles.com/author/fixture-author');
+    assert.match(unknown, /Author not specified/);
+    assert.doesNotMatch(unknown, /href="\/author\/fixture-author"|href="\/author\/fixture-reviewer"/);
+    assert.ok(!('author' in articleNode(unknown)) && !('reviewedBy' in articleNode(unknown)));
+  }
+  const checkExternalLinks = (page, href, expectedRel, count) => {
+    const anchors = [...page.matchAll(/<a\b[^>]*>/gi)].map((m) => m[0]).filter((tag) => tag.includes(`href="${href}"`));
+    assert.equal(anchors.length, count, `Unexpected anchor count for ${href}`);
+    for (const tag of anchors) {
+      assert.match(tag, /\btarget="_blank"/);
+      const rel = tag.match(/\brel="([^"]+)"/)?.[1];
+      assert.deepEqual(rel?.split(/\s+/).sort(), expectedRel.split(/\s+/).sort(), `Wrong link qualification: ${tag}`);
+    }
+  };
+  for (const prefix of ['', 'es/']) {
+    const page = await html(prefix + 'wellness-hub/due-date-by-conception-date');
+    checkExternalLinks(page, auditedCitation, 'noopener', 2);
+    checkExternalLinks(page, wrongCitation, 'noopener nofollow', 2);
+    checkExternalLinks(page, commercialLink, 'noopener nofollow', 1);
+    checkExternalLinks(await html(prefix + knownPath), auditedCitation, 'noopener nofollow', 1);
+  }
+  // Product suggestions are untagged search links: no affiliate claim, no rel=sponsored (Phase 9 §13.2).
+  assert.match(bodyFat, /href="https:\/\/www\.amazon\.com\/s\?k=[^"]*" target="_blank" rel="nofollow noopener"/, 'Untagged product links must be nofollow and not sponsored');
+  assert.doesNotMatch(bodyFat, /rel="sponsored[^"]*"[^>]*>\s*<strong>/, 'Untagged product links must not be marked sponsored');
+  assert.doesNotMatch(bodyFat, /As an affiliate we may earn/, 'No affiliate-earnings claim without tagged affiliate links');
+  assert.match(bodyFat, /not sponsored or affiliate placements/, 'Product suggestions must state the actual relationship');
+  const knownTopic = schemaNodes(renderedArticle).find((n) => n['@type'] === 'HealthTopicContent');
+  const unknownTopic = schemaNodes(await html(unknownPath)).find((n) => n['@type'] === 'HealthTopicContent');
+  assert.equal(knownTopic?.author.name, fixtureAuthor.name);
+  assert.ok(unknownTopic && !('author' in unknownTopic) && !('reviewedBy' in unknownTopic));
+  const profile = await html('author/fixture-author');
+  assert.ok(profile.includes(`href="/${knownPath}"`));
+  assert.ok(!profile.includes(`href="/${unknownPath}"`));
+  const pregnancyToolHtml = await html('tools/pregnancy-weight-gain-calculator');
+  assert.match(pregnancyToolHtml, /Pregnancy weight gain reference \(one baby only\)/);
+  assert.match(pregnancyToolHtml, /value="unconfirmed"/);
+  assert.match(pregnancyToolHtml, /Confirm that you are carrying one baby/);
+  assert.match(pregnancyToolHtml, /Seek immediate medical care for urgent maternal warning signs/);
+  assert.doesNotMatch(pregnancyToolHtml, /On track for now|Recommended by week|class="calc__result-in"/);
+  const pregnancyArticleHtml = await html('wellness-hub/pregnancy-weight-gain-calculator-healthy-range-guide');
+  assert.match(pregnancyArticleHtml, /data-tool="pregnancy-weight-gain-calculator"/);
+  assert.match(pregnancyArticleHtml, /value="unconfirmed"/);
+  assert.match(pregnancyArticleHtml, /Confirm that you are carrying one baby/);
+  assert.match(pregnancyArticleHtml, /Seek immediate medical care for urgent maternal warning signs/);
+  assert.doesNotMatch(pregnancyArticleHtml, /On track for now|Recommended by week|class="calc__result-in"/);
   const hub = await html('wellness-hub');
   assert.doesNotMatch(hub, /\[object Promise\]/);
   const xml = await readFile(artifact('dist/client/sitemap-0.xml'), 'utf8');
@@ -120,9 +218,23 @@ try {
   const baseline = { cmsOrigin: env.CMS_URL, collections: Object.fromEntries(Object.entries(inventory.collections).map(([name, docs]) => [name, docs.map((doc) => ({ id: String(doc.id), slug: doc.slug }))])) };
   const preserved = await verifyOutput({ dist: artifact('dist/client'), providerDir: artifact('.vercel/output/static'), inventory, baseline, requireReleaseProvenance: false });
   assert.deepEqual(preserved.errors, [], JSON.stringify(preserved.errors, null, 2));
+  // The positive fixture must pass every unchanged production preservation check.
+  // Separately prove that the real gate still rejects a missing assigned author;
+  // use the generated unassigned English HTML, without changing its manifest or
+  // filtering any error from verifyOutput. CMS snapshot tests cover dangling IDs
+  // in both languages; the Spanish HTML assertions above cover actual rendering.
+  const invalidArticle = { ...catalogue.articles[1], author: danglingAuthor, reviewer: danglingReviewer };
+  assert.deepEqual(inspectDocument('articles', invalidArticle, await html(unknownPath), env.CMS_URL).errors,
+    ['author relationship mismatch'], 'Dangling author must still block preservation');
   assert.ok([...requests.entries()].filter(([url]) => url.startsWith('/api/articles?')).every(([, n]) => n === 1), 'Pages must share article requests');
+  const authorRequests = [...requests.entries()].filter(([url]) => url.startsWith('/api/authors?'));
+  assert.ok(authorRequests.length > 0 && authorRequests.every(([, n]) => n === 1), 'All pages must share the complete author inventory');
   assert.equal(await readFile('dist/client/content-manifest.json', 'utf8').catch(() => null), originalManifest, 'Fixture must not overwrite the project content manifest');
   assert.equal(await readFile('.vercel/output/config.json', 'utf8').catch(() => null), originalProvider, 'Fixture must not overwrite provider release output');
+  if (process.env.HLS_PREGNANCY_BROWSER_QA === '1') {
+    const { verifyPregnancyBrowser } = await import('./pregnancy-browser-qa.mjs');
+    await verifyPregnancyBrowser(artifact('dist/client'));
+  }
   console.log('CMS integration build passed: SEO/social metadata, aliases, disabled tools, pSEO, noindex/canonical sitemap policy, provider output, shared snapshot, deployment manifest.');
 } catch (error) {
   console.error(error.message);

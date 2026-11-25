@@ -37,18 +37,26 @@ import '../styles/calculator.css';
 import { getSiteConsts, getRelatedTools } from '../lib/cms';
 import { getCategory } from '../lib/cms';
 import { getArticlesForTool, resolveAuthor } from '../lib/cms';
+import { authorLd } from '../lib/author-identity.mjs';
 import type { Tool } from '../data/tools';
-import { getAffiliates } from '../data/affiliates';
+import { getAffiliates, isAffiliateLink } from '../data/affiliates';
 import type { ToolContent } from '../data/content-types';
+import { renderInline, safeLinkAttributes } from '../lib/text';
+import { toolLinkPolicy } from '../data/tool-citations';
+import { MEDICAL_SCORE_SLUGS, resolveToolPagePresentation } from '../lib/tool-copy-safety';
 
 interface Props {
   tool: Tool;
   content: ToolContent;
-  stylesheet?: string;
+  /** Engine-specific CSS, inlined into <head> (no render-blocking request). */
+  inlineCss?: string;
 }
 
-const { tool, stylesheet } = Astro.props;
-const content = { ...Astro.props.content, ...tool.cmsContent, ...(tool.cmsContent?.sections ? { directAnswer: undefined } : {}), seoTitle: tool.seo?.metaTitle || Astro.props.content.seoTitle, metaDescription: tool.seo?.metaDescription || Astro.props.content.metaDescription };
+const { tool, inlineCss } = Astro.props;
+// CMS copy and SEO metadata take precedence over authored copy, as before.
+// Source precedence for a reviewed calculator applies only once the owner has
+// approved it in lib/tool-copy-safety.ts (SOURCE_COPY_APPROVED, empty today).
+const { content, seo } = resolveToolPagePresentation(tool.slug, Astro.props.content, tool.cmsContent, tool.seo);
 const origin = Astro.site ?? new URL('https://www.healthylifesstyles.com');
 const orgId = `${origin.href}#org`;
 
@@ -61,6 +69,8 @@ const [siteConsts, category, related, guides, authorEntity] = await Promise.all(
 ]);
 const SITE = siteConsts.SITE;
 const affiliate = getAffiliates(tool.slug);
+// Only tagged links are affiliate links; plain search links must not claim earnings.
+const affiliateEarns = !!affiliate?.items.some((it) => isAffiliateLink(it.href));
 
 // Result-level safety line (YMYL). Names the relevant authority for sensitive topics.
 const RESULT_AUTHORITY: Record<string, string> = {
@@ -68,7 +78,11 @@ const RESULT_AUTHORITY: Record<string, string> = {
   'heart-vitals': ' Categories follow the American Heart Association (AHA).',
   'health-risk': ' Based on CDC and World Health Organization (WHO) guidance — only a clinician can assess your real risk.',
 };
-const resultAuthority = RESULT_AUTHORITY[tool.category] ?? '';
+// These custom calculations are not validated clinical scores, regardless of
+// whether individual underlying measurements appear in CDC/WHO guidance.
+const resultAuthority = MEDICAL_SCORE_SLUGS.has(tool.slug)
+  ? ' The result is a tool-defined educational score or index, not a CDC/WHO-endorsed clinical risk classification.'
+  : RESULT_AUTHORITY[tool.category] ?? '';
 
 // Which calculator island powers this tool — the ONE shared mapping in
 // lib/toolEngine.ts (this used to be a duplicated inline ternary chain, and
@@ -103,17 +117,6 @@ const breadcrumbLd = {
   })),
 };
 
-function authorLd(a: typeof authorEntity) {
-  return {
-    '@type': a.schemaType,
-    '@id': new URL(`/author/${a.slug}`, origin).href,
-    name: a.name,
-    url: new URL(`/author/${a.slug}`, origin).href,
-    ...(a.credential ? { credential: a.credential } : {}),
-    ...(a.schemaType === 'Person' ? { jobTitle: a.role, worksFor: { '@id': orgId } } : {}),
-  };
-}
-
 const appLd = {
   '@context': 'https://schema.org',
   '@type': 'WebApplication',
@@ -125,7 +128,7 @@ const appLd = {
   description: content.metaDescription,
   isAccessibleForFree: true,
   offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-  author: authorLd(authorEntity),
+  ...(authorEntity ? { author: authorLd(authorEntity, origin) } : {}),
   publisher: { '@id': orgId },
 };
 
@@ -159,7 +162,7 @@ const medicalLd = {
   url: pageUrl,
   description: content.metaDescription,
   inLanguage: 'en',
-  author: authorLd(authorEntity),
+  ...(authorEntity ? { author: authorLd(authorEntity, origin) } : {}),
   audience: { '@type': 'MedicalAudience', audienceType: 'https://schema.org/Patient' },
   isPartOf: { '@type': 'WebSite', '@id': origin.href },
   // CMS semantic entities → DefinedTerm `about` (same pattern as articles):
@@ -174,6 +177,8 @@ const medicalLd = {
       }
     : {}),
 };
+// Exact, audited per-tool citations are followable; everything else stays nofollow.
+const linkPolicy = toolLinkPolicy(tool.slug);
 ---
 
 <BaseLayout
@@ -182,9 +187,9 @@ const medicalLd = {
   image={`/og/tools/${tool.slug}.png`}
   type="website"
   jsonLd={[breadcrumbLd, appLd, ...(faqLd.mainEntity.length ? [faqLd] : []), medicalLd]}
-  seo={tool.seo}
+  seo={seo}
 >
-  <Fragment slot="head">{stylesheet && <link rel="stylesheet" href={stylesheet} />}</Fragment>
+  <Fragment slot="head">{inlineCss && <style is:inline set:html={inlineCss} />}</Fragment>
   <article class="tool" data-cms-id={tool.cmsId}>
     <!-- Branded header shown only when printing / saving to PDF -->
     <div class="print-only print-sheet-head">
@@ -234,19 +239,21 @@ const medicalLd = {
       </section>
     )}
 
-    <!-- Calculator -->
+    <!-- Calculator. Every engine hydrates client:visible: client:load put the island's module
+         download in the critical window (run 43629211011: meal plan was the only template
+         loading JS before LCP, 19 KB, LCP 2114/2262/2262 ms vs ~1810-1965 ms elsewhere). -->
     <section class="container tool__calc" data-tool={tool.slug} aria-label={`${tool.title} tool`}>
-      {engine === 'meal' && <MealPlanGenerator client:load />}
-      {engine === 'lifestyle-age' && <LifestyleAge client:load />}
-      {engine === 'strength' && <StrengthProgram client:load />}
-      {engine === 'caffeine' && <CaffeineCurfew client:load />}
-      {engine === 'muscle' && <MusclePreservation client:load />}
-      {engine === 'sitting' && <SittingReversal client:load />}
-      {engine === 'fasting' && <Fasting client:load />}
-      {engine === 'chronotype' && <Chronotype client:load />}
-      {engine === 'walk-it-off' && <WalkItOff client:load />}
-      {engine === 'weight-timeline' && <WeightTimeline client:load />}
-      {engine === 'caffeine-tracker' && <CaffeineTracker client:load />}
+      {engine === 'meal' && <MealPlanGenerator client:visible />}
+      {engine === 'lifestyle-age' && <LifestyleAge client:visible />}
+      {engine === 'strength' && <StrengthProgram client:visible />}
+      {engine === 'caffeine' && <CaffeineCurfew client:visible />}
+      {engine === 'muscle' && <MusclePreservation client:visible />}
+      {engine === 'sitting' && <SittingReversal client:visible />}
+      {engine === 'fasting' && <Fasting client:visible />}
+      {engine === 'chronotype' && <Chronotype client:visible />}
+      {engine === 'walk-it-off' && <WalkItOff client:visible />}
+      {engine === 'weight-timeline' && <WeightTimeline client:visible />}
+      {engine === 'caffeine-tracker' && <CaffeineTracker client:visible />}
       {engine === 'sleep' && <SleepCalculator client:visible slug={tool.slug} />}
       {engine === 'date' && <DateCalculator client:visible slug={tool.slug} />}
       {engine === 'pace' && <PaceCalculator client:visible slug={tool.slug} />}
@@ -254,9 +261,9 @@ const medicalLd = {
       {engine === 'breathing' && <BreathingTimer client:visible slug={tool.slug} />}
       {engine === 'numeric' && <Calculator client:visible slug={tool.slug} toolName={tool.title} />}
       {engine === 'healthspan' && <HealthspanScore client:visible />}
-      {engine === 'diary' && <FoodSymptomDiary client:load />}
-      {engine === 'hrv' && <HRVLog client:load />}
-      {engine === 'recipe' && <RecipeAnalyzer client:load />}
+      {engine === 'diary' && <FoodSymptomDiary client:visible />}
+      {engine === 'hrv' && <HRVLog client:visible />}
+      {engine === 'recipe' && <RecipeAnalyzer client:visible />}
     </section>
 
     <!-- Required result-level disclaimer, sized to the tool's YMYL risk tier. -->
@@ -338,7 +345,7 @@ const medicalLd = {
           content.sections.map((s) => (
             <section class="prose">
               <h2>{s.h2}</h2>
-              {s.paragraphs?.map((p) => <p>{p}</p>)}
+              {s.paragraphs?.map((p) => <p set:html={renderInline(p, linkPolicy)} />)}
               {s.list && (
                 <>
                   {s.list.intro && <p>{s.list.intro}</p>}
@@ -356,19 +363,22 @@ const medicalLd = {
           ))
         }
 
-        <!-- Affiliate recommendations (relevant, disclosed) -->
+        <!-- Product suggestions (relevant; disclosure states the actual relationship) -->
         {
           affiliate && (
             <section class="affil" aria-labelledby="affil-title">
               <h2 id="affil-title">{affiliate.heading}</h2>
               {affiliate.intro && <p class="affil__intro">{affiliate.intro}</p>}
               <p class="affil__ftc">
-                <Icon name="shield" size={15} /> As an affiliate we may earn from qualifying purchases — at no extra cost to you.
+                <Icon name="shield" size={15} />{' '}
+                {affiliateEarns
+                  ? 'As an affiliate we may earn from qualifying purchases — at no extra cost to you.'
+                  : 'These are general Amazon search links, not sponsored or affiliate placements. We don’t earn from them.'}
               </p>
               <ul class="affil__grid">
                 {affiliate.items.map((it) => (
                   <li>
-                    <a href={it.href} target="_blank" rel="sponsored nofollow noopener">
+                    <a href={it.href} target="_blank" rel={isAffiliateLink(it.href) ? 'sponsored nofollow noopener' : 'nofollow noopener'}>
                       <strong>{it.name}</strong>
                       <span>{it.blurb}</span>
                       <span class="affil__cta">View options <Icon name="arrow-right" size={14} /></span>
@@ -411,7 +421,10 @@ const medicalLd = {
             {
               content.sources.map((src) => (
                 <li>
-                  {src.url ? <a href={src.url} target="_blank" rel="noopener nofollow">{src.citation}</a> : src.citation}
+                  {(() => {
+                    const link = safeLinkAttributes(src.url, linkPolicy);
+                    return link ? <a href={link.href} target={link.target} rel={link.rel}>{src.citation}</a> : src.citation;
+                  })()}
                 </li>
               ))
             }
@@ -425,6 +438,8 @@ const medicalLd = {
             <strong>Medical disclaimer:</strong>{' '}
             {tool.slug === 'vitamin-d-sun-calculator'
               ? 'This tool summarizes your inputs and provides general sun-safety information. It does not calculate vitamin D production, diagnose deficiency, or prescribe a safe UV dose. Consult a qualified healthcare professional about your health.'
+              : tool.slug === 'recovery-time-calculator'
+              ? 'This site-defined recovery planning model does not measure muscle healing or provide a validated return-to-training time. Severe pain that limits normal movement needs professional assessment; seek urgent care for serious symptoms.'
               : 'This calculator is for general information and education only and is not medical advice, diagnosis, or treatment. Results are estimates based on population formulas. Always consult a qualified healthcare professional about your health.'}
           </p>
         </aside>
@@ -443,6 +458,8 @@ const medicalLd = {
         <strong>Not medical advice.</strong>{' '}
         {tool.slug === 'vitamin-d-sun-calculator'
           ? 'This printed summary does not measure vitamin D or prescribe a safe UV dose. Consult a qualified healthcare professional about your health.'
+          : tool.slug === 'recovery-time-calculator'
+          ? `This printed summary from ${SITE.name} (${SITE.tagline}) is based on a site-defined recovery-planning heuristic, not population norms, a validated healing timeline or medical clearance.`
           : `This result is an educational estimate from ${SITE.name} (${SITE.tagline}), based on population formulas — not a diagnosis or treatment. Always consult a qualified healthcare professional about your health.`}
       </p>
       <p class="print-sheet-foot__url">{pageUrl}</p>
@@ -495,7 +512,8 @@ const medicalLd = {
     font-size: 0.82rem;
     padding: 0.35rem 0.8rem;
     border-radius: var(--radius-pill);
-    color: var(--c);
+    /* Text in a darker mix of the category hue: 4.5:1+ on its tint for every category color. */
+    color: color-mix(in srgb, var(--c) 55%, #000);
     background: color-mix(in srgb, var(--c) 12%, white);
     border: 1px solid color-mix(in srgb, var(--c) 28%, white);
   }
@@ -626,6 +644,11 @@ const medicalLd = {
     font-size: 0.9rem;
     color: var(--muted);
     list-style: decimal;
+    /* Grid items default to min-width:auto, so one long citation token (an
+       author-society list joined by slashes, a DOI or URL) widened the page
+       at 390px. Let such tokens wrap instead. */
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
   .tool__sources a {
     color: var(--green-700);

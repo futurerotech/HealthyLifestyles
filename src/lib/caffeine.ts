@@ -58,6 +58,8 @@ export interface CaffeinePlan {
   events: TimelineEvent[];
   decay: DecayPoint[];
   slowMetabolizerNote: boolean;
+  /** The single dose alone exceeds the FDA general daily amount for healthy adults. */
+  overDailyLimit: boolean;
 }
 
 const round = (n: number, dp = 0) => {
@@ -141,6 +143,7 @@ export function computeCaffeinePlan(input: CaffeineInputs): CaffeinePlan {
     events,
     decay,
     slowMetabolizerNote: !!input.age && input.age >= 65,
+    overDailyLimit: dose > SAFE_DAILY_CAFFEINE_MG,
   };
 }
 
@@ -164,8 +167,10 @@ export function parseClock(value: string, fallback: number): number {
   return h * 60 + mm;
 }
 
-/** Amount generally considered safe for most healthy adults (FDA). */
+/** FDA: up to ~400 mg/day is not generally associated with dangerous effects in healthy adults. */
 export const SAFE_DAILY_CAFFEINE_MG = 400;
+/** ACOG: during pregnancy, keep caffeine under 200 mg a day. */
+export const PREGNANCY_DAILY_CAFFEINE_MG = 200;
 
 /** Common caffeine sources (mg) for quick-select. */
 export const CAFFEINE_PRESETS: { label: string; mg: number }[] = [

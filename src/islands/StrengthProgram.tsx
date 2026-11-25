@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import {
   buildProgram,
+  nextBlock,
   roundToIncrement,
   LIFT_NAMES,
   LIFT_ORDER,
@@ -10,7 +11,15 @@ import {
   type Units,
   type LiftKey,
   type Program,
+  type BlockOutcome,
 } from '../lib/strength-program';
+
+const OUTCOME_LABEL: Record<BlockOutcome, string> = {
+  completed: 'Completed every set and rep with good form',
+  'missed-one': 'Missed reps in one week',
+  'missed-multiple': 'Missed reps in two or more weeks',
+  pain: 'Sharp or joint pain, or pain that doesn’t go away',
+};
 
 interface LiftState { enabled: boolean; oneRm: number; }
 
@@ -46,6 +55,7 @@ export default function StrengthProgram() {
   const [goal, setGoal] = useState<Goal>('strength');
   const [program, setProgram] = useState<Program | null>(null);
   const [error, setError] = useState('');
+  const [outcomes, setOutcomes] = useState<Partial<Record<LiftKey, BlockOutcome>>>({});
 
   // Prefill 1RMs from URL params (?squat=&bench=&deadlift=&ohp=&row=&units=).
   useEffect(() => {
@@ -83,7 +93,9 @@ export default function StrengthProgram() {
   const setOneRm = (k: LiftKey, v: number) => setLifts((l) => ({ ...l, [k]: { ...l[k], oneRm: v } }));
   const toggleLift = (k: LiftKey) => setLifts((l) => ({ ...l, [k]: { ...l[k], enabled: !l[k].enabled } }));
 
-  const generate = () => {
+  const generate = (src: Record<LiftKey, LiftState> = lifts) => {
+    const lifts = src;
+    setOutcomes({});
     const selected = LIFT_ORDER.filter((k) => lifts[k].enabled);
     if (selected.length === 0) { setError('Pick at least one lift to train.'); setProgram(null); return; }
     const bad = selected.find((k) => !(lifts[k].oneRm > 0) || lifts[k].oneRm > (units === 'kg' ? 600 : 1300));
@@ -118,7 +130,8 @@ export default function StrengthProgram() {
     y += 6;
     program.lifts.forEach((lift) => {
       line(`${lift.name}  (1RM ${lift.oneRm} ${program.units})`, 13, true, 16);
-      line(`   Warm-up: ${lift.warmups.map((w) => `${w.label.replace(' ', ' ')} @ ${w.weight}`).join('  ·  ')}`, 8, false, 12);
+      line(`   Warm-up: ${lift.warmups.length ? lift.warmups.map((w) => `${w.label.replace(' ', ' ')} @ ${w.weight}`).join('  ·  ') : 'a few light, easy sets with the same equipment'}`, 8, false, 12);
+      if (lift.belowBar) line(`   Some weights are lighter than an empty bar (${lift.barWeight} ${program.units}): use dumbbells, a lighter bar or a machine.`, 8, false, 12);
       lift.weeks.forEach((w) => line(`   ${w.label}: ${w.sets} × ${w.reps} @ ${w.percent}% = ${w.weight} ${program.units}`, 9, false, 12));
       y += 6;
     });
@@ -151,6 +164,7 @@ export default function StrengthProgram() {
               </label>
               <div class="sp__lift-input">
                 <input type="number" min="0" value={lifts[k].oneRm} disabled={!lifts[k].enabled}
+                  aria-label={`${LIFT_NAMES[k]} 1-rep max (${lengthLabel})`}
                   onInput={(e) => setOneRm(k, num((e.target as HTMLInputElement).value, 0))} />
                 <small>{lengthLabel}</small>
               </div>
@@ -185,7 +199,7 @@ export default function StrengthProgram() {
         </div>
 
         {error && <p class="sp__error" role="alert">{error}</p>}
-        <button type="button" class="btn btn-primary btn-lg sp__go" onClick={generate}>Build my 4-week program</button>
+        <button type="button" class="btn btn-primary btn-lg sp__go" onClick={() => generate()}>Build my 4-week program</button>
       </div>
 
       {/* ---------------- Result ---------------- */}
@@ -222,8 +236,16 @@ export default function StrengthProgram() {
                 <h3>{lift.name}</h3>
                 <span class="sp__lift-1rm">1RM {lift.oneRm} {program.units}</span>
               </div>
+              {lift.belowBar && (
+                <p class="sp__error" role="note">
+                  Some of these weights are lighter than an empty barbell ({lift.barWeight} {program.units}). Use dumbbells, a lighter
+                  training bar or a machine for those sessions rather than loading the bar.
+                </p>
+              )}
               <p class="sp__warmup">
-                <strong>Warm-up:</strong> {lift.warmups.map((w) => `${w.label} @ ${w.weight} ${program.units}`).join('  ·  ')}
+                <strong>Warm-up:</strong> {lift.warmups.length
+                  ? lift.warmups.map((w) => `${w.label} @ ${w.weight} ${program.units}`).join('  ·  ')
+                  : 'a few light, easy sets with the same equipment before your working sets'}
               </p>
               <div class="sp__table-wrap">
                 <table class="sp__table">
@@ -257,6 +279,58 @@ export default function StrengthProgram() {
           </section>
 
           <p class="sp__rest">{program.restGuidance} {program.warmupNote}</p>
+
+          {/* Next-block progression (Phase 5 Candidate 3) */}
+          <section class="sp__next card" aria-labelledby="sp-next-h">
+            <h3 class="sp__h" id="sp-next-h">After the block: plan the next one</h3>
+            <p class="sp__next-intro">When you finish the 4 weeks, record how each lift went. The next block uses simple, transparent rules: a small step up after a fully completed block (never more than 10% of your 1RM), the same weights after missing reps in one week, and about 10% lighter after missing reps in two or more weeks. Nothing is saved or sent.</p>
+            {program.lifts.map((lift) => {
+              const oc = outcomes[lift.key];
+              const res = oc ? nextBlock(lift.key, lift.oneRm, oc, program.units) : null;
+              return (
+                <div class="sp__next-row">
+                  <label class="sp__field">
+                    <span>{lift.name} (1RM {lift.oneRm} {program.units})</span>
+                    <select
+                      value={oc ?? ''}
+                      onChange={(e) => {
+                        const v = (e.target as HTMLSelectElement).value as BlockOutcome | '';
+                        setOutcomes((o) => ({ ...o, [lift.key]: v || undefined }));
+                      }}
+                    >
+                      <option value="">How did this block go?</option>
+                      {(Object.keys(OUTCOME_LABEL) as BlockOutcome[]).map((k) => <option value={k}>{OUTCOME_LABEL[k]}</option>)}
+                    </select>
+                  </label>
+                  {res && (
+                    <p class={res.outcome === 'pain' ? 'sp__error' : 'sp__next-res'} role="status">
+                      {res.nextOneRm !== null && <strong>Next 1RM: {res.nextOneRm} {program.units}. </strong>}
+                      {res.note}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+            <button
+              type="button"
+              class="btn btn-primary"
+              disabled={!program.lifts.some((l) => outcomes[l.key])}
+              onClick={() => {
+                const next = { ...lifts };
+                for (const l of program.lifts) {
+                  const oc = outcomes[l.key];
+                  if (!oc) continue;
+                  const res = nextBlock(l.key, l.oneRm, oc, program.units);
+                  next[l.key] = res.nextOneRm === null ? { ...next[l.key], enabled: false } : { enabled: true, oneRm: res.nextOneRm };
+                }
+                setLifts(next);
+                generate(next);
+              }}
+            >
+              Build my next block
+            </button>
+            <p class="sp__next-note">Only the cap on increases (2–10% of the load) comes from American College of Sports Medicine progression guidance for healthy adults. Repeating the block and the 10% reset are this tool’s own simple rules. This is educational, not individual coaching. Lifts marked with pain are left out of the next block.</p>
+          </section>
         </div>
       )}
     </div>

@@ -16,19 +16,46 @@ const AHA_BP: Source = {
     'American Heart Association. "Understanding Blood Pressure Readings." (Blood pressure categories.)',
   url: 'https://www.heart.org/en/health-topics/high-blood-pressure/understanding-blood-pressure-readings',
 };
+const ACC_AHA_2025_GUIDELINE: Source = {
+  citation:
+    'Jones DW, Ferdinand KC, Taler SJ, et al. "2025 AHA/ACC/AANP/AAPA/ABC/ACCP/ACPM/AGS/AMA/ASPC/NMA/PCNA/SGIM Guideline for the Prevention, Detection, Evaluation and Management of High Blood Pressure in Adults." Hypertension. 2025. doi:10.1161/HYP.0000000000000249.',
+  url: 'https://doi.org/10.1161/HYP.0000000000000249',
+};
+
 const AHA_GUIDELINE: Source = {
   citation:
-    'Whelton PK, Carey RM, Aronow WS, et al. "2017 ACC/AHA Guideline for the Prevention, Detection, Evaluation, and Management of High Blood Pressure in Adults." Hypertension. 2018;71(6):e13–e115.',
-  url: pubmed('2017 ACC AHA Guideline High Blood Pressure in Adults Whelton'),
+    'American Heart Association / American College of Cardiology. "2025 High Blood Pressure Guideline: Top Things to Know." (Updated adult hypertension guidance.)',
+  url: 'https://professional.heart.org/en/science-news/2025-high-blood-pressure-guideline/top-things-to-know',
+};
+
+const ACOG_PREGNANCY_BP: Source = {
+  citation: 'American College of Obstetricians and Gynecologists. "Preeclampsia and High Blood Pressure During Pregnancy." (Severe threshold: systolic 160+ or diastolic 110+.)',
+  url: 'https://www.acog.org/womens-health/faqs/preeclampsia-and-high-blood-pressure-during-pregnancy',
+};
+const ACOG_POSTPARTUM_BP: Source = {
+  citation: 'American College of Obstetricians and Gynecologists. "3 Conditions to Watch for After Childbirth." (Postpartum preeclampsia can occur up to six weeks after delivery; call for 140+/90+.)',
+  url: 'https://www.acog.org/womens-health/experts-and-stories/the-latest/3-conditions-to-watch-for-after-childbirth',
+};
+const CDC_PREGNANCY_BP: Source = {
+  citation: 'Centers for Disease Control and Prevention. "High Blood Pressure During Pregnancy." (Updated October 13, 2026.)',
+  url: 'https://www.cdc.gov/high-blood-pressure/about/high-blood-pressure-during-pregnancy.html',
 };
 
 const AHA_HR: Source = {
   citation: 'American Heart Association. "All About Heart Rate (Pulse)" — normal resting heart rate is 60–100 bpm.',
   url: 'https://www.heart.org/en/health-topics/high-blood-pressure/the-facts-about-high-blood-pressure/all-about-heart-rate-pulse',
 };
+const AHA_TARGET_HR: Source = {
+  citation: 'American Heart Association. "Target Heart Rates Chart" — age-predicted values are population estimates and medications can change personal training targets.',
+  url: 'https://www.heart.org/en/healthy-living/exercise-and-physical-activity/fitness-basics/target-heart-rates/',
+};
 const MAYO_HR: Source = {
   citation: 'Mayo Clinic. "What\'s a normal resting heart rate?" (Well-trained athletes may be 40–60 bpm.)',
   url: 'https://www.mayoclinic.org/healthy-lifestyle/fitness/expert-answers/heart-rate/faq-20057979',
+};
+const AHA_HR_URGENT: Source = {
+  citation: 'American Heart Association. "All About Heart Rate (Pulse)." (When to call emergency services.)',
+  url: 'https://www.heart.org/en/health-topics/high-blood-pressure/the-facts-about-high-blood-pressure/all-about-heart-rate-pulse',
 };
 
 export const HEART_CONTENT: Record<string, ToolContent> = {
@@ -36,23 +63,23 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
   'resting-heart-rate-checker': {
     seoTitle: 'Resting Heart Rate Checker – Is Yours Healthy?',
     metaDescription:
-      'Check your resting heart rate against age and sex benchmarks — athlete to below-average — with plain-English meaning. Educational, not a diagnosis.',
+      'Compare your resting pulse with the usual adult 60–100 bpm reference and an illustrative age- and sex-adjusted fitness scale. Not a diagnosis.',
     intro:
-      'Enter your resting heart rate with your age and sex to see how it compares with healthy adult benchmarks — from athlete level to below average — and what the number means.',
+      'Enter your resting pulse to see the usual adult clinical reference and an illustrative comparison across age and sex inputs. The fitness-band labels are not validated medical or athletic classifications.',
     notice:
-      'Informational only — this does not diagnose any heart condition. A persistently very low or very high resting heart rate, or symptoms like dizziness, palpitations or breathlessness, should be checked by a doctor.',
+      'For adults 18+. This calculator cannot diagnose heart rhythm or fitness. Its age/sex fitness cutoffs are illustrative, not AHA or Mayo clinical limits. Chest pain, severe trouble breathing or fainting requires emergency services immediately at any pulse; persistent unexplained very low or high readings deserve medical review.',
     sections: [
       {
         h2: 'What is a normal resting heart rate?',
         paragraphs: [
-          'Your resting heart rate (RHR) is how many times your heart beats per minute while you are at rest. For most adults the American Heart Association puts the normal range at 60 to 100 beats per minute. A lower resting rate generally points to better cardiovascular fitness and a more efficient heart — well-trained endurance athletes are often in the 40 to 60 range.',
+          'Your resting heart rate (RHR) is how many times your heart beats per minute while you are at rest. The American Heart Association lists 60 to 100 bpm as the usual adult range; trained endurance athletes can sometimes be in the 40 to 60 range. A low number alone does not establish athletic conditioning or a healthy rhythm; medications and medical conditions may also lower your pulse.',
           'The most accurate time to measure is first thing in the morning, before you get up: count your pulse for 30 seconds and double it, or use a fitness tracker’s resting figure.',
         ],
       },
       {
         h2: 'How to read your benchmark',
         paragraphs: [
-          'This checker places your number into a fitness band — Athlete, Excellent, Good, Average, or Below average — adjusted slightly for sex (women average a few beats higher) and age. The bands are a general fitness guide, not a medical assessment.',
+          'This checker preserves five historical illustrative bands — Athlete, Excellent, Good, Average, and Below average — using internal offsets of 4 bpm for the female input and 1–2 bpm for older adult ages. These exact cutoffs are not validated clinical or fitness thresholds, and they cannot establish athletic status or heart health. An 80-bpm result can display Below average while still falling within the usual adult 60–100 bpm reference range. The tool presents that clinical context separately.',
         ],
         list: {
           intro: 'What can move your resting heart rate:',
@@ -68,17 +95,17 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
       {
         h2: 'When to see a doctor',
         paragraphs: [
-          'A single reading outside the range is rarely a concern on its own. But see a doctor if your resting heart rate is persistently above 100 bpm (tachycardia) or below 60 bpm without being athletic (bradycardia), or if you have symptoms such as dizziness, fainting, palpitations, chest discomfort or shortness of breath. These can have many causes, and only a clinician can assess them.',
+          'Do not use an online pulse label to assess emergency symptoms. Call emergency services immediately for chest pain, severe breathing difficulty, fainting or other serious new symptoms, whether the reading is low, high or within 60–100 bpm. Without those symptoms, discuss persistent values above 100 bpm, repeatedly low values that are new or unexplained, or an irregular pulse with a healthcare professional; only a clinician can assess their cause.',
         ],
       },
     ],
     faq: [
-      { q: 'What is a good resting heart rate by age?', a: 'For most adults of any age, 60–100 bpm is normal, and lower (toward 50–60) tends to indicate better fitness. Benchmarks shift only slightly with age; symptoms matter more than the exact number.' },
-      { q: 'Is a resting heart rate of 50 too low?', a: 'For a fit or athletic person, 50 bpm can be perfectly healthy. For someone who isn’t athletic, or who feels dizzy or faint, a rate that low is worth discussing with a doctor.' },
+      { q: 'What is a good resting heart rate by age?', a: 'For adults, 60–100 bpm is a common reference range; athletes and people taking certain medications may be lower. This site’s age/sex-adjusted bands are illustrations, not validated fitness or medical reference limits. Symptoms and individual trends matter more than an internal label.' },
+      { q: 'Is a resting heart rate of 50 too low?', a: 'A resting rate of 50 bpm can occur in trained athletes or people using heart-rate-lowering medications. It is not automatically safe or unsafe. If the reading is new, repeatedly unexplained or accompanied by symptoms, seek medical advice; call emergency services for chest pain, severe breathlessness or fainting.' },
       { q: 'Why is my resting heart rate high?', a: 'Common causes include low fitness, stress, caffeine, dehydration, poor sleep, illness, or certain medications. A persistently high resting rate (over 100 bpm) should be checked by a doctor.' },
       { q: 'How do I lower my resting heart rate?', a: 'Regular aerobic exercise is the most reliable way, along with good sleep, stress management, hydration, and limiting caffeine and nicotine. Improvements usually show over weeks to months.' },
     ],
-    sources: [AHA_HR, MAYO_HR],
+    sources: [AHA_HR, MAYO_HR, AHA_HR_URGENT],
   },
   // ============================================================
   'target-heart-rate-calculator': {
@@ -86,15 +113,15 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
     metaDescription:
       'Find your 5 heart-rate training zones with the Karvonen method, using your age and resting heart rate. Free target heart rate calculator, no signup.',
     intro:
-      'Training in the right heart-rate zone helps you get the most from every workout. Enter your age and resting heart rate to see your maximum heart rate and your five personalised training zones.',
+      'Enter your age and a measured resting pulse to estimate maximum exercise heart rate and five Karvonen training zones. The ranges are planning estimates, not a guarantee of safety or a prescription for high-intensity exercise.',
     notice:
-      'Informational only — not a diagnosis. If you have a heart condition, or take medication that affects your heart rate (such as beta-blockers), talk to your doctor before training by heart rate.',
+      'For adults 18+. Stop exercise and call emergency services immediately for chest pain, severe shortness of breath, fainting or other serious new symptoms. A persistently unexplained very low or high resting pulse, heart conditions, and medicines such as beta-blockers require individualized clinical guidance; age-based zones are not exercise clearance.',
     sections: [
       {
         h2: 'How heart rate zones work',
         paragraphs: [
-          'Your training zones are built from two numbers: your maximum heart rate (the fastest your heart can safely beat) and your resting heart rate. The gap between them is your heart-rate reserve — the range you actually train within.',
-          'This calculator uses the Karvonen method, which is more personalised than a simple percentage of maximum because it accounts for your resting heart rate. The formula is: target = ((max HR − resting HR) × intensity %) + resting HR. A fitter person with a low resting heart rate gets zones tailored to them.',
+          'Training zones use an age-predicted maximum exercise heart rate and your measured resting pulse. The difference is heart-rate reserve; it is a mathematical range, not a medically established safe upper limit. A calculated maximum is not clearance to exercise at that intensity.',
+          'This calculator uses Karvonen heart-rate reserve: target = ((estimated max HR − resting HR) × intensity fraction) + resting HR. It offers an individualized numerical estimate from two inputs, not a measured lactate threshold, verified fitness level or medical exercise prescription. An estimated reserve under 10 bpm cannot form five distinguishable whole-bpm zones, so the calculator asks you to recheck those inputs instead of showing misleading identical ranges.',
         ],
       },
       {
@@ -103,36 +130,36 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
           intro: 'Each zone trains your body in a different way:',
           items: [
             'Zone 1 (50–60%) — very light: warming up, cooling down and recovery.',
-            'Zone 2 (60–70%) — light: builds endurance and burns a high proportion of fat.',
+            'Zone 2 (60–70%) — light: a conventional steady-effort zone, not a medically validated fat-loss threshold.',
             'Zone 3 (70–80%) — moderate: improves aerobic fitness and circulation.',
             'Zone 4 (80–90%) — hard: raises your anaerobic threshold and speed.',
-            'Zone 5 (90–100%) — maximum: short, intense bursts for peak performance.',
+            'Zone 5 (90–100%) — near an estimated maximum: not an exercise recommendation for unprepared or medically restricted users.',
           ],
         },
       },
       {
         h2: 'Using your zones',
         paragraphs: [
-          'For general health, most of your training should sit in Zones 2 and 3, with shorter efforts in Zones 4 and 5 once you have a fitness base. The popular "fat-burning zone" (Zone 2) burns the highest share of calories from fat, but higher-intensity work burns more total calories — both have a place.',
-          'Wear a heart-rate monitor or chest strap for accuracy; wrist readings can lag during quick changes in effort. Remember these zones are estimates: your true maximum heart rate can differ from the formula by 10–12 beats per minute, so use how you feel (the ability to talk, for example) as a cross-check.',
+          'For many adults, gradually building sustainable easy-to-moderate physical activity is a practical starting point. The five numerical bands are training conventions; actual exertion varies. Higher-intensity efforts are not required to benefit from activity, and the label “fat-burning zone” does not promise greater weight loss.',
+          'Wrist monitors can lag during intervals; track how you feel and whether you can talk comfortably. Individual maximum heart rates can differ substantially from age-based estimates. If your resting pulse is unusually low, persistently above 100 bpm, or close to the estimated maximum, seek clinical advice before using training zones. Stop activity and seek emergency help for chest pain, severe breathlessness or fainting.',
         ],
       },
     ],
     faq: [
       {
         q: 'What is the Karvonen method?',
-        a: 'The Karvonen method calculates training zones using your heart-rate reserve (maximum minus resting heart rate): target = ((max − resting) × intensity) + resting. It personalises zones better than a flat percentage of maximum.',
+        a: 'The Karvonen method calculates training zones using your heart-rate reserve (maximum minus resting heart rate): target = ((max − resting) × intensity) + resting. It personalizes zones better than a flat percentage of maximum.',
       },
       {
         q: 'What is the best heart rate zone for fat loss?',
-        a: 'Zone 2 (60–70%) burns the highest proportion of calories from fat, but higher zones burn more total calories. For weight loss, total calories burned matters most, so mix the zones.',
+        a: 'There is no single guaranteed fat-loss heart-rate zone. Choose appropriate, sustainable activity based on ability, symptoms and any medical restrictions; these estimated training zones do not prescribe vigorous exercise.',
       },
       {
         q: 'How do I find my resting heart rate?',
         a: 'Measure your pulse for 60 seconds first thing in the morning, before getting out of bed. A typical adult resting heart rate is 60–100 bpm; fitter people are often lower.',
       },
     ],
-    sources: [KARVONEN, TANAKA],
+    sources: [KARVONEN, TANAKA, AHA_TARGET_HR, AHA_HR],
   },
 
   // ============================================================
@@ -141,21 +168,21 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
     metaDescription:
       'Estimate your maximum heart rate from your age using the 220 − age and Tanaka formulas. Free, instant max heart rate calculator — no signup.',
     intro:
-      'Your maximum heart rate is the highest your heart can beat during all-out effort, and it sets the ceiling for your training zones. Enter your age to estimate it with two trusted formulas.',
+      'Estimate an age-predicted maximum exercise heart rate with two population equations. This estimate is not a measured maximum, a safe upper limit, or a target you need to reach during exercise.',
     notice:
-      'Informational only — not a diagnosis. Estimated maximum heart rate is a general guide, not a medical assessment. See a doctor before starting intense exercise, especially if you have any heart concerns.',
+      'For adults 18+. This age-based result is not an exercise clearance or a safe heart-rate ceiling. Stop exercising and call emergency services for chest pain or pressure, severe trouble breathing, fainting or other serious new symptoms. If you have a heart condition or take medicines such as beta-blockers, ask a clinician for individualized exercise guidance.',
     sections: [
       {
         h2: 'How maximum heart rate is estimated',
         paragraphs: [
-          'The best-known formula is simply 220 minus your age. It is easy to remember and widely used, which is why most gym equipment relies on it. However, research has shown it can be off by 10–12 beats per minute for any individual.',
-          'The Tanaka equation — 208 − (0.7 × age) — was developed from a large review of studies and tends to be more accurate, particularly for people over 40, where 220 − age increasingly underestimates the true maximum. This calculator shows both so you can compare.',
+          'The best-known formula is 220 minus age. It is simple but was not validated as a precise individual limit; the difference between predicted and measured maximum heart rate varies and can exceed 10–12 beats per minute. Population averages should not be treated as a hard limit or a personal exercise prescription.',
+          'The Tanaka equation — 208 − (0.7 × age) — comes from research on healthy adults and often improves age-based average predictions, especially in older groups. It is not validated as an exact result for every individual, especially for people with conditions or medicines that alter exercise heart-rate response. This adult calculator displays both estimates for comparison.',
         ],
       },
       {
         h2: 'Why it matters',
         paragraphs: [
-          'Maximum heart rate is the anchor for heart-rate training. Your zones — from easy recovery to all-out effort — are all calculated as percentages of this number, so a more accurate estimate gives you more useful zones.',
+          'Age-predicted maximum heart rate is one starting input for estimating exercise-intensity zones. Neither equation measures your actual maximum, and the estimated number does not define a safe ceiling, physiological threshold or target to pursue at all-out effort.',
           'It is not a measure of fitness: a higher or lower maximum heart rate does not mean you are fitter. Maximum heart rate is largely determined by age and genetics and naturally declines as you get older, which is normal and expected.',
         ],
       },
@@ -163,14 +190,14 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
         h2: 'Measuring it accurately',
         paragraphs: [
           'Formulas are estimates. The only way to find your true maximum is a monitored maximal effort test — and that should only be done when you are healthy and, ideally, under professional supervision, as it pushes your heart to its limit.',
-          'For everyday training, the formula estimate is perfectly adequate. If you are returning to exercise after a break, are over 40, or have any cardiovascular risk factors, check with your doctor before attempting high-intensity work near your maximum.',
+          'For general activity, age-predicted estimates can offer rough context, but perceived exertion and symptoms remain important. If you have a heart condition, take rate-limiting medications or are returning to exercise with medical risk factors, discuss suitable intensity with a healthcare professional. Stop activity and call emergency services for chest pain, severe breathing difficulty or fainting.',
         ],
       },
     ],
     faq: [
       {
         q: 'Is 220 minus age accurate?',
-        a: 'It is a useful rule of thumb but can be off by 10–12 bpm for any individual. The Tanaka formula (208 − 0.7 × age) is generally more accurate, especially for people over 40.',
+        a: 'It is a population-level rule of thumb, not an individual safe limit. Errors vary and can exceed 10–12 bpm. Tanaka (208 − 0.7 × age) may be closer on average for healthy older adults, but neither equation predicts a personal maximum exactly.',
       },
       {
         q: 'Does a higher maximum heart rate mean I am fitter?',
@@ -181,23 +208,23 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
         a: 'Age-related changes in the heart’s electrical system gradually lower the maximum rate it can reach. This decline is normal and is why both formulas subtract from a baseline using your age.',
       },
     ],
-    sources: [TANAKA, KARVONEN],
+    sources: [TANAKA, KARVONEN, AHA_TARGET_HR, AHA_HR],
   },
 
   // ============================================================
   'blood-pressure-checker': {
     seoTitle: 'Blood Pressure Category Checker (AHA)',
     metaDescription:
-      'Enter your systolic and diastolic numbers to see your American Heart Association blood pressure category, from Normal to Hypertensive Crisis. Free.',
+      'Enter your systolic and diastolic numbers to see your American Heart Association blood pressure category, from Normal to severe hypertension. Free.',
     intro:
       'Blood pressure is given as two numbers — systolic over diastolic. Enter your reading to see which American Heart Association category it falls into and what it means.',
     notice:
-      'Informational only — not a diagnosis. Only a healthcare professional can diagnose or treat high blood pressure. If your reading is very high or you feel unwell, seek medical care right away.',
+      'General adult categories only — not a pregnancy or postpartum risk assessment. If pregnant or within 6 weeks after childbirth: call your obstetric care team right away at systolic 140+ OR diastolic 90+; systolic 160+ OR diastolic 110+ requires urgent assessment even without symptoms. Severe headache, vision changes, upper-abdominal pain or breathing difficulty need immediate medical attention at any reading. This tool cannot diagnose high blood pressure or preeclampsia.',
     sections: [
       {
         h2: 'Understanding the two numbers',
         paragraphs: [
-          'Blood pressure is measured in millimetres of mercury (mmHg) and written as systolic over diastolic, for example 120/80. The systolic (top) number is the pressure in your arteries when your heart beats; the diastolic (bottom) number is the pressure between beats, when the heart rests.',
+          'Blood pressure is measured in millimeters of mercury (mmHg) and written as systolic over diastolic, for example 120/80. The systolic (top) number is the pressure in your arteries when your heart beats; the diastolic (bottom) number is the pressure between beats, when the heart rests.',
           'Either number being high is enough to raise your category. This checker uses whichever of your two numbers falls into the higher band, exactly as clinicians do.',
         ],
       },
@@ -210,15 +237,23 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
             'Elevated: 120–129 and below 80.',
             'High Stage 1: 130–139 or 80–89.',
             'High Stage 2: 140 or higher, or 90 or higher.',
-            'Hypertensive crisis: higher than 180 and/or higher than 120 — seek medical care.',
+            'Severe hypertension: systolic higher than 180 and/or diastolic higher than 120 — repeat the measurement and contact a healthcare professional; emergency symptoms require emergency services.',
           ],
         },
       },
       {
+        h2: 'Pregnancy and the first six weeks after childbirth',
+        paragraphs: [
+          'These general adult categories are not a pregnancy or postpartum risk assessment. Pregnancy and recent childbirth require closer attention: systolic blood pressure of 160 mmHg or higher OR diastolic pressure of 110 mmHg or higher is severe and requires urgent obstetric or emergency assessment, even without symptoms.',
+          'If you are pregnant or within six weeks after giving birth and record systolic pressure of 140 mmHg or higher OR diastolic pressure of 90 mmHg or higher, call your obstetric care team right away. A severe headache, vision changes, upper-abdominal pain, or shortness of breath needs immediate medical attention even when your measured pressure is below those thresholds. Postpartum preeclampsia can begin after delivery.',
+        ],
+      },
+      {
         h2: 'What to do about your reading',
         paragraphs: [
-          'A single reading does not diagnose high blood pressure. Levels rise and fall through the day with activity, stress, caffeine and even a full bladder. Take several measurements while seated and rested, on different days, and share the pattern with your doctor.',
-          'If your reading is in the elevated or Stage 1 range, lifestyle changes — less salt, more activity, a healthy weight, less alcohol and not smoking — often help. Stage 2 usually needs medication alongside these changes. A hypertensive crisis (over 180/120) is a medical emergency, especially with symptoms such as chest pain, shortness of breath or trouble speaking.',
+          'A single reading does not diagnose high blood pressure. Levels rise and fall through the day with activity, stress, caffeine and even a full bladder. The 2025 AHA/ACC guideline bases the category on the average of at least two careful readings taken on at least two occasions, so take several measurements while seated and rested, on different days, and share the pattern with your doctor.',
+          'Use a validated upper-arm cuff in the right size for your arm (independently validated home devices are listed at validatebp.org). The 2025 guideline does not recommend cuffless devices, such as smartwatches, for diagnosing or managing high blood pressure, because their accuracy has not been established.',
+          'If your reading is in the elevated or Stage 1 range, lifestyle changes — less salt, more activity, a healthy weight, less alcohol and not smoking — often help. Stage 2 usually needs medication alongside these changes. A reading higher than 180 systolic or higher than 120 diastolic is in the severe hypertension range. With chest pain, shortness of breath, back pain, numbness, weakness, changes in vision, difficulty speaking, or other new concerning symptoms, call emergency services immediately. Without those symptoms, wait at least one minute and measure again; contact your healthcare professional promptly if it remains this high.',
         ],
       },
     ],
@@ -232,15 +267,19 @@ export const HEART_CONTENT: Record<string, ToolContent> = {
         a: 'Both matter, and your category is set by whichever is higher. Systolic pressure tends to be the stronger predictor of risk in adults over 50, but a high diastolic reading also needs attention.',
       },
       {
-        q: 'What should I do in a hypertensive crisis?',
-        a: 'A reading over 180/120 mmHg is dangerous. Wait five minutes and re-measure; if it is still that high, contact your doctor urgently. If you have chest pain, shortness of breath, weakness or trouble speaking, call emergency services immediately.',
+        q: 'What should I do if my blood pressure is higher than 180 systolic or 120 diastolic?',
+        a: 'If you have chest pain, shortness of breath, back pain, numbness, weakness, changes in vision, difficulty speaking, or other new concerning symptoms, call emergency services immediately without waiting. Otherwise, wait at least one minute and measure again. If the reading remains this high, contact your healthcare professional promptly. This checker cannot diagnose a hypertensive emergency.',
+      },
+      {
+        q: 'Do these blood pressure categories apply during pregnancy or postpartum?',
+        a: 'No. If you are pregnant or within six weeks after childbirth, systolic 160 mmHg or higher OR diastolic 110 mmHg or higher requires urgent obstetric or emergency assessment, even without symptoms. At systolic 140 or higher OR diastolic 90 or higher, call your obstetric care team right away. Seek immediate medical attention for severe headache, vision changes, upper-abdominal pain or trouble breathing regardless of the reading.',
       },
       {
         q: 'Can one high reading mean I have hypertension?',
         a: 'No. A diagnosis is based on multiple readings over time, taken correctly at rest. This tool is for information only — your doctor confirms any diagnosis of high blood pressure.',
       },
     ],
-    sources: [AHA_BP, AHA_GUIDELINE],
+    sources: [AHA_BP, AHA_GUIDELINE, ACC_AHA_2025_GUIDELINE, ACOG_PREGNANCY_BP, ACOG_POSTPARTUM_BP, CDC_PREGNANCY_BP],
   },
 
   // ============================================================

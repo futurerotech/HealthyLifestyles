@@ -7,6 +7,7 @@
  * details are verified, then assign them to the relevant content.
  */
 import { SOCIAL_FOLLOW, SOCIAL_NETWORKS } from '../consts';
+import { resolveAuthorIdentity } from '../lib/author-identity.mjs';
 
 export interface AuthorLink {
   network: keyof typeof SOCIAL_NETWORKS | 'website';
@@ -14,6 +15,8 @@ export interface AuthorLink {
 }
 
 export interface Author {
+  /** Stable Payload identity, present only on CMS profiles. */
+  cmsId?: string;
   slug: string;
   name: string;
   /** Short role line, e.g. "Research & Editorial". */
@@ -53,9 +56,5 @@ export const getAuthor = (slug: string): Author | undefined =>
   AUTHORS.find((a) => a.slug === slug);
 
 /** Resolve an author by slug OR by display name (articles store the name). */
-export const resolveAuthor = (nameOrSlug: string): Author => {
-  const bySlug = getAuthor(nameOrSlug);
-  if (bySlug) return bySlug;
-  const byName = AUTHORS.find((a) => a.name === nameOrSlug);
-  return byName ?? getAuthor(DEFAULT_AUTHOR_SLUG)!;
-};
+export const resolveAuthor = (nameOrSlug: string): Author | undefined =>
+  resolveAuthorIdentity(nameOrSlug, AUTHORS);

@@ -225,12 +225,17 @@ export default function CaffeineCurfew() {
         {shareMsg && <p class="cc__share-msg">{shareMsg}</p>}
       </section>
 
+      {plan.overDailyLimit && (
+        <p class="cc__note" role="note"><strong>That single amount is more than 400 mg</strong>, the most the FDA says is generally safe
+          per day for healthy adults. Large amounts can cause a racing heart, shakiness or anxiety.</p>
+      )}
       {plan.slowMetabolizerNote && (
         <p class="cc__note">Older adults often clear caffeine more slowly — consider an even earlier cutoff than shown.</p>
       )}
       <p class="cc__note">
         General sleep-hygiene education, not medical advice. Caffeine metabolism varies a lot between people
         (genetics, smoking, pregnancy, and some medications change it) — treat these times as a starting point and adjust to how you feel.
+        If you are pregnant, keep caffeine under 200 mg a day in total; children and teens should limit or avoid it.
       </p>
     </div>
   );

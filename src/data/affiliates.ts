@@ -1,7 +1,9 @@
 /**
- * Tasteful, relevant affiliate recommendations per tool. Links are placeholder
- * search URLs — replace `href` with your real affiliate-tagged links. The FTC
- * disclosure is rendered by ToolPageLayout wherever a section appears.
+ * Relevant product suggestions per tool. Most links are plain Amazon search URLs
+ * with NO affiliate tag: they earn nothing and must not be presented as affiliate
+ * or sponsored placements. A link counts as an affiliate link only when it carries
+ * a verified affiliate tag (see isAffiliateLink); only then does ToolPageLayout show
+ * the FTC earnings disclosure and rel="sponsored".
  * Keep these genuinely useful and never let them crowd out the tool/content.
  */
 export interface AffiliateItem {
@@ -16,6 +18,16 @@ export interface AffiliateSection {
 }
 
 const az = (q: string): string => `https://www.amazon.com/s?k=${encodeURIComponent(q)}`;
+
+/** True only for links that carry an affiliate tracking tag (e.g. Amazon `tag=`). */
+export function isAffiliateLink(href: string): boolean {
+  try {
+    const url = new URL(href);
+    return url.searchParams.has('tag') && url.searchParams.get('tag')!.trim() !== '';
+  } catch {
+    return false;
+  }
+}
 
 export const AFFILIATES: Record<string, AffiliateSection> = {
   'meal-plan-generator': {
@@ -53,7 +65,7 @@ export const AFFILIATES: Record<string, AffiliateSection> = {
   'keto-calculator': {
     heading: 'Keto kitchen helpers',
     items: [
-      { name: 'Ketone test strips', blurb: 'Check whether you’ve reached ketosis.', href: az('ketone test strips') },
+      { name: 'Ketone test strips', blurb: 'Urine strips give only a rough sign of ketones and are not a medical test.', href: az('ketone test strips') },
       { name: 'MCT oil', blurb: 'A popular keto-friendly fat source for energy.', href: az('MCT oil') },
     ],
   },

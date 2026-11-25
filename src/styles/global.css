@@ -33,6 +33,7 @@
   --dark: #0a1628;       /* hero / footer */
   --muted: #475569;     /* WCAG AA 7.6:1 on white — was #64748b (4.8:1) */
   --border: #e2e8f0;
+  --field-border: #64748b; /* form-field boundary, 4.8:1 on white (WCAG 2.2 SC 1.4.11) */
   --surface: #ffffff;
   --surface-2: #f8fafc;
 
@@ -210,7 +211,7 @@ p {
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--green-primary);
+  color: var(--green-700); /* 4.8:1 on mint; green-primary was 3.15:1 */
 }
 
 .text-accent {
@@ -301,13 +302,23 @@ p {
 .btn:active {
   transform: translateY(1px);
 }
+/* Keyboard focus. The global :where() focus rule removes the outline and draws
+   a box-shadow ring, but .btn-primary's own box-shadow (higher specificity)
+   replaced that ring, so primary buttons had no visible focus at all. An
+   offset outline coexists with any button shadow. */
+.btn:focus-visible {
+  outline-offset: 3px; /* color and width come from the global :focus-visible rule */
+}
+.btn-ghost-light:focus-visible {
+  --focus-outline: #fff;
+}
 .btn svg {
   width: 1.1em;
   height: 1.1em;
 }
 
 .btn-primary {
-  background: var(--green-primary);
+  background: var(--green-700);
   color: #fff;
   box-shadow: var(--shadow-green);
 }
@@ -366,9 +377,31 @@ p {
 
 /* ---------- Accessibility ---------- */
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: none;
+  /* WCAG 2.2 SC 1.4.11 / 2.4.7: a solid 3:1+ indicator. The soft brand ring alone
+     (35% green) measured 1.35:1 on white. --focus-outline flips to the accent green
+     on dark surfaces (footer, assistant bar). */
+  outline: 2px solid var(--focus-outline, var(--green-700));
+  outline-offset: 2px;
   box-shadow: var(--focus-ring);
   border-radius: 6px;
+}
+/* Focus is always visible: a component may recolor the outline via --focus-outline,
+   but may not remove it (several component rules set outline: none). */
+:focus-visible {
+  outline: 2px solid var(--focus-outline, var(--green-700)) !important;
+  outline-offset: 2px;
+}
+/* Bordered field wrappers: the wrapper is the visible control. Its border uses the
+   field token, and it carries the focus outline (the inner input would be clipped). */
+:where(input:not([type=checkbox], [type=radio], [type=range], [type=color]), select, textarea, .calc__input, .calc__select, .tools__search-field, .notfound__search, .hs-input) {
+  --border: var(--field-border);
+}
+:where(.calc__input, .calc__select, .tools__search-field, .notfound__search, .hs-input):focus-within {
+  outline: 2px solid var(--focus-outline, var(--green-700));
+  outline-offset: 2px;
+}
+:where(.calc__input, .calc__select, .tools__search-field, .notfound__search, .hs-input) :focus-visible {
+  outline: none !important;
 }
 
 .skip-link {
@@ -376,7 +409,7 @@ p {
   left: 1rem;
   top: -100px;
   z-index: 200;
-  background: var(--green-primary);
+  background: var(--green-700);
   color: #fff;
   padding: 0.7rem 1.1rem;
   border-radius: var(--radius-sm);
@@ -458,7 +491,7 @@ p {
    rule, so it isn't outranked by unlayered globals the way a component-scoped
    rule would be. */
 .social-btn.is-copied {
-  background: var(--green-primary);
+  background: var(--green-700);
   border-color: var(--green-primary);
   color: #fff;
 }
@@ -604,7 +637,7 @@ p {
   cursor: default;
 }
 .result-action--primary {
-  background: var(--green-primary);
+  background: var(--green-700);
   border-color: var(--green-primary);
   color: #fff;
   box-shadow: 0 8px 20px -8px color-mix(in srgb, var(--green-primary) 70%, transparent);
@@ -858,7 +891,7 @@ html[data-theme='dark'] .site-header[data-state='scrolled'] {
   box-shadow: var(--focus-ring);
 }
 [data-theme='dark'] .btn-primary {
-  background: var(--green-primary);
+  background: var(--green-700);
   color: #fff;
 }
 [data-theme='dark'] .btn-primary:hover {

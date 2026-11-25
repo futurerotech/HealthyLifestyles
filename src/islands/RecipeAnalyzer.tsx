@@ -140,9 +140,14 @@ export default function RecipeAnalyzer() {
             value={text}
             onInput={(e) => setText((e.target as HTMLTextAreaElement).value)}
             maxLength={5000}
+            aria-describedby="ra-text-count"
             required
           />
           <p class="ra__hint">Include quantities and units for the best results. e.g. "200g chicken breast, 1 cup rice, 2 eggs"</p>
+          {/* Browsers cut pasted text at maxLength without notice; show the limit. */}
+          <p class="ra__hint" id="ra-text-count">
+            {text.length.toLocaleString('en-US')} / 5,000 characters{text.length >= 5000 ? ' — limit reached; longer text was cut off, so check that every ingredient is included.' : ''}
+          </p>
         </div>
         <div class="ra__field-row">
           <div class="ra__field ra__field--servings">
