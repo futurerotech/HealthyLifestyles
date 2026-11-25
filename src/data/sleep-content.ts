@@ -378,8 +378,8 @@ export const SLEEP_CONTENT: Record<string, ToolContent> = {
         url: pubmed('Evening use light-emitting eReaders negatively affects sleep circadian timing next-morning alertness Chang'),
       },
       {
-        citation: 'Centers for Disease Control and Prevention. "Sleep Hygiene." — Recommendations for creating a sleep-friendly environment including limiting evening light exposure.',
-        url: 'https://www.cdc.gov/sleep/about-sleep/sleep-hygiene.html',
+        citation: 'Centers for Disease Control and Prevention. "About Sleep." — Sleep habits including turning off electronic devices at least 30 minutes before bedtime.',
+        url: 'https://www.cdc.gov/sleep/about/index.html',
       },
     ],
   },
