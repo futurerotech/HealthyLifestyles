@@ -31,9 +31,16 @@ export function mapToolContent(value: { whatItIs?: unknown; howCalculated?: unkn
     { h2: "How it is calculated", paragraphs: lexicalParagraphs(value.howCalculated) },
     { h2: 'How to read your result', paragraphs: lexicalParagraphs(value.howToRead) },
   ].filter((section) => section.paragraphs.length);
+  // An empty CMS list means the field was never filled (all 70 tools were imported with
+  // faq: [] and sources: [] on 2026-07-15), not an editorial removal. Replacing the audited
+  // authored FAQ and citations with nothing left every live tool page with empty
+  // "Frequently asked questions" and "Sources & references" sections. Only a non-empty
+  // CMS list replaces authored content.
+  const faq = Array.isArray(value.faq) ? value.faq.filter((f) => f.question && f.answer).map((f) => ({ q: f.question!, a: f.answer! })) : [];
+  const sources = Array.isArray(value.sources) ? value.sources.filter((s) => s.title).map((s) => ({ citation: s.title!, url: s.url || undefined })) : [];
   return {
     ...(sections.length ? { sections } : {}),
-    ...(Array.isArray(value.faq) ? { faq: value.faq.filter((f) => f.question && f.answer).map((f) => ({ q: f.question!, a: f.answer! })) } : {}),
-    ...(Array.isArray(value.sources) ? { sources: value.sources.filter((s) => s.title).map((s) => ({ citation: s.title!, url: s.url || undefined })) } : {}),
+    ...(faq.length ? { faq } : {}),
+    ...(sources.length ? { sources } : {}),
   };
 }

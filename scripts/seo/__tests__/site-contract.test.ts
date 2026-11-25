@@ -53,11 +53,16 @@ test('article/category collisions and reserved static routes block a build', () 
   assert.doesNotThrow(() => assertUniquePublicPaths([{ collection: 'categories', slug: 'nutrition', kind: 'tool' }, { collection: 'categories', slug: 'nutrition', kind: 'section' }]));
 });
 
-test('CMS explanations, FAQs and source removals replace stale authored content', () => {
-  const value = mapToolContent({ whatItIs: { root: { children: [{ type: 'paragraph', children: [{ type: 'text', text: 'An updated explanation.' }] }] } }, faq: [{ question: 'Updated?', answer: 'Yes.' }], sources: [] });
+test('CMS explanations and non-empty FAQs/sources replace authored content; empty CMS lists do not erase it', () => {
+  const value = mapToolContent({ whatItIs: { root: { children: [{ type: 'paragraph', children: [{ type: 'text', text: 'An updated explanation.' }] }] } }, faq: [{ question: 'Updated?', answer: 'Yes.' }], sources: [{ title: 'New source', url: 'https://www.cdc.gov/' }] });
   assert.equal(value.sections?.[0].paragraphs?.[0], 'An updated explanation.');
   assert.deepEqual(value.faq, [{ q: 'Updated?', a: 'Yes.' }]);
-  assert.deepEqual(value.sources, []);
+  assert.deepEqual(value.sources, [{ citation: 'New source', url: 'https://www.cdc.gov/' }]);
+  // Never-filled CMS fields (the live state of all 70 tools) keep the audited authored FAQ and citations.
+  const empty = mapToolContent({ faq: [], sources: [{ title: '' }], whatItIs: null });
+  assert.equal('faq' in empty, false);
+  assert.equal('sources' in empty, false);
+  assert.equal('sections' in empty, false);
 });
 
 test('CMS inline prose cannot emit executable or attribute-breaking links', () => {
