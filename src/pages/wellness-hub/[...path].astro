@@ -268,8 +268,19 @@ if (props.kind === 'article' && article) {
       : `${categorySafe.name} Guides | Wellness Hub`;
   description = `${categorySafe.blurb} Evidence-based ${categorySafe.name.toLowerCase()} guides from the ${SITE.name} Wellness Hub.`;
   // Quality Gate P3 (deterministic transform): paginated pages must not share
-  // page 1's description verbatim — append the real page marker.
-  if (page > 1) description = `${description} Page ${page} of ${totalPages}.`;
+  // page 1's description verbatim — append the real page marker. Keep the result
+  // within 155 characters so search snippets are not truncated (site audit).
+  if (page > 1) {
+    const marker = ` Page ${page} of ${totalPages}.`;
+    const full = `${description}${marker}`;
+    if (full.length <= 155) description = full;
+    else {
+      const room = 155 - marker.length;
+      const blurb = categorySafe.blurb.trim();
+      const cut = blurb.length <= room ? blurb : `${blurb.slice(0, blurb.lastIndexOf(' ', room - 1)).replace(/[\s,;:—–-]+$/, '')}…`;
+      description = `${cut}${marker}`;
+    }
+  }
 
   jsonLd = [
     breadcrumb([
