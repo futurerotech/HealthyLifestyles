@@ -42,8 +42,8 @@ test('rounded imperial labels change FFMI, so FFMI-only precision preservation m
   assert.equal(exact.primaryValue,base.primaryValue);
   assert.equal(row(exact,'Estimated fat-free mass (includes water, bone, organs)'),'134.9 lb');
   assert.equal(row(exact,'Estimated fat mass'),'23.8 lb');
-  assert.match(island,/slug === 'ffmi-calculator' && ffmiExact/);
-  assert.match(island,/setFfmiExact\(\{ weight: ctx\.vals\.weight, height: ctx\.vals\.height \}\)/);
+  assert.match(island,/EXACT_METRIC_SLUGS[\s\S]*'ffmi-calculator'/); assert.match(island,/keepsExactMetric && exactMetric/);
+  assert.match(island,/const exact = \{ weight: ctx\.vals\.weight, height: ctx\.vals\.height \};\s+setExactMetric\(exact\);/);
   assert.match(island,/delete next\[edited\]/);
 });
 test('no invalid universal grade or clipping outside former 14 to 30 gauge',()=>{

@@ -416,14 +416,22 @@ function useCountUp(value: string, active: boolean): string {
 
 // ---------- main island ----------
 
+/** Tools whose results depend on exact metric weight/height across unit switches. */
+const EXACT_METRIC_SLUGS: ReadonlySet<string> = new Set([
+  'ffmi-calculator', 'bmr-calculator', 'calorie-calculator', 'macro-calculator',
+  'keto-calculator', 'metabolic-age-calculator',
+]);
+
 export default function Calculator({ slug, toolName }: { slug: string; toolName?: string }) {
   const def = getDef(slug);
   const [units, setUnits] = useState<UnitSystem>('metric');
   const [sex, setSex] = useState<Sex>('male');
   const [disp, setDisp] = useState<Disp>(() => (def ? initialDisplay(def, 'metric') : {}));
-  // FFMI only: preserve the true metric weight/height despite rounded imperial
-  // display fields. Editing a field removes that field's precision override.
-  const [ffmiExact, setFfmiExact] = useState<{ weight?: number; height?: number } | null>(null);
+  // FFMI and the Mifflin-St Jeor energy tools: preserve the true metric weight/height
+  // across unit switches despite rounded display fields (e.g. 176 cm -> 5'9" -> 175 cm
+  // shifted BMR by ~6 kcal). Editing a field removes that field's precision override.
+  const keepsExactMetric = EXACT_METRIC_SLUGS.has(slug);
+  const [exactMetric, setExactMetric] = useState<{ weight?: number; height?: number } | null>(null);
   // Calories Burned only: preserve exact physical kg and the user-entered
   // original weight string across rounded metric/imperial display toggles.
   const [caloriesWeightOrigin, setCaloriesWeightOrigin] = useState<{
@@ -445,9 +453,9 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
   const ctx = useMemo(() => {
     if (pregnancyValues) return { vals: pregnancyValues as Record<string, number>, selects, sex, units };
     const vals = toMetric(def, disp, units);
-    if (slug === 'ffmi-calculator' && ffmiExact) {
-      if (ffmiExact.weight !== undefined) vals.weight = ffmiExact.weight;
-      if (ffmiExact.height !== undefined) vals.height = ffmiExact.height;
+    if (keepsExactMetric && exactMetric) {
+      if (exactMetric.weight !== undefined) vals.weight = exactMetric.weight;
+      if (exactMetric.height !== undefined) vals.height = exactMetric.height;
     }
     if (slug === 'calories-burned-calculator' && caloriesWeightOrigin &&
         disp.weight !== '' && Number.isFinite(vals.weight) && vals.weight > 0) {
@@ -457,7 +465,7 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
       vals.weight = oneRepLoad.kg;
     }
     return { vals, selects, sex, units };
-  }, [def, disp, units, sex, selects, slug, ffmiExact, caloriesWeightOrigin, oneRepLoad, pregnancyValues]);
+  }, [def, disp, units, sex, selects, keepsExactMetric, exactMetric, caloriesWeightOrigin, oneRepLoad, pregnancyValues]);
   const visible = def.fields.filter((f) => !f.showIf || f.showIf(ctx));
   // Only show the metric/imperial toggle if some field actually converts.
   const showUnits = def.fields.some((f) => f.type === 'mass' || f.type === 'length' || f.type === 'height');
@@ -622,9 +630,9 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
   const setField = (key: string, val: string) => {
     setDisp((d) => ({ ...d, [key]: val }));
     if (pregnancy) setPreservedPregnancy((p) => forgetPregnancyMeasurement(p, key));
-    if (slug === 'ffmi-calculator' && (key === 'weight' || key === 'height' || key === 'height_ft' || key === 'height_in')) {
+    if (keepsExactMetric && (key === 'weight' || key === 'height' || key === 'height_ft' || key === 'height_in')) {
       const edited: 'weight' | 'height' = key === 'weight' ? 'weight' : 'height';
-      setFfmiExact((old) => {
+      setExactMetric((old) => {
         if (!old) return null;
         const next = { ...old };
         delete next[edited];
@@ -649,10 +657,19 @@ export default function Calculator({ slug, toolName }: { slug: string; toolName?
       setPreservedPregnancy(pregnancyValues);
       setDisp(pregnancyDisplay(pregnancyValues, to, disp.week ?? ''));
     } else {
-      if (slug === 'ffmi-calculator') {
-        setFfmiExact({ weight: ctx.vals.weight, height: ctx.vals.height });
-      }
-      if (slug === 'calories-burned-calculator') {
+      if (keepsExactMetric) {
+        const exact = { weight: ctx.vals.weight, height: ctx.vals.height };
+        setExactMetric(exact);
+        setDisp((d) => {
+          const converted = convertDisplay(def, d, to);
+          // Back in metric, show the preserved measurement, not a re-rounded one.
+          if (to === 'metric') {
+            if (Number.isFinite(exact.weight) && exact.weight > 0) converted.weight = String(round(exact.weight, 1));
+            if (Number.isFinite(exact.height) && exact.height > 0) converted.height = String(round(exact.height, 1));
+          }
+          return converted;
+        });
+      } else if (slug === 'calories-burned-calculator') {
         const preserved = caloriesWeightOrigin ?? {
           kg: ctx.vals.weight,
           unit: units,
