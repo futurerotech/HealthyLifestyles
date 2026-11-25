@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 const source = (path) => readFileSync(new URL('../../../' + path, import.meta.url), 'utf8');
 
 test('medical attribution requires a meaningful explicitly assigned reviewer; update dates are not review dates', async () => {
-  assert.doesNotMatch(source('cms/src/app/tools/pseo/[slug]/page.tsx'), /lastReviewed:.*updatedAt/);
+  // The CMS pSEO page is checked in the CMS repository (src/app/tools/pseo/review-claims.test.ts).
   const { assignedReviewer } = await import('../../../src/lib/medical-review.ts');
   const person = { slug: 'test-reviewer', name: 'Test Reviewer', schemaType: 'Person', credential: 'Test credential', bio: 'Test-only profile' };
   const generic = { ...person, slug: 'medical-review', schemaType: 'Organization' };
@@ -14,7 +14,7 @@ test('medical attribution requires a meaningful explicitly assigned reviewer; up
   assert.equal(assignedReviewer(person.slug, [{ ...person, credential: '' }]), undefined);
   assert.equal(assignedReviewer(person.slug, [person]), person);
   assert.equal(assignedReviewer(person.name, [person]), person);
-  for (const path of ['src/components/ToolPageLayout.astro', 'src/pages/ai-assistant.astro', 'src/pages/health-score.astro', 'src/pages/methodology.astro', 'src/pages/medical-disclaimer.astro', 'cms/src/app/tools/pseo/[slug]/page.tsx']) {
+  for (const path of ['src/components/ToolPageLayout.astro', 'src/pages/ai-assistant.astro', 'src/pages/health-score.astro', 'src/pages/methodology.astro', 'src/pages/medical-disclaimer.astro']) {
     assert.doesNotMatch(source(path), /lastReviewed:|reviewedBy:/, path);
   }
   assert.doesNotMatch(source('src/pages/wellness-hub/[...path].astro'), /lastReviewed:.*updatedDate|reviewer \|\| REVIEWER_SLUG/);
@@ -27,7 +27,7 @@ test('medical attribution requires a meaningful explicitly assigned reviewer; up
 test('AI manifest and editorial copy do not imply unassigned medical review', () => {
   const llms = source('src/pages/llms.txt.ts');
   assert.doesNotMatch(llms, /carry named author and medical\s+reviewer attribution|require human\s+medical review/i);
-  assert.match(llms, /Medical-review attribution appears only when/i);
+  assert.match(llms, /Medical-review attribution is withheld until an individual's\s+qualifications and completed review can be verified; update dates are not review dates/i);
   assert.doesNotMatch(source('src/pages/methodology.astro'), /author\/medical-review|medical review board/i);
   assert.doesNotMatch(source('src/data/authors.ts'), /medical review board/i);
   assert.doesNotMatch(source('src/data/articles.ts'), /each checked by our medical review team/i);

@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
+import { readFileSync } from 'node:fs';
 registerHooks({ resolve(specifier, context, next) {
   if (specifier.startsWith('.') && !/\.[a-z]+$/i.test(specifier)) specifier += '.ts';
   return next(specifier, context);
@@ -55,4 +56,22 @@ test('page content states the adult scope rather than the general population', (
   const text = JSON.stringify(BODY_WEIGHT_CONTENT['bmr-calculator']);
   assert.doesNotMatch(text, /for the general population/);
   assert.match(text, /under 18/i);
+});
+
+test('unit switching keeps the exact metric measurement for BMR and the other Mifflin tools', async () => {
+  const { lbToKg, kgToLb, ftInToCm } = await import('../../../src/lib/units.ts');
+  // A rounded imperial round trip changes the measurement: 176 cm -> 5 ft 9 in -> 175 cm.
+  const inches = 176 / 2.54;
+  const ft = Math.floor(inches / 12), inch = Math.round(inches - ft * 12);
+  const roundTripCm = Math.round(ftInToCm(ft, inch));
+  assert.notEqual(roundTripCm, 176);
+  const kcal = (r: { primaryValue?: string }) => Number(r.primaryValue?.replace(/[^\d]/g, ''));
+  const exact = kcal(compute(72.5, 176, 30, 'male'));
+  const drifted = kcal(compute(lbToKg(Math.round(kgToLb(72.5) * 10) / 10), roundTripCm, 30, 'male'));
+  assert.notEqual(drifted, exact, 'drift is user-visible, so the island must preserve exact values');
+  const island = readFileSync(new URL('../../../src/islands/Calculator.tsx', import.meta.url), 'utf8');
+  for (const slug of ['bmr-calculator', 'calorie-calculator', 'macro-calculator', 'keto-calculator', 'metabolic-age-calculator', 'ffmi-calculator']) {
+    assert.match(island, new RegExp(`EXACT_METRIC_SLUGS[\\s\\S]*'${slug}'`), slug);
+  }
+  assert.match(island, /if \(to === 'metric'\) \{[\s\S]*round\(exact\.height, 1\)/);
 });

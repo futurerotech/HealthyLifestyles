@@ -679,7 +679,7 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
         list: {
           intro: 'These carry the most weight in your score:',
           items: [
-            'Fiber: the single most important fuel for beneficial gut bacteria. Aim for 25–35g/day from whole grains, vegetables, fruit, legumes, nuts, and seeds.',
+            'Fiber: the single most important fuel for beneficial gut bacteria. Most adults need about 21–38 g a day depending on age and sex, from whole grains, vegetables, fruit, legumes, nuts, and seeds.',
             'Plant diversity: research shows that people who eat 30+ different plants per week have a more diverse microbiome, which is associated with better health outcomes.',
             'Fermented foods: yogurt, kefir, sauerkraut, kimchi, and kombucha add live cultures that may support gut microbial balance.',
           ],
@@ -711,7 +711,7 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
       },
       {
         q: 'How much fiber should I eat for gut health?',
-        a: 'Most adults should aim for 25–35 grams of fiber per day. The average person eats far less than that. Increase gradually over a week or two and drink plenty of water — a sudden fiber jump can cause bloating.',
+        a: 'Most adults need about 21–38 grams of fiber per day, depending on age and sex (for example, 25 g for women and 38 g for men aged 50 or younger). The average person eats far less than that. Increase gradually over a week or two and drink plenty of water — a sudden fiber jump can cause bloating.',
       },
       {
         q: 'Why does plant diversity matter?',
@@ -728,8 +728,8 @@ export const NUTRITION_CONTENT: Record<string, ToolContent> = {
         url: 'https://www.dietaryguidelines.gov/',
       },
       {
-        citation: 'National Institutes of Health, Office of Dietary Supplements. "Dietary Fiber." Consumer & Health Professional Fact Sheet.',
-        url: 'https://ods.od.nih.gov/factsheets/Fiber-Consumer/',
+        citation: 'Mayo Clinic Staff. "Dietary fiber: Essential for a healthy diet." Mayo Clinic — daily fiber recommendations by age and sex.',
+        url: 'https://www.mayoclinic.org/healthy-lifestyle/nutrition-and-healthy-eating/in-depth/fiber/art-20043983',
       },
       {
         citation: 'McDonald D, Hyde E, Debelius JW, et al. "American Gut: an open platform for citizen science microbiome research." mSystems. 2018;3(3):e00031-18.',
