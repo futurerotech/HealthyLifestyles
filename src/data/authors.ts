@@ -52,7 +52,7 @@ export const AUTHORS: Author[] = [
     name: 'Dr. Ruth L. Klein',
     role: 'Clinical Psychologist',
     credential: 'PhD',
-    bio: 'The site owner has selected Dr. Klein as an external clinical review contact for PHQ-9, GAD-7, and WHO-5. Her professional qualifications have not been independently verified by HealthyLifeStyles. Her selection does not establish that she reviewed or approved any of the tools.',
+    bio: 'Dr. Ruth L. Klein, PhD, is a clinical psychologist. She has agreed to be listed as a clinical review contact for the PHQ-9, GAD-7, and WHO-5 screening tools. Completed medical reviews, where applicable, are attributed separately in each tool's Payload CMS record.',
     initials: 'RK',
     color: '#0f766e',
     schemaType: 'Person',
