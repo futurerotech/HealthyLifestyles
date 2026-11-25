@@ -47,6 +47,16 @@ export const AUTHORS: Author[] = [
     schemaType: 'Organization',
     links: SITE_LINKS,
   },
+  {
+    slug: 'ruth-l-klein',
+    name: 'Dr. Ruth L. Klein',
+    role: 'Clinical Psychologist',
+    credential: 'PhD',
+    bio: 'Professional directory records identify Dr. Klein as a clinical psychologist in Maryland (license 03141; NPI 1396714648). The site owner has designated her as an external review contact for PHQ-9, GAD-7, and WHO-5. This profile does not attest that any of those tools has received her clinical review or approval.',
+    initials: 'RK',
+    color: '#0f766e',
+    schemaType: 'Person',
+  },
 ];
 
 // Canonical roles used across the site.
