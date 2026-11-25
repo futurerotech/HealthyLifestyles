@@ -8,7 +8,7 @@
  * (23:30 and 00:30 are 60 minutes apart, not 23 hours). Descriptive only: no score, no
  * diagnosis. Nothing is stored or sent.
  */
-import { parseTime } from './time';
+import { parseTime } from './time.ts';
 
 const DAY = 1440;
 
