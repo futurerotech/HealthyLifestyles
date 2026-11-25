@@ -211,3 +211,60 @@ export function buildProgram(inputs: ProgramInputs): Program {
     warmupNote,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Phase 5 Candidate 3: transparent next-block progression.
+// Rule basis: ACSM Position Stand "Progression models in resistance training for
+// healthy adults" (Med Sci Sports Exerc 2009;41(3):687-708) recommends a 2–10% load
+// increase once the current load is completed for the target repetitions. Here the
+// increase is a fixed small step (upper body 2.5 kg / 5 lb, lower body 5 kg / 10 lb),
+// never more than 10% of the 1RM. Missed reps in one week repeat the block; missed reps
+// in two or more weeks reset the 1RM by 10%. Pain never produces a number.
+// Educational only, adults only; nothing is stored.
+
+export type BlockOutcome = 'completed' | 'missed-one' | 'missed-multiple' | 'pain';
+
+export interface NextBlockResult {
+  key: LiftKey;
+  outcome: BlockOutcome;
+  /** Suggested 1RM for the next block, or null when the lift should not be progressed. */
+  nextOneRm: number | null;
+  change: number;
+  note: string;
+}
+
+const LOWER_BODY: ReadonlySet<LiftKey> = new Set<LiftKey>(['squat', 'deadlift']);
+
+export function progressionStep(key: LiftKey, units: Units): number {
+  const lower = LOWER_BODY.has(key);
+  if (units === 'kg') return lower ? 5 : 2.5;
+  return lower ? 10 : 5;
+}
+
+function floorToIncrement(weight: number, units: Units): number {
+  const inc = increment(units);
+  return Math.floor(weight / inc + 1e-9) * inc;
+}
+
+export function nextBlock(key: LiftKey, oneRm: number, outcome: BlockOutcome, units: Units): NextBlockResult {
+  if (!(oneRm > 0)) throw new RangeError('oneRm must be positive');
+  if (outcome === 'pain') {
+    return {
+      key, outcome, nextOneRm: null, change: 0,
+      note: 'Stop this lift. Pain during or after lifting is not something to train through; if it persists or is sharp, see a clinician or physical therapist before continuing.',
+    };
+  }
+  if (outcome === 'missed-one') {
+    return { key, outcome, nextOneRm: oneRm, change: 0, note: 'Repeat the block at the same weights and aim to complete every set.' };
+  }
+  if (outcome === 'missed-multiple') {
+    const next = Math.max(increment(units), roundToIncrement(oneRm * 0.9, units));
+    return { key, outcome, nextOneRm: next, change: next - oneRm, note: 'Reset about 10% lighter, rebuild with good form, then progress again.' };
+  }
+  // Completed: fixed step, capped at 10% of the 1RM (ACSM 2–10%).
+  const step = Math.min(progressionStep(key, units), floorToIncrement(oneRm * 0.1, units));
+  if (step <= 0) {
+    return { key, outcome, nextOneRm: oneRm, change: 0, note: 'The smallest plate step would be more than 10% of this lift. Repeat the block or use smaller plates or dumbbells.' };
+  }
+  return { key, outcome, nextOneRm: oneRm + step, change: step, note: `Add ${step} ${units} to the 1RM used for the next block.` };
+}

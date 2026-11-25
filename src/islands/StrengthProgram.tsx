@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import {
   buildProgram,
+  nextBlock,
   roundToIncrement,
   LIFT_NAMES,
   LIFT_ORDER,
@@ -10,7 +11,15 @@ import {
   type Units,
   type LiftKey,
   type Program,
+  type BlockOutcome,
 } from '../lib/strength-program';
+
+const OUTCOME_LABEL: Record<BlockOutcome, string> = {
+  completed: 'Completed every set and rep with good form',
+  'missed-one': 'Missed reps in one week',
+  'missed-multiple': 'Missed reps in two or more weeks',
+  pain: 'Had pain with this lift',
+};
 
 interface LiftState { enabled: boolean; oneRm: number; }
 
@@ -46,6 +55,7 @@ export default function StrengthProgram() {
   const [goal, setGoal] = useState<Goal>('strength');
   const [program, setProgram] = useState<Program | null>(null);
   const [error, setError] = useState('');
+  const [outcomes, setOutcomes] = useState<Partial<Record<LiftKey, BlockOutcome>>>({});
 
   // Prefill 1RMs from URL params (?squat=&bench=&deadlift=&ohp=&row=&units=).
   useEffect(() => {
@@ -83,7 +93,9 @@ export default function StrengthProgram() {
   const setOneRm = (k: LiftKey, v: number) => setLifts((l) => ({ ...l, [k]: { ...l[k], oneRm: v } }));
   const toggleLift = (k: LiftKey) => setLifts((l) => ({ ...l, [k]: { ...l[k], enabled: !l[k].enabled } }));
 
-  const generate = () => {
+  const generate = (src: Record<LiftKey, LiftState> = lifts) => {
+    const lifts = src;
+    setOutcomes({});
     const selected = LIFT_ORDER.filter((k) => lifts[k].enabled);
     if (selected.length === 0) { setError('Pick at least one lift to train.'); setProgram(null); return; }
     const bad = selected.find((k) => !(lifts[k].oneRm > 0) || lifts[k].oneRm > (units === 'kg' ? 600 : 1300));
@@ -187,7 +199,7 @@ export default function StrengthProgram() {
         </div>
 
         {error && <p class="sp__error" role="alert">{error}</p>}
-        <button type="button" class="btn btn-primary btn-lg sp__go" onClick={generate}>Build my 4-week program</button>
+        <button type="button" class="btn btn-primary btn-lg sp__go" onClick={() => generate()}>Build my 4-week program</button>
       </div>
 
       {/* ---------------- Result ---------------- */}
@@ -267,6 +279,58 @@ export default function StrengthProgram() {
           </section>
 
           <p class="sp__rest">{program.restGuidance} {program.warmupNote}</p>
+
+          {/* Next-block progression (Phase 5 Candidate 3) */}
+          <section class="sp__next card" aria-labelledby="sp-next-h">
+            <h3 class="sp__h" id="sp-next-h">After the block: plan the next one</h3>
+            <p class="sp__next-intro">When you finish the 4 weeks, record how each lift went. The next block uses simple, transparent rules: a small step up after a fully completed block (never more than 10% of your 1RM), the same weights after missing reps in one week, and about 10% lighter after missing reps in two or more weeks. Nothing is saved or sent.</p>
+            {program.lifts.map((lift) => {
+              const oc = outcomes[lift.key];
+              const res = oc ? nextBlock(lift.key, lift.oneRm, oc, program.units) : null;
+              return (
+                <div class="sp__next-row">
+                  <label class="sp__field">
+                    <span>{lift.name} (1RM {lift.oneRm} {program.units})</span>
+                    <select
+                      value={oc ?? ''}
+                      onChange={(e) => {
+                        const v = (e.target as HTMLSelectElement).value as BlockOutcome | '';
+                        setOutcomes((o) => ({ ...o, [lift.key]: v || undefined }));
+                      }}
+                    >
+                      <option value="">How did this block go?</option>
+                      {(Object.keys(OUTCOME_LABEL) as BlockOutcome[]).map((k) => <option value={k}>{OUTCOME_LABEL[k]}</option>)}
+                    </select>
+                  </label>
+                  {res && (
+                    <p class={res.outcome === 'pain' ? 'sp__error' : 'sp__next-res'} role="status">
+                      {res.nextOneRm !== null && <strong>Next 1RM: {res.nextOneRm} {program.units}. </strong>}
+                      {res.note}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+            <button
+              type="button"
+              class="btn btn-primary"
+              disabled={!program.lifts.some((l) => outcomes[l.key])}
+              onClick={() => {
+                const next = { ...lifts };
+                for (const l of program.lifts) {
+                  const oc = outcomes[l.key];
+                  if (!oc) continue;
+                  const res = nextBlock(l.key, l.oneRm, oc, program.units);
+                  next[l.key] = res.nextOneRm === null ? { ...next[l.key], enabled: false } : { enabled: true, oneRm: res.nextOneRm };
+                }
+                setLifts(next);
+                generate(next);
+              }}
+            >
+              Build my next block
+            </button>
+            <p class="sp__next-note">Rules follow the general progression guidance of the American College of Sports Medicine for healthy adults. This is educational, not individual coaching. Lifts marked with pain are left out of the next block.</p>
+          </section>
         </div>
       )}
     </div>

@@ -315,3 +315,26 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Next-block progression (Phase 5 Candidate 3) */
+.sp__next {
+  display: grid;
+  gap: 0.85rem;
+}
+.sp__next-intro,
+.sp__next-note {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+.sp__next-row {
+  display: grid;
+  gap: 0.4rem;
+}
+.sp__next-res {
+  margin: 0;
+  font-size: 0.95rem;
+}
+.sp__next .btn {
+  justify-self: start;
+}

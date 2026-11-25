@@ -378,6 +378,34 @@ test('changed calculators: hydration, interaction, 390px and desktop fit, access
       report.push('due-date-calculator: future-date=checked');
     } catch (e) { failures.push('due-date-calculator: ' + e); }
 
+    // Strength program next block (Phase 5 C3): completed squat steps up 5 kg, a lift with pain is left out.
+    try {
+      await openTool('strength-program-builder');
+      await js("[...document.querySelectorAll('.tool__calc button')].find((b) => /Build my 4-week program/.test(b.textContent)).click()");
+      await until(() => js("!!document.querySelector('.tool__calc .sp__next select')"), 'next-block section', 8000);
+      const pick = (lift, value) => js(`(() => { const row = [...document.querySelectorAll('.tool__calc .sp__next-row')].find((r) => r.textContent.startsWith(${JSON.stringify(lift)}));
+        const s = row.querySelector('select'); Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set.call(s, ${JSON.stringify(value)});
+        s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+      await pick('Back Squat', 'completed');
+      await pick('Bench Press', 'pain');
+      await until(async () => /Next 1RM: 105 kg/.test(await js("document.querySelector('.tool__calc .sp__next').textContent")), 'squat next 1RM', 5000)
+        .catch(() => failures.push('strength-program-builder: completed squat did not suggest 105 kg'));
+      const painNote = await js("[...document.querySelectorAll('.tool__calc .sp__next-row')].find((r) => r.textContent.startsWith('Bench Press')).textContent");
+      if (/Next 1RM/.test(painNote) || !/clinician/.test(painNote)) failures.push('strength-program-builder: pain outcome text ' + painNote.slice(0, 160));
+      await js("[...document.querySelectorAll('.tool__calc .sp__next button')].find((b) => /Build my next block/.test(b.textContent)).click()");
+      await until(async () => /1RM 105 kg/.test(await js("document.querySelector('.tool__calc .sp__result').textContent")), 'rebuilt block', 5000)
+        .catch(() => failures.push('strength-program-builder: next block not rebuilt at 105 kg'));
+      const after = await js(`(() => { const r = document.querySelector('.tool__calc .sp__result');
+        return { bench: [...r.querySelectorAll('.sp__lift-block')].some((b) => /Bench Press/.test(b.textContent)),
+          reset: [...r.querySelectorAll('.sp__next select')].every((s) => s.value === ''),
+          scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth }; })()`);
+      if (after.bench) failures.push('strength-program-builder: lift with pain still in next block');
+      if (!after.reset) failures.push('strength-program-builder: outcomes not cleared for the new block');
+      if (after.scroll > after.client + 1) failures.push(`strength-program-builder: 390px overflow (${after.scroll} > ${after.client})`);
+      if (exceptions.length) failures.push('strength-program-builder: uncaught exceptions ' + JSON.stringify(exceptions.slice(0, 3)));
+      report.push('strength-program-builder: next-block=checked');
+    } catch (e) { failures.push('strength-program-builder: ' + e); }
+
     // BMR: a metric -> imperial -> metric round trip must not change the measurement or result
     // (176 cm used to come back as 175 cm, shifting BMR by about 6 kcal).
     try {
